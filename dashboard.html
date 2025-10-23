@@ -473,39 +473,93 @@
         function loadUserProfile() {
             try {
                 console.log('Attempting to load user profile from localStorage...');
-                const movaData = localStorage.getItem('mova_leader');
-                console.log('Raw movaData:', movaData);
                 
-                if (!movaData) {
-                    console.log('No mova_leader data found in localStorage');
-                    return false;
+                // Method 1: Try to get the main session object
+                let movaData = localStorage.getItem('mova_leader');
+                console.log('Main session data:', movaData);
+                
+                if (movaData) {
+                    const parsedData = JSON.parse(movaData);
+                    console.log('Parsed session data:', parsedData);
+                    
+                    // Check if session is expired
+                    if (parsedData.expires_at && parsedData.expires_at < Date.now()) {
+                        console.log('Session expired');
+                        clearSession();
+                        return false;
+                    }
+                    
+                    if (parsedData.profile && parsedData.profile.id) {
+                        currentLeader = parsedData.profile;
+                        leaderName.textContent = currentLeader.name || 'Leader';
+                        leaderInitial.textContent = (currentLeader.name || 'L').charAt(0).toUpperCase();
+                        console.log('User profile loaded from main session');
+                        return true;
+                    }
                 }
                 
-                const parsedData = JSON.parse(movaData);
-                console.log('Parsed movaData:', parsedData);
+                // Method 2: Fallback to individual items
+                console.log('Trying fallback method...');
+                const leaderId = localStorage.getItem('mova_leader_id');
+                const leaderNameStr = localStorage.getItem('mova_leader_name');
                 
-                if (!parsedData.profile) {
-                    console.log('No profile found in movaData');
-                    return false;
+                if (leaderId && leaderNameStr) {
+                    currentLeader = {
+                        id: leaderId,
+                        name: leaderNameStr,
+                        phone: localStorage.getItem('mova_leader_phone') || '',
+                        role: 'leader'
+                    };
+                    leaderName.textContent = currentLeader.name;
+                    leaderInitial.textContent = currentLeader.name.charAt(0).toUpperCase();
+                    console.log('User profile loaded from fallback method');
+                    
+                    // Save in the new format for future use
+                    saveSessionData({
+                        leader_id: currentLeader.id,
+                        profile: currentLeader
+                    });
+                    
+                    return true;
                 }
                 
-                const profile = parsedData.profile;
-                console.log('Profile:', profile);
-                
-                if (!profile.id) {
-                    console.log('No id found in profile');
-                    return false;
-                }
-                
-                currentLeader = profile;
-                leaderName.textContent = profile.name || 'Leader';
-                leaderInitial.textContent = (profile.name || 'L').charAt(0).toUpperCase();
-                console.log('User profile loaded successfully');
-                return true;
+                console.log('No valid session found');
+                return false;
             } catch (error) {
                 console.error('Error loading user profile:', error);
                 return false;
             }
+        }
+
+        function saveSessionData(data) {
+            try {
+                const sessionData = {
+                    profile: data.profile || {
+                        id: data.leader_id || '',
+                        name: data.profile?.name || data.leader_name || '',
+                        phone: data.profile?.phone || data.phone || '',
+                        role: data.profile?.role || 'leader'
+                    },
+                    login_at: Date.now(),
+                    expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24 jam
+                };
+                
+                localStorage.setItem("mova_leader", JSON.stringify(sessionData));
+                console.log('Session data saved:', sessionData);
+                return true;
+            } catch (error) {
+                console.error('Error saving session data:', error);
+                return false;
+            }
+        }
+
+        function clearSession() {
+            localStorage.removeItem('mova_leader');
+            localStorage.removeItem('mova_leader_id');
+            localStorage.removeItem('mova_leader_name');
+            localStorage.removeItem('mova_leader_phone');
+            localStorage.removeItem('mova_login_at');
+            console.log('Session cleared');
         }
 
         function showAuthError() {
@@ -913,18 +967,20 @@
         });
 
         goToLoginBtn.addEventListener('click', () => {
-            window.location.href = 'login.html';
+            clearSession();
+            window.location.href = "index.html";
         });
 
         // Logout & Navigation
         logoutBtn.addEventListener('click', () => {
-            localStorage.removeItem('mova_leader');
+            clearSession();
             showToast('Anda telah log keluar.');
-            setTimeout(() => window.location.href = 'login.html', 1000);
+            setTimeout(() => window.location.href = "index.html", 1000);
         });
 
         backToLoginBtn.addEventListener('click', () => {
-            window.location.href = 'login.html';
+            clearSession();
+            window.location.href = "index.html";
         });
 
         // --- INITIALIZATION ---
