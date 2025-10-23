@@ -1,286 +1,302 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MOVA Leader Dashboard</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MOVA • Leader Console</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      margin: 0;
-      background: #fff;
-      color: #222;
+    :root{
+      --bg1:#fdf2f8; --bg2:#fde2e4; --primary:#e11d48; --primary-700:#be123c;
+      --card:#ffffff; --muted:#6b7280; --ring:#fca5a5; --ok:#059669;
+      --shadow:0 10px 30px rgba(0,0,0,.08);
+      --br:18px;
     }
+    *{ box-sizing:border-box }
+    html,body{ height:100% }
+    body{
+      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
+      background: radial-gradient(80% 60% at 20% 10%, var(--bg1), #fff 50%) ,
+                  radial-gradient(90% 70% at 90% 10%, var(--bg2), #fff 60%);
+      color:#111827;
+    }
+    .container{ max-width:1120px; margin:0 auto; padding:32px }
+    .hidden{ display:none }
 
-    header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #e30613;
-      color: #fff;
-      padding: 1rem 2rem;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    /* Card */
+    .card{
+      background:var(--card);
+      border-radius:var(--br);
+      box-shadow:var(--shadow);
+      border:1px solid #f3f4f6;
     }
+    .p16{ padding:16px } .p24{ padding:24px } .p32{ padding:32px }
+    .mb16{ margin-bottom:16px } .mb24{ margin-bottom:24px } .mb32{ margin-bottom:32px }
+    .mt16{ margin-top:16px } .mt24{ margin-top:24px } .mt32{ margin-top:32px }
 
-    header img {
-      width: 60px;
-      border-radius: 50%;
+    /* Inputs */
+    .input{
+      width:100%; padding:14px 16px; border-radius:12px;
+      border:1px solid #e5e7eb; background:#fff; color:#111827; outline:none;
+      transition:.2s border,.2s box-shadow;
     }
+    .input:focus{ border-color:var(--ring); box-shadow:0 0 0 4px rgba(244,63,94,.12) }
+    .switch{ display:flex; align-items:center; gap:8px }
 
-    header button {
-      background: #fff;
-      color: #e30613;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:10px;
+      height:44px; padding:0 18px; border-radius:12px; font-weight:600;
+      border:0; cursor:pointer; transition:.2s transform, .2s box-shadow, .2s background;
     }
+    .btn:active{ transform: translateY(1px) }
+    .btn-primary{ background:linear-gradient(180deg, var(--primary), var(--primary-700)); color:#fff; box-shadow:0 8px 16px rgba(225,29,72,.3) }
+    .btn-primary:hover{ filter:saturate(1.08) }
+    .btn-soft{ background:#f3f4f6; color:#111827 }
+    .btn-green{ background:#10b981; color:#fff; box-shadow:0 8px 16px rgba(16,185,129,.24) }
+    .btn-green:hover{ filter:saturate(1.05) }
 
-    main {
-      max-width: 1000px;
-      margin: 2rem auto;
-      padding: 1rem;
-    }
+    .grid{ display:grid; gap:24px }
+    @media(min-width:900px){ .grid{ grid-template-columns:repeat(3,1fr) } }
 
-    .nav {
-      display: flex;
-      justify-content: space-around;
-      margin-bottom: 2rem;
-      flex-wrap: wrap;
-      gap: 1rem;
+    header .brand{
+      display:flex; align-items:center; gap:14px;
+      font-weight:800; letter-spacing:.3px; font-size:20px;
     }
+    .chip{ padding:4px 10px; border-radius:999px; background:#fee2e2; color:#991b1b; font-weight:700; font-size:12px }
 
-    button {
-      background: #e30613;
-      color: #fff;
-      border: none;
-      padding: 0.7rem 1.2rem;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: 0.2s;
+    /* Center login card */
+    .center{
+      min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:24px;
     }
-
-    button:hover {
-      background: #c10511;
+    .logo{
+      width:72px; height:72px; border-radius:16px; background:#fff; display:grid; place-items:center;
+      box-shadow:var(--shadow); border:1px solid #f3f4f6; margin:0 auto 16px;
     }
-
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      padding: 1.5rem;
-      margin-bottom: 1rem;
-    }
-
-    textarea, input {
-      width: 100%;
-      margin: 0.5rem 0;
-      padding: 0.75rem;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .media-preview img, .media-preview video {
-      max-width: 150px;
-      margin: 0.5rem;
-      border-radius: 8px;
-    }
-
-    /* Login Page */
-    .login-container {
-      height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(to right, #e30613, #ffffff);
-    }
-
-    .login-card {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 16px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 320px;
-    }
-
-    .login-card img {
-      width: 100px;
-      margin-bottom: 1rem;
-    }
-
-    .msg {
-      color: #e30613;
-      font-weight: 500;
-      margin-top: 1rem;
-    }
-
-    iframe {
-      width: 100%;
-      height: 400px;
-      border: none;
-      border-radius: 8px;
-    }
+    .logo img{ width:46px; height:46px }
+    .title{ text-align:center; font-size:26px; font-weight:800; margin:6px 0 24px }
+    .muted{ color:var(--muted); font-size:13px }
+    pre{ background:#0f172a; color:#e5e7eb; padding:14px; border-radius:12px; overflow:auto }
+    .media-list img, .media-list video{ max-width:120px; border-radius:12px; margin:6px; border:1px solid #f3f4f6; box-shadow:var(--shadow) }
   </style>
 </head>
 <body>
 
-  <!-- LOGIN SCREEN -->
-  <div id="loginPage" class="login-container">
-    <div class="login-card">
-      <img src="https://i.ibb.co/6Fqfh4f/mova-logo.png" alt="MOVA Logo">
-      <h2>Leader Login</h2>
-      <input type="text" id="leader_name" placeholder="Nama Leader" required>
-      <input type="text" id="phone" placeholder="No Telefon" required>
-      <button onclick="login()">Login</button>
-      <p id="loginMsg" class="msg"></p>
+<!-- ==================== LOGIN ==================== -->
+<section id="loginPage" class="center">
+  <div class="card p32" style="width:min(440px, 100%)">
+    <div class="logo">
+      <!-- tukar logo jika perlu -->
+      <img src="https://img.icons8.com/ios-filled/100/fa314a/rocket.png" alt="logo">
     </div>
-  </div>
+    <div class="title">Leader Login</div>
 
-  <!-- DASHBOARD -->
-  <div id="dashboard" class="hidden">
-    <header>
-      <img src="https://i.ibb.co/6Fqfh4f/mova-logo.png">
-      <h1>MOVA Leader Dashboard</h1>
-      <button onclick="logout()">Logout</button>
+    <label class="muted">Nama leader</label>
+    <input id="leader_name" class="input mb16" placeholder="contoh: amirul">
+
+    <label class="muted">No. Telefon</label>
+    <input id="phone" class="input mb24" placeholder="contoh: 0109074190">
+
+    <button class="btn btn-primary" style="width:100%" onclick="login()">Login</button>
+    <div id="loginMsg" class="mt16 muted"></div>
+  </div>
+</section>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div id="dashboard" class="hidden">
+  <div class="container">
+    <header class="mb24" style="display:flex;align-items:center;justify-content:space-between">
+      <div class="brand">
+        <span class="chip">MOVA</span>
+        <span>Leader Console</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div id="who" class="muted"></div>
+        <button class="btn btn-soft" onclick="logout()">Log Keluar</button>
+      </div>
     </header>
 
-    <main>
-      <nav class="nav">
-        <button onclick="showSection('content')">📝 Kandungan</button>
-        <button onclick="showSection('media')">📸 Media</button>
-        <button onclick="showSection('broadcast')">📢 Broadcast</button>
-        <button onclick="showSection('preview')">👁️ Preview</button>
-      </nav>
+    <div class="grid">
+      <!-- Kandungan Laman -->
+      <div class="card p24">
+        <h3 style="margin:0 0 8px">Kandungan Laman</h3>
+        <p class="muted mb16">Maklumat yang dipaparkan kepada pelanggan.</p>
 
-      <section id="content" class="card section">
-        <h2>Tambah / Edit Kandungan</h2>
-        <input type="text" id="title" placeholder="Tajuk">
-        <textarea id="body" placeholder="Isi kandungan (boleh guna HTML)"></textarea>
-        <input type="text" id="media_urls" placeholder="Pautan media (Drive URL)">
-        <label><input type="checkbox" id="published"> Siar kepada pelanggan</label>
-        <button onclick="saveContent()">💾 Simpan Kandungan</button>
-        <div id="contentResult" class="result"></div>
-      </section>
+        <label class="muted">Tajuk</label>
+        <input id="title" class="input mb12" placeholder="Contoh: Promosi MOVA">
 
-      <section id="media" class="card section hidden">
-        <h2>Muat Naik Gambar / Video</h2>
-        <input type="file" id="mediaFile" accept="image/*,video/*">
-        <button onclick="uploadMedia()">📤 Upload</button>
-        <div id="mediaPreview" class="media-preview"></div>
-      </section>
+        <label class="muted">Isi kandungan</label>
+        <textarea id="body" class="input mb12" rows="6" placeholder="Tulis pengumuman, panduan, pautan video dsb."></textarea>
 
-      <section id="broadcast" class="card section hidden">
-        <h2>Broadcast Mesej WhatsApp</h2>
-        <textarea id="broadcastMsg" placeholder="Tulis mesej anda..."></textarea>
-        <button onclick="broadcast()">📱 Hantar Kepada Semua Pelanggan</button>
-        <div id="broadcastResult" class="result"></div>
-      </section>
+        <label class="switch mb16"><input type="checkbox" id="published"> Terbitkan</label>
 
-      <section id="preview" class="card section hidden">
-        <h2>Preview Website</h2>
-        <iframe id="sitePreview" src=""></iframe>
-      </section>
-    </main>
+        <label class="muted">Media URLs (jika ada, pisah dengan koma)</label>
+        <input id="media_urls" class="input mb16" placeholder="https://..., https://...">
+
+        <div style="display:flex; gap:10px">
+          <button class="btn btn-primary" onclick="saveContent()">Simpan / Kemas Kini</button>
+          <button class="btn btn-soft" onclick="clearContent()">Kosongkan</button>
+        </div>
+
+        <div class="mt16">
+          <pre id="contentResult" class="hidden"></pre>
+        </div>
+      </div>
+
+      <!-- Media Library -->
+      <div class="card p24">
+        <h3 style="margin:0 0 8px">Media Library</h3>
+        <p class="muted mb16">Gambar & video (hanya Leader dibenarkan).</p>
+
+        <input id="mediaFile" type="file" class="mb12" accept="image/*,video/*">
+        <div style="display:flex; gap:10px">
+          <button class="btn btn-green" onclick="uploadMedia()">Muat Naik</button>
+          <button class="btn btn-soft" onclick="document.getElementById('mediaPreview').innerHTML=''">Kosongkan Pratonton</button>
+        </div>
+
+        <div id="mediaPreview" class="media-list mt16"></div>
+      </div>
+
+      <!-- Broadcast -->
+      <div class="card p24">
+        <h3 style="margin:0 0 8px">Broadcast Mesej</h3>
+        <p class="muted mb16">Hantar pengumuman kepada pelanggan (demo – log ke Sheet).</p>
+
+        <textarea id="broadcastMsg" class="input mb12" rows="6" placeholder="Contoh: Promosi 20% minggu ini untuk semua pelan."></textarea>
+        <button class="btn btn-primary" onclick="broadcast()">Hantar</button>
+
+        <div class="mt16"><pre id="broadcastResult" class="hidden"></pre></div>
+      </div>
+    </div>
   </div>
+</div>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+<script>
+  // === Gantikan dengan URL Web App Apps Script anda (yang berakhir dengan /exec)
+  const API_URL = "PASTE_EXEC_URL_DI_SINI";
 
-    function showSection(id){
-      document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
-      document.getElementById(id).classList.remove('hidden');
-    }
+  // ===== Helper: hantar form-encoded TANPA preflight (tiada headers custom) =====
+  async function postForm(path, payloadObj){
+    const form = new URLSearchParams();
+    form.append('path', path);
+    form.append('payload', JSON.stringify(payloadObj || {}));
+    const res = await fetch(API_URL, { method:'POST', body: form });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return res.json();
+  }
 
-    async function login(){
-      const leader_name = document.getElementById('leader_name').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const res = await fetch(API_URL + '?path=login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leader_name, full_name: leader_name, phone })
-      });
-      const data = await res.json();
-      if(data.success){
-        localStorage.setItem('leader_id', data.leader_id);
-        localStorage.setItem('leader_name', leader_name);
-        document.getElementById('loginPage').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-      } else {
-        document.getElementById('loginMsg').innerText = data.error || "Login gagal.";
-      }
-    }
-
-    function logout(){
-      localStorage.clear();
+  function setView(){
+    const id = localStorage.getItem('leader_id');
+    const name = localStorage.getItem('leader_name');
+    if (id) {
+      document.getElementById('loginPage').classList.add('hidden');
+      document.getElementById('dashboard').classList.remove('hidden');
+      document.getElementById('who').innerText = name ? ('Hi, ' + name) : '';
+    } else {
       document.getElementById('dashboard').classList.add('hidden');
       document.getElementById('loginPage').classList.remove('hidden');
     }
+  }
 
-    async function saveContent(){
-      const leader_id = localStorage.getItem('leader_id');
-      const title = document.getElementById('title').value;
-      const body = document.getElementById('body').value;
-      const media_urls = document.getElementById('media_urls').value;
-      const published = document.getElementById('published').checked;
-      const res = await fetch(API_URL + '?path=content_save', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({ leader_id, title, body, published, media_urls })
-      });
-      const data = await res.json();
-      document.getElementById('contentResult').innerText = JSON.stringify(data,null,2);
+  async function login(){
+    const leader_name = document.getElementById('leader_name').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const msg = document.getElementById('loginMsg');
+    msg.textContent = '';
+    try {
+      const data = await postForm('login', { leader_name, phone, full_name: leader_name });
+      if (data.success){
+        localStorage.setItem('leader_id', data.leader_id);
+        localStorage.setItem('leader_name', leader_name);
+        setView();
+      } else {
+        msg.textContent = data.error || 'Login gagal.';
+      }
+    } catch(err){
+      msg.textContent = 'Ralat rangkaian: ' + err.message;
     }
+  }
 
-    async function uploadMedia(){
-      const leader_id = localStorage.getItem('leader_id');
-      const file = document.getElementById('mediaFile').files[0];
-      if(!file) return alert('Sila pilih fail.');
-      const base64 = await toBase64(file);
-      const res = await fetch(API_URL + '?path=upload_media', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json' },
-        body: JSON.stringify({
-          leader_id, file_name:file.name, file_type:file.type, file_base64: base64.split(',')[1]
-        })
+  function logout(){
+    localStorage.removeItem('leader_id');
+    localStorage.removeItem('leader_name');
+    setView();
+  }
+
+  function clearContent(){
+    document.getElementById('title').value = '';
+    document.getElementById('body').value = '';
+    document.getElementById('published').checked = false;
+    document.getElementById('media_urls').value = '';
+  }
+
+  async function saveContent(){
+    const leader_id = localStorage.getItem('leader_id');
+    const title = document.getElementById('title').value;
+    const body = document.getElementById('body').value;
+    const media_urls = document.getElementById('media_urls').value;
+    const published = document.getElementById('published').checked;
+    const out = document.getElementById('contentResult');
+    out.classList.remove('hidden');
+    out.textContent = 'Menyimpan...';
+
+    try{
+      const data = await postForm('content_save', { leader_id, title, body, media_urls, published });
+      out.textContent = JSON.stringify(data, null, 2);
+    }catch(err){
+      out.textContent = 'Ralat: ' + err.message;
+    }
+  }
+
+  async function uploadMedia(){
+    const leader_id = localStorage.getItem('leader_id');
+    const file = document.getElementById('mediaFile').files[0];
+    if(!file) return alert('Sila pilih fail.');
+    const b64 = await toBase64(file);    // data:...;base64,xxxxx
+    try{
+      const data = await postForm('upload_media', {
+        leader_id,
+        file_name: file.name,
+        file_type: file.type,
+        file_base64: b64.split(',')[1]
       });
-      const data = await res.json();
-      if(data.success){
-        const el=document.createElement(file.type.startsWith('video')?'video':'img');
-        el.src=data.public_url;
-        if(file.type.startsWith('video')) el.controls=true;
-        el.style.maxWidth='150px';
-        el.style.margin='5px';
+      if (data.success) {
+        const el = document.createElement(data.isVideo ? 'video' : 'img');
+        el.src = data.public_url;
+        if (data.isVideo) el.controls = true;
         document.getElementById('mediaPreview').appendChild(el);
-      }else alert('Ralat: '+data.error);
+      } else {
+        alert(data.error || 'Ralat muat naik.');
+      }
+    }catch(err){
+      alert('Ralat rangkaian: ' + err.message);
     }
+  }
 
-    async function broadcast(){
-      const leader_id = localStorage.getItem('leader_id');
-      const msg = document.getElementById('broadcastMsg').value;
-      const res = await fetch(API_URL + '?path=broadcast', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ leader_id, message: msg })
-      });
-      const data = await res.json();
-      document.getElementById('broadcastResult').innerText = JSON.stringify(data,null,2);
+  async function broadcast(){
+    const leader_id = localStorage.getItem('leader_id');
+    const message = document.getElementById('broadcastMsg').value;
+    const out = document.getElementById('broadcastResult');
+    out.classList.remove('hidden');
+    out.textContent = 'Menghantar...';
+    try{
+      const data = await postForm('broadcast', { leader_id, message });
+      out.textContent = JSON.stringify(data, null, 2);
+    }catch(err){
+      out.textContent = 'Ralat: ' + err.message;
     }
+  }
 
-    function toBase64(file){
-      return new Promise((resolve,reject)=>{
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-  </script>
+  function toBase64(file){
+    return new Promise((resolve,reject)=>{
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  // Init
+  setView();
+</script>
 </body>
 </html>
