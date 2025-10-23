@@ -305,16 +305,30 @@
         const data = await res.json();
 
         if(data.success){
-          // Simpan sesi ringkas
+          // Simpan sesi dalam format yang dijangkakan oleh dashboard
+          // Format: { profile: { id, name, phone, role, ... } }
+          const sessionData = {
+            profile: data.profile || {
+              id: data.leader_id,
+              name: name,
+              phone: phone,
+              role: "leader"
+            },
+            login_at: Date.now()
+          };
+          
+          // Simpan ke localStorage sebagai JSON string
+          localStorage.setItem("mova_leader", JSON.stringify(sessionData));
+          
+          // Untuk keserasian, simpan juga data lama (jika diperlukan)
           localStorage.setItem("mova_leader_id", data.leader_id);
           localStorage.setItem("mova_leader_name", name);
           localStorage.setItem("mova_login_at", String(Date.now()));
 
-          // Anda boleh tukar ke URL dashboard sebenar (contoh: /leader/dashboard.html)
-          // Buat sementara kita redirect ke halaman placeholder:
+          // Redirect ke dashboard
           window.location.href = "dashboard.html";
         }else{
-          throw new Error(data.message || "Login gagal. Sila semak nama & no. telefon.");
+          throw new Error(data.error || data.message || "Login gagal. Sila semak nama & no. telefon.");
         }
 
       }catch(ex){
