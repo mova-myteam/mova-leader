@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MOVA • Leader Dashboard</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
 
   <style>
     :root{
@@ -15,554 +14,215 @@
       --mova-red-600:#cc102a;
       --mova-red-700:#b30e25;
       --ink-900:#0f172a;
-      --ink-800:#1f2937;
       --ink-700:#334155;
       --ink-600:#475569;
-      --ink-500:#64748b;
-      --ink-400:#94a3b8;
       --ink-300:#cbd5e1;
       --ink-200:#e2e8f0;
-      --ink-100:#f1f5f9;
+      --ink-100:#f8fafc;
       --white:#fff;
       --radius-xl:22px;
-      --radius-lg:16px;
-      --radius-md:12px;
       --shadow-1:0 10px 25px rgba(16,24,40,.06), 0 4px 10px rgba(16,24,40,.04);
-      --shadow-2:0 22px 56px rgba(16,24,40,.12), 0 8px 22px rgba(16,24,40,.06);
     }
+
     html,body{height:100%}
     body{
       margin:0;
-      font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      font-family:"Inter",sans-serif;
       color:var(--ink-900);
-      background:
-        radial-gradient(1200px 650px at -10% -10%, rgba(225,25,52,.10), transparent 55%),
-        radial-gradient(1200px 650px at 110% 0%, rgba(225,25,52,.08), transparent 55%),
-        linear-gradient(#fff,#fff);
+      background:linear-gradient(180deg,#fff,#fef2f2);
     }
 
-    /* Topbar */
     .topbar{
+      background:rgba(255,255,255,.9);
+      backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--ink-200);
       position:sticky;top:0;z-index:10;
-      background: rgba(255,255,255,.78);
-      backdrop-filter: saturate(140%) blur(8px);
-      border-bottom: 1px solid rgba(148,163,184,.2);
     }
     .topbar-inner{
-      display:flex;align-items:center;justify-content:space-between;
-      max-width:1200px;margin:0 auto;padding:14px 20px;
+      max-width:1200px;margin:0 auto;
+      display:flex;justify-content:space-between;align-items:center;
+      padding:14px 22px;
     }
-    .brand{
-      display:flex;gap:12px;align-items:center;
-    }
-    .badge{
-      width:44px;height:44px;border-radius:12px;background:#fff;border:1px solid rgba(148,163,184,.25);
-      display:grid;place-items:center;box-shadow:var(--shadow-1);
-    }
-    .badge .emoji{font-size:24px}
-    .title{
-      font-weight:800;letter-spacing:-.015em
-    }
-    .actions{display:flex;gap:10px;align-items:center}
-    .pill{
-      background:#fff;border:1px solid var(--ink-200);
-      padding:8px 12px;border-radius:999px;font-size:13.5px;color:var(--ink-700)
-    }
-    .btn-out{
-      border:1px solid var(--ink-200);background:#fff;border-radius:12px;
-      padding:10px 14px;font-weight:700;color:var(--ink-800);cursor:pointer
-    }
-    .btn-primary{
-      background: linear-gradient(180deg, var(--mova-red), var(--mova-red-700));
-      color:#fff;border:0;border-radius:12px;padding:10px 14px;
-      font-weight:700;box-shadow:0 12px 28px rgba(225,25,52,.23);
-      cursor:pointer
-    }
+    .brand{display:flex;align-items:center;gap:10px}
+    .badge{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:#fff;border:1px solid var(--ink-200);box-shadow:var(--shadow-1);}
+    .badge span{font-size:22px}
+    .title{font-weight:800;font-size:17px}
 
-    /* Layout */
-    .wrap{max-width:1200px;margin:0 auto;padding:24px 20px 56px}
-    .grid{
-      display:grid;gap:22px;
-      grid-template-columns: 1.05fr 1fr;
-    }
-    @media (max-width:1080px){ .grid{ grid-template-columns:1fr } }
+    .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer;}
+    .btn-red{background:linear-gradient(180deg,var(--mova-red),var(--mova-red-700));color:#fff}
+    .btn-out{background:#fff;border:1px solid var(--ink-200);}
+
+    main{max-width:1200px;margin:0 auto;padding:20px}
 
     .card{
-      background:#fff;border:1px solid var(--ink-200);
-      border-radius:var(--radius-xl);box-shadow:var(--shadow-1);
-      overflow:hidden
+      background:#fff;
+      border-radius:var(--radius-xl);
+      border:1px solid var(--ink-200);
+      box-shadow:var(--shadow-1);
+      margin-bottom:24px;
+      overflow:hidden;
     }
-    .card-head{
-      display:flex;align-items:center;justify-content:space-between;
-      padding:18px 20px;border-bottom:1px solid var(--ink-200);
-      background:linear-gradient(#fff, #fdf2f3);
+    .card-head{padding:18px 20px;border-bottom:1px solid var(--ink-200);background:#fff5f5;font-weight:700;font-size:16px;}
+    .card-body{padding:20px}
+
+    #orgChart{
+      width:100%;overflow-x:auto;overflow-y:hidden;
     }
-    .card-title{font-weight:800;letter-spacing:-.01em}
-    .card-body{padding:18px 20px}
-
-    .row{display:grid;gap:14px}
-    .row.cols-2{grid-template-columns:1fr 1fr}
-    @media (max-width:680px){ .row.cols-2{grid-template-columns:1fr} }
-
-    label{font-weight:600;font-size:14px;color:var(--ink-700)}
-    .field{
-      appearance:none;border:1px solid var(--ink-200);
-      border-radius:12px;padding:12px 12px;font-size:14.5px;
-      outline:none;transition:.15s;border-color .15s, box-shadow .15s;width:100%;
+    svg{width:100%;height:600px;}
+    .node rect{
+      rx:20;ry:20;
+      stroke:#ccc;stroke-width:1.4;
+      fill:#fff;
+      filter:drop-shadow(0 2px 4px rgba(0,0,0,.08));
     }
-    .field:focus{border-color: rgba(225,25,52,.75);box-shadow: 0 0 0 6px rgba(225,25,52,.10)}
-    textarea.field{min-height:120px;resize:vertical}
+    .node text{font-size:12.5px;text-anchor:middle;font-weight:600;fill:#1f2937;}
+    .node .title{font-size:10.5px;fill:#64748b;}
+    .link{fill:none;stroke:#cbd5e1;stroke-width:2px;}
 
-    .btn{
-      border:0;border-radius:12px;padding:12px 14px;font-weight:700;cursor:pointer
-    }
-    .btn-red{color:#fff;background:linear-gradient(180deg,var(--mova-red),var(--mova-red-700));box-shadow:0 12px 28px rgba(225,25,52,.2)}
-    .btn-ghost{border:1px solid var(--ink-200);background:#fff}
-    .btn-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-
-    .hint{font-size:12.5px;color:var(--ink-500);margin-top:6px}
-
-    /* Table */
-    table{width:100%;border-collapse:collapse}
-    th,td{padding:12px 10px;border-bottom:1px solid var(--ink-200);text-align:left;font-size:14px}
-    th{font-size:13px;color:var(--ink-600);text-transform:uppercase;letter-spacing:.04em}
-    tr:hover td{background:#fff9f9}
-
-    /* Alert */
-    .alert{
-      display:none;margin-top:12px;background:#fff1f2;border:1px solid #fecdd3;color:#b91c1c;
-      padding:10px 12px;border-radius:12px;font-size:13.5px
-    }
-    .alert.show{display:block}
-    .alert.ok{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
-
-    .muted{color:var(--ink-500);font-size:13px}
+    .btn-row{margin-top:16px;display:flex;gap:10px}
+    .alert{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:13px;}
+    .ok{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;}
+    .err{background:#fff1f2;border:1px solid #fecdd3;color:#b91c1c;}
   </style>
 </head>
 <body>
-  <!-- Top bar -->
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <div class="badge"><span class="emoji">🚀</span></div>
+        <div class="badge"><span>🚀</span></div>
         <div>
-          <div class="title">MOVA Leader Console</div>
-          <div class="muted" id="welcome">Loading…</div>
+          <div class="title">MOVA Leader Dashboard</div>
+          <div style="font-size:13px;color:#64748b" id="welcome">Hai…</div>
         </div>
       </div>
-      <div class="actions">
-        <div class="pill" id="sessionInfo">—</div>
-        <button class="btn-out" onclick="location.href='index.html'">Login</button>
-        <button class="btn-primary" onclick="logout()">Log Keluar</button>
+      <div>
+        <button class="btn-out" onclick="logout()">Log Keluar</button>
       </div>
     </div>
   </header>
 
-  <main class="wrap">
-    <div class="grid">
-      <!-- Left: Content + Media -->
-      <section class="card">
-        <div class="card-head">
-          <div class="card-title">Kandungan Laman</div>
-          <small class="muted" id="contentStatus">—</small>
+  <main>
+    <div class="card">
+      <div class="card-head">Carta Organisasi</div>
+      <div class="card-body">
+        <div id="orgChart"></div>
+        <div class="btn-row">
+          <button class="btn btn-red" onclick="renderOrg()">Segar Semula Carta</button>
         </div>
-        <div class="card-body">
-          <div class="row cols-2">
-            <div>
-              <label for="contentTitle">Tajuk</label>
-              <input id="contentTitle" class="field" placeholder="Contoh: Promosi MOVA" />
-            </div>
-            <div>
-              <label for="contentPublished">Terbit?</label>
-              <select id="contentPublished" class="field">
-                <option value="Ya" selected>Ya</option>
-                <option value="Tidak">Tidak</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="row" style="margin-top:12px">
-            <div>
-              <label for="contentBody">Isi Kandungan</label>
-              <textarea id="contentBody" class="field" placeholder="Tulis pengumuman, panduan, dsb. Boleh sisip <video>, atau ![alt](url)"></textarea>
-            </div>
-          </div>
-
-          <div class="btn-row" style="margin-top:8px">
-            <button class="btn btn-red" onclick="saveContent()">Simpan / Kemas Kini</button>
-            <button class="btn btn-ghost" onclick="loadContent()">Segar Semula</button>
-          </div>
-          <div id="msgContent" class="alert"></div>
-
-          <hr style="border:none;border-top:1px solid var(--ink-200);margin:18px 0">
-
-          <div class="row">
-            <div class="card-title" style="font-size:16px">Media Library (Gambar & Video)</div>
-            <div class="muted">* Sementara: tampal URL fail (contoh Google Drive/hosting) & guna “Insert ke Kandungan”. Jika anda mahu, kita boleh tambah upload ke Drive API.</div>
-
-            <div class="row cols-2">
-              <div>
-                <label for="mediaUrl">URL Fail</label>
-                <input id="mediaUrl" class="field" placeholder="https://..." />
-                <div class="hint">Pastikan URL boleh diakses umum.</div>
-              </div>
-              <div>
-                <label for="mediaAlt">Alt / Caption</label>
-                <input id="mediaAlt" class="field" placeholder="Keterangan gambar/video (pilihan)" />
-              </div>
-            </div>
-
-            <div class="btn-row" style="margin-top:8px">
-              <button class="btn btn-ghost" onclick="copyMediaURL()">Copy URL</button>
-              <button class="btn btn-red" onclick="insertMedia()">Insert ke Kandungan</button>
-            </div>
-            <div id="msgMedia" class="alert"></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Right: Partner + Customers -->
-      <section class="card">
-        <div class="card-head">
-          <div class="card-title">Tambah Partner</div>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="row cols-2">
-              <div>
-                <label for="partnerName">Nama Penuh</label>
-                <input id="partnerName" class="field" placeholder="Nama partner" />
-              </div>
-              <div>
-                <label for="partnerEmail">Email</label>
-                <input id="partnerEmail" class="field" type="email" placeholder="partner@contoh.com" />
-              </div>
-            </div>
-            <div class="row cols-2">
-              <div>
-                <label for="partnerPhone">No. Telefon</label>
-                <input id="partnerPhone" class="field" placeholder="+60XXXXXXXXX" />
-              </div>
-              <div>
-                <label for="partnerPackage">Pakej</label>
-                <select id="partnerPackage" class="field">
-                  <option value="silver">Silver</option>
-                  <option value="gold">Gold</option>
-                  <option value="diamond">Diamond</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="btn-row" style="margin-top:8px">
-              <button class="btn btn-red" onclick="createPartner()">Cipta Partner</button>
-            </div>
-            <div id="msgPartner" class="alert"></div>
-          </div>
-        </div>
-
-        <div class="card-head" style="border-top:1px solid var(--ink-200)">
-          <div class="card-title">Tambah Customer</div>
-        </div>
-        <div class="card-body">
-          <div class="row cols-2">
-            <div>
-              <label for="customerName">Nama Penuh</label>
-              <input id="customerName" class="field" placeholder="Nama customer" />
-            </div>
-            <div>
-              <label for="customerPhone">No. Telefon</label>
-              <input id="customerPhone" class="field" placeholder="+60XXXXXXXXX" />
-            </div>
-          </div>
-          <div class="btn-row" style="margin-top:8px">
-            <button class="btn btn-red" onclick="addCustomer()">Tambah</button>
-          </div>
-          <div id="msgCustomer" class="alert"></div>
-        </div>
-      </section>
-    </div>
-
-    <div class="grid" style="margin-top:22px">
-      <!-- Approvals -->
-      <section class="card">
-        <div class="card-head">
-          <div class="card-title">Approve Pendaftaran MOVA</div>
-          <button class="btn btn-ghost" onclick="loadRegistrations()">Segar Semula</button>
-        </div>
-        <div class="card-body">
-          <div class="muted" style="margin-bottom:10px">Senarai permohonan menunggu kelulusan.</div>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>ID</th><th>Nama</th><th>Phone</th><th>Status</th><th>Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="regTable"><tr><td colspan="5" class="muted">Tiada data…</td></tr></tbody>
-            </table>
-          </div>
-          <div id="msgReg" class="alert"></div>
-        </div>
-      </section>
-
-      <!-- Org + Broadcast -->
-      <section class="card">
-        <div class="card-head">
-          <div class="card-title">Carta Organisasi</div>
-        </div>
-        <div class="card-body">
-          <div class="row" style="gap:10px">
-            <div class="pill" id="orgLeader">leader</div>
-            <div class="pill" style="background:#fff7ed;border-color:#fed7aa;color:#9a3412">LEADER</div>
-          </div>
-        </div>
-
-        <div class="card-head" style="border-top:1px solid var(--ink-200)">
-          <div class="card-title">Broadcast Mesej (Fonnté)</div>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div>
-              <label for="bcMessage">Mesej</label>
-              <textarea id="bcMessage" class="field" placeholder="Tulis mesej ringkas…"></textarea>
-            </div>
-            <div class="row cols-2">
-              <div>
-                <label for="bcMedia">URL Media (pilihan)</label>
-                <input id="bcMedia" class="field" placeholder="https://…" />
-              </div>
-              <div>
-                <label for="bcTarget">Sasaran</label>
-                <select id="bcTarget" class="field">
-                  <option value="all">Semua pelanggan</option>
-                  <option value="partner">Semua partner</option>
-                </select>
-              </div>
-            </div>
-            <div class="btn-row" style="margin-top:8px">
-              <button class="btn btn-red" onclick="broadcast()">Hantar Broadcast</button>
-            </div>
-            <div id="msgBC" class="alert"></div>
-          </div>
-        </div>
-      </section>
+        <div id="msg" class="alert"></div>
+      </div>
     </div>
   </main>
 
   <script>
-    // =======================
-    //  KONFIGURASI
-    // =======================
-    // ⚠️ TUKAR ke URL Apps Script Web App (/exec)
-    const API_URL = "PASTE_EXEC_URL_DI_SINI";
+    const API_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-    // Helper
-    const $ = (s)=>document.querySelector(s);
-    const createEl = (t,opts={}) => Object.assign(document.createElement(t), opts);
-
-    // Sesi
-    const leaderId = localStorage.getItem("mova_leader_id");
-    const leaderName = localStorage.getItem("mova_leader_name");
-
-    // Redirect jika tiada sesi
-    if(!leaderId || !leaderName){
-      location.href = "index.html";
-    }
-
-    // UI header
-    $("#welcome").textContent = `Hai, ${leaderName}`;
-    const loginAt = Number(localStorage.getItem("mova_login_at")||Date.now());
-    const mins = Math.floor((Date.now()-loginAt)/60000);
-    $("#sessionInfo").textContent = `Login ${mins} min lepas`;
-
-    $("#orgLeader").textContent = leaderName;
+    const leaderName = localStorage.getItem("mova_leader_name") || "Leader";
+    document.getElementById("welcome").textContent = `Hai, ${leaderName}`;
 
     function logout(){
-      localStorage.removeItem("mova_leader_id");
-      localStorage.removeItem("mova_leader_name");
-      localStorage.removeItem("mova_login_at");
+      localStorage.clear();
       location.href="index.html";
     }
 
-    // panggil API (POST x-www-form-urlencoded)
-    async function api(path, payload={}){
-      const res = await fetch(API_URL,{
-        method:"POST",
-        headers:{ "Content-Type":"application/x-www-form-urlencoded;charset=UTF-8" },
-        body: new URLSearchParams({ path, payload: JSON.stringify(payload) })
-      });
-      if(!res.ok) throw new Error(`Ralat API: ${res.status}`);
-      return res.json();
-    }
-
-    // ============ KANDUNGAN ============
-    async function loadContent(){
-      try{
-        $("#contentStatus").textContent = "Memuat…";
-        const out = await api("content_list",{ leader_id: leaderId });
-        const row = (out.list && out.list[0]) || {};
-        $("#contentTitle").value = row.title||"";
-        $("#contentPublished").value = (row.published==="Ya"?"Ya":"Tidak");
-        $("#contentBody").value = row.body||"";
-        $("#contentStatus").textContent = "Siap";
-      }catch(e){
-        $("#contentStatus").textContent = "Gagal";
-        showMsg("#msgContent", e.message, false);
-      }
-    }
-
-    async function saveContent(){
-      const id = ""; // optional: jika API anda guna id content, boleh simpan selepas load
-      const title = $("#contentTitle").value.trim();
-      const published = $("#contentPublished").value;
-      const body = $("#contentBody").value;
-      if(!title){ return showMsg("#msgContent","Sila isi tajuk.",false); }
-
-      try{
-        const out = await api("content_save", {
-          id, leader_id: leaderId, title, published, body
-        });
-        if(out.success){
-          showMsg("#msgContent","Kandungan disimpan.", true);
-          loadContent();
-        }else{
-          showMsg("#msgContent", out.message || "Gagal simpan.", false);
+    // Contoh struktur organisasi
+    const orgData = {
+      name: "Amirul (Leader)",
+      title: "Top Leader",
+      color: "#facc15",
+      children: [
+        {
+          name: "Azlan",
+          title: "Gold Partner",
+          color: "#84cc16",
+          children: [
+            { name: "Hakim", title: "Customer", color: "#fb7185" },
+            { name: "Siti", title: "Customer", color: "#fb7185" },
+            { name: "Farah", title: "Customer", color: "#fb7185" }
+          ]
+        },
+        {
+          name: "Syafiqah",
+          title: "Gold Partner",
+          color: "#facc15",
+          children: [
+            { name: "Aina", title: "Customer", color: "#fb7185" },
+            { name: "Faiz", title: "Customer", color: "#fb7185" }
+          ]
+        },
+        {
+          name: "Zul",
+          title: "Diamond Partner",
+          color: "#a855f7",
+          children: [
+            { name: "Rafi", title: "Customer", color: "#fb7185" },
+            { name: "Johan", title: "Customer", color: "#fb7185" }
+          ]
         }
-      }catch(e){
-        showMsg("#msgContent", e.message, false);
-      }
+      ]
+    };
+
+    function renderOrg(){
+      const container = document.getElementById("orgChart");
+      container.innerHTML = "";
+      const width = container.clientWidth;
+      const height = 600;
+      const svg = d3.select("#orgChart").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+      const g = svg.append("g").attr("transform", "translate(60,40)");
+
+      const root = d3.hierarchy(orgData);
+      const treeLayout = d3.tree().size([width - 150, height - 150]);
+      treeLayout(root);
+
+      // Links
+      g.selectAll(".link")
+        .data(root.links())
+        .enter()
+        .append("path")
+        .attr("class", "link")
+        .attr("d", d3.linkVertical()
+          .x(d => d.x)
+          .y(d => d.y)
+        );
+
+      // Nodes
+      const node = g.selectAll(".node")
+        .data(root.descendants())
+        .enter()
+        .append("g")
+        .attr("class", "node")
+        .attr("transform", d => `translate(${d.x},${d.y})`);
+
+      node.append("rect")
+        .attr("x", -55)
+        .attr("y", -25)
+        .attr("width", 110)
+        .attr("height", 50)
+        .attr("fill", d => d.data.color || "#fff");
+
+      node.append("text")
+        .attr("dy", "-3")
+        .text(d => d.data.name);
+
+      node.append("text")
+        .attr("dy", "14")
+        .attr("class", "title")
+        .text(d => d.data.title);
+
+      showMsg("Carta organisasi dimuat.", true);
     }
 
-    // ============ MEDIA (sementara) ============
-    function copyMediaURL(){
-      const url = $("#mediaUrl").value.trim();
-      if(!url) return showMsg("#msgMedia","Tiada URL.",false);
-      navigator.clipboard.writeText(url);
-      showMsg("#msgMedia","URL disalin.", true);
-    }
-    function insertMedia(){
-      const url = $("#mediaUrl").value.trim();
-      const alt = $("#mediaAlt").value.trim();
-      if(!url) return showMsg("#msgMedia","Masukkan URL media.",false);
-
-      // Auto detect video or image
-      const isVideo = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url);
-      const snippet = isVideo
-        ? `<video controls src="${url}" style="max-width:100%;border-radius:12px"></video>`
-        : `![${alt||"media"}](${url})`;
-
-      const ta = $("#contentBody");
-      ta.value = ta.value + (ta.value ? "\n\n" : "") + snippet;
-      showMsg("#msgMedia","Media dimasukkan ke kandungan.", true);
+    function showMsg(txt, ok){
+      const box=document.getElementById("msg");
+      box.textContent=txt;
+      box.className="alert "+(ok?"ok":"err");
+      setTimeout(()=>box.textContent="",4000);
     }
 
-    // ============ PARTNER ============
-    async function createPartner(){
-      const name = $("#partnerName").value.trim();
-      const email = $("#partnerEmail").value.trim();
-      const phone = $("#partnerPhone").value.trim();
-      const pkg = $("#partnerPackage").value;
-      if(!name || !phone){ return showMsg("#msgPartner","Isi nama & telefon.",false); }
-      try{
-        const out = await api("partner_create",{
-          leader_id: leaderId, name, email, phone, package: pkg
-        });
-        if(out.success) showMsg("#msgPartner","Partner dicipta.", true);
-        else showMsg("#msgPartner", out.message || "Gagal cipta.", false);
-      }catch(e){
-        showMsg("#msgPartner", e.message, false);
-      }
-    }
-
-    // ============ CUSTOMER ============
-    async function addCustomer(){
-      const name = $("#customerName").value.trim();
-      const phone = $("#customerPhone").value.trim();
-      if(!name || !phone){ return showMsg("#msgCustomer","Isi nama & telefon.",false); }
-      try{
-        const out = await api("customer_add",{ leader_id: leaderId, name, phone });
-        if(out.success) showMsg("#msgCustomer","Customer ditambah.", true);
-        else showMsg("#msgCustomer", out.message || "Gagal tambah.", false);
-      }catch(e){
-        showMsg("#msgCustomer", e.message, false);
-      }
-    }
-
-    // ============ REGISTRATIONS ============
-    async function loadRegistrations(){
-      try{
-        const out = await api("content_list",{ list: "registrations", leader_id: leaderId });
-        const rows = out.rows || out.list || [];
-        const tbody = $("#regTable");
-        tbody.innerHTML = "";
-        if(rows.length===0){
-          const tr = createEl("tr");
-          tr.appendChild(createEl("td",{textContent:"Tiada data…", colSpan:5, className:"muted"}));
-          tbody.appendChild(tr);
-          return;
-        }
-        rows.forEach(r=>{
-          const tr = createEl("tr");
-          tr.appendChild(createEl("td",{textContent: r.id||"-"}));
-          tr.appendChild(createEl("td",{textContent: r.name||"-"}));
-          tr.appendChild(createEl("td",{textContent: r.phone||"-"}));
-          tr.appendChild(createEl("td",{textContent: r.status||"-"}));
-          const tdAct = createEl("td");
-          const btn = createEl("button",{className:"btn btn-red",textContent:"Lulus"});
-          btn.onclick = ()=> approveRegistration(r.id);
-          tdAct.appendChild(btn);
-          tr.appendChild(tdAct);
-          tbody.appendChild(tr);
-        });
-      }catch(e){
-        showMsg("#msgReg", e.message, false);
-      }
-    }
-    async function approveRegistration(id){
-      if(!id) return;
-      try{
-        const out = await api("registration_approve",{ registration_id:id });
-        if(out.success){
-          showMsg("#msgReg","Permohonan diluluskan.", true);
-          loadRegistrations();
-        }else{
-          showMsg("#msgReg", out.message||"Gagal lulus.", false);
-        }
-      }catch(e){
-        showMsg("#msgReg", e.message, false);
-      }
-    }
-
-    // ============ BROADCAST ============
-    async function broadcast(){
-      const message = $("#bcMessage").value.trim();
-      const media = $("#bcMedia").value.trim();
-      const target = $("#bcTarget").value;
-      if(!message) return showMsg("#msgBC","Isi mesej.", false);
-
-      try{
-        const out = await api("broadcast",{ leader_id: leaderId, message, media, target });
-        if(out.success) showMsg("#msgBC","Broadcast dihantar.", true);
-        else showMsg("#msgBC", out.message||"Gagal hantar.", false);
-      }catch(e){
-        showMsg("#msgBC", e.message, false);
-      }
-    }
-
-    // Message helper
-    function showMsg(sel, text, ok){
-      const box = $(sel);
-      box.textContent = text||"";
-      box.classList.remove("ok","show");
-      if(!text) return;
-      if(ok) box.classList.add("ok");
-      box.classList.add("show");
-      setTimeout(()=>{ box.classList.remove("show","ok") }, 3500);
-    }
-
-    // Init
-    loadContent();
-    loadRegistrations();
+    renderOrg();
   </script>
 </body>
 </html>
