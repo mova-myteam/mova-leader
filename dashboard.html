@@ -3,10 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <title>MOVA Leader — Dashboard</title>
 
-  <!-- Font + Ikon -->
+  <!-- Font & Icons -->
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -17,24 +16,16 @@
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+          fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] },
           colors: {
             brand: {
-              50:  '#fff1f2',
-              100: '#ffe4e6',
-              200: '#fecdd3',
-              300: '#fda4af',
-              400: '#fb7185',
-              500: '#f43f5e',
-              600: '#e11d48',
-              700: '#be123c',
-              800: '#9f1239',
-              900: '#881337'
+              50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',
+              400:'#fb7185',500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337'
             }
           },
-          boxShadow: {
-            card: '0 10px 30px rgba(15,23,42,.08)',
-            glow: '0 10px 40px rgba(244,63,94,.25)'
+          boxShadow:{
+            card:'0 10px 30px rgba(15,23,42,.08)',
+            glow:'0 10px 40px rgba(244,63,94,.25)'
           }
         }
       }
@@ -42,22 +33,12 @@
   </script>
 
   <style>
-    /* kaca lembut untuk navbar */
-    .glass {
-      backdrop-filter: saturate(160%) blur(10px);
-      background: linear-gradient(to bottom right, rgba(255,255,255,.85), rgba(255,255,255,.60));
-    }
-    /* scroll cantik */
+    .glass{backdrop-filter:saturate(160%) blur(10px);background:linear-gradient(to bottom right,rgba(255,255,255,.85),rgba(255,255,255,.60));}
     ::-webkit-scrollbar{height:10px;width:10px}
     ::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:10px}
     ::-webkit-scrollbar-thumb:hover{background:#d1d5db}
-    /* org chart connectors */
-    .oc-connector {
-      stroke: #e5e7eb; stroke-width:2;
-    }
-    .pill {
-      border-radius: 9999px;
-    }
+    .pill{border-radius:9999px}
+    .oc-line{stroke:#e5e7eb;stroke-width:2}
   </style>
 </head>
 
@@ -106,7 +87,7 @@
     </div>
   </section>
 
-  <!-- Tabs -->
+  <!-- Kad Tab -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="rounded-2xl bg-white shadow-card border border-slate-200/70">
       <div class="px-4 sm:px-6 pt-4 pb-2 border-b border-slate-200/70 flex flex-wrap gap-2">
@@ -118,7 +99,6 @@
         <button data-tab="org" class="tab-btn pill px-4 py-2 text-sm font-semibold hover:bg-slate-100">Carta Organisasi</button>
       </div>
 
-      <!-- Tab Content -->
       <div class="p-6 space-y-10">
 
         <!-- Kandungan -->
@@ -154,11 +134,11 @@
             </button>
           </div>
 
-          <!-- Broadcast ringkas -->
+          <!-- Broadcast -->
           <div class="mt-10 p-4 rounded-2xl border border-slate-200/70">
             <div class="flex items-center justify-between">
               <div class="font-semibold">Broadcast Ringkas</div>
-              <div class="text-xs text-slate-500">Log di “broadcast_log”</div>
+              <div class="text-xs text-slate-500">Tersimpan di “broadcast_log”</div>
             </div>
             <div class="mt-3 flex gap-2">
               <input id="inpBroadcast" class="flex-1 rounded-xl border-slate-200 focus:border-brand-500 focus:ring-brand-500"
@@ -224,13 +204,11 @@
         <!-- Carta Organisasi -->
         <section data-panel="org" class="panel hidden">
           <h3 class="text-lg font-semibold mb-1">Carta Organisasi</h3>
-          <p class="text-sm text-slate-500 mb-6">Reka bentuk kapsul berwarna & sambungan garisan nipis.</p>
+          <p class="text-sm text-slate-500 mb-6">Kapsul berwarna & sambungan garisan nipis seperti contoh.</p>
 
-          <div class="relative overflow-x-auto">
-            <svg id="orgLines" class="absolute inset-0 pointer-events-none"></svg>
-            <div id="orgChart" class="relative grid gap-8 md:gap-10">
-              <!-- Node akan dirender oleh JS -->
-            </div>
+          <div id="orgWrap" class="relative overflow-x-auto">
+            <svg id="orgSvg" class="absolute inset-0 pointer-events-none"></svg>
+            <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
           </div>
         </section>
 
@@ -243,37 +221,37 @@
     <div id="toastBox" class="px-4 py-2 rounded-xl shadow-card bg-slate-900 text-white text-sm"></div>
   </div>
 
-  <!-- Script -->
   <script>
     /* ========== IKON ========== */
     lucide.createIcons();
 
-    /* ========== KONFIG API (Apps Script) ========== */
+    /* ========== KONFIG ========== */
+    // Tukar kepada Apps Script Web App anda jika berbeza:
     const EXEC_URL = 'https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec';
 
-    // Helper elak preflight: hantar form-encoded
+    // API helper — elak preflight dengan form-encoded
     async function api(path, payload = {}) {
-      const body = new URLSearchParams({
-        path,
-        payload: JSON.stringify(payload)
-      }).toString();
-      const res = await fetch(EXEC_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-        body
-      });
-      const text = await res.text();
+      const body = new URLSearchParams({ path, payload: JSON.stringify(payload) }).toString();
+      let respText = '';
+      try {
+        const res = await fetch(EXEC_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+          body
+        });
+        respText = await res.text();
+      } catch (e) {
+        throw new Error('Rangkaian gagal. Semak EXEC_URL & akses Web App.');
+      }
       let data;
-      try { data = JSON.parse(text); }
-      catch(e){ throw new Error('Gagal parse respons: ' + text.slice(0,200)); }
+      try { data = JSON.parse(respText); }
+      catch { throw new Error('Format respons tidak sah: ' + respText.slice(0,160)); }
       if (data && data.success === false) throw new Error(data.error || 'Ralat tidak diketahui.');
       return data;
     }
 
-    const apiLogin          = (leader_name, phone) => api('login', { leader_name, phone });
-    const apiContentSave    = ({leader_id, title, body, media_urls, published}) =>
-                               api('content_save', { leader_id, title, body, media_urls, published });
-    const apiUploadMedia    = async ({leader_id, file}) => {
+    const apiContentSave = (o)=> api('content_save', o);
+    const apiUploadMedia = async ({leader_id, file})=>{
       const b64 = await fileToBase64(file);
       return api('upload_media', {
         leader_id,
@@ -282,7 +260,7 @@
         file_base64: b64
       });
     };
-    const apiBroadcast      = ({leader_id, message}) => api('broadcast', { leader_id, message });
+    const apiBroadcast = (o)=> api('broadcast', o);
 
     function fileToBase64(file){
       return new Promise((resolve,reject)=>{
@@ -294,25 +272,11 @@
     }
 
     /* ========== SESSION ========== */
-    // Jangkaan: login.html telah simpan localStorage 'mova_leader' {leader_id, profile:{name,phone…}}
-    const session = (() => {
-      try { return JSON.parse(localStorage.getItem('mova_leader')||'{}'); }
-      catch(e){ return {}; }
-    })();
-
-    if (!session?.leader_id) {
-      // jika tiada sesi → kembali login
-      // Tukar URL login jika berbeza
-      window.location.replace('./index.html');
-    }
-
+    const session = (()=>{ try {return JSON.parse(localStorage.getItem('mova_leader')||'{}')} catch{ return {} }})();
+    if (!session?.leader_id) location.replace('./index.html');
     document.getElementById('greetName').textContent = `Hai, ${session?.profile?.name || 'leader'} —`;
-
-    document.getElementById('btnBackLogin').onclick = () => location.href = './index.html';
-    document.getElementById('btnLogout').onclick = () => {
-      localStorage.removeItem('mova_leader');
-      location.href = './index.html';
-    };
+    document.getElementById('btnBackLogin').onclick = ()=> location.href = './index.html';
+    document.getElementById('btnLogout').onclick = ()=> { localStorage.removeItem('mova_leader'); location.href='./index.html'; };
 
     /* ========== TAB ========== */
     const tabs = document.querySelectorAll('.tab-btn');
@@ -323,263 +287,216 @@
         btn.classList.add('bg-slate-900','text-white');
         const t = btn.dataset.tab;
         panels.forEach(p => p.classList.toggle('hidden', p.dataset.panel !== t));
+        // render semula carta bila buka tab org
+        if (t==='org') setTimeout(renderOrgChart, 30);
       });
     });
 
     /* ========== TOAST ========== */
-    function toast(msg, isErr=false){
-      const el = document.getElementById('toast');
+    function toast(msg, err=false){
       const box = document.getElementById('toastBox');
+      const host = document.getElementById('toast');
       box.textContent = msg;
-      box.className = 'px-4 py-2 rounded-xl shadow-card text-sm ' + (isErr?'bg-brand-600 text-white':'bg-slate-900 text-white');
-      el.classList.remove('hidden');
-      clearTimeout(toast._t);
-      toast._t = setTimeout(()=>el.classList.add('hidden'), 2500);
+      box.className = 'px-4 py-2 rounded-xl shadow-card text-sm ' + (err?'bg-brand-600 text-white':'bg-slate-900 text-white');
+      host.classList.remove('hidden');
+      clearTimeout(toast._t); toast._t = setTimeout(()=>host.classList.add('hidden'), 2600);
+    }
+
+    /* ========== STAT (placeholder) ========== */
+    function initStats(){
+      document.getElementById('statPartners').textContent  = '—';
+      document.getElementById('statCustomers').textContent = '—';
+      document.getElementById('statPending').textContent   = '—';
+      document.getElementById('statPublished').textContent = '—';
     }
 
     /* ========== KANDUNGAN ========== */
-    const inpTitle = document.getElementById('inpTitle');
+    const inpTitle   = document.getElementById('inpTitle');
     const selPublish = document.getElementById('selPublish');
-    const inpBody = document.getElementById('inpBody');
-    const btnSaveContent = document.getElementById('btnSaveContent');
-    const btnClearContent = document.getElementById('btnClearContent');
+    const inpBody    = document.getElementById('inpBody');
 
-    btnSaveContent.addEventListener('click', async ()=>{
+    document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
       try{
-        btnSaveContent.disabled = true;
         const out = await apiContentSave({
-          leader_id: session.leader_id,
-          title: (inpTitle.value||'').trim(),
-          body: (inpBody.value||'').trim(),
+          leader_id : session.leader_id,
+          title     : (inpTitle.value||'').trim(),
+          body      : (inpBody.value||'').trim(),
           media_urls: mediaState.selected.join(','),
-          published: selPublish.value === 'Ya'
+          published : selPublish.value === 'Ya'
         });
         toast('Disimpan! ID: ' + out.id);
-      }catch(e){
-        toast(e.message || 'Gagal simpan', true);
-      }finally{
-        btnSaveContent.disabled = false;
-      }
+      }catch(e){ toast(e.message,true); }
     });
 
-    btnClearContent.addEventListener('click', ()=>{
-      inpTitle.value = '';
-      selPublish.value = 'Ya';
-      inpBody.value = '';
-      mediaState.selected = [];
-      renderMedia();
-      toast('Bersih semula');
+    document.getElementById('btnClearContent').addEventListener('click', ()=>{
+      inpTitle.value=''; selPublish.value='Ya'; inpBody.value='';
+      mediaState.selected = []; renderMedia(); toast('Bersih semula');
     });
 
     /* ========== BROADCAST ========== */
-    const inpBroadcast = document.getElementById('inpBroadcast');
     document.getElementById('btnBroadcast').addEventListener('click', async ()=>{
-      const msg = (inpBroadcast.value||'').trim();
+      const msg = (document.getElementById('inpBroadcast').value||'').trim();
       if (!msg) return toast('Sila isi mesej.');
       try{
         await apiBroadcast({ leader_id: session.leader_id, message: msg });
-        inpBroadcast.value = '';
+        document.getElementById('inpBroadcast').value='';
         toast('Broadcast dihantar');
-      }catch(e){
-        toast(e.message, true);
-      }
+      }catch(e){ toast(e.message,true); }
     });
 
     /* ========== MEDIA ========== */
     const mediaGrid = document.getElementById('mediaGrid');
     const fileInput = document.getElementById('fileInput');
-    const btnUpload = document.getElementById('btnUpload');
     const btnInsertSelected = document.getElementById('btnInsertSelected');
 
-    const mediaState = {
-      list: [],      // {url, isVideo}
-      selected: []   // url terpilih
-    };
+    const mediaState = { list:[], selected:[] };
 
-    btnUpload.addEventListener('click', async ()=>{
-      const file = fileInput.files && fileInput.files[0];
-      if (!file) return toast('Sila pilih fail.');
+    document.getElementById('btnUpload').addEventListener('click', async ()=>{
+      const f = fileInput.files && fileInput.files[0];
+      if (!f) return toast('Sila pilih fail.');
       try{
-        btnUpload.disabled = true;
-        const up = await apiUploadMedia({ leader_id: session.leader_id, file });
-        mediaState.list.unshift({ url: up.public_url, isVideo: up.isVideo });
-        renderMedia();
-        toast('Muat naik berjaya');
-      }catch(e){
-        toast(e.message || 'Gagal muat naik', true);
-      }finally{
-        btnUpload.disabled = false;
-        fileInput.value = '';
-      }
+        const up = await apiUploadMedia({ leader_id: session.leader_id, file: f });
+        mediaState.list.unshift({ url: up.public_url, isVideo: !!up.isVideo });
+        renderMedia(); toast('Muat naik berjaya');
+      }catch(e){ toast(e.message,true); }
+      finally{ fileInput.value=''; }
     });
 
     btnInsertSelected.addEventListener('click', ()=>{
       if (!mediaState.selected.length) return toast('Tiada media dipilih.');
-      const blocks = mediaState.selected.map(u=>{
+      const block = mediaState.selected.map(u=>{
         const isVid = /\.(mp4|webm|ogg)$/i.test(u);
-        return isVid ? `<video controls src="${u}" style="max-width:100%"></video>\n` : `![media](${u})\n`;
-      }).join('\n');
-      inpBody.value += '\n' + blocks;
-      toast('Media dimasukkan ke kandungan');
+        return isVid ? `<video controls src="${u}" style="max-width:100%"></video>` : `![media](${u})`;
+      }).join('\n') + '\n';
+      inpBody.value += (inpBody.value ? '\n' : '') + block;
+      toast('Media dimasukkan');
     });
 
     function renderMedia(){
       mediaGrid.innerHTML = '';
       mediaState.list.forEach(m=>{
-        const card = document.createElement('button');
-        card.className = 'group relative border border-slate-200 rounded-xl overflow-hidden hover:shadow-card';
-        card.onclick = ()=>{
+        const btn = document.createElement('button');
+        const picked = mediaState.selected.includes(m.url);
+        btn.className = 'group relative border border-slate-200 rounded-xl overflow-hidden hover:shadow-card';
+        btn.onclick = ()=>{
           const i = mediaState.selected.indexOf(m.url);
           if (i>=0) mediaState.selected.splice(i,1); else mediaState.selected.push(m.url);
           renderMedia();
         };
-        const selected = mediaState.selected.includes(m.url);
-        card.innerHTML = `
+        btn.innerHTML = `
           <div class="absolute top-2 left-2 z-10">
-            <span class="px-2 py-0.5 text-xs rounded-full ${selected?'bg-brand-600 text-white':'bg-white border border-slate-200'}">
-              ${selected?'Dipilih':'Pilih'}
+            <span class="px-2 py-0.5 text-xs rounded-full ${picked?'bg-brand-600 text-white':'bg-white border border-slate-200'}">
+              ${picked?'Dipilih':'Pilih'}
             </span>
           </div>
           <div class="w-full aspect-video bg-slate-100 grid place-items-center">
             ${m.isVideo ? `<i data-lucide="film" class="h-8 w-8 text-slate-400"></i>` : `<img src="${m.url}" class="h-full w-full object-cover" loading="lazy" />`}
           </div>
         `;
-        mediaGrid.appendChild(card);
+        mediaGrid.appendChild(btn);
       });
       lucide.createIcons();
     }
 
-    /* ========== STAT PLACEHOLDER ==========
-       (Tiada endpoint stat dalam Code.gs; setkan N/A) */
-    function initStats(){
-      document.getElementById('statPartners').textContent   = '—';
-      document.getElementById('statCustomers').textContent  = '—';
-      document.getElementById('statPending').textContent    = '—';
-      document.getElementById('statPublished').textContent  = '—';
-    }
-
-    /* ========== ORG CHART ========== */
-    // Data contoh (root + tiga kolum anak, setiap kolum ada 3 baris)
+    /* ========== ORG CHART (contoh) ========== */
     const orgData = {
-      name: 'LEADER',
-      children: [
-        {
-          color: 'bg-amber-100 text-amber-900 border-amber-300',
-          nodes: ['POS 1-1','POS 1-2','POS 1-3','POS 1-4']
-        },
-        {
-          color: 'bg-emerald-100 text-emerald-900 border-emerald-300',
-          nodes: ['POS 2-1','POS 2-2','POS 2-3','POS 2-4']
-        },
-        {
-          color: 'bg-fuchsia-100 text-fuchsia-900 border-fuchsia-300',
-          nodes: ['POS 3-1','POS 3-2','POS 3-3','POS 3-4']
-        }
+      name:'LEADER',
+      columns:[
+        { color:'border-amber-300 bg-amber-100 text-amber-900', nodes:['POSITION','POSITION','POSITION','POSITION'] },
+        { color:'border-emerald-300 bg-emerald-100 text-emerald-900', nodes:['POSITION','POSITION','POSITION','POSITION'] },
+        { color:'border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900', nodes:['POSITION','POSITION','POSITION','POSITION'] }
       ]
     };
 
     function renderOrgChart(){
-      const wrap = document.getElementById('orgChart');
-      const svg = document.getElementById('orgLines');
-      wrap.innerHTML = ''; svg.innerHTML = '';
+      const grid = document.getElementById('orgGrid');
+      const svg  = document.getElementById('orgSvg');
+      const wrap = document.getElementById('orgWrap');
+      if (!grid || !svg || !wrap) return;
 
-      // grid: header (root), lalu 1 row untuk “anak utama”, lalu row-row di bawah
-      const maxDepth = Math.max(...orgData.children.map(c => c.nodes.length));
-      wrap.style.gridTemplateColumns = `repeat(${orgData.children.length}, minmax(180px,1fr))`;
-      wrap.style.gridAutoRows = 'auto';
+      grid.innerHTML = ''; svg.innerHTML = '';
 
-      // Root di tengah atas (span semua kolum)
+      // Root
       const root = document.createElement('div');
       root.className = 'pill px-5 py-3 mx-auto bg-slate-900 text-white font-semibold shadow-card';
       root.textContent = orgData.name;
-      root.style.gridColumn = `1 / ${orgData.children.length+1}`;
-      wrap.appendChild(root);
+      root.style.gridColumn = `1 / ${orgData.columns.length+1}`;
+      grid.appendChild(root);
 
-      // Row anak utama (capsule)
-      const row1 = document.createElement('div');
-      row1.style.gridColumn = `1 / ${orgData.children.length+1}`;
-      row1.className = 'grid gap-8 mt-6';
-      row1.style.gridTemplateColumns = `repeat(${orgData.children.length}, minmax(180px,1fr))`;
-      wrap.appendChild(row1);
+      // Baris pertama (top nodes)
+      const topRow = document.createElement('div');
+      topRow.className = 'grid gap-8 mt-6';
+      topRow.style.gridColumn = `1 / ${orgData.columns.length+1}`;
+      topRow.style.gridTemplateColumns = `repeat(${orgData.columns.length}, minmax(180px,1fr))`;
+      grid.appendChild(topRow);
 
-      // Create top nodes
       const topNodes = [];
-      orgData.children.forEach((col,idx)=>{
+      orgData.columns.forEach(c=>{
         const n = document.createElement('div');
-        n.className = `pill px-4 py-2 bg-white border ${col.color} font-medium text-center shadow-sm`;
+        n.className = `pill px-4 py-2 bg-white border ${c.color} text-center font-medium shadow-sm`;
         n.textContent = 'POSITION';
-        row1.appendChild(n);
+        topRow.appendChild(n);
         topNodes.push(n);
       });
 
-      // Grid baris-baris bawah
-      for(let r=0; r<maxDepth; r++){
+      const maxDepth = Math.max(...orgData.columns.map(c=>c.nodes.length));
+      for (let r=0; r<maxDepth; r++){
         const row = document.createElement('div');
-        row.style.gridColumn = `1 / ${orgData.children.length+1}`;
-        row.className = 'grid gap-8';
-        row.style.gridTemplateColumns = `repeat(${orgData.children.length}, minmax(180px,1fr))`;
-        row.style.marginTop = '24px';
-        wrap.appendChild(row);
-
-        orgData.children.forEach((col,ci)=>{
-          const label = col.nodes[r];
+        row.className = 'grid gap-8 mt-6';
+        row.style.gridColumn = `1 / ${orgData.columns.length+1}`;
+        row.style.gridTemplateColumns = `repeat(${orgData.columns.length}, minmax(180px,1fr))`;
+        grid.appendChild(row);
+        orgData.columns.forEach(c=>{
+          const label = c.nodes[r] || '';
           const cell = document.createElement('div');
           if (label){
-            cell.className = `pill px-4 py-2 bg-white border ${col.color} text-center shadow-sm`;
+            cell.className = `pill px-4 py-2 bg-white border ${c.color} text-center shadow-sm`;
             cell.textContent = label;
-          } else {
-            cell.className = '';
+          }else{
             cell.innerHTML = '&nbsp;';
           }
           row.appendChild(cell);
         });
       }
 
-      // Lukis connector ringkas (garisan menegak dari root -> top, top -> baris di bawah)
-      // Guna posisi elemen
-      const boxOf = el => el.getBoundingClientRect();
-      const toSvg = (x,y) => {
+      // Lukis garisan (SVG)
+      const rect = wrap.getBoundingClientRect();
+      svg.setAttribute('width', Math.ceil(rect.width));
+      svg.setAttribute('height', Math.ceil(wrap.scrollHeight));
+
+      const toSvg = (x,y)=> {
         const sb = svg.getBoundingClientRect();
-        return [x - sb.left, y - sb.top];
+        return [x - sb.left + wrap.scrollLeft, y - sb.top + wrap.scrollTop];
       };
 
-      // set saiz svg mengikut container
-      const cont = wrap.getBoundingClientRect();
-      svg.setAttribute('width', cont.width);
-      svg.setAttribute('height', cont.height);
-
-      // root ke setiap top node
-      const rb = boxOf(root);
+      // root -> setiap top
+      const rb = root.getBoundingClientRect();
       topNodes.forEach(tn=>{
-        const tb = boxOf(tn);
+        const tb = tn.getBoundingClientRect();
         const [x1,y1] = toSvg(rb.left + rb.width/2, rb.bottom);
         const [x2,y2] = toSvg(tb.left + tb.width/2, tb.top);
         const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-        line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-        line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-        line.setAttribute('class','oc-connector');
+        line.setAttribute('x1',x1); line.setAttribute('y1',y1);
+        line.setAttribute('x2',x2); line.setAttribute('y2',y2);
+        line.setAttribute('class','oc-line');
         svg.appendChild(line);
       });
 
-      // dari setiap top node ke node seterusnya di bawah (menegak di kolum)
-      const allNodes = wrap.querySelectorAll('#orgChart .grid + .grid ~ .grid'); // rows bawah selepas row1
-      // lebih mudah: query setiap kolum per baris
-      const rows = [...wrap.children].slice(2); // skip root & row1
+      // top -> setiap node kolum di bawahnya
+      const rows = Array.from(grid.children).slice(2); // selepas root & topRow
       rows.forEach(row=>{
-        const cols = Array.from(row.children);
-        cols.forEach((el,i)=>{
-          if (el.textContent.trim()){
-            const top = topNodes[i];
-            const tb = boxOf(top);
-            const cb = boxOf(el);
-            const [x1,y1] = toSvg(tb.left + tb.width/2, tb.bottom);
-            const [x2,y2] = toSvg(cb.left + cb.width/2, cb.top);
-            const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-            line.setAttribute('x1', x1); line.setAttribute('y1', y1);
-            line.setAttribute('x2', x2); line.setAttribute('y2', y2);
-            line.setAttribute('class','oc-connector');
-            svg.appendChild(line);
-          }
+        const cells = Array.from(row.children);
+        cells.forEach((cell,i)=>{
+          if (!cell.textContent.trim()) return;
+          const tb = topNodes[i].getBoundingClientRect();
+          const cb = cell.getBoundingClientRect();
+          const [x1,y1] = toSvg(tb.left + tb.width/2, tb.bottom);
+          const [x2,y2] = toSvg(cb.left + cb.width/2, cb.top);
+          const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+          ln.setAttribute('x1',x1); ln.setAttribute('y1',y1);
+          ln.setAttribute('x2',x2); ln.setAttribute('y2',y2);
+          ln.setAttribute('class','oc-line');
+          svg.appendChild(ln);
         });
       });
     }
@@ -587,11 +504,9 @@
     /* ========== INIT ========== */
     initStats();
     renderMedia();
-    // Tunda sedikit supaya layout stabil sebelum lukis garisan
-    setTimeout(renderOrgChart, 50);
-
-    // re-lukis bila resize
-    window.addEventListener('resize', ()=> setTimeout(renderOrgChart, 50));
+    setTimeout(renderOrgChart, 40);
+    window.addEventListener('resize', ()=> setTimeout(renderOrgChart, 60));
+    window.addEventListener('orientationchange', ()=> setTimeout(renderOrgChart, 100));
   </script>
 </body>
 </html>
