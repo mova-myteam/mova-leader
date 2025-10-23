@@ -1,512 +1,835 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MOVA Leader — Dashboard</title>
-
-  <!-- Font & Icons -->
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
-
-  <!-- Tailwind (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Inter','ui-sans-serif','system-ui'] },
-          colors: {
-            brand: {
-              50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',
-              400:'#fb7185',500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337'
-            }
-          },
-          boxShadow:{
-            card:'0 10px 30px rgba(15,23,42,.08)',
-            glow:'0 10px 40px rgba(244,63,94,.25)'
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOVA Leader Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-      }
-    }
-  </script>
-
-  <style>
-    .glass{backdrop-filter:saturate(160%) blur(10px);background:linear-gradient(to bottom right,rgba(255,255,255,.85),rgba(255,255,255,.60));}
-    ::-webkit-scrollbar{height:10px;width:10px}
-    ::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:10px}
-    ::-webkit-scrollbar-thumb:hover{background:#d1d5db}
-    .pill{border-radius:9999px}
-    .oc-line{stroke:#e5e7eb;stroke-width:2}
-  </style>
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Tab animation */
+        .tab-content {
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Org chart styles */
+        .org-chart {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            padding: 20px 0;
+        }
+        
+        .org-chart ul {
+            padding-top: 20px;
+            position: relative;
+            transition: all 0.5s;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .org-chart li {
+            float: left;
+            text-align: center;
+            list-style-type: none;
+            position: relative;
+            padding: 20px 5px 0 5px;
+            transition: all 0.5s;
+        }
+        
+        .org-chart li::before, .org-chart li::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 50%;
+            border-top: 2px solid #ccc;
+            width: 50%;
+            height: 20px;
+        }
+        
+        .org-chart li::after {
+            right: auto;
+            left: 50%;
+            border-left: 2px solid #ccc;
+        }
+        
+        .org-chart li:only-child::after, .org-chart li:only-child::before {
+            display: none;
+        }
+        
+        .org-chart li:only-child {
+            padding-top: 0;
+        }
+        
+        .org-chart li:first-child::before, .org-chart li:last-child::after {
+            border: 0 none;
+        }
+        
+        .org-chart li:last-child::before {
+            border-right: 2px solid #ccc;
+            border-radius: 0 5px 0 0;
+        }
+        
+        .org-chart li:first-child::after {
+            border-radius: 5px 0 0 0;
+        }
+        
+        .org-chart ul ul::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            border-left: 2px solid #ccc;
+            width: 0;
+            height: 20px;
+        }
+        
+        .org-chart-node {
+            border: 2px solid #ccc;
+            padding: 10px 15px;
+            text-decoration: none;
+            color: #333;
+            display: inline-block;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        
+        /* Media grid styles */
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+        }
+        
+        .media-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .media-item:hover {
+            transform: scale(1.03);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        .media-item.selected {
+            outline: 3px solid #3b82f6;
+            outline-offset: 2px;
+        }
+        
+        .media-item img, .media-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .media-checkbox {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
 </head>
-
-<body class="bg-gradient-to-br from-rose-50 via-white to-slate-50 text-slate-800 font-sans">
-
-  <!-- Topbar -->
-  <header class="sticky top-0 z-30 border-b border-slate-200/70 glass">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="h-10 w-10 rounded-2xl bg-brand-600 text-white grid place-items-center shadow-glow">
-          <i data-lucide="rocket" class="h-5 w-5"></i>
+<body class="bg-gray-50 text-gray-800 font-sans">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-gray-900">MOVA Leader</h1>
+                    <div class="ml-6 flex items-center">
+                        <div class="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-medium">
+                            <span id="leaderInitial">L</span>
+                        </div>
+                        <span id="leaderName" class="ml-2 text-sm font-medium text-gray-700">Loading...</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button id="backToLoginBtn" class="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
+                        <i data-lucide="arrow-left" class="inline-block w-4 h-4 mr-1"></i>
+                        Kembali Login
+                    </button>
+                    <button id="logoutBtn" class="text-sm font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-md transition-colors">
+                        <i data-lucide="log-out" class="inline-block w-4 h-4 mr-1"></i>
+                        Log Keluar
+                    </button>
+                </div>
+            </div>
         </div>
-        <div>
-          <div class="text-sm text-slate-500">MOVA Leader</div>
-          <div class="font-semibold" id="greetName">Hai, —</div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Partners</p>
+                        <p class="text-2xl font-semibold text-gray-900">—</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <i data-lucide="user-check" class="w-6 h-6 text-green-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Total Customers</p>
+                        <p class="text-2xl font-semibold text-gray-900">—</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-yellow-100 rounded-lg">
+                        <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Pending Approvals</p>
+                        <p class="text-2xl font-semibold text-gray-900">—</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
+                <div class="flex items-center">
+                    <div class="p-2 bg-purple-100 rounded-lg">
+                        <i data-lucide="file-text" class="w-6 h-6 text-purple-600"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Published Content</p>
+                        <p class="text-2xl font-semibold text-gray-900">—</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button id="btnBackLogin" class="px-4 py-2 text-sm font-medium rounded-xl border border-slate-200 hover:bg-slate-50">
-          <span class="inline-flex items-center gap-2"><i data-lucide="arrow-left" class="h-4 w-4"></i>Kembali Login</span>
-        </button>
-        <button id="btnLogout" class="px-4 py-2 text-sm font-semibold rounded-xl bg-brand-600 text-white hover:bg-brand-700 shadow-glow">
-          <span class="inline-flex items-center gap-2"><i data-lucide="log-out" class="h-4 w-4"></i>Log Keluar</span>
-        </button>
-      </div>
-    </div>
-  </header>
 
-  <!-- Ringkasan -->
-  <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-    <div class="rounded-2xl bg-white shadow-card p-5">
-      <div class="text-slate-500 text-sm">Total Partners</div>
-      <div class="mt-2 text-4xl font-extrabold tracking-tight" id="statPartners">—</div>
-    </div>
-    <div class="rounded-2xl bg-white shadow-card p-5">
-      <div class="text-slate-500 text-sm">Total Customers</div>
-      <div class="mt-2 text-4xl font-extrabold tracking-tight" id="statCustomers">—</div>
-    </div>
-    <div class="rounded-2xl bg-white shadow-card p-5">
-      <div class="text-slate-500 text-sm">Pending Approvals</div>
-      <div class="mt-2 text-4xl font-extrabold tracking-tight" id="statPending">—</div>
-    </div>
-    <div class="rounded-2xl bg-white shadow-card p-5">
-      <div class="text-slate-500 text-sm">Published Content</div>
-      <div class="mt-2 text-4xl font-extrabold tracking-tight" id="statPublished">—</div>
-    </div>
-  </section>
-
-  <!-- Kad Tab -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="rounded-2xl bg-white shadow-card border border-slate-200/70">
-      <div class="px-4 sm:px-6 pt-4 pb-2 border-b border-slate-200/70 flex flex-wrap gap-2">
-        <button data-tab="content" class="tab-btn pill px-4 py-2 text-sm font-semibold bg-slate-900 text-white">Kandungan</button>
-        <button data-tab="media" class="tab-btn pill px-4 py-2 text-sm font-semibold hover:bg-slate-100">Media Library</button>
-        <button data-tab="partner" class="tab-btn pill px-4 py-2 text-sm font-semibold hover:bg-slate-100">Tambah Partner</button>
-        <button data-tab="customer" class="tab-btn pill px-4 py-2 text-sm font-semibold hover:bg-slate-100">Tambah Customer</button>
-        <button data-tab="approve" class="tab-btn pill px-4 py-2 text-sm font-semibold hover:bg-slate-100">Approve Pendaftaran</button>
-        <button data-tab="org" class="tab-btn pill px-4 py-2 text-sm font-semibold hover:bg-slate-100">Carta Organisasi</button>
-      </div>
-
-      <div class="p-6 space-y-10">
-
-        <!-- Kandungan -->
-        <section data-panel="content" class="panel">
-          <h3 class="text-lg font-semibold mb-4">Kandungan Laman (Paparan untuk Pelanggan)</h3>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="text-sm text-slate-600">Tajuk</label>
-              <input id="inpTitle" type="text" placeholder="Contoh: Promosi MOVA"
-                     class="mt-1 w-full rounded-xl border-slate-200 focus:border-brand-500 focus:ring-brand-500">
+        <!-- Tab Navigation -->
+        <div class="bg-white rounded-lg shadow mb-6 border border-gray-200">
+            <div class="border-b border-gray-200">
+                <nav class="flex -mb-px overflow-x-auto">
+                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-black text-black bg-gray-50 rounded-tl-lg" data-tab="content">
+                        Kandungan
+                    </button>
+                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="media">
+                        Media Library
+                    </button>
+                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="partner">
+                        Tambah Partner
+                    </button>
+                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="customer">
+                        Tambah Customer
+                    </button>
+                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="approve">
+                        Approve Pendaftaran
+                    </button>
+                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 rounded-tr-lg" data-tab="orgchart">
+                        Carta Organisasi
+                    </button>
+                </nav>
             </div>
-            <div>
-              <label class="text-sm text-slate-600">Terbit?</label>
-              <select id="selPublish"
-                      class="mt-1 w-full rounded-xl border-slate-200 focus:border-brand-500 focus:ring-brand-500">
-                <option>Ya</option>
-                <option>Tidak</option>
-              </select>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Content Tab -->
+                <div id="content-tab" class="tab-content">
+                    <h2 class="text-lg font-semibold mb-4">Kandungan</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="contentTitle" class="block text-sm font-medium text-gray-700 mb-1">Tajuk</label>
+                            <input type="text" id="contentTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Masukkan tajuk kandungan">
+                        </div>
+                        
+                        <div>
+                            <label for="contentBody" class="block text-sm font-medium text-gray-700 mb-1">Kandungan</label>
+                            <textarea id="contentBody" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Masukkan kandungan di sini"></textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Terbit</label>
+                            <div class="flex items-center space-x-4">
+                                <label class="flex items-center">
+                                    <input type="radio" name="publishStatus" value="yes" class="mr-2">
+                                    <span>Ya</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="radio" name="publishStatus" value="no" checked class="mr-2">
+                                    <span>Tidak</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="flex space-x-3">
+                            <button id="saveContentBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                                <i data-lucide="save" class="inline-block w-4 h-4 mr-1"></i>
+                                Simpan
+                            </button>
+                            <button id="updateContentBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                                <i data-lucide="refresh-cw" class="inline-block w-4 h-4 mr-1"></i>
+                                Kemas Kini
+                            </button>
+                            <button id="refreshContentBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
+                                <i data-lucide="refresh-ccw" class="inline-block w-4 h-4 mr-1"></i>
+                                Segar Semula
+                            </button>
+                        </div>
+                        
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <h3 class="text-md font-semibold mb-3">Broadcast Ringkas</h3>
+                            <div class="flex space-x-3">
+                                <input type="text" id="broadcastMessage" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Masukkan mesej broadcast">
+                                <button id="sendBroadcastBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+                                    <i data-lucide="send" class="inline-block w-4 h-4 mr-1"></i>
+                                    Hantar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Library Tab -->
+                <div id="media-tab" class="tab-content hidden">
+                    <h2 class="text-lg font-semibold mb-4">Media Library</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <label for="mediaFile" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors cursor-pointer">
+                                <i data-lucide="upload" class="inline-block w-4 h-4 mr-1"></i>
+                                Pilih Fail
+                            </label>
+                            <input type="file" id="mediaFile" class="hidden" accept="image/*,video/*">
+                            <span id="fileName" class="text-sm text-gray-600">Tiada fail dipilih</span>
+                            <button id="uploadMediaBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i data-lucide="upload-cloud" class="inline-block w-4 h-4 mr-1"></i>
+                                Muat Naik
+                            </button>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <p class="text-sm text-gray-600">Pilih media untuk dimasukkan ke kandungan</p>
+                            <button id="insertToContentBtn" class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                <i data-lucide="plus-circle" class="inline-block w-4 h-4 mr-1"></i>
+                                Insert ke Kandungan
+                            </button>
+                        </div>
+                        
+                        <div id="mediaGrid" class="media-grid">
+                            <!-- Media items will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Partner Tab -->
+                <div id="partner-tab" class="tab-content hidden">
+                    <h2 class="text-lg font-semibold mb-4">Tambah Partner</h2>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                        <i data-lucide="info" class="w-12 h-12 text-blue-500 mx-auto mb-3"></i>
+                        <p class="text-blue-800">UI tersedia, endpoint belum diaktifkan.</p>
+                    </div>
+                </div>
+
+                <!-- Add Customer Tab -->
+                <div id="customer-tab" class="tab-content hidden">
+                    <h2 class="text-lg font-semibold mb-4">Tambah Customer</h2>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                        <i data-lucide="info" class="w-12 h-12 text-blue-500 mx-auto mb-3"></i>
+                        <p class="text-blue-800">UI tersedia, endpoint belum diaktifkan.</p>
+                    </div>
+                </div>
+
+                <!-- Approve Registration Tab -->
+                <div id="approve-tab" class="tab-content hidden">
+                    <h2 class="text-lg font-semibold mb-4">Approve Pendaftaran</h2>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
+                        <i data-lucide="info" class="w-12 h-12 text-blue-500 mx-auto mb-3"></i>
+                        <p class="text-blue-800">UI tersedia, endpoint belum diaktifkan.</p>
+                    </div>
+                </div>
+
+                <!-- Organization Chart Tab -->
+                <div id="orgchart-tab" class="tab-content hidden">
+                    <h2 class="text-lg font-semibold mb-4">Carta Organisasi</h2>
+                    <div class="overflow-x-auto">
+                        <div class="org-chart min-w-max">
+                            <ul>
+                                <li>
+                                    <div class="org-chart-node bg-indigo-100 text-indigo-800 font-semibold">LEADER</div>
+                                    <ul>
+                                        <li>
+                                            <div class="org-chart-node bg-amber-100 text-amber-800">Partner 1</div>
+                                            <ul>
+                                                <li><div class="org-chart-node bg-amber-50 text-amber-700">Customer 1.1</div></li>
+                                                <li><div class="org-chart-node bg-amber-50 text-amber-700">Customer 1.2</div></li>
+                                                <li><div class="org-chart-node bg-amber-50 text-amber-700">Customer 1.3</div></li>
+                                                <li><div class="org-chart-node bg-amber-50 text-amber-700">Customer 1.4</div></li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <div class="org-chart-node bg-emerald-100 text-emerald-800">Partner 2</div>
+                                            <ul>
+                                                <li><div class="org-chart-node bg-emerald-50 text-emerald-700">Customer 2.1</div></li>
+                                                <li><div class="org-chart-node bg-emerald-50 text-emerald-700">Customer 2.2</div></li>
+                                                <li><div class="org-chart-node bg-emerald-50 text-emerald-700">Customer 2.3</div></li>
+                                                <li><div class="org-chart-node bg-emerald-50 text-emerald-700">Customer 2.4</div></li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <div class="org-chart-node bg-fuchsia-100 text-fuchsia-800">Partner 3</div>
+                                            <ul>
+                                                <li><div class="org-chart-node bg-fuchsia-50 text-fuchsia-700">Customer 3.1</div></li>
+                                                <li><div class="org-chart-node bg-fuchsia-50 text-fuchsia-700">Customer 3.2</div></li>
+                                                <li><div class="org-chart-node bg-fuchsia-50 text-fuchsia-700">Customer 3.3</div></li>
+                                                <li><div class="org-chart-node bg-fuchsia-50 text-fuchsia-700">Customer 3.4</div></li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="md:col-span-2">
-              <label class="text-sm text-slate-600">Isi Kandungan</label>
-              <textarea id="inpBody" rows="8"
-                        class="mt-1 w-full rounded-xl border-slate-200 focus:border-brand-500 focus:ring-brand-500"
-                        placeholder="Tulis pengumuman/panduan… Boleh sisip <video> atau ![alt](url)"></textarea>
-            </div>
-          </div>
-          <div class="mt-4 flex items-center gap-3">
-            <button id="btnSaveContent" class="px-5 py-2 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-700 shadow-glow">
-              <span class="inline-flex items-center gap-2"><i data-lucide="save" class="h-4 w-4"></i> Simpan / Kemas Kini</span>
-            </button>
-            <button id="btnClearContent" class="px-5 py-2 rounded-xl border border-slate-200 font-medium hover:bg-slate-50">
-              <span class="inline-flex items-center gap-2"><i data-lucide="rotate-ccw" class="h-4 w-4"></i> Segar Semula</span>
-            </button>
-          </div>
+        </div>
+    </main>
 
-          <!-- Broadcast -->
-          <div class="mt-10 p-4 rounded-2xl border border-slate-200/70">
-            <div class="flex items-center justify-between">
-              <div class="font-semibold">Broadcast Ringkas</div>
-              <div class="text-xs text-slate-500">Tersimpan di “broadcast_log”</div>
-            </div>
-            <div class="mt-3 flex gap-2">
-              <input id="inpBroadcast" class="flex-1 rounded-xl border-slate-200 focus:border-brand-500 focus:ring-brand-500"
-                     placeholder="Teks pengumuman / mesej ringkas…">
-              <button id="btnBroadcast" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
-                Hantar
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Media -->
-        <section data-panel="media" class="panel hidden">
-          <h3 class="text-lg font-semibold mb-4">Media Library (Gambar & Video)</h3>
-          <div class="flex flex-wrap items-center gap-3">
-            <input id="fileInput" type="file" accept="image/*,video/*" class="block w-full sm:w-auto" />
-            <button id="btnUpload" class="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800">
-              Muat Naik
-            </button>
-            <button id="btnInsertSelected" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">
-              Insert ke Kandungan
-            </button>
-          </div>
-          <div id="mediaGrid" class="mt-6 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
-        </section>
-
-        <!-- Partner -->
-        <section data-panel="partner" class="panel hidden">
-          <h3 class="text-lg font-semibold mb-1">Tambah Partner</h3>
-          <p class="text-sm text-slate-500 mb-6">UI tersedia. Endpoint belum diaktifkan dalam Code.gs semasa.</p>
-          <div class="grid md:grid-cols-3 gap-4">
-            <input class="rounded-xl border-slate-200" placeholder="Nama penuh">
-            <input class="rounded-xl border-slate-200" placeholder="Email">
-            <input class="rounded-xl border-slate-200" placeholder="No. Telefon">
-          </div>
-          <div class="mt-4">
-            <button class="px-4 py-2 rounded-xl bg-slate-200 cursor-not-allowed">Cipta Partner (nonaktif)</button>
-          </div>
-        </section>
-
-        <!-- Customer -->
-        <section data-panel="customer" class="panel hidden">
-          <h3 class="text-lg font-semibold mb-1">Tambah Customer</h3>
-          <p class="text-sm text-slate-500 mb-6">UI tersedia. Endpoint belum diaktifkan dalam Code.gs semasa.</p>
-          <div class="grid md:grid-cols-2 gap-4">
-            <input class="rounded-xl border-slate-200" placeholder="Nama customer">
-            <input class="rounded-xl border-slate-200" placeholder="+60XXXXXXXXX">
-          </div>
-          <div class="mt-4">
-            <button class="px-4 py-2 rounded-xl bg-slate-200 cursor-not-allowed">Tambah (nonaktif)</button>
-          </div>
-        </section>
-
-        <!-- Approvals -->
-        <section data-panel="approve" class="panel hidden">
-          <h3 class="text-lg font-semibold mb-1">Approve Pendaftaran</h3>
-          <p class="text-sm text-slate-500 mb-6">UI tersedia. Endpoint belum diaktifkan dalam Code.gs semasa.</p>
-          <div class="rounded-xl border border-slate-200 p-6 text-slate-500">
-            Tiada data untuk dipaparkan.
-          </div>
-        </section>
-
-        <!-- Carta Organisasi -->
-        <section data-panel="org" class="panel hidden">
-          <h3 class="text-lg font-semibold mb-1">Carta Organisasi</h3>
-          <p class="text-sm text-slate-500 mb-6">Kapsul berwarna & sambungan garisan nipis seperti contoh.</p>
-
-          <div id="orgWrap" class="relative overflow-x-auto">
-            <svg id="orgSvg" class="absolute inset-0 pointer-events-none"></svg>
-            <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
-          </div>
-        </section>
-
-      </div>
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-full transition-transform duration-300 z-50">
+        <span id="toastMessage"></span>
     </div>
-  </div>
 
-  <!-- Toast -->
-  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 hidden">
-    <div id="toastBox" class="px-4 py-2 rounded-xl shadow-card bg-slate-900 text-white text-sm"></div>
-  </div>
-
-  <script>
-    /* ========== IKON ========== */
-    lucide.createIcons();
-
-    /* ========== KONFIG ========== */
-    // Tukar kepada Apps Script Web App anda jika berbeza:
-    const EXEC_URL = 'https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec';
-
-    // API helper — elak preflight dengan form-encoded
-    async function api(path, payload = {}) {
-      const body = new URLSearchParams({ path, payload: JSON.stringify(payload) }).toString();
-      let respText = '';
-      try {
-        const res = await fetch(EXEC_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-          body
+    <script>
+        // API Configuration
+        const EXEC_URL = 'https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec';
+        
+        // DOM Elements
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const leaderName = document.getElementById('leaderName');
+        const leaderInitial = document.getElementById('leaderInitial');
+        const backToLoginBtn = document.getElementById('backToLoginBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // Content Tab Elements
+        const contentTitle = document.getElementById('contentTitle');
+        const contentBody = document.getElementById('contentBody');
+        const saveContentBtn = document.getElementById('saveContentBtn');
+        const updateContentBtn = document.getElementById('updateContentBtn');
+        const refreshContentBtn = document.getElementById('refreshContentBtn');
+        const broadcastMessage = document.getElementById('broadcastMessage');
+        const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
+        
+        // Media Tab Elements
+        const mediaFile = document.getElementById('mediaFile');
+        const fileName = document.getElementById('fileName');
+        const uploadMediaBtn = document.getElementById('uploadMediaBtn');
+        const mediaGrid = document.getElementById('mediaGrid');
+        const insertToContentBtn = document.getElementById('insertToContentBtn');
+        
+        // Toast Notification
+        const toast = document.getElementById('toast');
+        const toastMessage = document.getElementById('toastMessage');
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Initialize selected media items
+        let selectedMediaItems = new Set();
+        
+        // Load user profile from localStorage
+        function loadUserProfile() {
+            try {
+                const profile = JSON.parse(localStorage.getItem('mova_leader') || '{}').profile;
+                if (profile && profile.name) {
+                    leaderName.textContent = profile.name;
+                    leaderInitial.textContent = profile.name.charAt(0).toUpperCase();
+                } else {
+                    leaderName.textContent = 'Pengguna';
+                    leaderInitial.textContent = 'P';
+                }
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                leaderName.textContent = 'Pengguna';
+                leaderInitial.textContent = 'P';
+            }
+        }
+        
+        // Show toast notification
+        function showToast(message, duration = 3000) {
+            toastMessage.textContent = message;
+            toast.classList.remove('translate-y-full');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-full');
+            }, duration);
+        }
+        
+        // Tab functionality
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+                
+                // Update button styles
+                tabButtons.forEach(btn => {
+                    btn.classList.remove('border-black', 'text-black', 'bg-gray-50');
+                    btn.classList.add('border-transparent', 'text-gray-500');
+                });
+                
+                button.classList.remove('border-transparent', 'text-gray-500');
+                button.classList.add('border-black', 'text-black', 'bg-gray-50');
+                
+                // Show corresponding tab content
+                tabContents.forEach(content => {
+                    content.classList.add('hidden');
+                });
+                
+                document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+                
+                // Re-initialize Lucide icons for the new content
+                lucide.createIcons();
+            });
         });
-        respText = await res.text();
-      } catch (e) {
-        throw new Error('Rangkaian gagal. Semak EXEC_URL & akses Web App.');
-      }
-      let data;
-      try { data = JSON.parse(respText); }
-      catch { throw new Error('Format respons tidak sah: ' + respText.slice(0,160)); }
-      if (data && data.success === false) throw new Error(data.error || 'Ralat tidak diketahui.');
-      return data;
-    }
-
-    const apiContentSave = (o)=> api('content_save', o);
-    const apiUploadMedia = async ({leader_id, file})=>{
-      const b64 = await fileToBase64(file);
-      return api('upload_media', {
-        leader_id,
-        file_name: file.name,
-        file_type: file.type || 'application/octet-stream',
-        file_base64: b64
-      });
-    };
-    const apiBroadcast = (o)=> api('broadcast', o);
-
-    function fileToBase64(file){
-      return new Promise((resolve,reject)=>{
-        const r = new FileReader();
-        r.onload = e => resolve(String(e.target.result).split(',')[1]);
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
-    }
-
-    /* ========== SESSION ========== */
-    const session = (()=>{ try {return JSON.parse(localStorage.getItem('mova_leader')||'{}')} catch{ return {} }})();
-    if (!session?.leader_id) location.replace('./index.html');
-    document.getElementById('greetName').textContent = `Hai, ${session?.profile?.name || 'leader'} —`;
-    document.getElementById('btnBackLogin').onclick = ()=> location.href = './index.html';
-    document.getElementById('btnLogout').onclick = ()=> { localStorage.removeItem('mova_leader'); location.href='./index.html'; };
-
-    /* ========== TAB ========== */
-    const tabs = document.querySelectorAll('.tab-btn');
-    const panels = document.querySelectorAll('.panel');
-    tabs.forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        tabs.forEach(b=>b.classList.remove('bg-slate-900','text-white'));
-        btn.classList.add('bg-slate-900','text-white');
-        const t = btn.dataset.tab;
-        panels.forEach(p => p.classList.toggle('hidden', p.dataset.panel !== t));
-        // render semula carta bila buka tab org
-        if (t==='org') setTimeout(renderOrgChart, 30);
-      });
-    });
-
-    /* ========== TOAST ========== */
-    function toast(msg, err=false){
-      const box = document.getElementById('toastBox');
-      const host = document.getElementById('toast');
-      box.textContent = msg;
-      box.className = 'px-4 py-2 rounded-xl shadow-card text-sm ' + (err?'bg-brand-600 text-white':'bg-slate-900 text-white');
-      host.classList.remove('hidden');
-      clearTimeout(toast._t); toast._t = setTimeout(()=>host.classList.add('hidden'), 2600);
-    }
-
-    /* ========== STAT (placeholder) ========== */
-    function initStats(){
-      document.getElementById('statPartners').textContent  = '—';
-      document.getElementById('statCustomers').textContent = '—';
-      document.getElementById('statPending').textContent   = '—';
-      document.getElementById('statPublished').textContent = '—';
-    }
-
-    /* ========== KANDUNGAN ========== */
-    const inpTitle   = document.getElementById('inpTitle');
-    const selPublish = document.getElementById('selPublish');
-    const inpBody    = document.getElementById('inpBody');
-
-    document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
-      try{
-        const out = await apiContentSave({
-          leader_id : session.leader_id,
-          title     : (inpTitle.value||'').trim(),
-          body      : (inpBody.value||'').trim(),
-          media_urls: mediaState.selected.join(','),
-          published : selPublish.value === 'Ya'
+        
+        // Content Tab Functions
+        saveContentBtn.addEventListener('click', async () => {
+            const title = contentTitle.value.trim();
+            const body = contentBody.value.trim();
+            const publishStatus = document.querySelector('input[name="publishStatus"]:checked').value;
+            
+            if (!title || !body) {
+                showToast('Sila isi semua medan yang diperlukan');
+                return;
+            }
+            
+            try {
+                const payload = {
+                    title,
+                    body,
+                    publishStatus: publishStatus === 'yes'
+                };
+                
+                const response = await fetch(EXEC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: new URLSearchParams({
+                        path: 'content_save',
+                        payload: JSON.stringify(payload)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Kandungan berjaya disimpan');
+                } else {
+                    showToast(`Ralat: ${result.message || 'Gagal menyimpan kandungan'}`);
+                }
+            } catch (error) {
+                console.error('Error saving content:', error);
+                showToast('Ralat semasa menyimpan kandungan');
+            }
         });
-        toast('Disimpan! ID: ' + out.id);
-      }catch(e){ toast(e.message,true); }
-    });
-
-    document.getElementById('btnClearContent').addEventListener('click', ()=>{
-      inpTitle.value=''; selPublish.value='Ya'; inpBody.value='';
-      mediaState.selected = []; renderMedia(); toast('Bersih semula');
-    });
-
-    /* ========== BROADCAST ========== */
-    document.getElementById('btnBroadcast').addEventListener('click', async ()=>{
-      const msg = (document.getElementById('inpBroadcast').value||'').trim();
-      if (!msg) return toast('Sila isi mesej.');
-      try{
-        await apiBroadcast({ leader_id: session.leader_id, message: msg });
-        document.getElementById('inpBroadcast').value='';
-        toast('Broadcast dihantar');
-      }catch(e){ toast(e.message,true); }
-    });
-
-    /* ========== MEDIA ========== */
-    const mediaGrid = document.getElementById('mediaGrid');
-    const fileInput = document.getElementById('fileInput');
-    const btnInsertSelected = document.getElementById('btnInsertSelected');
-
-    const mediaState = { list:[], selected:[] };
-
-    document.getElementById('btnUpload').addEventListener('click', async ()=>{
-      const f = fileInput.files && fileInput.files[0];
-      if (!f) return toast('Sila pilih fail.');
-      try{
-        const up = await apiUploadMedia({ leader_id: session.leader_id, file: f });
-        mediaState.list.unshift({ url: up.public_url, isVideo: !!up.isVideo });
-        renderMedia(); toast('Muat naik berjaya');
-      }catch(e){ toast(e.message,true); }
-      finally{ fileInput.value=''; }
-    });
-
-    btnInsertSelected.addEventListener('click', ()=>{
-      if (!mediaState.selected.length) return toast('Tiada media dipilih.');
-      const block = mediaState.selected.map(u=>{
-        const isVid = /\.(mp4|webm|ogg)$/i.test(u);
-        return isVid ? `<video controls src="${u}" style="max-width:100%"></video>` : `![media](${u})`;
-      }).join('\n') + '\n';
-      inpBody.value += (inpBody.value ? '\n' : '') + block;
-      toast('Media dimasukkan');
-    });
-
-    function renderMedia(){
-      mediaGrid.innerHTML = '';
-      mediaState.list.forEach(m=>{
-        const btn = document.createElement('button');
-        const picked = mediaState.selected.includes(m.url);
-        btn.className = 'group relative border border-slate-200 rounded-xl overflow-hidden hover:shadow-card';
-        btn.onclick = ()=>{
-          const i = mediaState.selected.indexOf(m.url);
-          if (i>=0) mediaState.selected.splice(i,1); else mediaState.selected.push(m.url);
-          renderMedia();
-        };
-        btn.innerHTML = `
-          <div class="absolute top-2 left-2 z-10">
-            <span class="px-2 py-0.5 text-xs rounded-full ${picked?'bg-brand-600 text-white':'bg-white border border-slate-200'}">
-              ${picked?'Dipilih':'Pilih'}
-            </span>
-          </div>
-          <div class="w-full aspect-video bg-slate-100 grid place-items-center">
-            ${m.isVideo ? `<i data-lucide="film" class="h-8 w-8 text-slate-400"></i>` : `<img src="${m.url}" class="h-full w-full object-cover" loading="lazy" />`}
-          </div>
-        `;
-        mediaGrid.appendChild(btn);
-      });
-      lucide.createIcons();
-    }
-
-    /* ========== ORG CHART (contoh) ========== */
-    const orgData = {
-      name:'LEADER',
-      columns:[
-        { color:'border-amber-300 bg-amber-100 text-amber-900', nodes:['POSITION','POSITION','POSITION','POSITION'] },
-        { color:'border-emerald-300 bg-emerald-100 text-emerald-900', nodes:['POSITION','POSITION','POSITION','POSITION'] },
-        { color:'border-fuchsia-300 bg-fuchsia-100 text-fuchsia-900', nodes:['POSITION','POSITION','POSITION','POSITION'] }
-      ]
-    };
-
-    function renderOrgChart(){
-      const grid = document.getElementById('orgGrid');
-      const svg  = document.getElementById('orgSvg');
-      const wrap = document.getElementById('orgWrap');
-      if (!grid || !svg || !wrap) return;
-
-      grid.innerHTML = ''; svg.innerHTML = '';
-
-      // Root
-      const root = document.createElement('div');
-      root.className = 'pill px-5 py-3 mx-auto bg-slate-900 text-white font-semibold shadow-card';
-      root.textContent = orgData.name;
-      root.style.gridColumn = `1 / ${orgData.columns.length+1}`;
-      grid.appendChild(root);
-
-      // Baris pertama (top nodes)
-      const topRow = document.createElement('div');
-      topRow.className = 'grid gap-8 mt-6';
-      topRow.style.gridColumn = `1 / ${orgData.columns.length+1}`;
-      topRow.style.gridTemplateColumns = `repeat(${orgData.columns.length}, minmax(180px,1fr))`;
-      grid.appendChild(topRow);
-
-      const topNodes = [];
-      orgData.columns.forEach(c=>{
-        const n = document.createElement('div');
-        n.className = `pill px-4 py-2 bg-white border ${c.color} text-center font-medium shadow-sm`;
-        n.textContent = 'POSITION';
-        topRow.appendChild(n);
-        topNodes.push(n);
-      });
-
-      const maxDepth = Math.max(...orgData.columns.map(c=>c.nodes.length));
-      for (let r=0; r<maxDepth; r++){
-        const row = document.createElement('div');
-        row.className = 'grid gap-8 mt-6';
-        row.style.gridColumn = `1 / ${orgData.columns.length+1}`;
-        row.style.gridTemplateColumns = `repeat(${orgData.columns.length}, minmax(180px,1fr))`;
-        grid.appendChild(row);
-        orgData.columns.forEach(c=>{
-          const label = c.nodes[r] || '';
-          const cell = document.createElement('div');
-          if (label){
-            cell.className = `pill px-4 py-2 bg-white border ${c.color} text-center shadow-sm`;
-            cell.textContent = label;
-          }else{
-            cell.innerHTML = '&nbsp;';
-          }
-          row.appendChild(cell);
+        
+        updateContentBtn.addEventListener('click', async () => {
+            const title = contentTitle.value.trim();
+            const body = contentBody.value.trim();
+            const publishStatus = document.querySelector('input[name="publishStatus"]:checked').value;
+            
+            if (!title || !body) {
+                showToast('Sila isi semua medan yang diperlukan');
+                return;
+            }
+            
+            try {
+                const payload = {
+                    title,
+                    body,
+                    publishStatus: publishStatus === 'yes',
+                    update: true
+                };
+                
+                const response = await fetch(EXEC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: new URLSearchParams({
+                        path: 'content_save',
+                        payload: JSON.stringify(payload)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Kandungan berjaya dikemas kini');
+                } else {
+                    showToast(`Ralat: ${result.message || 'Gagal mengemas kini kandungan'}`);
+                }
+            } catch (error) {
+                console.error('Error updating content:', error);
+                showToast('Ralat semasa mengemas kini kandungan');
+            }
         });
-      }
-
-      // Lukis garisan (SVG)
-      const rect = wrap.getBoundingClientRect();
-      svg.setAttribute('width', Math.ceil(rect.width));
-      svg.setAttribute('height', Math.ceil(wrap.scrollHeight));
-
-      const toSvg = (x,y)=> {
-        const sb = svg.getBoundingClientRect();
-        return [x - sb.left + wrap.scrollLeft, y - sb.top + wrap.scrollTop];
-      };
-
-      // root -> setiap top
-      const rb = root.getBoundingClientRect();
-      topNodes.forEach(tn=>{
-        const tb = tn.getBoundingClientRect();
-        const [x1,y1] = toSvg(rb.left + rb.width/2, rb.bottom);
-        const [x2,y2] = toSvg(tb.left + tb.width/2, tb.top);
-        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-        line.setAttribute('x1',x1); line.setAttribute('y1',y1);
-        line.setAttribute('x2',x2); line.setAttribute('y2',y2);
-        line.setAttribute('class','oc-line');
-        svg.appendChild(line);
-      });
-
-      // top -> setiap node kolum di bawahnya
-      const rows = Array.from(grid.children).slice(2); // selepas root & topRow
-      rows.forEach(row=>{
-        const cells = Array.from(row.children);
-        cells.forEach((cell,i)=>{
-          if (!cell.textContent.trim()) return;
-          const tb = topNodes[i].getBoundingClientRect();
-          const cb = cell.getBoundingClientRect();
-          const [x1,y1] = toSvg(tb.left + tb.width/2, tb.bottom);
-          const [x2,y2] = toSvg(cb.left + cb.width/2, cb.top);
-          const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
-          ln.setAttribute('x1',x1); ln.setAttribute('y1',y1);
-          ln.setAttribute('x2',x2); ln.setAttribute('y2',y2);
-          ln.setAttribute('class','oc-line');
-          svg.appendChild(ln);
+        
+        refreshContentBtn.addEventListener('click', () => {
+            contentTitle.value = '';
+            contentBody.value = '';
+            document.querySelector('input[name="publishStatus"][value="no"]').checked = true;
+            showToast('Kandungan telah disegarkan semula');
         });
-      });
-    }
-
-    /* ========== INIT ========== */
-    initStats();
-    renderMedia();
-    setTimeout(renderOrgChart, 40);
-    window.addEventListener('resize', ()=> setTimeout(renderOrgChart, 60));
-    window.addEventListener('orientationchange', ()=> setTimeout(renderOrgChart, 100));
-  </script>
+        
+        sendBroadcastBtn.addEventListener('click', async () => {
+            const message = broadcastMessage.value.trim();
+            
+            if (!message) {
+                showToast('Sila masukkan mesej broadcast');
+                return;
+            }
+            
+            try {
+                const payload = {
+                    message
+                };
+                
+                const response = await fetch(EXEC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: new URLSearchParams({
+                        path: 'broadcast',
+                        payload: JSON.stringify(payload)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showToast('Broadcast berjaya dihantar');
+                    broadcastMessage.value = '';
+                } else {
+                    showToast(`Ralat: ${result.message || 'Gagal menghantar broadcast'}`);
+                }
+            } catch (error) {
+                console.error('Error sending broadcast:', error);
+                showToast('Ralat semasa menghantar broadcast');
+            }
+        });
+        
+        // Media Tab Functions
+        mediaFile.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                fileName.textContent = file.name;
+                uploadMediaBtn.disabled = false;
+            } else {
+                fileName.textContent = 'Tiada fail dipilih';
+                uploadMediaBtn.disabled = true;
+            }
+        });
+        
+        uploadMediaBtn.addEventListener('click', async () => {
+            const file = mediaFile.files[0];
+            if (!file) {
+                showToast('Sila pilih fail untuk dimuat naik');
+                return;
+            }
+            
+            try {
+                // Create a FormData object to handle file upload
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                // Convert to base64 for the API
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    try {
+                        const base64 = event.target.result;
+                        const payload = {
+                            filename: file.name,
+                            type: file.type,
+                            data: base64
+                        };
+                        
+                        const response = await fetch(EXEC_URL, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                            body: new URLSearchParams({
+                                path: 'upload_media',
+                                payload: JSON.stringify(payload)
+                            })
+                        });
+                        
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            showToast('Media berjaya dimuat naik');
+                            mediaFile.value = '';
+                            fileName.textContent = 'Tiada fail dipilih';
+                            uploadMediaBtn.disabled = true;
+                            
+                            // Add the new media to the grid
+                            addMediaToGrid(result.url, file.type);
+                        } else {
+                            showToast(`Ralat: ${result.message || 'Gagal memuat naik media'}`);
+                        }
+                    } catch (error) {
+                        console.error('Error uploading media:', error);
+                        showToast('Ralat semasa memuat naik media');
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            } catch (error) {
+                console.error('Error processing file:', error);
+                showToast('Ralat semasa memproses fail');
+            }
+        });
+        
+        // Function to add media to the grid
+        function addMediaToGrid(url, type) {
+            const mediaItem = document.createElement('div');
+            mediaItem.className = 'media-item';
+            mediaItem.dataset.url = url;
+            
+            const checkbox = document.createElement('div');
+            checkbox.className = 'media-checkbox';
+            checkbox.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-blue-600"></i>';
+            
+            if (type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = url;
+                img.alt = 'Media';
+                mediaItem.appendChild(img);
+            } else if (type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = url;
+                mediaItem.appendChild(video);
+            }
+            
+            mediaItem.appendChild(checkbox);
+            
+            mediaItem.addEventListener('click', () => {
+                if (selectedMediaItems.has(url)) {
+                    selectedMediaItems.delete(url);
+                    mediaItem.classList.remove('selected');
+                } else {
+                    selectedMediaItems.add(url);
+                    mediaItem.classList.add('selected');
+                }
+                
+                // Update insert button state
+                insertToContentBtn.disabled = selectedMediaItems.size === 0;
+                
+                // Re-initialize Lucide icons
+                lucide.createIcons();
+            });
+            
+            mediaGrid.appendChild(mediaItem);
+            
+            // Re-initialize Lucide icons
+            lucide.createIcons();
+        }
+        
+        // Insert selected media to content
+        insertToContentBtn.addEventListener('click', () => {
+            if (selectedMediaItems.size === 0) {
+                showToast('Sila pilih media untuk dimasukkan');
+                return;
+            }
+            
+            // Switch to content tab
+            document.querySelector('[data-tab="content"]').click();
+            
+            // Insert media URLs into content body
+            let mediaText = '';
+            selectedMediaItems.forEach(url => {
+                mediaText += `\n![Media](${url})\n`;
+            });
+            
+            contentBody.value += mediaText;
+            
+            // Clear selection
+            selectedMediaItems.clear();
+            document.querySelectorAll('.media-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            insertToContentBtn.disabled = true;
+            
+            showToast('Media berjaya dimasukkan ke kandungan');
+        });
+        
+        // Load sample media items
+        function loadSampleMedia() {
+            // Sample media URLs (in a real app, these would come from the API)
+            const sampleMedia = [
+                { url: 'https://picsum.photos/seed/mova1/300/300.jpg', type: 'image/jpeg' },
+                { url: 'https://picsum.photos/seed/mova2/300/300.jpg', type: 'image/jpeg' },
+                { url: 'https://picsum.photos/seed/mova3/300/300.jpg', type: 'image/jpeg' },
+                { url: 'https://picsum.photos/seed/mova4/300/300.jpg', type: 'image/jpeg' },
+                { url: 'https://picsum.photos/seed/mova5/300/300.jpg', type: 'image/jpeg' },
+                { url: 'https://picsum.photos/seed/mova6/300/300.jpg', type: 'image/jpeg' }
+            ];
+            
+            sampleMedia.forEach(media => {
+                addMediaToGrid(media.url, media.type);
+            });
+        }
+        
+        // Logout functionality
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('mova_leader');
+            showToast('Anda telah log keluar');
+            setTimeout(() => {
+                window.location.href = 'login.html'; // Assuming login page is login.html
+            }, 1000);
+        });
+        
+        // Back to login functionality
+        backToLoginBtn.addEventListener('click', () => {
+            window.location.href = 'login.html'; // Assuming login page is login.html
+        });
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserProfile();
+            loadSampleMedia();
+            lucide.createIcons();
+        });
+    </script>
 </body>
 </html>
