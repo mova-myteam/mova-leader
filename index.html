@@ -2,301 +2,329 @@
 <html lang="ms">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MOVA • Leader Console</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MOVA • Leader Login</title>
+
+  <!-- Font & Icon -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
   <style>
     :root{
-      --bg1:#fdf2f8; --bg2:#fde2e4; --primary:#e11d48; --primary-700:#be123c;
-      --card:#ffffff; --muted:#6b7280; --ring:#fca5a5; --ok:#059669;
-      --shadow:0 10px 30px rgba(0,0,0,.08);
-      --br:18px;
+      /* Brand palette — boleh laras */
+      --mova-red: #e11934;
+      --mova-red-600:#cc102a;
+      --mova-red-700:#b30e25;
+      --ink-900:#0f172a;
+      --ink-700:#334155;
+      --ink-600:#475569;
+      --ink-500:#64748b;
+      --ink-300:#cbd5e1;
+      --ink-200:#e2e8f0;
+      --ink-100:#f1f5f9;
+      --white:#ffffff;
+
+      /* UI */
+      --radius-xl: 24px;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --shadow-1: 0 10px 25px rgba(16,24,40,.06), 0 4px 10px rgba(16,24,40,.04);
+      --shadow-2: 0 24px 60px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
+
+      /* Logo (optional) – tukar ke URL logo anda */
+      --logo-url: "";
     }
-    *{ box-sizing:border-box }
-    html,body{ height:100% }
+
+    html,body{height:100%}
     body{
-      margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial;
-      background: radial-gradient(80% 60% at 20% 10%, var(--bg1), #fff 50%) ,
-                  radial-gradient(90% 70% at 90% 10%, var(--bg2), #fff 60%);
-      color:#111827;
+      margin:0;
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
+      color: var(--ink-900);
+      background:
+        radial-gradient(1200px 700px at 10% -10%, rgba(225,25,52,.12), transparent 50%),
+        radial-gradient(1200px 700px at 110% 0%, rgba(225,25,52,.10), transparent 50%),
+        linear-gradient(180deg, #fff, #fff);
     }
-    .container{ max-width:1120px; margin:0 auto; padding:32px }
-    .hidden{ display:none }
+
+    /* Container */
+    .page{
+      min-height:100%;
+      display:grid;
+      place-items:center;
+      padding: clamp(20px, 4vw, 40px);
+    }
 
     /* Card */
     .card{
-      background:var(--card);
-      border-radius:var(--br);
-      box-shadow:var(--shadow);
-      border:1px solid #f3f4f6;
+      width: min(880px, 92vw);
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: clamp(20px, 3.5vw, 36px);
+      background: rgba(255,255,255,.75);
+      backdrop-filter: saturate(140%) blur(10px);
+      border: 1px solid rgba(148,163,184,.18);
+      box-shadow: var(--shadow-2);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
     }
-    .p16{ padding:16px } .p24{ padding:24px } .p32{ padding:32px }
-    .mb16{ margin-bottom:16px } .mb24{ margin-bottom:24px } .mb32{ margin-bottom:32px }
-    .mt16{ margin-top:16px } .mt24{ margin-top:24px } .mt32{ margin-top:32px }
+    @media (max-width: 860px){
+      .card{grid-template-columns: 1fr}
+    }
 
-    /* Inputs */
+    /* Visual / brand side */
+    .brand{
+      position:relative;
+      isolation:isolate;
+      padding: clamp(28px, 4vw, 40px);
+      background:
+        radial-gradient(900px 450px at 0% 0%, rgba(225,25,52,.16), transparent 60%),
+        linear-gradient(180deg, #fff 0%, #fdf2f3 80%);
+      border-right:1px solid rgba(148,163,184,.14);
+    }
+    @media (max-width: 860px){
+      .brand{border-right:0;border-bottom:1px solid rgba(148,163,184,.14)}
+    }
+
+    .logo-badge{
+      width:64px;height:64px;border-radius:18px;
+      display:grid;place-items:center;
+      background: var(--white);
+      box-shadow: var(--shadow-1);
+      border:1px solid rgba(148,163,184,.18);
+      margin-bottom: 18px;
+    }
+    .logo-badge img{
+      width:42px;height:42px;object-fit:contain;display:block;
+    }
+    .logo-badge .emoji{font-size:30px}
+
+    .headline{
+      font-weight:700;
+      font-size: clamp(26px, 2.3vw, 30px);
+      letter-spacing: -.02em;
+      margin: 4px 0 10px;
+    }
+    .sub{
+      color: var(--ink-600);
+      font-size: 14.5px;
+      line-height: 1.55;
+    }
+    .features{
+      display:grid;gap:12px;margin-top:24px
+    }
+    .feature{
+      display:flex;gap:12px;align-items:flex-start;
+      color: var(--ink-700);font-size:14px
+    }
+    .check{
+      width:22px;height:22px;border-radius:8px;display:grid;place-items:center;
+      background: linear-gradient(180deg, var(--mova-red), var(--mova-red-600));
+      color:#fff;box-shadow:0 6px 14px rgba(225,25,52,.25)
+    }
+    .muted{
+      color: var(--ink-500);font-size:13px;margin-top:auto
+    }
+
+    /* Form side */
+    .form{
+      padding: clamp(28px, 4vw, 44px);
+      background: #fff;
+    }
+    .form h2{
+      margin:0 0 18px;font-size: clamp(22px, 2vw, 24px);letter-spacing:-.01em
+    }
+    .form p.small{color:var(--ink-600);margin-top:0;margin-bottom:24px}
+
     .input{
-      width:100%; padding:14px 16px; border-radius:12px;
-      border:1px solid #e5e7eb; background:#fff; color:#111827; outline:none;
-      transition:.2s border,.2s box-shadow;
+      display:grid;gap:8px;margin-bottom:16px
     }
-    .input:focus{ border-color:var(--ring); box-shadow:0 0 0 4px rgba(244,63,94,.12) }
-    .switch{ display:flex; align-items:center; gap:8px }
+    .input label{
+      font-weight:600;font-size:14px;color:var(--ink-700)
+    }
+    .field{
+      appearance:none;border:1px solid var(--ink-200);
+      border-radius:14px;padding:14px 14px 14px 46px;
+      font-size:15px;color:var(--ink-900);background:#fff;
+      outline:none;transition:.15s border, .15s box-shadow;
+      width:100%;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="%2364758b" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z"/></svg>');
+      background-repeat:no-repeat;background-position:14px 50%;
+      background-size: 20px;
+    }
+    .field.phone{
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="%2364758b" viewBox="0 0 24 24"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1 1 0 0 0-1 .24l-2.2 2.2a15.05 15.05 0 0 1-6.6-6.6l2.2-2.2a1 1 0 0 0 .24-1 11.38 11.38 0 0 1-.57-3.57A1 1 0 0 0 7.5 2h-3A1.5 1.5 0 0 0 3 3.5C3 14.38 9.62 21 20.5 21A1.5 1.5 0 0 0 22 19.5v-3a1 1 0 0 0-1-1Z"/></svg>');
+    }
+    .field:focus{
+      border-color: rgba(225,25,52,.75);
+      box-shadow: 0 0 0 6px rgba(225,25,52,.10)
+    }
 
+    .actions{margin-top: 6px}
     .btn{
-      display:inline-flex; align-items:center; justify-content:center; gap:10px;
-      height:44px; padding:0 18px; border-radius:12px; font-weight:600;
-      border:0; cursor:pointer; transition:.2s transform, .2s box-shadow, .2s background;
+      width:100%;
+      border:0;border-radius:14px;
+      padding:14px 18px;
+      font-weight:700;letter-spacing:.01em;font-size:15.5px;
+      color:#fff;
+      background: linear-gradient(180deg, var(--mova-red), var(--mova-red-700));
+      box-shadow: 0 12px 30px rgba(225,25,52,.25), inset 0 1px 0 rgba(255,255,255,.15);
+      cursor:pointer; transition: .15s transform, .15s box-shadow, .15s filter;
     }
-    .btn:active{ transform: translateY(1px) }
-    .btn-primary{ background:linear-gradient(180deg, var(--primary), var(--primary-700)); color:#fff; box-shadow:0 8px 16px rgba(225,29,72,.3) }
-    .btn-primary:hover{ filter:saturate(1.08) }
-    .btn-soft{ background:#f3f4f6; color:#111827 }
-    .btn-green{ background:#10b981; color:#fff; box-shadow:0 8px 16px rgba(16,185,129,.24) }
-    .btn-green:hover{ filter:saturate(1.05) }
+    .btn:hover{filter:brightness(1.03)}
+    .btn:active{transform: translateY(1px)}
+    .btn:disabled{opacity:.7;cursor:not-allowed;filter:none}
 
-    .grid{ display:grid; gap:24px }
-    @media(min-width:900px){ .grid{ grid-template-columns:repeat(3,1fr) } }
+    .error{
+      display:none;margin-top:12px;
+      background:#fff1f2;border:1px solid #fecdd3;color:#b91c1c;
+      padding:10px 12px;border-radius:12px;font-size:13.5px
+    }
+    .error.show{display:block}
 
-    header .brand{
-      display:flex; align-items:center; gap:14px;
-      font-weight:800; letter-spacing:.3px; font-size:20px;
+    .footer{
+      margin-top: 22px;color:var(--ink-500);font-size:12.5px
     }
-    .chip{ padding:4px 10px; border-radius:999px; background:#fee2e2; color:#991b1b; font-weight:700; font-size:12px }
+    .footer a{color:var(--mova-red);text-decoration:none}
+    .footer a:hover{text-decoration:underline}
 
-    /* Center login card */
-    .center{
-      min-height:100dvh; display:flex; align-items:center; justify-content:center; padding:24px;
-    }
-    .logo{
-      width:72px; height:72px; border-radius:16px; background:#fff; display:grid; place-items:center;
-      box-shadow:var(--shadow); border:1px solid #f3f4f6; margin:0 auto 16px;
-    }
-    .logo img{ width:46px; height:46px }
-    .title{ text-align:center; font-size:26px; font-weight:800; margin:6px 0 24px }
-    .muted{ color:var(--muted); font-size:13px }
-    pre{ background:#0f172a; color:#e5e7eb; padding:14px; border-radius:12px; overflow:auto }
-    .media-list img, .media-list video{ max-width:120px; border-radius:12px; margin:6px; border:1px solid #f3f4f6; box-shadow:var(--shadow) }
+    /* Tiny motion */
+    @keyframes floatIn{from{transform:translateY(8px);opacity:.0}to{transform:translateY(0);opacity:1}}
+    .brand,.form{animation: floatIn .5s ease .03s both}
   </style>
 </head>
 <body>
+  <div class="page">
+    <main class="card" role="main" aria-labelledby="title">
+      <!-- Brand / left panel -->
+      <section class="brand">
+        <div class="logo-badge" aria-hidden="true">
+          <!-- Guna logo sendiri jika ada -->
+          <!-- <img src="https://YOUR-LOGO.png" alt="MOVA logo"> -->
+          <span class="emoji">🚀</span>
+        </div>
+        <h1 class="headline" id="title">Selamat datang, Leader</h1>
+        <p class="sub">
+          Akses konsol <b>MOVA</b> untuk urus kandungan, partner & pelanggan. Reka bentuk bersih, fokus produktiviti — sesuai dibuka di telefon & laptop.
+        </p>
 
-<!-- ==================== LOGIN ==================== -->
-<section id="loginPage" class="center">
-  <div class="card p32" style="width:min(440px, 100%)">
-    <div class="logo">
-      <!-- tukar logo jika perlu -->
-      <img src="https://img.icons8.com/ios-filled/100/fa314a/rocket.png" alt="logo">
-    </div>
-    <div class="title">Leader Login</div>
+        <div class="features">
+          <div class="feature"><span class="check">✓</span> Simpan kandungan & siarkan kepada pelanggan anda</div>
+          <div class="feature"><span class="check">✓</span> Cipta partner (Silver/Gold/Diamond) & lulus pendaftaran</div>
+          <div class="feature"><span class="check">✓</span> Broadcast mesej WhatsApp (gambar & video disokong)</div>
+        </div>
 
-    <label class="muted">Nama leader</label>
-    <input id="leader_name" class="input mb16" placeholder="contoh: amirul">
+        <p class="muted">© <span id="year"></span> MOVA. Semua hak cipta terpelihara.</p>
+      </section>
 
-    <label class="muted">No. Telefon</label>
-    <input id="phone" class="input mb24" placeholder="contoh: 0109074190">
+      <!-- Form / right panel -->
+      <section class="form" aria-label="Login Leader">
+        <h2>Leader Login</h2>
+        <p class="small">Masukkan <b>nama leader</b> & <b>no. telefon</b> yang berdaftar pada profil anda.</p>
 
-    <button class="btn btn-primary" style="width:100%" onclick="login()">Login</button>
-    <div id="loginMsg" class="mt16 muted"></div>
+        <form id="loginForm" novalidate>
+          <div class="input">
+            <label for="name">Nama leader</label>
+            <input id="name" name="name" class="field" type="text" placeholder="cth: amirul" autocomplete="username" required />
+          </div>
+
+          <div class="input">
+            <label for="phone">No. Telefon</label>
+            <input id="phone" name="phone" class="field phone" type="tel" inputmode="numeric" placeholder="cth: 0109074190" autocomplete="tel" required />
+          </div>
+
+          <div class="actions">
+            <button id="btnLogin" class="btn" type="submit">Login</button>
+            <div id="error" class="error" role="alert"></div>
+          </div>
+
+          <p class="footer">Tiada akaun leader? <a href="#" onclick="alert('Hubungi admin untuk pendaftaran leader.');return false;">Hubungi admin</a></p>
+        </form>
+      </section>
+    </main>
   </div>
-</section>
 
-<!-- ==================== DASHBOARD ==================== -->
-<div id="dashboard" class="hidden">
-  <div class="container">
-    <header class="mb24" style="display:flex;align-items:center;justify-content:space-between">
-      <div class="brand">
-        <span class="chip">MOVA</span>
-        <span>Leader Console</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <div id="who" class="muted"></div>
-        <button class="btn btn-soft" onclick="logout()">Log Keluar</button>
-      </div>
-    </header>
+  <script>
+    // =======================
+    //  KONFIGURASI API
+    // =======================
+    // ⚠️ PENTING: TUKAR kepada URL Apps Script Web App anda (wajib /exec di hujung)
+    const API_URL = "PASTE_EXEC_URL_DI_SINI";
 
-    <div class="grid">
-      <!-- Kandungan Laman -->
-      <div class="card p24">
-        <h3 style="margin:0 0 8px">Kandungan Laman</h3>
-        <p class="muted mb16">Maklumat yang dipaparkan kepada pelanggan.</p>
-
-        <label class="muted">Tajuk</label>
-        <input id="title" class="input mb12" placeholder="Contoh: Promosi MOVA">
-
-        <label class="muted">Isi kandungan</label>
-        <textarea id="body" class="input mb12" rows="6" placeholder="Tulis pengumuman, panduan, pautan video dsb."></textarea>
-
-        <label class="switch mb16"><input type="checkbox" id="published"> Terbitkan</label>
-
-        <label class="muted">Media URLs (jika ada, pisah dengan koma)</label>
-        <input id="media_urls" class="input mb16" placeholder="https://..., https://...">
-
-        <div style="display:flex; gap:10px">
-          <button class="btn btn-primary" onclick="saveContent()">Simpan / Kemas Kini</button>
-          <button class="btn btn-soft" onclick="clearContent()">Kosongkan</button>
-        </div>
-
-        <div class="mt16">
-          <pre id="contentResult" class="hidden"></pre>
-        </div>
-      </div>
-
-      <!-- Media Library -->
-      <div class="card p24">
-        <h3 style="margin:0 0 8px">Media Library</h3>
-        <p class="muted mb16">Gambar & video (hanya Leader dibenarkan).</p>
-
-        <input id="mediaFile" type="file" class="mb12" accept="image/*,video/*">
-        <div style="display:flex; gap:10px">
-          <button class="btn btn-green" onclick="uploadMedia()">Muat Naik</button>
-          <button class="btn btn-soft" onclick="document.getElementById('mediaPreview').innerHTML=''">Kosongkan Pratonton</button>
-        </div>
-
-        <div id="mediaPreview" class="media-list mt16"></div>
-      </div>
-
-      <!-- Broadcast -->
-      <div class="card p24">
-        <h3 style="margin:0 0 8px">Broadcast Mesej</h3>
-        <p class="muted mb16">Hantar pengumuman kepada pelanggan (demo – log ke Sheet).</p>
-
-        <textarea id="broadcastMsg" class="input mb12" rows="6" placeholder="Contoh: Promosi 20% minggu ini untuk semua pelan."></textarea>
-        <button class="btn btn-primary" onclick="broadcast()">Hantar</button>
-
-        <div class="mt16"><pre id="broadcastResult" class="hidden"></pre></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  // === Gantikan dengan URL Web App Apps Script anda (yang berakhir dengan /exec)
-  const API_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
-
-  // ===== Helper: hantar form-encoded TANPA preflight (tiada headers custom) =====
-  async function postForm(path, payloadObj){
-    const form = new URLSearchParams();
-    form.append('path', path);
-    form.append('payload', JSON.stringify(payloadObj || {}));
-    const res = await fetch(API_URL, { method:'POST', body: form });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    return res.json();
-  }
-
-  function setView(){
-    const id = localStorage.getItem('leader_id');
-    const name = localStorage.getItem('leader_name');
-    if (id) {
-      document.getElementById('loginPage').classList.add('hidden');
-      document.getElementById('dashboard').classList.remove('hidden');
-      document.getElementById('who').innerText = name ? ('Hi, ' + name) : '';
-    } else {
-      document.getElementById('dashboard').classList.add('hidden');
-      document.getElementById('loginPage').classList.remove('hidden');
+    // Tambah guard — ingatkan jika terlupa tukar
+    if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL)){
+      console.warn("API_URL belum dikemas kini. Sila ganti PASTE_EXEC_URL_DI_SINI dengan URL Web App /exec anda.");
     }
-  }
 
-  async function login(){
-    const leader_name = document.getElementById('leader_name').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const msg = document.getElementById('loginMsg');
-    msg.textContent = '';
-    try {
-      const data = await postForm('login', { leader_name, phone, full_name: leader_name });
-      if (data.success){
-        localStorage.setItem('leader_id', data.leader_id);
-        localStorage.setItem('leader_name', leader_name);
-        setView();
-      } else {
-        msg.textContent = data.error || 'Login gagal.';
-      }
-    } catch(err){
-      msg.textContent = 'Ralat rangkaian: ' + err.message;
-    }
-  }
+    // Util
+    const $ = (sel)=>document.querySelector(sel);
+    const $$ = (sel)=>document.querySelectorAll(sel);
 
-  function logout(){
-    localStorage.removeItem('leader_id');
-    localStorage.removeItem('leader_name');
-    setView();
-  }
+    // Tahun footer
+    $("#year").textContent = new Date().getFullYear();
 
-  function clearContent(){
-    document.getElementById('title').value = '';
-    document.getElementById('body').value = '';
-    document.getElementById('published').checked = false;
-    document.getElementById('media_urls').value = '';
-  }
-
-  async function saveContent(){
-    const leader_id = localStorage.getItem('leader_id');
-    const title = document.getElementById('title').value;
-    const body = document.getElementById('body').value;
-    const media_urls = document.getElementById('media_urls').value;
-    const published = document.getElementById('published').checked;
-    const out = document.getElementById('contentResult');
-    out.classList.remove('hidden');
-    out.textContent = 'Menyimpan...';
-
-    try{
-      const data = await postForm('content_save', { leader_id, title, body, media_urls, published });
-      out.textContent = JSON.stringify(data, null, 2);
-    }catch(err){
-      out.textContent = 'Ralat: ' + err.message;
-    }
-  }
-
-  async function uploadMedia(){
-    const leader_id = localStorage.getItem('leader_id');
-    const file = document.getElementById('mediaFile').files[0];
-    if(!file) return alert('Sila pilih fail.');
-    const b64 = await toBase64(file);    // data:...;base64,xxxxx
-    try{
-      const data = await postForm('upload_media', {
-        leader_id,
-        file_name: file.name,
-        file_type: file.type,
-        file_base64: b64.split(',')[1]
-      });
-      if (data.success) {
-        const el = document.createElement(data.isVideo ? 'video' : 'img');
-        el.src = data.public_url;
-        if (data.isVideo) el.controls = true;
-        document.getElementById('mediaPreview').appendChild(el);
-      } else {
-        alert(data.error || 'Ralat muat naik.');
-      }
-    }catch(err){
-      alert('Ralat rangkaian: ' + err.message);
-    }
-  }
-
-  async function broadcast(){
-    const leader_id = localStorage.getItem('leader_id');
-    const message = document.getElementById('broadcastMsg').value;
-    const out = document.getElementById('broadcastResult');
-    out.classList.remove('hidden');
-    out.textContent = 'Menghantar...';
-    try{
-      const data = await postForm('broadcast', { leader_id, message });
-      out.textContent = JSON.stringify(data, null, 2);
-    }catch(err){
-      out.textContent = 'Ralat: ' + err.message;
-    }
-  }
-
-  function toBase64(file){
-    return new Promise((resolve,reject)=>{
-      const r = new FileReader();
-      r.onload = () => resolve(r.result);
-      r.onerror = reject;
-      r.readAsDataURL(file);
+    // Phone: hanya digit
+    $("#phone").addEventListener("input", e=>{
+      e.target.value = e.target.value.replace(/[^\d]/g,'');
     });
-  }
 
-  // Init
-  setView();
-</script>
+    // Submit handler
+    $("#loginForm").addEventListener("submit", async (e)=>{
+      e.preventDefault();
+      const name = $("#name").value.trim();
+      const phone = $("#phone").value.trim();
+      const btn = $("#btnLogin");
+      const err = $("#error");
+      err.classList.remove("show");
+      err.textContent = "";
+
+      if(!name || !phone){
+        err.textContent = "Sila isi nama leader dan no. telefon.";
+        err.classList.add("show");
+        return;
+      }
+
+      try{
+        btn.disabled = true;
+        btn.textContent = "Memproses…";
+
+        // Panggil Apps Script (POST x-www-form-urlencoded)
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body: new URLSearchParams({
+            path: "login",
+            payload: JSON.stringify({ leader_name: name, phone })
+          }),
+        });
+
+        if(!res.ok){
+          throw new Error(`Ralat rangkaian: ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        if(data.success){
+          // Simpan sesi ringkas
+          localStorage.setItem("mova_leader_id", data.leader_id);
+          localStorage.setItem("mova_leader_name", name);
+          localStorage.setItem("mova_login_at", String(Date.now()));
+
+          // Anda boleh tukar ke URL dashboard sebenar (contoh: /leader/dashboard.html)
+          // Buat sementara kita redirect ke halaman placeholder:
+          window.location.href = "dashboard.html";
+        }else{
+          throw new Error(data.message || "Login gagal. Sila semak nama & no. telefon.");
+        }
+
+      }catch(ex){
+        err.textContent = ex.message || "Tidak dapat log masuk. Cuba lagi.";
+        err.classList.add("show");
+      }finally{
+        btn.disabled = false;
+        btn.textContent = "Login";
+      }
+    });
+  </script>
 </body>
 </html>
