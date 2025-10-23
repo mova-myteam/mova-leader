@@ -12,20 +12,28 @@
   <style>
     :root{
       --mova-red:#e11934;
+      --mova-red-light:#fce8ea;
       --mova-red-600:#cc102a;
       --mova-red-700:#b30e25;
       --ink-950:#0b1220;
       --ink-900:#111827;
+      --ink-800:#1f2937;
       --ink-700:#374151;
       --ink-600:#4b5563;
       --ink-500:#6b7280;
-      --ink-300:#cbd5e1;
+      --ink-400:#9ca3af;
+      --ink-300:#d1d5db;
       --ink-200:#e5e7eb;
       --ink-100:#f3f4f6;
+      --ink-50:#f9fafb;
       --white:#fff;
-      --radius-xl:22px;
-      --radius-lg:16px;
-      --shadow-1:0 10px 25px rgba(17,24,39,.06), 0 4px 10px rgba(17,24,39,.04);
+      --radius-xl:16px;
+      --radius-lg:12px;
+      --radius-md:8px;
+      --shadow-1:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow-2:0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -1px rgba(0,0,0,0.04);
+      --shadow-3:0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.02);
+      --transition: all 0.2s ease-in-out;
     }
 
     html,body{height:100%}
@@ -33,95 +41,277 @@
       margin:0;
       font-family:"Inter",sans-serif;
       color:var(--ink-900);
-      background:
-        radial-gradient(1200px 600px at -10% -10%, #ffe4e6, transparent 50%),
-        linear-gradient(180deg, #fff, #fff);
+      background-color: var(--ink-50);
+      line-height: 1.5;
     }
 
     /* Topbar */
     .topbar{
       position:sticky;top:0;z-index:20;
-      background:rgba(255,255,255,.85);
+      background:rgba(255,255,255,.95);
       backdrop-filter:blur(8px);
       border-bottom:1px solid var(--ink-200);
+      box-shadow: var(--shadow-1);
     }
     .topbar-inner{
       max-width:1200px;margin:0 auto;
       padding:14px 22px;
       display:flex;align-items:center;justify-content:space-between;
     }
-    .brand{display:flex;align-items:center;gap:12px}
+    .brand{display:flex;align-items:center;gap:14px}
     .badge{
       width:44px;height:44px;display:grid;place-items:center;
-      background:#fff;border:1px solid var(--ink-200);border-radius:12px;box-shadow:var(--shadow-1);
+      background: linear-gradient(135deg, var(--mova-red), var(--mova-red-700));
+      border-radius:12px;
+      box-shadow: var(--shadow-2);
     }
-    .badge span{font-size:22px}
-    .brand-text .b1{font-weight:800}
-    .brand-text .b2{font-size:13px;color:var(--ink-500)}
+    .badge svg {
+      width: 22px;
+      height: 22px;
+      fill: white;
+    }
+    .brand-text .b1{font-weight:800; font-size: 18px; color: var(--ink-900);}
+    .brand-text .b2{font-size:13px;color:var(--ink-500); margin-top: 2px;}
 
-    .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
-    .btn-red{background:linear-gradient(180deg,var(--mova-red),var(--mova-red-700));color:#fff}
-    .btn-outline{background:#fff;border:1px solid var(--ink-200)}
+    .btn{
+      border:0;
+      border-radius:var(--radius-md);
+      padding:10px 16px;
+      font-weight:600;
+      cursor:pointer;
+      font-size: 14px;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    .btn-red{
+      background:linear-gradient(180deg,var(--mova-red),var(--mova-red-700));
+      color:#fff;
+      box-shadow: var(--shadow-2);
+    }
+    .btn-red:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-3);
+    }
+    .btn-outline{
+      background:#fff;
+      border:1px solid var(--ink-300);
+      color: var(--ink-700);
+    }
+    .btn-outline:hover {
+      background: var(--ink-50);
+      border-color: var(--ink-400);
+    }
 
     main{max-width:1200px;margin:0 auto;padding:22px}
 
     /* Tabs */
-    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-    .tab{
-      padding:10px 12px;border:1px solid var(--ink-200);
-      border-radius:12px;background:#fff;font-weight:600;color:var(--ink-700);
-      cursor:pointer;user-select:none;
+    .tabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:24px;
+      background: white;
+      padding: 8px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-1);
+      border: 1px solid var(--ink-200);
     }
-    .tab.active{background:var(--mova-red);border-color:var(--mova-red);color:#fff}
+    .tab{
+      padding:10px 16px;
+      border-radius:var(--radius-md);
+      background:transparent;
+      font-weight:600;
+      color:var(--ink-600);
+      cursor:pointer;
+      user-select:none;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .tab svg {
+      width: 16px;
+      height: 16px;
+    }
+    .tab:hover{
+      background: var(--ink-100);
+      color: var(--ink-800);
+    }
+    .tab.active{
+      background:var(--mova-red);
+      color:#fff;
+      box-shadow: var(--shadow-1);
+    }
 
     .section{display:none}
     .section.active{display:block}
 
     /* Cards */
     .card{
-      background:#fff;border:1px solid var(--ink-200);
-      border-radius:var(--radius-xl);box-shadow:var(--shadow-1);
-      margin-bottom:24px;overflow:hidden;
+      background:#fff;
+      border:1px solid var(--ink-200);
+      border-radius:var(--radius-xl);
+      box-shadow:var(--shadow-1);
+      margin-bottom:24px;
+      overflow:hidden;
+      transition: var(--transition);
     }
-    .card-head{padding:18px 20px;border-bottom:1px solid var(--ink-200);background:#fff5f5;font-weight:800}
+    .card:hover {
+      box-shadow: var(--shadow-2);
+    }
+    .card-head{
+      padding:18px 20px;
+      border-bottom:1px solid var(--ink-200);
+      background:var(--mova-red-light);
+      font-weight:700;
+      font-size: 16px;
+      color: var(--ink-900);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-head svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--mova-red);
+    }
     .card-body{padding:20px}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
     .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
     @media(max-width:980px){.grid2,.grid3{grid-template-columns:1fr}}
-    label{font-weight:600;font-size:13px;color:var(--ink-700)}
+    
+    .form-group {
+      margin-bottom: 16px;
+    }
+    
+    label{
+      display: block;
+      font-weight:600;
+      font-size:14px;
+      color:var(--ink-700);
+      margin-bottom: 6px;
+    }
     input,select,textarea{
-      width:100%;margin-top:6px;margin-bottom:10px;
-      border:1px solid var(--ink-200);border-radius:12px;padding:12px 12px;
-      outline:none;background:#fff;transition:border .2s;
-      font-family:inherit;font-size:14px;
+      width:100%;
+      border:1px solid var(--ink-300);
+      border-radius:var(--radius-md);
+      padding:12px 14px;
+      outline:none;
+      background:#fff;
+      transition:border .2s;
+      font-family:inherit;
+      font-size:14px;
+      box-sizing: border-box;
     }
     textarea{min-height:120px;resize:vertical}
-    input:focus,select:focus,textarea:focus{border-color:#9ca3af}
+    input:focus,select:focus,textarea:focus{
+      border-color:var(--mova-red);
+      box-shadow: 0 0 0 3px rgba(225, 25, 52, 0.1);
+    }
 
-    .btn-row{display:flex;gap:10px;margin-top:6px}
-    .muted{font-size:13px;color:var(--ink-600)}
+    .btn-row{display:flex;gap:10px;margin-top:16px; flex-wrap: wrap;}
+    .muted{font-size:13px;color:var(--ink-600); line-height: 1.5;}
 
-    .alert{margin-top:12px;padding:10px 12px;border-radius:12px;font-size:13px;border:1px solid}
-    .ok{background:#ecfdf5;border-color:#bbf7d0;color:#065f46}
-    .err{background:#fff1f2;border-color:#fecdd3;color:#b91c1c}
+    .alert{
+      margin-top:12px;
+      padding:12px 14px;
+      border-radius:var(--radius-md);
+      font-size:13px;
+      border:1px solid;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .alert svg {
+      width: 16px;
+      height: 16px;
+    }
+    .ok{
+      background:#f0fdf4;
+      border-color:#bbf7d0;
+      color:#065f46;
+    }
+    .err{
+      background:#fef2f2;
+      border-color:#fecaca;
+      color:#b91c1c;
+    }
 
     /* Table */
-    table{width:100%;border-collapse:separate;border-spacing:0 8px}
-    th{font-size:12px;text-transform:uppercase;color:var(--ink-600);text-align:left;padding:0 12px}
-    td{
-      background:#fff;border:1px solid var(--ink-200);padding:12px;
-      border-left:4px solid #f3f4f6;
+    table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0;
     }
-    tr td:first-child{border-radius:12px 0 0 12px}
-    tr td:last-child{border-radius:0 12px 12px 0}
+    th{
+      font-size:12px;
+      text-transform:uppercase;
+      color:var(--ink-600);
+      text-align:left;
+      padding:12px 16px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--ink-200);
+      background: var(--ink-50);
+    }
+    td{
+      padding:14px 16px;
+      border-bottom: 1px solid var(--ink-200);
+      font-size: 14px;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: var(--ink-50);
+    }
 
     /* Org Chart */
-    #orgChart{width:100%;overflow-x:auto}
+    #orgChart{width:100%;overflow-x:auto; margin-bottom: 16px;}
     svg{width:100%;height:620px}
-    .node rect{rx:20;ry:20;stroke:#e5e7eb;stroke-width:1.4;fill:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.07))}
+    .node rect{rx:12;ry:12;stroke:#e5e7eb;stroke-width:1.4;fill:#fff;filter:drop-shadow(0 1px 3px rgba(0,0,0,.07))}
     .node text{text-anchor:middle;font-weight:700;font-size:12.5px;fill:#111827}
     .node .title{font-size:10.5px;fill:#64748b}
     .link{fill:none;stroke:#e5e7eb;stroke-width:2px}
+
+    /* Media Grid */
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .media-card {
+      border: 1px solid var(--ink-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: var(--transition);
+    }
+    .media-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-2);
+    }
+    .media-card img {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+    }
+    .media-card .caption {
+      padding: 12px;
+      font-size: 13px;
+      color: var(--ink-700);
+    }
+
+    /* Icons */
+    .icon {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+    }
   </style>
 </head>
 <body>
@@ -129,15 +319,29 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <div class="badge"><span>🚀</span></div>
+        <div class="badge">
+          <svg viewBox="0 0 24 24">
+            <path d="M13 3v10h8V3M3 21h8v-8H3m0-2h8V3H3m10 0v8h8V3h-8z"/>
+          </svg>
+        </div>
         <div class="brand-text">
           <div class="b1">MOVA Leader</div>
           <div class="b2" id="welcome">Memuatkan…</div>
         </div>
       </div>
       <div class="btns">
-        <button class="btn-outline" onclick="location.href='index.html'">Kembali Login</button>
-        <button class="btn btn-red" onclick="logout()">Log Keluar</button>
+        <button class="btn btn-outline" onclick="location.href='index.html'">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+          </svg>
+          Kembali Login
+        </button>
+        <button class="btn btn-red" onclick="logout()">
+          <svg viewBox="0 0 24 24">
+            <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+          </svg>
+          Log Keluar
+        </button>
       </div>
     </div>
   </header>
@@ -145,49 +349,112 @@
   <main>
     <!-- TABS -->
     <div class="tabs" id="tabs">
-      <div class="tab active" data-target="sec-content">Kandungan</div>
-      <div class="tab" data-target="sec-media">Media Library</div>
-      <div class="tab" data-target="sec-partner">Tambah Partner</div>
-      <div class="tab" data-target="sec-customer">Tambah Customer</div>
-      <div class="tab" data-target="sec-approve">Approve Pendaftaran</div>
-      <div class="tab" data-target="sec-org">Carta Organisasi</div>
-      <div class="tab" data-target="sec-broadcast">Broadcast</div>
+      <div class="tab active" data-target="sec-content">
+        <svg viewBox="0 0 24 24">
+          <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+        </svg>
+        Kandungan
+      </div>
+      <div class="tab" data-target="sec-media">
+        <svg viewBox="0 0 24 24">
+          <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+        </svg>
+        Media Library
+      </div>
+      <div class="tab" data-target="sec-partner">
+        <svg viewBox="0 0 24 24">
+          <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+        </svg>
+        Tambah Partner
+      </div>
+      <div class="tab" data-target="sec-customer">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        Tambah Customer
+      </div>
+      <div class="tab" data-target="sec-approve">
+        <svg viewBox="0 0 24 24">
+          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+        </svg>
+        Approve Pendaftaran
+      </div>
+      <div class="tab" data-target="sec-org">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L9 10.5V12L3 13.5V15.5L9 14V16L3 17.5V19.5L9 18V22H15V18L21 19.5V17.5L15 16V14L21 15.5V13.5L15 12V10.5L21 9Z"/>
+        </svg>
+        Carta Organisasi
+      </div>
+      <div class="tab" data-target="sec-broadcast">
+        <svg viewBox="0 0 24 24">
+          <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/>
+        </svg>
+        Broadcast
+      </div>
     </div>
 
     <!-- KANDUNGAN -->
     <section id="sec-content" class="section active">
       <div class="card">
-        <div class="card-head">Kandungan Laman (Paparan untuk Pelanggan)</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+          </svg>
+          Kandungan Laman (Paparan untuk Pelanggan)
+        </div>
         <div class="card-body">
           <div class="grid2">
-            <div>
-              <label>Tajuk</label>
+            <div class="form-group">
+              <label for="con_title">Tajuk</label>
               <input id="con_title" placeholder="Contoh: Promosi MOVA"/>
             </div>
-            <div>
-              <label>Terbit?</label>
+            <div class="form-group">
+              <label for="con_publish">Terbit?</label>
               <select id="con_publish">
                 <option value="Ya">Ya</option>
                 <option value="Tidak">Tidak</option>
               </select>
             </div>
           </div>
-          <label>Isi Kandungan</label>
-          <textarea id="con_body" placeholder="Tulis pengumuman/panduan…"></textarea>
+          <div class="form-group">
+            <label for="con_body">Isi Kandungan</label>
+            <textarea id="con_body" placeholder="Tulis pengumuman/panduan…"></textarea>
+          </div>
           <div class="btn-row">
-            <button class="btn btn-red" onclick="contentSave()">Simpan / Kemas Kini</button>
-            <button class="btn-outline" onclick="contentList()">Segar Semula</button>
+            <button class="btn btn-red" onclick="contentSave()">
+              <svg viewBox="0 0 24 24">
+                <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+              </svg>
+              Simpan / Kemas Kini
+            </button>
+            <button class="btn btn-outline" onclick="contentList()">
+              <svg viewBox="0 0 24 24">
+                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+              Segar Semula
+            </button>
           </div>
           <div id="msg-content" class="alert" style="display:none"></div>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-head">Kandungan Terkini</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+          </svg>
+          Kandungan Terkini
+        </div>
         <div class="card-body">
           <div class="muted">Senarai ini diambil dari API <code>content.list</code>.</div>
           <table>
-            <thead><tr><th>Tajuk</th><th>Terbit</th><th>Kemaskini</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Tajuk</th>
+                <th>Terbit</th>
+                <th>Kemaskini</th>
+              </tr>
+            </thead>
             <tbody id="content_list"></tbody>
           </table>
         </div>
@@ -197,31 +464,51 @@
     <!-- MEDIA -->
     <section id="sec-media" class="section">
       <div class="card">
-        <div class="card-head">Media Library (Gambar &amp; Video)</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+          </svg>
+          Media Library (Gambar &amp; Video)
+        </div>
         <div class="card-body">
           <div class="muted">Hanya leader dibenarkan upload.</div>
           <div class="grid2">
-            <div>
-              <label>Pilih Fail</label>
+            <div class="form-group">
+              <label for="media_file">Pilih Fail</label>
               <input type="file" id="media_file" accept="image/*,video/*"/>
             </div>
-            <div>
-              <label>Keterangan (Opsyenal)</label>
+            <div class="form-group">
+              <label for="media_caption">Keterangan (Opsyenal)</label>
               <input id="media_caption" placeholder="Keterangan ringkas"/>
             </div>
           </div>
           <div class="btn-row">
-            <button class="btn btn-red" onclick="mediaUpload()">Muat Naik</button>
-            <button class="btn-outline" onclick="mediaList()">Segar Semula</button>
+            <button class="btn btn-red" onclick="mediaUpload()">
+              <svg viewBox="0 0 24 24">
+                <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"/>
+              </svg>
+              Muat Naik
+            </button>
+            <button class="btn btn-outline" onclick="mediaList()">
+              <svg viewBox="0 0 24 24">
+                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+              Segar Semula
+            </button>
           </div>
           <div id="msg-media" class="alert" style="display:none"></div>
         </div>
       </div>
 
       <div class="card">
-        <div class="card-head">Senarai Media</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+          </svg>
+          Senarai Media
+        </div>
         <div class="card-body">
-          <div class="grid3" id="media_grid"></div>
+          <div class="media-grid" id="media_grid"></div>
         </div>
       </div>
     </section>
@@ -229,24 +516,29 @@
     <!-- PARTNER -->
     <section id="sec-partner" class="section">
       <div class="card">
-        <div class="card-head">Tambah Partner</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+          </svg>
+          Tambah Partner
+        </div>
         <div class="card-body">
           <div class="grid3">
-            <div>
-              <label>Nama Penuh</label>
+            <div class="form-group">
+              <label for="p_name">Nama Penuh</label>
               <input id="p_name" placeholder="Nama partner"/>
             </div>
-            <div>
-              <label>Email</label>
+            <div class="form-group">
+              <label for="p_email">Email</label>
               <input id="p_email" type="email" placeholder="partner@contoh.com"/>
             </div>
-            <div>
-              <label>No. Telefon</label>
+            <div class="form-group">
+              <label for="p_phone">No. Telefon</label>
               <input id="p_phone" placeholder="+60xxxxxxxxx"/>
             </div>
           </div>
-          <div style="max-width:340px">
-            <label>Pakej</label>
+          <div class="form-group" style="max-width:340px">
+            <label for="p_package">Pakej</label>
             <select id="p_package">
               <option value="silver">Silver</option>
               <option value="gold">Gold</option>
@@ -254,7 +546,12 @@
             </select>
           </div>
           <div class="btn-row">
-            <button class="btn btn-red" onclick="partnerCreate()">Cipta Partner</button>
+            <button class="btn btn-red" onclick="partnerCreate()">
+              <svg viewBox="0 0 24 24">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+              </svg>
+              Cipta Partner
+            </button>
           </div>
           <div id="msg-partner" class="alert" style="display:none"></div>
         </div>
@@ -264,24 +561,34 @@
     <!-- CUSTOMER -->
     <section id="sec-customer" class="section">
       <div class="card">
-        <div class="card-head">Tambah Customer</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+          Tambah Customer
+        </div>
         <div class="card-body">
           <div class="grid3">
-            <div>
-              <label>Nama Penuh</label>
+            <div class="form-group">
+              <label for="c_name">Nama Penuh</label>
               <input id="c_name" placeholder="Nama customer"/>
             </div>
-            <div>
-              <label>No. Telefon</label>
+            <div class="form-group">
+              <label for="c_phone">No. Telefon</label>
               <input id="c_phone" placeholder="+60xxxxxxxxx"/>
             </div>
-            <div>
-              <label>(Opsyenal) Terkait Partner</label>
+            <div class="form-group">
+              <label for="c_partner">(Opsyenal) Terkait Partner</label>
               <input id="c_partner" placeholder="ID / Nama partner"/>
             </div>
           </div>
           <div class="btn-row">
-            <button class="btn btn-red" onclick="customerAdd()">Tambah</button>
+            <button class="btn btn-red" onclick="customerAdd()">
+              <svg viewBox="0 0 24 24">
+                <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+              </svg>
+              Tambah
+            </button>
           </div>
           <div id="msg-customer" class="alert" style="display:none"></div>
         </div>
@@ -291,15 +598,32 @@
     <!-- APPROVE -->
     <section id="sec-approve" class="section">
       <div class="card">
-        <div class="card-head">Approve Pendaftaran MOVA</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+          </svg>
+          Approve Pendaftaran MOVA
+        </div>
         <div class="card-body">
           <div class="muted">Senarai ini diambil dari API <code>registration.list</code>.</div>
           <table>
-            <thead><tr><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Nama</th>
+                <th>Telefon</th>
+                <th>Status</th>
+                <th>Tindakan</th>
+              </tr>
+            </thead>
             <tbody id="reg_list"></tbody>
           </table>
           <div class="btn-row">
-            <button class="btn-outline" onclick="registrationList()">Segar Semula</button>
+            <button class="btn btn-outline" onclick="registrationList()">
+              <svg viewBox="0 0 24 24">
+                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+              Segar Semula
+            </button>
           </div>
           <div id="msg-approve" class="alert" style="display:none"></div>
         </div>
@@ -309,11 +633,21 @@
     <!-- ORG CHART -->
     <section id="sec-org" class="section">
       <div class="card">
-        <div class="card-head">Carta Organisasi</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C13.1 2 14 2.9 14 4C14 5.1 13.1 6 12 6C10.9 6 10 5.1 10 4C10 2.9 10.9 2 12 2ZM21 9V7L15 5.5V7H9V5.5L3 7V9L9 10.5V12L3 13.5V15.5L9 14V16L3 17.5V19.5L9 18V22H15V18L21 19.5V17.5L15 16V14L21 15.5V13.5L15 12V10.5L21 9Z"/>
+          </svg>
+          Carta Organisasi
+        </div>
         <div class="card-body">
           <div id="orgChart"></div>
           <div class="btn-row">
-            <button class="btn btn-red" onclick="renderOrg()">Segar Semula Carta</button>
+            <button class="btn btn-red" onclick="renderOrg()">
+              <svg viewBox="0 0 24 24">
+                <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+              </svg>
+              Segar Semula Carta
+            </button>
           </div>
           <div id="msg-org" class="alert" style="display:none"></div>
         </div>
@@ -323,12 +657,24 @@
     <!-- BROADCAST -->
     <section id="sec-broadcast" class="section">
       <div class="card">
-        <div class="card-head">Broadcast Mesej (Fonnté / WhatsApp Gateway)</div>
+        <div class="card-head">
+          <svg viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V5h2v6zm0 4h-2v-2h2v2z"/>
+          </svg>
+          Broadcast Mesej (Fonnté / WhatsApp Gateway)
+        </div>
         <div class="card-body">
-          <label>Mesej</label>
-          <textarea id="bc_msg" placeholder="Tulis mesej untuk pelanggan…"></textarea>
+          <div class="form-group">
+            <label for="bc_msg">Mesej</label>
+            <textarea id="bc_msg" placeholder="Tulis mesej untuk pelanggan…"></textarea>
+          </div>
           <div class="btn-row">
-            <button class="btn btn-red" onclick="broadcast()">Hantar</button>
+            <button class="btn btn-red" onclick="broadcast()">
+              <svg viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+              Hantar
+            </button>
           </div>
           <div id="msg-bc" class="alert" style="display:none"></div>
         </div>
@@ -434,11 +780,9 @@
     }
     function mediaCard(url,cap){
       const box = document.createElement("div");
-      box.className = "card";
-      box.innerHTML = `<div class="card-body">
-                         <img src="${url}" style="width:100%;border-radius:12px;border:1px solid var(--ink-200)"/>
-                         <div class="muted" style="margin-top:8px">${escapeHtml(cap||"")}</div>
-                       </div>`;
+      box.className = "media-card";
+      box.innerHTML = `<img src="${url}" alt="${escapeHtml(cap||"")}"/>
+                       <div class="caption">${escapeHtml(cap||"")}</div>`;
       return box;
     }
     async function mediaUpload(){
@@ -589,7 +933,11 @@
     function escapeHtml(s){ return (s||"").replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;" }[m])); }
     function show(id,cls,msg){
       const box=document.getElementById(id); if(!box) return;
-      box.className="alert "+cls; box.textContent=msg; box.style.display="block";
+      box.className="alert "+cls; 
+      box.innerHTML = `<svg viewBox="0 0 24 24">
+        <path d="${cls==='ok'?'M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z':'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z'}"/>
+      </svg> ${msg}`;
+      box.style.display="flex";
       setTimeout(()=>{box.style.display="none"},4000);
     }
     const ok  = (id,msg)=>show(id,"ok", msg);
