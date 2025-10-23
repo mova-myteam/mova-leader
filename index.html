@@ -1,386 +1,162 @@
 <!doctype html>
 <html lang="ms">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MOVA • Leader Login</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MOVA Leader — Login</title>
 
-  <!-- Font & Icon -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    :root{
-      /* Brand palette — boleh laras */
-      --mova-red: #e11934;
-      --mova-red-600:#cc102a;
-      --mova-red-700:#b30e25;
-      --ink-900:#0f172a;
-      --ink-700:#334155;
-      --ink-600:#475569;
-      --ink-500:#64748b;
-      --ink-300:#cbd5e1;
-      --ink-200:#e2e8f0;
-      --ink-100:#f1f5f9;
-      --white:#ffffff;
-
-      /* UI */
-      --radius-xl: 24px;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --shadow-1: 0 10px 25px rgba(16,24,40,.06), 0 4px 10px rgba(16,24,40,.04);
-      --shadow-2: 0 24px 60px rgba(16,24,40,.12), 0 8px 24px rgba(16,24,40,.06);
-
-      /* Logo (optional) – tukar ke URL logo anda */
-      --logo-url: "";
-    }
-
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji";
-      color: var(--ink-900);
-      background:
-        radial-gradient(1200px 700px at 10% -10%, rgba(225,25,52,.12), transparent 50%),
-        radial-gradient(1200px 700px at 110% 0%, rgba(225,25,52,.10), transparent 50%),
-        linear-gradient(180deg, #fff, #fff);
-    }
-
-    /* Container */
-    .page{
-      min-height:100%;
-      display:grid;
-      place-items:center;
-      padding: clamp(20px, 4vw, 40px);
-    }
-
-    /* Card */
-    .card{
-      width: min(880px, 92vw);
-      display:grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap: clamp(20px, 3.5vw, 36px);
-      background: rgba(255,255,255,.75);
-      backdrop-filter: saturate(140%) blur(10px);
-      border: 1px solid rgba(148,163,184,.18);
-      box-shadow: var(--shadow-2);
-      border-radius: var(--radius-xl);
-      overflow: hidden;
-    }
-    @media (max-width: 860px){
-      .card{grid-template-columns: 1fr}
-    }
-
-    /* Visual / brand side */
-    .brand{
-      position:relative;
-      isolation:isolate;
-      padding: clamp(28px, 4vw, 40px);
-      background:
-        radial-gradient(900px 450px at 0% 0%, rgba(225,25,52,.16), transparent 60%),
-        linear-gradient(180deg, #fff 0%, #fdf2f3 80%);
-      border-right:1px solid rgba(148,163,184,.14);
-    }
-    @media (max-width: 860px){
-      .brand{border-right:0;border-bottom:1px solid rgba(148,163,184,.14)}
-    }
-
-    .logo-badge{
-      width:64px;height:64px;border-radius:18px;
-      display:grid;place-items:center;
-      background: var(--white);
-      box-shadow: var(--shadow-1);
-      border:1px solid rgba(148,163,184,.18);
-      margin-bottom: 18px;
-    }
-    .logo-badge img{
-      width:42px;height:42px;object-fit:contain;display:block;
-    }
-    .logo-badge .emoji{font-size:30px}
-
-    .headline{
-      font-weight:700;
-      font-size: clamp(26px, 2.3vw, 30px);
-      letter-spacing: -.02em;
-      margin: 4px 0 10px;
-    }
-    .sub{
-      color: var(--ink-600);
-      font-size: 14.5px;
-      line-height: 1.55;
-    }
-    .features{
-      display:grid;gap:12px;margin-top:24px
-    }
-    .feature{
-      display:flex;gap:12px;align-items:flex-start;
-      color: var(--ink-700);font-size:14px
-    }
-    .check{
-      width:22px;height:22px;border-radius:8px;display:grid;place-items:center;
-      background: linear-gradient(180deg, var(--mova-red), var(--mova-red-600));
-      color:#fff;box-shadow:0 6px 14px rgba(225,25,52,.25)
-    }
-    .muted{
-      color: var(--ink-500);font-size:13px;margin-top:auto
-    }
-
-    /* Form side */
-    .form{
-      padding: clamp(28px, 4vw, 44px);
-      background: #fff;
-    }
-    .form h2{
-      margin:0 0 18px;font-size: clamp(22px, 2vw, 24px);letter-spacing:-.01em
-    }
-    .form p.small{color:var(--ink-600);margin-top:0;margin-bottom:24px}
-
-    .input{
-      display:grid;gap:8px;margin-bottom:16px
-    }
-    .input label{
-      font-weight:600;font-size:14px;color:var(--ink-700)
-    }
-    .field{
-      appearance:none;border:1px solid var(--ink-200);
-      border-radius:14px;padding:14px 14px 14px 46px;
-      font-size:15px;color:var(--ink-900);background:#fff;
-      outline:none;transition:.15s border, .15s box-shadow;
-      width:100%;
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="%2364758b" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16a6.471 6.471 0 0 0 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14Z"/></svg>');
-      background-repeat:no-repeat;background-position:14px 50%;
-      background-size: 20px;
-    }
-    .field.phone{
-      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="%2364758b" viewBox="0 0 24 24"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1 1 0 0 0-1 .24l-2.2 2.2a15.05 15.05 0 0 1-6.6-6.6l2.2-2.2a1 1 0 0 0 .24-1 11.38 11.38 0 0 1-.57-3.57A1 1 0 0 0 7.5 2h-3A1.5 1.5 0 0 0 3 3.5C3 14.38 9.62 21 20.5 21A1.5 1.5 0 0 0 22 19.5v-3a1 1 0 0 0-1-1Z"/></svg>');
-    }
-    .field:focus{
-      border-color: rgba(225,25,52,.75);
-      box-shadow: 0 0 0 6px rgba(225,25,52,.10)
-    }
-
-    .actions{margin-top: 6px}
-    .btn{
-      width:100%;
-      border:0;border-radius:14px;
-      padding:14px 18px;
-      font-weight:700;letter-spacing:.01em;font-size:15.5px;
-      color:#fff;
-      background: linear-gradient(180deg, var(--mova-red), var(--mova-red-700));
-      box-shadow: 0 12px 30px rgba(225,25,52,.25), inset 0 1px 0 rgba(255,255,255,.15);
-      cursor:pointer; transition: .15s transform, .15s box-shadow, .15s filter;
-    }
-    .btn:hover{filter:brightness(1.03)}
-    .btn:active{transform: translateY(1px)}
-    .btn:disabled{opacity:.7;cursor:not-allowed;filter:none}
-
-    .error{
-      display:none;margin-top:12px;
-      background:#fff1f2;border:1px solid #fecdd3;color:#b91c1c;
-      padding:10px 12px;border-radius:12px;font-size:13.5px
-    }
-    .error.show{display:block}
-
-    .footer{
-      margin-top: 22px;color:var(--ink-500);font-size:12.5px
-    }
-    .footer a{color:var(--mova-red);text-decoration:none}
-    .footer a:hover{text-decoration:underline}
-
-    /* Tiny motion */
-    @keyframes floatIn{from{transform:translateY(8px);opacity:.0}to{transform:translateY(0);opacity:1}}
-    .brand,.form{animation: floatIn .5s ease .03s both}
+    :root { --brand:#ef4444; }
+    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial;background:#fafafa}
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 10px 30px rgba(0,0,0,.06); }
+    .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.65rem .9rem; background:#fff; }
+    .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.7rem 1rem; font-weight:700; width:100%; }
+    .btn-primary[disabled]{ opacity:.7; cursor:not-allowed; }
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
+    .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
   </style>
 </head>
 <body>
-  <div class="page">
-    <main class="card" role="main" aria-labelledby="title">
-      <!-- Brand / left panel -->
-      <section class="brand">
-        <div class="logo-badge" aria-hidden="true">
-          <!-- Guna logo sendiri jika ada -->
-          <!-- <img src="https://YOUR-LOGO.png" alt="MOVA logo"> -->
-          <span class="emoji">🚀</span>
-        </div>
-        <h1 class="headline" id="title">Selamat datang, Leader</h1>
-        <p class="sub">
-          Akses konsol <b>MOVA</b> untuk urus kandungan, partner & pelanggan. Reka bentuk bersih, fokus produktiviti — sesuai dibuka di telefon & laptop.
-        </p>
 
-        <div class="features">
-          <div class="feature"><span class="check">✓</span> Simpan kandungan & siarkan kepada pelanggan anda</div>
-          <div class="feature"><span class="check">✓</span> Cipta partner (Silver/Gold/Diamond) & lulus pendaftaran</div>
-          <div class="feature"><span class="check">✓</span> Broadcast mesej WhatsApp (gambar & video disokong)</div>
-        </div>
+<!-- Wrapper -->
+<div class="min-h-screen grid place-items-center px-4">
+  <div class="w-full max-w-md card p-6 sm:p-8">
+    <!-- Logo/brand -->
+    <div class="flex items-center gap-3 mb-6">
+      <div class="h-10 w-10 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
+        <i data-lucide="rocket" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="text-xl font-extrabold tracking-tight">MOVA Leader</div>
+        <div class="text-xs text-gray-500">Panel log masuk</div>
+      </div>
+    </div>
 
-        <p class="muted">© <span id="year"></span> MOVA. Semua hak cipta terpelihara.</p>
-      </section>
+    <!-- Info -->
+    <div class="mb-6 text-sm text-gray-600 leading-relaxed">
+      Masukkan <b>Nama Leader</b> dan <b>No. Telefon</b> yang telah didaftarkan pada helaian <code>profiles</code>  
+      (<span class="badge">id | role | name | phone</span>). Hanya <b>role = leader</b> dibenarkan.
+    </div>
 
-      <!-- Form / right panel -->
-      <section class="form" aria-label="Login Leader">
-        <h2>Leader Login</h2>
-        <p class="small">Masukkan <b>nama leader</b> & <b>no. telefon</b> yang berdaftar pada profil anda.</p>
+    <!-- Form -->
+    <form id="loginForm" class="space-y-4" autocomplete="on">
+      <div>
+        <label class="text-sm font-medium text-gray-700">Nama Leader</label>
+        <input id="leaderName" class="input mt-1" placeholder="cth: ahmad rahman" required />
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700">No. Telefon</label>
+        <input id="phone" class="input mt-1" placeholder="cth: 0123456789 atau +60123456789" required />
+        <div class="mt-1 text-xs text-gray-500">Tanpa jarak atau tanda sempang.</div>
+      </div>
 
-        <form id="loginForm" novalidate>
-          <div class="input">
-            <label for="name">Nama leader</label>
-            <input id="name" name="name" class="field" type="text" placeholder="cth: amirul" autocomplete="username" required />
-          </div>
+      <button id="btnLogin" type="submit" class="btn-primary mt-2 flex items-center justify-center gap-2">
+        <i data-lucide="log-in" class="w-4 h-4"></i>
+        Log Masuk
+      </button>
 
-          <div class="input">
-            <label for="phone">No. Telefon</label>
-            <input id="phone" name="phone" class="field phone" type="tel" inputmode="numeric" placeholder="cth: 0109074190" autocomplete="tel" required />
-          </div>
+      <div class="flex items-center justify-between mt-3">
+        <span class="text-xs text-gray-500">Sistem akan membuat <em>setup</em> helaian jika perlu.</span>
+        <button id="btnSetup" type="button" class="text-xs text-gray-600 underline hover:text-gray-900">Jalankan Setup</button>
+      </div>
+    </form>
 
-          <div class="actions">
-            <button id="btnLogin" class="btn" type="submit">Login</button>
-            <div id="error" class="error" role="alert"></div>
-          </div>
+    <!-- Divider -->
+    <div class="my-6 h-px bg-gray-200"></div>
 
-          <p class="footer">Tiada akaun leader? <a href="#" onclick="alert('Hubungi admin untuk pendaftaran leader.');return false;">Hubungi admin</a></p>
-        </form>
-      </section>
-    </main>
+    <!-- Bantuan -->
+    <div class="text-xs text-gray-500 space-y-1">
+      <div>Selepas berjaya, anda akan dibawa ke <code>dashboard.html</code>.</div>
+      <div>Pastikan anda telah ‘Deploy as Web App’ dan akses ‘Anyone’ pada Apps Script.</div>
+    </div>
   </div>
+</div>
 
-  <script>
-    // =======================
-    //  KONFIGURASI API
-    // =======================
-    const API_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
 
-    // Tambah guard — ingatkan jika terlupa tukar
-    if(!/^https:\/\/script\.google\.com\/macros\/s\/.+\/exec$/.test(API_URL)){
-      console.warn("API_URL belum dikemas kini. Sila ganti PASTE_EXEC_URL_DI_SINI dengan URL Web App /exec anda.");
+<script>
+  // ===== KONFIG =====
+  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+
+  // ===== ICONS =====
+  lucide.createIcons();
+
+  // ===== UTIL =====
+  const toastEl = document.getElementById('toast');
+  function toast(msg, ms=2200){
+    toastEl.textContent = msg;
+    toastEl.classList.remove('hidden');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
+  }
+
+  async function callApi(path, payload){
+    const res = await fetch(EXEC_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
+    });
+    const text = await res.text();
+    let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
+    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+    return json;
+  }
+
+  // ===== AUTO-SETUP (selamat untuk diulang) =====
+  (async ()=>{ try { await callApi('setup', {}); } catch(e){} })();
+
+  // ===== LOGIN =====
+  const form = document.getElementById('loginForm');
+  const btnLogin = document.getElementById('btnLogin');
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const leader_name = String(document.getElementById('leaderName').value||'').trim();
+    const phone = String(document.getElementById('phone').value||'').trim();
+
+    if (!leader_name || !phone){
+      toast('Sila isi semua medan'); return;
     }
 
-    // Util
-    const $ = (sel)=>document.querySelector(sel);
-    const $$ = (sel)=>document.querySelectorAll(sel);
+    btnLogin.disabled = true; btnLogin.style.opacity = .8;
 
-    // Tahun footer
-    $("#year").textContent = new Date().getFullYear();
-
-    // Phone: hanya digit
-    $("#phone").addEventListener("input", e=>{
-      e.target.value = e.target.value.replace(/[^\d]/g,'');
-    });
-
-    // Fungsi untuk menyimpan data sesi dengan lebih selamat
-    function saveSessionData(data) {
-      try {
-        // Pastikan data mempunyai struktur yang betul
-        const sessionData = {
-          profile: {
-            id: data.leader_id || data.profile?.id || '',
-            name: data.profile?.name || data.leader_name || '',
-            phone: data.profile?.phone || data.phone || '',
-            role: data.profile?.role || 'leader'
-          },
-          login_at: Date.now(),
-          expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24 jam
-        };
-        
-        // Simpan ke localStorage
-        localStorage.setItem("mova_leader", JSON.stringify(sessionData));
-        
-        // Simpan juga data individu untuk backup
-        localStorage.setItem("mova_leader_id", sessionData.profile.id);
-        localStorage.setItem("mova_leader_name", sessionData.profile.name);
-        localStorage.setItem("mova_login_at", String(sessionData.login_at));
-        
-        console.log('Session data saved:', sessionData);
-        return true;
-      } catch (error) {
-        console.error('Error saving session data:', error);
-        return false;
+    try{
+      const out = await callApi('login', { leader_name, phone });
+      if (out && out.success){
+        // Simpan sesi — struktur yang dashboard.html jangka
+        localStorage.setItem('mova_leader', JSON.stringify({
+          leader_id: out.leader_id,
+          profile: out.profile
+        }));
+        toast('Berjaya log masuk ✔️', 1200);
+        // Redirect
+        setTimeout(()=>{ window.location.href = './dashboard.html'; }, 800);
+      } else {
+        toast(out?.error || 'Log masuk gagal');
       }
+    }catch(err){
+      toast(err.message || 'Ralat rangkaian');
+    }finally{
+      btnLogin.disabled = false; btnLogin.style.opacity = 1;
     }
+  });
 
-    // Submit handler
-    $("#loginForm").addEventListener("submit", async (e)=>{
-      e.preventDefault();
-      const name = $("#name").value.trim();
-      const phone = $("#phone").value.trim();
-      const btn = $("#btnLogin");
-      const err = $("#error");
-      err.classList.remove("show");
-      err.textContent = "";
-
-      if(!name || !phone){
-        err.textContent = "Sila isi nama leader dan no. telefon.";
-        err.classList.add("show");
-        return;
-      }
-
-      try{
-        btn.disabled = true;
-        btn.textContent = "Memproses…";
-
-        // Panggil Apps Script (POST x-www-form-urlencoded)
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-          body: new URLSearchParams({
-            path: "login",
-            payload: JSON.stringify({ leader_name: name, phone })
-          }),
-        });
-
-        if(!res.ok){
-          throw new Error(`Ralat rangkaian: ${res.status}`);
-        }
-
-        const data = await res.json();
-        console.log('API Response:', data);
-
-        if(data.success){
-          // Simpan sesi
-          if (saveSessionData(data)) {
-            // Redirect ke dashboard
-            console.log('Redirecting to dashboard...');
-            window.location.href = "dashboard.html";
-          } else {
-            throw new Error("Gagal menyimpan sesi. Sila cuba lagi.");
-          }
-        }else{
-          throw new Error(data.error || data.message || "Login gagal. Sila semak nama & no. telefon.");
-        }
-
-      }catch(ex){
-        console.error('Login error:', ex);
-        err.textContent = ex.message || "Tidak dapat log masuk. Cuba lagi.";
-        err.classList.add("show");
-      }finally{
-        btn.disabled = false;
-        btn.textContent = "Login";
-      }
-    });
-
-    // Semak jika ada sesi aktif semasa load
-    window.addEventListener('load', () => {
-      const existingSession = localStorage.getItem('mova_leader');
-      if (existingSession) {
-        try {
-          const session = JSON.parse(existingSession);
-          if (session.expires_at && session.expires_at > Date.now()) {
-            // Sesi masih sah, redirect ke dashboard
-            console.log('Existing valid session found, redirecting...');
-            window.location.href = "dashboard.html";
-          } else {
-            // Sesi tamat, bersihkan
-            console.log('Session expired, clearing...');
-            localStorage.removeItem('mova_leader');
-            localStorage.removeItem('mova_leader_id');
-            localStorage.removeItem('mova_leader_name');
-            localStorage.removeItem('mova_login_at');
-          }
-        } catch (e) {
-          console.error('Error parsing existing session:', e);
-        }
-      }
-    });
-  </script>
+  // ===== MANUAL SETUP BUTTON (opsyen) =====
+  document.getElementById('btnSetup').addEventListener('click', async ()=>{
+    try{
+      const out = await callApi('setup', {});
+      toast(out?.message || 'Setup selesai');
+    }catch(e){ toast('Gagal setup'); }
+  });
+</script>
 </body>
 </html>
