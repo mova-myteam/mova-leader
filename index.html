@@ -248,7 +248,6 @@
     // =======================
     //  KONFIGURASI API
     // =======================
-    // ⚠️ PENTING: TUKAR kepada URL Apps Script Web App anda (wajib /exec di hujung)
     const API_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
     // Tambah guard — ingatkan jika terlupa tukar
@@ -267,6 +266,37 @@
     $("#phone").addEventListener("input", e=>{
       e.target.value = e.target.value.replace(/[^\d]/g,'');
     });
+
+    // Fungsi untuk menyimpan data sesi dengan lebih selamat
+    function saveSessionData(data) {
+      try {
+        // Pastikan data mempunyai struktur yang betul
+        const sessionData = {
+          profile: {
+            id: data.leader_id || data.profile?.id || '',
+            name: data.profile?.name || data.leader_name || '',
+            phone: data.profile?.phone || data.phone || '',
+            role: data.profile?.role || 'leader'
+          },
+          login_at: Date.now(),
+          expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24 jam
+        };
+        
+        // Simpan ke localStorage
+        localStorage.setItem("mova_leader", JSON.stringify(sessionData));
+        
+        // Simpan juga data individu untuk backup
+        localStorage.setItem("mova_leader_id", sessionData.profile.id);
+        localStorage.setItem("mova_leader_name", sessionData.profile.name);
+        localStorage.setItem("mova_login_at", String(sessionData.login_at));
+        
+        console.log('Session data saved:', sessionData);
+        return true;
+      } catch (error) {
+        console.error('Error saving session data:', error);
+        return false;
+      }
+    }
 
     // Submit handler
     $("#loginForm").addEventListener("submit", async (e)=>{
@@ -303,40 +333,52 @@
         }
 
         const data = await res.json();
+        console.log('API Response:', data);
 
         if(data.success){
-          // Simpan sesi dalam format yang dijangkakan oleh dashboard
-          // Format: { profile: { id, name, phone, role, ... } }
-          const sessionData = {
-            profile: data.profile || {
-              id: data.leader_id,
-              name: name,
-              phone: phone,
-              role: "leader"
-            },
-            login_at: Date.now()
-          };
-          
-          // Simpan ke localStorage sebagai JSON string
-          localStorage.setItem("mova_leader", JSON.stringify(sessionData));
-          
-          // Untuk keserasian, simpan juga data lama (jika diperlukan)
-          localStorage.setItem("mova_leader_id", data.leader_id);
-          localStorage.setItem("mova_leader_name", name);
-          localStorage.setItem("mova_login_at", String(Date.now()));
-
-          // Redirect ke dashboard
-          window.location.href = "dashboard.html";
+          // Simpan sesi
+          if (saveSessionData(data)) {
+            // Redirect ke dashboard
+            console.log('Redirecting to dashboard...');
+            window.location.href = "dashboard.html";
+          } else {
+            throw new Error("Gagal menyimpan sesi. Sila cuba lagi.");
+          }
         }else{
           throw new Error(data.error || data.message || "Login gagal. Sila semak nama & no. telefon.");
         }
 
       }catch(ex){
+        console.error('Login error:', ex);
         err.textContent = ex.message || "Tidak dapat log masuk. Cuba lagi.";
         err.classList.add("show");
       }finally{
         btn.disabled = false;
         btn.textContent = "Login";
+      }
+    });
+
+    // Semak jika ada sesi aktif semasa load
+    window.addEventListener('load', () => {
+      const existingSession = localStorage.getItem('mova_leader');
+      if (existingSession) {
+        try {
+          const session = JSON.parse(existingSession);
+          if (session.expires_at && session.expires_at > Date.now()) {
+            // Sesi masih sah, redirect ke dashboard
+            console.log('Existing valid session found, redirecting...');
+            window.location.href = "dashboard.html";
+          } else {
+            // Sesi tamat, bersihkan
+            console.log('Session expired, clearing...');
+            localStorage.removeItem('mova_leader');
+            localStorage.removeItem('mova_leader_id');
+            localStorage.removeItem('mova_leader_name');
+            localStorage.removeItem('mova_login_at');
+          }
+        } catch (e) {
+          console.error('Error parsing existing session:', e);
+        }
       }
     });
   </script>
