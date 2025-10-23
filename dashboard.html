@@ -1,993 +1,727 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ms">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MOVA Leader Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        /* Custom scrollbar */
-        ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
-        
-        /* Tab animation */
-        .tab-content { animation: fadeIn 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        /* Org chart styles */
-        .org-chart-container { font-family: Arial, Helvetica, sans-serif; }
-        .org-chart { display: inline-block; }
-        .org-chart ul { padding-top: 20px; position: relative; transition: all 0.5s; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; display: flex; justify-content: center; }
-        .org-chart li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; transition: all 0.5s; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; }
-        .org-chart li::before, .org-chart li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #ccc; width: 50%; height: 20px; }
-        .org-chart li::after { right: auto; left: 50%; border-left: 2px solid #ccc; }
-        .org-chart li:only-child::after, .org-chart li:only-child::before { display: none; }
-        .org-chart li:only-child { padding-top: 0; }
-        .org-chart li:first-child::before, .org-chart li:last-child::after { border: 0 none; }
-        .org-chart li:last-child::before { border-right: 2px solid #ccc; border-radius: 0 5px 0 0; }
-        .org-chart li:first-child::after { border-radius: 5px 0 0 0; }
-        .org-chart ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #ccc; width: 0; height: 20px; }
-        .org-chart-node { border: 2px solid #ccc; padding: 10px 15px; text-decoration: none; color: #333; display: inline-block; border-radius: 20px; transition: all 0.3s; }
-        
-        /* Media grid styles */
-        .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
-        .media-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; cursor: pointer; transition: all 0.2s; }
-        .media-item:hover { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .media-item.selected { outline: 3px solid #3b82f6; outline-offset: 2px; }
-        .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
-        .media-checkbox { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
-        
-        /* Loading spinner */
-        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #3b82f6; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Auth error modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    </style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MOVA Leader — Dashboard</title>
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root { --brand:#ef4444; }
+    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
+    .scroll-bar::-webkit-scrollbar{height:8px}
+    .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; }
+    .pill-active{ background:#111; color:#fff; border-color:#111; }
+    .pill-idle{ background:#fff; color:#374151; }
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
+    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.5rem 1rem; font-weight:700; }
+    .btn-primary:hover{ filter:brightness(0.95); }
+    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.5rem 1rem; }
+    .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem .9rem; background:#fff; }
+    .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .textarea{ width:100%; min-height:140px; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; background:#fff; }
+    .textarea:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
+    .media-tile{ position:relative; overflow:hidden; border:1px solid #e5e7eb; border-radius:.75rem; cursor:pointer; }
+    .media-tile.selected{ outline:2px solid #111; }
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
+    .table{ width:100%; border-collapse:separate; border-spacing:0; }
+    .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
+    .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans">
-    <!-- Loading Screen -->
-    <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
-        <div class="text-center">
-            <div class="spinner mx-auto mb-4"></div>
-            <p class="text-gray-600">Memuatkan dashboard...</p>
-        </div>
+<body class="bg-gray-50">
+
+<!-- ====== HEADER ====== -->
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
+        <i data-lucide="rocket" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="text-lg font-semibold">MOVA Leader</div>
+        <div class="text-xs text-gray-500">Hai, <span id="leaderName">leader</span></div>
+      </div>
     </div>
 
-    <!-- Auth Error Modal -->
-    <div id="authErrorModal" class="modal-overlay hidden">
-        <div class="bg-white rounded-lg p-6 max-w-md mx-4">
-            <div class="flex items-center mb-4">
-                <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
-                    <i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>
-                </div>
-                <h3 class="ml-3 text-lg font-medium text-gray-900">Masalah Pengesahan</h3>
-            </div>
-            <div class="mb-4">
-                <p class="text-sm text-gray-500">Kami tidak dapat mengesahkan sesi anda. Sila log masuk semula untuk meneruskan.</p>
-            </div>
-            <div class="flex justify-end">
-                <button id="retryAuthBtn" class="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
-                    Cuba Lagi
-                </button>
-                <button id="goToLoginBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-                    Log Masuk
-                </button>
-            </div>
+    <div class="flex items-center gap-2">
+      <a href="./index.html" class="btn-ghost flex items-center gap-2">
+        <i data-lucide="chevron-left" class="w-4 h-4"></i>Kembali Login
+      </a>
+      <button id="btnLogout" class="btn-primary flex items-center gap-2">
+        <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ====== CONTENT ====== -->
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- KPI -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPartners">—</div>
+      <div class="text-sm text-gray-600">Total Partners</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statCustomers">—</div>
+      <div class="text-sm text-gray-600">Total Customers</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPending">—</div>
+      <div class="text-sm text-gray-600">Pending Approvals</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPublished">—</div>
+      <div class="text-sm text-gray-600">Published Content</div>
+    </div>
+  </section>
+
+  <!-- TABS -->
+  <section class="card p-3">
+    <div class="flex gap-2 overflow-x-auto scroll-bar">
+      <button data-tab="content" class="pill pill-active"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
+      <button data-tab="media" class="pill pill-idle"><i data-lucide="image" class="w-4 h-4"></i> Media Library</button>
+      <button data-tab="partner" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Partner</button>
+      <button data-tab="customer" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Tambah Customer</button>
+      <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approve Pendaftaran</button>
+      <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta Organisasi</button>
+    </div>
+  </section>
+
+  <!-- PANELS -->
+  <section class="space-y-6">
+
+    <!-- ===== Tab: Kandungan ===== -->
+    <div id="tab-content" class="card p-6 space-y-5">
+      <div class="flex items-center gap-2">
+        <i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Kandungan Laman (Paparan untuk Pelanggan)</h2>
+      </div>
+
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="text-sm font-medium text-gray-700">Tajuk</label>
+          <input id="title" class="input mt-1" placeholder="Contoh: Promosi MOVA" />
         </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">Terbit?</label>
+          <select id="published" class="input mt-1">
+            <option value="yes">Ya</option>
+            <option value="no">Tidak</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-sm font-medium text-gray-700">Isi Kandungan</label>
+        <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi. Boleh selit <video> atau ![alt](url)."></textarea>
+        <div class="mt-2 text-xs text-gray-500">
+          Tip: Guna tab <b>Media Library</b> → pilih media → <b>Insert ke Kandungan</b>.
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <button id="btnSaveContent" class="btn-primary">Simpan / Kemas Kini</button>
+        <button id="btnRefreshContent" class="btn-ghost">Segar Semula</button>
+        <button id="btnLoadLatestContent" class="btn-ghost">Muat Turun Terbaru</button>
+      </div>
+
+      <div id="contentListWrap" class="hidden">
+        <div class="mt-4 text-sm font-semibold">Kandungan Terkini</div>
+        <div id="contentList" class="mt-2 grid gap-3"></div>
+      </div>
+
+      <hr class="my-2">
+
+      <div class="space-y-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
+          <h3 class="font-semibold">Broadcast Ringkas</h3>
+          <span class="badge">log only</span>
+        </div>
+        <div class="grid gap-3 md:grid-cols-[1fr_auto]">
+          <input id="broadcastMsg" class="input" placeholder="Contoh: Perjumpaan malam ini jam 9.00 mlm."/>
+          <button id="btnBroadcast" class="btn-ghost">Hantar</button>
+        </div>
+      </div>
     </div>
 
-    <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <h1 class="text-xl font-bold text-gray-900">MOVA Leader</h1>
-                    <div class="ml-6 flex items-center">
-                        <div class="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-sm font-medium">
-                            <span id="leaderInitial">L</span>
-                        </div>
-                        <span id="leaderName" class="ml-2 text-sm font-medium text-gray-700">Loading...</span>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <button id="backToLoginBtn" class="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors">
-                        <i data-lucide="arrow-left" class="inline-block w-4 h-4 mr-1"></i>
-                        Kembali Login
-                    </button>
-                    <button id="logoutBtn" class="text-sm font-medium text-white bg-red-500 hover:bg-red-600 px-3 py-1.5 rounded-md transition-colors">
-                        <i data-lucide="log-out" class="inline-block w-4 h-4 mr-1"></i>
-                        Log Keluar
-                    </button>
-                </div>
-            </div>
+    <!-- ===== Tab: Media ===== -->
+    <div id="tab-media" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="image" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Media Library (Gambar & Video)</h2>
+      </div>
+
+      <div class="grid gap-3 md:grid-cols-[1fr_auto]">
+        <input id="fileInput" type="file" accept="image/*,video/*" class="input"/>
+        <div class="flex items-center gap-2">
+          <button id="btnUpload" class="btn-primary">Muat Naik</button>
+          <button id="btnInsertToContent" class="btn-ghost">Insert ke Kandungan</button>
+          <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
         </div>
-    </header>
+      </div>
 
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div class="flex items-center">
-                    <div class="p-2 bg-blue-100 rounded-lg">
-                        <i data-lucide="users" class="w-6 h-6 text-blue-600"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Partners</p>
-                        <p id="statPartners" class="text-2xl font-semibold text-gray-900">—</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div class="flex items-center">
-                    <div class="p-2 bg-green-100 rounded-lg">
-                        <i data-lucide="user-check" class="w-6 h-6 text-green-600"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Total Customers</p>
-                        <p id="statCustomers" class="text-2xl font-semibold text-gray-900">—</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div class="flex items-center">
-                    <div class="p-2 bg-yellow-100 rounded-lg">
-                        <i data-lucide="clock" class="w-6 h-6 text-yellow-600"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Pending Approvals</p>
-                        <p id="statPending" class="text-2xl font-semibold text-gray-900">—</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="bg-white rounded-lg shadow p-6 border border-gray-200">
-                <div class="flex items-center">
-                    <div class="p-2 bg-purple-100 rounded-lg">
-                        <i data-lucide="file-text" class="w-6 h-6 text-purple-600"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600">Published Content</p>
-                        <p id="statContent" class="text-2xl font-semibold text-gray-900">—</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Tab Navigation -->
-        <div class="bg-white rounded-lg shadow mb-6 border border-gray-200">
-            <div class="border-b border-gray-200">
-                <nav class="flex -mb-px overflow-x-auto">
-                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-black text-black bg-gray-50 rounded-tl-lg" data-tab="content">
-                        Kandungan
-                    </button>
-                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="media">
-                        Media Library
-                    </button>
-                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="partner">
-                        Tambah Partner
-                    </button>
-                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="customer">
-                        Tambah Customer
-                    </button>
-                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300" data-tab="approve">
-                        Approve Pendaftaran
-                    </button>
-                    <button class="tab-btn px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 rounded-tr-lg" data-tab="orgchart">
-                        Carta Organisasi
-                    </button>
-                </nav>
-            </div>
-
-            <!-- Tab Content -->
-            <div class="p-6">
-                <!-- Content Tab -->
-                <div id="content-tab" class="tab-content">
-                    <h2 class="text-lg font-semibold mb-4">Kandungan</h2>
-                    <div class="space-y-4">
-                        <div>
-                            <label for="contentSelect" class="block text-sm font-medium text-gray-700 mb-1">Pilih Kandungan (untuk edit)</label>
-                            <select id="contentSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="">-- Kandungan Baru --</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label for="contentTitle" class="block text-sm font-medium text-gray-700 mb-1">Tajuk</label>
-                            <input type="text" id="contentTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan tajuk kandungan">
-                        </div>
-                        
-                        <div>
-                            <label for="contentBody" class="block text-sm font-medium text-gray-700 mb-1">Kandungan</label>
-                            <textarea id="contentBody" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan kandungan di sini"></textarea>
-                        </div>
-                        
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Terbit</label>
-                            <div class="flex items-center space-x-4">
-                                <label class="flex items-center">
-                                    <input type="radio" name="publishStatus" value="yes" class="mr-2">
-                                    <span>Ya</span>
-                                </label>
-                                <label class="flex items-center">
-                                    <input type="radio" name="publishStatus" value="no" checked class="mr-2">
-                                    <span>Tidak</span>
-                                </label>
-                            </div>
-                        </div>
-                        
-                        <div class="flex space-x-3">
-                            <button id="saveContentBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-                                <i data-lucide="save" class="inline-block w-4 h-4 mr-1"></i>
-                                Simpan Baru
-                            </button>
-                            <button id="updateContentBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors" disabled>
-                                <i data-lucide="refresh-cw" class="inline-block w-4 h-4 mr-1"></i>
-                                Kemas Kini
-                            </button>
-                            <button id="refreshContentBtn" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors">
-                                <i data-lucide="refresh-ccw" class="inline-block w-4 h-4 mr-1"></i>
-                                Segar Semula
-                            </button>
-                        </div>
-                        
-                        <div class="mt-8 pt-6 border-t border-gray-200">
-                            <h3 class="text-md font-semibold mb-3">Broadcast Ringkas</h3>
-                            <div class="flex space-x-3">
-                                <input type="text" id="broadcastMessage" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan mesej broadcast">
-                                <button id="sendBroadcastBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
-                                    <i data-lucide="send" class="inline-block w-4 h-4 mr-1"></i>
-                                    Hantar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Media Library Tab -->
-                <div id="media-tab" class="tab-content hidden">
-                    <h2 class="text-lg font-semibold mb-4">Media Library</h2>
-                    <div class="space-y-4">
-                        <div class="flex items-center space-x-3">
-                            <label for="mediaFile" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors cursor-pointer">
-                                <i data-lucide="upload" class="inline-block w-4 h-4 mr-1"></i>
-                                Pilih Fail
-                            </label>
-                            <input type="file" id="mediaFile" class="hidden" accept="image/*,video/*">
-                            <span id="fileName" class="text-sm text-gray-600">Tiada fail dipilih</span>
-                            <button id="uploadMediaBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                                <i data-lucide="upload-cloud" class="inline-block w-4 h-4 mr-1"></i>
-                                Muat Naik
-                            </button>
-                        </div>
-                        
-                        <div class="flex justify-between items-center">
-                            <p class="text-sm text-gray-600">Pilih media untuk dimasukkan ke kandungan</p>
-                            <button id="insertToContentBtn" class="px-3 py-1.5 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
-                                <i data-lucide="plus-circle" class="inline-block w-4 h-4 mr-1"></i>
-                                Insert ke Kandungan
-                            </button>
-                        </div>
-                        
-                        <div id="mediaGrid" class="media-grid">
-                            <!-- Media items will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add Partner Tab -->
-                <div id="partner-tab" class="tab-content hidden">
-                    <h2 class="text-lg font-semibold mb-4">Tambah Partner</h2>
-                    <div class="space-y-4 max-w-lg">
-                        <div>
-                            <label for="partnerName" class="block text-sm font-medium text-gray-700 mb-1">Nama Partner</label>
-                            <input type="text" id="partnerName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nama partner">
-                        </div>
-                        <div>
-                            <label for="partnerEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                            <input type="email" id="partnerEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan email">
-                        </div>
-                        <div>
-                            <label for="partnerPhone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                            <input type="tel" id="partnerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nombor telefon">
-                        </div>
-                        <div>
-                            <label for="partnerPackage" class="block text-sm font-medium text-gray-700 mb-1">Pakej</label>
-                            <select id="partnerPackage" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                                <option value="Basic">Basic</option>
-                                <option value="Premium">Premium</option>
-                                <option value="Enterprise">Enterprise</option>
-                            </select>
-                        </div>
-                        <button id="addPartnerBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-                            <i data-lucide="user-plus" class="inline-block w-4 h-4 mr-1"></i>
-                            Tambah Partner
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Add Customer Tab -->
-                <div id="customer-tab" class="tab-content hidden">
-                    <h2 class="text-lg font-semibold mb-4">Tambah Customer</h2>
-                    <div class="space-y-4 max-w-lg">
-                        <div>
-                            <label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label>
-                            <input type="text" id="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nama customer">
-                        </div>
-                        <div>
-                            <label for="customerPhone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
-                            <input type="tel" id="customerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nombor telefon">
-                        </div>
-                        <div>
-                            <label for="customerPartner" class="block text-sm font-medium text-gray-700 mb-1">Partner</label>
-                            <input type="text" id="customerPartner" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nama partner">
-                        </div>
-                        <button id="addCustomerBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
-                            <i data-lucide="user-plus" class="inline-block w-4 h-4 mr-1"></i>
-                            Tambah Customer
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Approve Registration Tab -->
-                <div id="approve-tab" class="tab-content hidden">
-                    <h2 class="text-lg font-semibold mb-4">Approve Pendaftaran</h2>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefon</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tindakan</th>
-                                </tr>
-                            </thead>
-                            <tbody id="registrationList" class="bg-white divide-y divide-gray-200">
-                                <!-- Registrations will be loaded here -->
-                            </tbody>
-                        </table>
-                        <div id="noRegistrations" class="text-center py-8 text-gray-500 hidden">
-                            Tiada pendaftaran menunggu kelulusan.
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Organization Chart Tab -->
-                <div id="orgchart-tab" class="tab-content hidden">
-                    <h2 class="text-lg font-semibold mb-4">Carta Organisasi</h2>
-                    <div class="overflow-x-auto org-chart-container">
-                        <div id="orgChart" class="org-chart">
-                            <!-- Org chart will be dynamically generated here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-full transition-transform duration-300 z-50">
-        <span id="toastMessage"></span>
+      <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
     </div>
 
-    <script>
-        // API Configuration
-        const EXEC_URL = 'https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec';
-        
-        // Global State
-        let currentLeader = null;
-        let selectedContentId = null;
-        let selectedMediaItems = new Set();
-        let allContent = [];
-        let allMedia = [];
-        let allRegistrations = [];
-        let authRetryCount = 0;
-        const MAX_AUTH_RETRIES = 3;
+    <!-- ===== Tab: Partner ===== -->
+    <div id="tab-partner" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah Partner</h2>
+      </div>
+      <div class="grid gap-3 md:grid-cols-4">
+        <input id="partnerName" class="input" placeholder="Nama penuh">
+        <input id="partnerEmail" class="input" placeholder="Email">
+        <input id="partnerPhone" class="input" placeholder="No. Telefon">
+        <select id="partnerPackage" class="input">
+          <option value="">Pakej</option>
+          <option>Silver</option>
+          <option>Gold</option>
+          <option>Diamond</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnCreatePartner" class="btn-primary">Cipta Partner</button>
+        <span class="text-xs text-gray-500">* partner akan dipaparkan dalam Carta Organisasi selepas ditambah.</span>
+      </div>
+    </div>
 
-        // DOM Elements
-        const tabButtons = document.querySelectorAll('.tab-btn');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const leaderName = document.getElementById('leaderName');
-        const leaderInitial = document.getElementById('leaderInitial');
-        const backToLoginBtn = document.getElementById('backToLoginBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        
-        // Loading and Auth Elements
-        const loadingScreen = document.getElementById('loadingScreen');
-        const authErrorModal = document.getElementById('authErrorModal');
-        const retryAuthBtn = document.getElementById('retryAuthBtn');
-        const goToLoginBtn = document.getElementById('goToLoginBtn');
-        
-        // Content Tab Elements
-        const contentSelect = document.getElementById('contentSelect');
-        const contentTitle = document.getElementById('contentTitle');
-        const contentBody = document.getElementById('contentBody');
-        const saveContentBtn = document.getElementById('saveContentBtn');
-        const updateContentBtn = document.getElementById('updateContentBtn');
-        const refreshContentBtn = document.getElementById('refreshContentBtn');
-        const broadcastMessage = document.getElementById('broadcastMessage');
-        const sendBroadcastBtn = document.getElementById('sendBroadcastBtn');
-        
-        // Media Tab Elements
-        const mediaFile = document.getElementById('mediaFile');
-        const fileName = document.getElementById('fileName');
-        const uploadMediaBtn = document.getElementById('uploadMediaBtn');
-        const mediaGrid = document.getElementById('mediaGrid');
-        const insertToContentBtn = document.getElementById('insertToContentBtn');
-        
-        // Partner Tab Elements
-        const partnerName = document.getElementById('partnerName');
-        const partnerEmail = document.getElementById('partnerEmail');
-        const partnerPhone = document.getElementById('partnerPhone');
-        const partnerPackage = document.getElementById('partnerPackage');
-        const addPartnerBtn = document.getElementById('addPartnerBtn');
+    <!-- ===== Tab: Customer ===== -->
+    <div id="tab-customer" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah Customer</h2>
+      </div>
+      <div class="grid gap-3 md:grid-cols-3">
+        <input id="customerName" class="input" placeholder="Nama customer">
+        <input id="customerPhone" class="input" placeholder="+60XXXXXXXXX">
+        <select id="customerPartner" class="input"><option value="">Pilih Partner</option></select>
+      </div>
+      <div>
+        <button id="btnAddCustomer" class="btn-primary">Tambah Customer</button>
+      </div>
+    </div>
 
-        // Customer Tab Elements
-        const customerName = document.getElementById('customerName');
-        const customerPhone = document.getElementById('customerPhone');
-        const customerPartner = document.getElementById('customerPartner');
-        const addCustomerBtn = document.getElementById('addCustomerBtn');
+    <!-- ===== Tab: Approve ===== -->
+    <div id="tab-approve" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Approve Pendaftaran</h2>
+      </div>
+      <div class="overflow-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="regTableBody">
+            <!-- rows -->
+          </tbody>
+        </table>
+      </div>
+      <div class="flex gap-2">
+        <button id="btnReloadReg" class="btn-ghost">Segar Semula</button>
+      </div>
+    </div>
 
-        // Approve Tab Elements
-        const registrationList = document.getElementById('registrationList');
-        const noRegistrations = document.getElementById('noRegistrations');
+    <!-- ===== Tab: Carta Organisasi ===== -->
+    <div id="tab-org" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="network" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Carta Organisasi</h2>
+      </div>
+      <div id="orgWrap" class="relative overflow-x-auto">
+        <svg id="orgSvg" class="absolute inset-0 pointer-events-none"></svg>
+        <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button>
+      </div>
+    </div>
 
-        // Org Chart Element
-        const orgChart = document.getElementById('orgChart');
-        
-        // Toast Notification
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-        
-        // Initialize Lucide icons
-        lucide.createIcons();
-        
-        // --- CORE FUNCTIONS ---
-        
-        function showToast(message, duration = 3000) {
-            toastMessage.textContent = message;
-            toast.classList.remove('translate-y-full');
-            setTimeout(() => toast.classList.add('translate-y-full'), duration);
+  </section>
+</main>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script>
+  // ====== KONFIG ======
+  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+
+  // ====== STATE LOGIN ======
+  const store = {
+    leader: (() => {
+      try { return JSON.parse(localStorage.getItem('mova_leader') || '{}'); } catch(e){ return {}; }
+    })(),
+    selectedMedia: new Set(),
+    partners: []
+  };
+
+  if (!store.leader || !store.leader.leader_id) {
+    location.href = "./index.html";
+  }
+
+  document.getElementById('leaderName').textContent =
+    store.leader?.profile?.name || 'leader';
+
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    localStorage.removeItem('mova_leader');
+    location.href = "./index.html";
+  });
+
+  // ====== ICONS ======
+  lucide.createIcons();
+
+  // ====== UTIL ======
+  const toastEl = document.getElementById('toast');
+  function toast(msg, ms=2200){
+    toastEl.textContent = msg;
+    toastEl.classList.remove('hidden');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
+  }
+
+  async function callApi(path, payload) {
+    const res = await fetch(EXEC_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
+    });
+    const text = await res.text();
+    let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
+    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+    return json;
+  }
+
+  function setActiveTab(name){
+    document.querySelectorAll('[data-tab]').forEach(btn=>{
+      if (btn.dataset.tab === name) {
+        btn.classList.remove('pill-idle'); btn.classList.add('pill-active');
+      } else {
+        btn.classList.add('pill-idle'); btn.classList.remove('pill-active');
+      }
+    });
+    document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
+    document.getElementById('tab-'+name).classList.remove('hidden');
+    if (name === 'org') renderOrg(); // pastikan layout exist
+  }
+
+  document.querySelectorAll('[data-tab]').forEach(btn=>{
+    btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab));
+  });
+  setActiveTab('content');
+
+  // ====== INIT (setup + stats + partner list + media list + reg list + org) ======
+  (async function init(){
+    try { await callApi('setup', {}); } catch(e){}
+    await reloadStats();
+    await reloadPartners();
+    await reloadMedia();
+    await reloadRegs();
+    await renderOrg();
+  })();
+
+  // ====== STATS ======
+  async function reloadStats(){
+    try{
+      const out = await callApi('stats', { leader_id: store.leader.leader_id });
+      const t = out.totals || {};
+      document.getElementById('statPartners').textContent  = t.partners ?? '—';
+      document.getElementById('statCustomers').textContent = t.customers ?? '—';
+      document.getElementById('statPending').textContent   = t.pending ?? '—';
+      document.getElementById('statPublished').textContent = t.published ?? '—';
+    }catch(e){
+      document.getElementById('statPartners').textContent  = '—';
+      document.getElementById('statCustomers').textContent = '—';
+      document.getElementById('statPending').textContent   = '—';
+      document.getElementById('statPublished').textContent = '—';
+    }
+  }
+
+  // ====== KANDUNGAN ======
+  const elTitle   = document.getElementById('title');
+  const elPublished = document.getElementById('published');
+  const elBody    = document.getElementById('body');
+
+  document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
+    const payload = {
+      leader_id: store.leader.leader_id,
+      title: elTitle.value || '',
+      body: elBody.value || '',
+      media_urls: Array.from(store.selectedMedia).join(','),
+      published: (elPublished.value === 'yes')
+    };
+    try{
+      const json = await callApi('content_save', payload);
+      if (json.success) {
+        toast('Kandungan disimpan ✔️');
+        await reloadStats();
+        await loadLatestContent();
+      } else {
+        toast('Gagal simpan: '+(json.error||''));
+      }
+    }catch(err){ toast('Ralat rangkaian: '+err.message); }
+  });
+
+  document.getElementById('btnRefreshContent').addEventListener('click', ()=>{
+    elTitle.value = '';
+    elBody.value = '';
+    elPublished.value = 'yes';
+    store.selectedMedia.clear();
+    document.querySelectorAll('.media-tile').forEach(x=>x.classList.remove('selected'));
+    toast('Dikemas kini semula');
+  });
+
+  document.getElementById('btnLoadLatestContent').addEventListener('click', loadLatestContent);
+
+  async function loadLatestContent(){
+    try{
+      const out = await callApi('content_list', { leader_id: store.leader.leader_id });
+      const items = (out.items||[]).sort((a,b)=> new Date(b.updated_at||0) - new Date(a.updated_at||0)).slice(0,6);
+      const wrap = document.getElementById('contentList');
+      const contWrap = document.getElementById('contentListWrap');
+      wrap.innerHTML = '';
+      items.forEach(row=>{
+        const d = document.createElement('div');
+        d.className = 'border border-gray-200 rounded-xl p-3';
+        d.innerHTML = `
+          <div class="font-semibold">${row.title||'-'}</div>
+          <div class="text-xs text-gray-500 mt-1">Terbit: ${(String(row.published||'').toUpperCase()==='YES'?'Ya':'Tidak')} • Kemas kini: ${row.updated_at || '-'}</div>
+          <div class="text-sm text-gray-700 mt-2 line-clamp-2">${(row.body||'').slice(0,160)}</div>
+        `;
+        wrap.appendChild(d);
+      });
+      contWrap.classList.toggle('hidden', items.length===0);
+      toast('Kandungan dimuat');
+    }catch(e){ toast('Gagal muat senarai'); }
+  }
+
+  // ====== BROADCAST ======
+  document.getElementById('btnBroadcast').addEventListener('click', async ()=>{
+    const msg = document.getElementById('broadcastMsg').value.trim();
+    if (!msg) return toast('Tulis mesej broadcast');
+    try{
+      const json = await callApi('broadcast', { leader_id:store.leader.leader_id, message:msg });
+      if (json.success) { toast('Broadcast dihantar'); document.getElementById('broadcastMsg').value=''; }
+      else toast('Gagal: '+(json.error||''));
+    }catch(err){ toast('Ralat rangkaian'); }
+  });
+
+  // ====== MEDIA ======
+  const fileInput = document.getElementById('fileInput');
+  const mediaGrid = document.getElementById('mediaGrid');
+
+  document.getElementById('btnUpload').addEventListener('click', async ()=>{
+    const f = fileInput.files?.[0];
+    if (!f) return toast('Pilih satu fail');
+    try{
+      const b64 = await toBase64NoPrefix(f);
+      const json = await callApi('upload_media', {
+        leader_id: store.leader.leader_id,
+        file_name: f.name,
+        file_type: f.type || 'application/octet-stream',
+        file_base64: b64
+      });
+      if (json.success){
+        addMediaTile(json.public_url, json.isVideo);
+        toast('Muat naik berjaya ✔️');
+        fileInput.value = '';
+      } else {
+        toast('Gagal: '+(json.error||''));
+      }
+    }catch(err){ toast('Ralat muat naik'); }
+  });
+
+  document.getElementById('btnInsertToContent').addEventListener('click', ()=>{
+    const urls = Array.from(store.selectedMedia);
+    if (!urls.length) return toast('Tiada media dipilih');
+    const lines = urls.map(u=>{
+      if (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)) return `<video src="${u}" controls playsinline class="w-full"></video>`;
+      return `![media](${u})`;
+    });
+    document.getElementById('body').value += (document.getElementById('body').value ? '\n' : '') + lines.join('\n');
+    toast('Media dimasukkan ke kandungan');
+  });
+
+  document.getElementById('btnReloadMedia').addEventListener('click', reloadMedia);
+
+  async function reloadMedia(){
+    try{
+      const out = await callApi('media_list', { leader_id: store.leader.leader_id });
+      const list = out.items || [];
+      mediaGrid.innerHTML = '';
+      store.selectedMedia.clear();
+      list.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
+      list.forEach(row => addMediaTile(row.public_url, /^video\//i.test(row.file_type||'')));
+    }catch(e){ mediaGrid.innerHTML=''; }
+  }
+
+  function addMediaTile(url, isVideo=false){
+    if (!url) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'media-tile aspect-square';
+    wrap.dataset.url = url;
+    wrap.addEventListener('click', ()=>{
+      if (wrap.classList.toggle('selected')) store.selectedMedia.add(url);
+      else store.selectedMedia.delete(url);
+    });
+
+    if (isVideo){
+      const v = document.createElement('video');
+      v.src = url; v.controls = false; v.muted = true; v.playsInline = true; v.className = 'w-full h-full object-cover';
+      wrap.appendChild(v);
+    }else{
+      const img = document.createElement('img');
+      img.src = url; img.loading='lazy'; img.className = 'w-full h-full object-cover';
+      wrap.appendChild(img);
+    }
+    mediaGrid.appendChild(wrap);
+  }
+
+  function toBase64NoPrefix(file){
+    return new Promise((resolve,reject)=>{
+      const fr = new FileReader();
+      fr.onload = () => {
+        const s = String(fr.result||''); resolve(s.includes(',') ? s.split(',')[1] : s);
+      };
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  // ====== PARTNER ======
+  const partnerSelect = document.getElementById('customerPartner');
+
+  document.getElementById('btnCreatePartner').addEventListener('click', async ()=>{
+    const name = document.getElementById('partnerName').value.trim();
+    const email = document.getElementById('partnerEmail').value.trim();
+    const phone = document.getElementById('partnerPhone').value.trim();
+    const pkg   = document.getElementById('partnerPackage').value.trim();
+
+    if (!name) return toast('Nama partner diperlukan');
+    try{
+      const out = await callApi('partner_create', {
+        leader_id: store.leader.leader_id, name, email, phone, package: pkg
+      });
+      if (out.success){
+        toast('Partner ditambah ✔️');
+        await reloadPartners();
+        await reloadStats();
+        await renderOrg();
+        // kosongkan
+        document.getElementById('partnerName').value='';
+        document.getElementById('partnerEmail').value='';
+        document.getElementById('partnerPhone').value='';
+        document.getElementById('partnerPackage').value='';
+      } else {
+        toast(out.error||'Gagal tambah partner');
+      }
+    }catch(e){ toast('Ralat tambah partner'); }
+  });
+
+  async function reloadPartners(){
+    try{
+      const out = await callApi('partner_list', { leader_id: store.leader.leader_id });
+      store.partners = out.items || [];
+      // isi dropdown customerPartner
+      partnerSelect.innerHTML = '<option value="">Pilih Partner</option>';
+      store.partners.forEach(p=>{
+        const opt = document.createElement('option');
+        opt.value = p.name; opt.textContent = p.name;
+        partnerSelect.appendChild(opt);
+      });
+    }catch(e){
+      partnerSelect.innerHTML = '<option value="">Pilih Partner</option>';
+    }
+  }
+
+  // ====== CUSTOMER ======
+  document.getElementById('btnAddCustomer').addEventListener('click', async ()=>{
+    const name = document.getElementById('customerName').value.trim();
+    const phone = document.getElementById('customerPhone').value.trim();
+    const partner = document.getElementById('customerPartner').value.trim();
+    if (!name || !phone) return toast('Nama & telefon diperlukan');
+    try{
+      const out = await callApi('customer_add', {
+        leader_id: store.leader.leader_id, name, phone, partner
+      });
+      if (out.success){
+        toast('Customer ditambah ✔️');
+        document.getElementById('customerName').value='';
+        document.getElementById('customerPhone').value='';
+        document.getElementById('customerPartner').value='';
+        await reloadStats();
+        await renderOrg();
+      } else {
+        toast(out.error||'Gagal tambah customer');
+      }
+    }catch(e){ toast('Ralat tambah customer'); }
+  });
+
+  // ====== APPROVALS ======
+  const regTableBody = document.getElementById('regTableBody');
+  document.getElementById('btnReloadReg').addEventListener('click', reloadRegs);
+
+  async function reloadRegs(){
+    try{
+      const out = await callApi('registration_list', {});
+      const items = out.items || [];
+      regTableBody.innerHTML = '';
+      items.forEach(row=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-xs">${row.id||''}</td>
+          <td>${row.name||''}</td>
+          <td>${row.phone||''}</td>
+          <td><span class="badge">${row.status||''}</span></td>
+          <td>
+            ${String(row.status||'').toLowerCase()==='lulus' ? 
+              '<span class="text-green-700 text-sm">Diluluskan</span>' :
+              '<button class="btn-ghost text-sm">Luluskan</button>'
+            }
+          </td>
+        `;
+        const btn = tr.querySelector('button');
+        if (btn) {
+          btn.addEventListener('click', async ()=>{
+            try{
+              const res = await callApi('registration_approve', { id: row.id });
+              if (res.success){
+                toast('Diluluskan ✔️'); await reloadRegs(); await reloadStats();
+              } else toast(res.error||'Gagal meluluskan');
+            }catch(e){ toast('Ralat meluluskan'); }
+          });
         }
+        regTableBody.appendChild(tr);
+      });
+    }catch(e){
+      regTableBody.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Gagal memuat pendaftaran.</td></tr>';
+    }
+  }
 
-        async function apiCall(path, payload) {
-            try {
-                const response = await fetch(EXEC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                    body: new URLSearchParams({ path, payload: JSON.stringify(payload) })
-                });
-                return await response.json();
-            } catch (error) {
-                console.error('API Call Error:', error);
-                showToast('Ralat sambungan ke server.');
-                return { success: false, error: error.message };
-            }
+  // ====== ORG CHART ======
+  document.getElementById('btnReloadOrg').addEventListener('click', renderOrg);
+
+  async function renderOrg(){
+    const grid = document.getElementById('orgGrid');
+    const svg  = document.getElementById('orgSvg');
+    const wrap = document.getElementById('orgWrap');
+    grid.innerHTML = ''; svg.innerHTML = '';
+
+    let tree;
+    try{
+      const out = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
+      if (!out.success) throw new Error('Fail org_tree');
+      tree = out.tree;
+    }catch(e){
+      // fallback kosong
+      tree = { name:'LEADER', children:[] };
+    }
+
+    // Root
+    const root = document.createElement('div');
+    root.className = 'mx-auto px-4 py-2 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-200';
+    root.textContent = (tree.name || 'LEADER');
+    root.style.gridColumn = '1 / -1';
+    grid.style.gridTemplateColumns = `repeat(${Math.max(1,(tree.children||[]).length)}, minmax(180px,1fr))`;
+    grid.appendChild(root);
+
+    // Top row: partners
+    const rowTop = document.createElement('div');
+    rowTop.className = 'grid gap-8 mt-6';
+    rowTop.style.gridColumn = '1 / -1';
+    rowTop.style.gridTemplateColumns = grid.style.gridTemplateColumns;
+    grid.appendChild(rowTop);
+
+    const partnerNodes = [];
+    (tree.children||[]).forEach(p=>{
+      const n = document.createElement('div');
+      n.className = 'px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-center font-medium border border-emerald-200';
+      n.textContent = (p.name || 'PARTNER') + (p.title ? ` • ${p.title}` : '');
+      rowTop.appendChild(n);
+      partnerNodes.push({ el:n, children: p.children||[] });
+    });
+
+    // Rows bawah: customers di setiap kolum
+    const maxDepth = Math.max(0, ...partnerNodes.map(x=>x.children.length));
+    for (let r=0; r<maxDepth; r++){
+      const row = document.createElement('div');
+      row.className = 'grid gap-8 mt-6';
+      row.style.gridColumn = '1 / -1';
+      row.style.gridTemplateColumns = grid.style.gridTemplateColumns;
+      grid.appendChild(row);
+      partnerNodes.forEach(col=>{
+        const cust = col.children[r];
+        const cell = document.createElement('div');
+        if (cust){
+          cell.className = 'px-4 py-2 rounded-full bg-rose-100 text-rose-900 text-center border border-rose-200';
+          cell.textContent = cust.name || 'Customer';
+        } else {
+          cell.innerHTML = '&nbsp;';
         }
+        row.appendChild(cell);
+      });
+    }
 
-        function loadUserProfile() {
-            try {
-                console.log('Attempting to load user profile from localStorage...');
-                
-                // Method 1: Try to get the main session object
-                let movaData = localStorage.getItem('mova_leader');
-                console.log('Main session data:', movaData);
-                
-                if (movaData) {
-                    const parsedData = JSON.parse(movaData);
-                    console.log('Parsed session data:', parsedData);
-                    
-                    // Check if session is expired
-                    if (parsedData.expires_at && parsedData.expires_at < Date.now()) {
-                        console.log('Session expired');
-                        clearSession();
-                        return false;
-                    }
-                    
-                    if (parsedData.profile && parsedData.profile.id) {
-                        currentLeader = parsedData.profile;
-                        leaderName.textContent = currentLeader.name || 'Leader';
-                        leaderInitial.textContent = (currentLeader.name || 'L').charAt(0).toUpperCase();
-                        console.log('User profile loaded from main session');
-                        return true;
-                    }
-                }
-                
-                // Method 2: Fallback to individual items
-                console.log('Trying fallback method...');
-                const leaderId = localStorage.getItem('mova_leader_id');
-                const leaderNameStr = localStorage.getItem('mova_leader_name');
-                
-                if (leaderId && leaderNameStr) {
-                    currentLeader = {
-                        id: leaderId,
-                        name: leaderNameStr,
-                        phone: localStorage.getItem('mova_leader_phone') || '',
-                        role: 'leader'
-                    };
-                    leaderName.textContent = currentLeader.name;
-                    leaderInitial.textContent = currentLeader.name.charAt(0).toUpperCase();
-                    console.log('User profile loaded from fallback method');
-                    
-                    // Save in the new format for future use
-                    saveSessionData({
-                        leader_id: currentLeader.id,
-                        profile: currentLeader
-                    });
-                    
-                    return true;
-                }
-                
-                console.log('No valid session found');
-                return false;
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-                return false;
-            }
-        }
+    // Saiz SVG
+    const rect = wrap.getBoundingClientRect();
+    svg.setAttribute('width', Math.ceil(rect.width));
+    svg.setAttribute('height', Math.ceil(wrap.scrollHeight));
 
-        function saveSessionData(data) {
-            try {
-                const sessionData = {
-                    profile: data.profile || {
-                        id: data.leader_id || '',
-                        name: data.profile?.name || data.leader_name || '',
-                        phone: data.profile?.phone || data.phone || '',
-                        role: data.profile?.role || 'leader'
-                    },
-                    login_at: Date.now(),
-                    expires_at: Date.now() + (24 * 60 * 60 * 1000) // 24 jam
-                };
-                
-                localStorage.setItem("mova_leader", JSON.stringify(sessionData));
-                console.log('Session data saved:', sessionData);
-                return true;
-            } catch (error) {
-                console.error('Error saving session data:', error);
-                return false;
-            }
-        }
+    const toSvg = (x,y)=> {
+      const sb = svg.getBoundingClientRect();
+      return [x - sb.left + wrap.scrollLeft, y - sb.top + wrap.scrollTop];
+    };
 
-        function clearSession() {
-            localStorage.removeItem('mova_leader');
-            localStorage.removeItem('mova_leader_id');
-            localStorage.removeItem('mova_leader_name');
-            localStorage.removeItem('mova_leader_phone');
-            localStorage.removeItem('mova_login_at');
-            console.log('Session cleared');
-        }
+    // root -> partners
+    const rb = root.getBoundingClientRect();
+    partnerNodes.forEach(p=>{
+      const pb = p.el.getBoundingClientRect();
+      drawLine(rb.left + rb.width/2, rb.bottom, pb.left + pb.width/2, pb.top);
+    });
 
-        function showAuthError() {
-            loadingScreen.classList.add('hidden');
-            authErrorModal.classList.remove('hidden');
-        }
+    // partner -> customers
+    const rows = Array.from(grid.children).slice(2); // selepas root & rowTop
+    rows.forEach(row=>{
+      const cells = Array.from(row.children);
+      cells.forEach((cell, i)=>{
+        if (!cell.textContent.trim()) return;
+        const pb = partnerNodes[i].el.getBoundingClientRect();
+        const cb = cell.getBoundingClientRect();
+        drawLine(pb.left + pb.width/2, pb.bottom, cb.left + cb.width/2, cb.top);
+      });
+    });
 
-        function hideAuthError() {
-            authErrorModal.classList.add('hidden');
-        }
+    function drawLine(x1,y1,x2,y2){
+      const [sx1,sy1] = toSvg(x1,y1);
+      const [sx2,sy2] = toSvg(x2,y2);
+      const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+      ln.setAttribute('x1', sx1); ln.setAttribute('y1', sy1);
+      ln.setAttribute('x2', sx2); ln.setAttribute('y2', sy2);
+      ln.setAttribute('stroke', '#e5e7eb'); ln.setAttribute('stroke-width', '2');
+      svg.appendChild(ln);
+    }
+  }
 
-        async function initializeApp() {
-            console.log('Initializing app...');
-            
-            // Try to load user profile
-            if (loadUserProfile()) {
-                console.log('User profile loaded, initializing dashboard...');
-                // Load all initial data
-                await Promise.all([
-                    loadStats(),
-                    loadContentList(),
-                    loadMediaList(),
-                    loadRegistrationList(),
-                    loadOrgChart()
-                ]);
-                
-                // Hide loading screen
-                loadingScreen.classList.add('hidden');
-                lucide.createIcons();
-                console.log('Dashboard initialized successfully');
-            } else {
-                console.log('Failed to load user profile');
-                
-                // If we've retried too many times, show auth error
-                if (authRetryCount >= MAX_AUTH_RETRIES) {
-                    showAuthError();
-                } else {
-                    // Otherwise, retry after a short delay
-                    authRetryCount++;
-                    console.log(`Retrying authentication (${authRetryCount}/${MAX_AUTH_RETRIES})...`);
-                    setTimeout(initializeApp, 1000);
-                }
-            }
-        }
+  // ====== TAB SWITCH LISTENERS ======
+  document.getElementById('btnReloadOrg').addEventListener('click', renderOrg);
 
-        // --- DATA LOADING FUNCTIONS ---
-
-        async function loadStats() {
-            const res = await apiCall('stats', { leader_id: currentLeader.id });
-            if (res.success) {
-                document.getElementById('statPartners').textContent = res.stats.total_partners;
-                document.getElementById('statCustomers').textContent = res.stats.total_customers;
-                document.getElementById('statPending').textContent = res.stats.pending_approvals;
-                document.getElementById('statContent').textContent = res.stats.published_content;
-            }
-        }
-
-        async function loadContentList() {
-            const res = await apiCall('content_list', { leader_id: currentLeader.id });
-            if (res.success) {
-                allContent = res.items;
-                contentSelect.innerHTML = '<option value="">-- Kandungan Baru --</option>';
-                allContent.forEach(item => {
-                    const option = document.createElement('option');
-                    option.value = item.id;
-                    option.textContent = item.title;
-                    contentSelect.appendChild(option);
-                });
-            }
-        }
-
-        async function loadMediaList() {
-            const res = await apiCall('media_list', { leader_id: currentLeader.id });
-            if (res.success) {
-                allMedia = res.items;
-                renderMediaGrid();
-            }
-        }
-        
-        function renderMediaGrid() {
-            mediaGrid.innerHTML = '';
-            allMedia.forEach(item => {
-                const mediaItem = document.createElement('div');
-                mediaItem.className = 'media-item';
-                mediaItem.dataset.url = item.public_url;
-                
-                const checkbox = document.createElement('div');
-                checkbox.className = 'media-checkbox';
-                checkbox.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-blue-600"></i>';
-                
-                if (item.file_type.startsWith('image/')) {
-                    const img = document.createElement('img');
-                    img.src = item.public_url;
-                    img.alt = item.file_name;
-                    mediaItem.appendChild(img);
-                } else if (item.file_type.startsWith('video/')) {
-                    const video = document.createElement('video');
-                    video.src = item.public_url;
-                    mediaItem.appendChild(video);
-                }
-                
-                mediaItem.appendChild(checkbox);
-                mediaItem.addEventListener('click', () => toggleMediaSelection(item.public_url, mediaItem));
-                mediaGrid.appendChild(mediaItem);
-            });
-            lucide.createIcons();
-        }
-
-        function toggleMediaSelection(url, element) {
-            if (selectedMediaItems.has(url)) {
-                selectedMediaItems.delete(url);
-                element.classList.remove('selected');
-            } else {
-                selectedMediaItems.add(url);
-                element.classList.add('selected');
-            }
-            insertToContentBtn.disabled = selectedMediaItems.size === 0;
-        }
-
-        async function loadRegistrationList() {
-            const res = await apiCall('registration_list', {});
-            if (res.success) {
-                allRegistrations = res.items;
-                renderRegistrationTable();
-            }
-        }
-
-        function renderRegistrationTable() {
-            registrationList.innerHTML = '';
-            const pendingRegs = allRegistrations.filter(r => r.status.toLowerCase() !== 'lulus');
-            
-            if (pendingRegs.length === 0) {
-                noRegistrations.classList.remove('hidden');
-            } else {
-                noRegistrations.classList.add('hidden');
-                pendingRegs.forEach(reg => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${reg.name}</td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${reg.phone}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                                ${reg.status}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onclick="approveRegistration('${reg.id}')" class="text-indigo-600 hover:text-indigo-900">Lulus</button>
-                        </td>
-                    `;
-                    registrationList.appendChild(row);
-                });
-            }
-        }
-
-        async function approveRegistration(id) {
-            const res = await apiCall('registration_approve', { id: id });
-            if (res.success) {
-                showToast('Pendaftaran diluluskan!');
-                loadRegistrationList(); // Refresh list
-                loadStats(); // Refresh stats
-            } else {
-                showToast(`Gagal meluluskan: ${res.error}`);
-            }
-        }
-
-        async function loadOrgChart() {
-            const res = await apiCall('org_tree', { leader_id: currentLeader.id, leader_name: currentLeader.name });
-            if (res.success) {
-                renderOrgChart(res.tree);
-            }
-        }
-
-        function renderOrgChart(node) {
-            orgChart.innerHTML = createOrgChartNode(node);
-            lucide.createIcons();
-        }
-
-        function createOrgChartNode(node) {
-            let colorClass = 'bg-gray-100 text-gray-800';
-            if (node.color === '#fde68a') colorClass = 'bg-amber-100 text-amber-800';
-            if (node.color === '#a7f3d0') colorClass = 'bg-emerald-100 text-emerald-800';
-            if (node.color === '#fecaca') colorClass = 'bg-red-100 text-red-800';
-
-            let html = `<ul><li><div class="org-chart-node ${colorClass}">${node.name}</div>`;
-            
-            if (node.children && node.children.length > 0) {
-                html += '<ul>';
-                node.children.forEach(child => {
-                    html += createOrgChartNode(child);
-                });
-                html += '</ul>';
-            }
-            
-            html += '</li></ul>';
-            return html;
-        }
-
-        // --- EVENT LISTENERS ---
-
-        // Tab Navigation
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                const tabName = button.getAttribute('data-tab');
-                
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('border-black', 'text-black', 'bg-gray-50');
-                    btn.classList.add('border-transparent', 'text-gray-500');
-                });
-                
-                button.classList.remove('border-transparent', 'text-gray-500');
-                button.classList.add('border-black', 'text-black', 'bg-gray-50');
-                
-                tabContents.forEach(content => content.classList.add('hidden'));
-                document.getElementById(`${tabName}-tab`).classList.remove('hidden');
-                
-                lucide.createIcons();
-            });
-        });
-
-        // Content Tab
-        contentSelect.addEventListener('change', (e) => {
-            selectedContentId = e.target.value;
-            if (selectedContentId) {
-                const content = allContent.find(c => c.id === selectedContentId);
-                if (content) {
-                    contentTitle.value = content.title;
-                    contentBody.value = content.body;
-                    document.querySelector(`input[name="publishStatus"][value="${content.published}"]`).checked = true;
-                    updateContentBtn.disabled = false;
-                }
-            } else {
-                contentTitle.value = '';
-                contentBody.value = '';
-                document.querySelector('input[name="publishStatus"][value="no"]').checked = true;
-                updateContentBtn.disabled = true;
-            }
-        });
-
-        saveContentBtn.addEventListener('click', async () => {
-            const payload = {
-                leader_id: currentLeader.id,
-                title: contentTitle.value.trim(),
-                body: contentBody.value.trim(),
-                published: document.querySelector('input[name="publishStatus"]:checked').value === 'yes'
-            };
-            const res = await apiCall('content_save', payload);
-            if (res.success) {
-                showToast('Kandungan berjaya disimpan!');
-                loadContentList();
-                loadStats();
-                refreshContentBtn.click(); // Clear form
-            } else {
-                showToast(`Gagal menyimpan: ${res.error}`);
-            }
-        });
-
-        updateContentBtn.addEventListener('click', async () => {
-            if (!selectedContentId) return;
-            const payload = {
-                leader_id: currentLeader.id,
-                content_id: selectedContentId,
-                title: contentTitle.value.trim(),
-                body: contentBody.value.trim(),
-                published: document.querySelector('input[name="publishStatus"]:checked').value === 'yes',
-                update: true
-            };
-            const res = await apiCall('content_save', payload);
-            if (res.success) {
-                showToast('Kandungan berjaya dikemas kini!');
-                loadContentList();
-            } else {
-                showToast(`Gagal mengemas kini: ${res.error}`);
-            }
-        });
-
-        refreshContentBtn.addEventListener('click', () => {
-            contentSelect.value = '';
-            contentTitle.value = '';
-            contentBody.value = '';
-            document.querySelector('input[name="publishStatus"][value="no"]').checked = true;
-            updateContentBtn.disabled = true;
-            selectedContentId = null;
-            showToast('Form telah dikosongkan.');
-        });
-
-        sendBroadcastBtn.addEventListener('click', async () => {
-            const message = broadcastMessage.value.trim();
-            if (!message) { showToast('Sila masukkan mesej.'); return; }
-            const res = await apiCall('broadcast', { leader_id: currentLeader.id, message });
-            if (res.success) {
-                showToast('Broadcast dihantar!');
-                broadcastMessage.value = '';
-            } else {
-                showToast(`Gagal menghantar: ${res.error}`);
-            }
-        });
-
-        // Media Tab
-        mediaFile.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                fileName.textContent = file.name;
-                uploadMediaBtn.disabled = false;
-            } else {
-                fileName.textContent = 'Tiada fail dipilih';
-                uploadMediaBtn.disabled = true;
-            }
-        });
-
-        uploadMediaBtn.addEventListener('click', async () => {
-            const file = mediaFile.files[0];
-            if (!file) return;
-            
-            uploadMediaBtn.disabled = true;
-            uploadMediaBtn.textContent = 'Memuat naik...';
-            
-            const reader = new FileReader();
-            reader.onload = async (event) => {
-                const payload = {
-                    leader_id: currentLeader.id,
-                    filename: file.name,
-                    type: file.type,
-                    data: event.target.result
-                };
-                const res = await apiCall('upload_media', payload);
-                if (res.success) {
-                    showToast('Media berjaya dimuat naik!');
-                    mediaFile.value = '';
-                    fileName.textContent = 'Tiada fail dipilih';
-                    loadMediaList(); // Refresh grid
-                } else {
-                    showToast(`Gagal memuat naik: ${res.error}`);
-                }
-                uploadMediaBtn.disabled = false;
-                uploadMediaBtn.innerHTML = '<i data-lucide="upload-cloud" class="inline-block w-4 h-4 mr-1"></i>Muat Naik';
-                lucide.createIcons();
-            };
-            reader.readAsDataURL(file);
-        });
-
-        insertToContentBtn.addEventListener('click', () => {
-            if (selectedMediaItems.size === 0) return;
-            
-            document.querySelector('[data-tab="content"]').click();
-            let mediaText = '';
-            selectedMediaItems.forEach(url => {
-                mediaText += `\n![Media](${url})\n`;
-            });
-            contentBody.value += mediaText;
-            
-            selectedMediaItems.clear();
-            document.querySelectorAll('.media-item').forEach(item => item.classList.remove('selected'));
-            insertToContentBtn.disabled = true;
-            
-            showToast('Media dimasukkan ke kandungan.');
-        });
-
-        // Partner Tab
-        addPartnerBtn.addEventListener('click', async () => {
-            const payload = {
-                leader_id: currentLeader.id,
-                name: partnerName.value.trim(),
-                email: partnerEmail.value.trim(),
-                phone: partnerPhone.value.trim(),
-                package: partnerPackage.value
-            };
-            if (!payload.name || !payload.phone) { showToast('Nama dan telefon diperlukan.'); return; }
-            
-            const res = await apiCall('partner_create', payload);
-            if (res.success) {
-                showToast('Partner berjaya ditambah!');
-                partnerName.value = ''; partnerEmail.value = ''; partnerPhone.value = '';
-                loadStats(); loadOrgChart(); // Refresh dependent data
-            } else {
-                showToast(`Gagal menambah: ${res.error}`);
-            }
-        });
-
-        // Customer Tab
-        addCustomerBtn.addEventListener('click', async () => {
-            const payload = {
-                leader_id: currentLeader.id,
-                name: customerName.value.trim(),
-                phone: customerPhone.value.trim(),
-                partner: customerPartner.value.trim()
-            };
-            if (!payload.name || !payload.phone) { showToast('Nama dan telefon diperlukan.'); return; }
-
-            const res = await apiCall('customer_add', payload);
-            if (res.success) {
-                showToast('Customer berjaya ditambah!');
-                customerName.value = ''; customerPhone.value = ''; customerPartner.value = '';
-                loadStats(); loadOrgChart(); // Refresh dependent data
-            } else {
-                showToast(`Gagal menambah: ${res.error}`);
-            }
-        });
-
-        // Auth Error Modal
-        retryAuthBtn.addEventListener('click', () => {
-            authRetryCount = 0;
-            hideAuthError();
-            loadingScreen.classList.remove('hidden');
-            initializeApp();
-        });
-
-        goToLoginBtn.addEventListener('click', () => {
-            clearSession();
-            window.location.href = "index.html";
-        });
-
-        // Logout & Navigation
-        logoutBtn.addEventListener('click', () => {
-            clearSession();
-            showToast('Anda telah log keluar.');
-            setTimeout(() => window.location.href = "index.html", 1000);
-        });
-
-        backToLoginBtn.addEventListener('click', () => {
-            clearSession();
-            window.location.href = "index.html";
-        });
-
-        // --- INITIALIZATION ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // Start the initialization process
-            initializeApp();
-        });
-    </script>
+  // ====== MEDIA HELPERS ======
+  // (telah didefinisikan di atas)
+</script>
 </body>
 </html>
