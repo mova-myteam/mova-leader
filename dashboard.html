@@ -8,161 +8,78 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #888; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
         
         /* Tab animation */
-        .tab-content {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .tab-content { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
         /* Org chart styles */
-        .org-chart {
-            display: flex;
-            justify-content: center;
-            position: relative;
-            padding: 20px 0;
-        }
-        
-        .org-chart ul {
-            padding-top: 20px;
-            position: relative;
-            transition: all 0.5s;
-            display: flex;
-            justify-content: center;
-        }
-        
-        .org-chart li {
-            float: left;
-            text-align: center;
-            list-style-type: none;
-            position: relative;
-            padding: 20px 5px 0 5px;
-            transition: all 0.5s;
-        }
-        
-        .org-chart li::before, .org-chart li::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 50%;
-            border-top: 2px solid #ccc;
-            width: 50%;
-            height: 20px;
-        }
-        
-        .org-chart li::after {
-            right: auto;
-            left: 50%;
-            border-left: 2px solid #ccc;
-        }
-        
-        .org-chart li:only-child::after, .org-chart li:only-child::before {
-            display: none;
-        }
-        
-        .org-chart li:only-child {
-            padding-top: 0;
-        }
-        
-        .org-chart li:first-child::before, .org-chart li:last-child::after {
-            border: 0 none;
-        }
-        
-        .org-chart li:last-child::before {
-            border-right: 2px solid #ccc;
-            border-radius: 0 5px 0 0;
-        }
-        
-        .org-chart li:first-child::after {
-            border-radius: 5px 0 0 0;
-        }
-        
-        .org-chart ul ul::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 50%;
-            border-left: 2px solid #ccc;
-            width: 0;
-            height: 20px;
-        }
-        
-        .org-chart-node {
-            border: 2px solid #ccc;
-            padding: 10px 15px;
-            text-decoration: none;
-            color: #333;
-            display: inline-block;
-            border-radius: 20px;
-            transition: all 0.3s;
-        }
+        .org-chart-container { font-family: Arial, Helvetica, sans-serif; }
+        .org-chart { display: inline-block; }
+        .org-chart ul { padding-top: 20px; position: relative; transition: all 0.5s; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; display: flex; justify-content: center; }
+        .org-chart li { float: left; text-align: center; list-style-type: none; position: relative; padding: 20px 5px 0 5px; transition: all 0.5s; -webkit-transition: all 0.5s; -moz-transition: all 0.5s; }
+        .org-chart li::before, .org-chart li::after { content: ''; position: absolute; top: 0; right: 50%; border-top: 2px solid #ccc; width: 50%; height: 20px; }
+        .org-chart li::after { right: auto; left: 50%; border-left: 2px solid #ccc; }
+        .org-chart li:only-child::after, .org-chart li:only-child::before { display: none; }
+        .org-chart li:only-child { padding-top: 0; }
+        .org-chart li:first-child::before, .org-chart li:last-child::after { border: 0 none; }
+        .org-chart li:last-child::before { border-right: 2px solid #ccc; border-radius: 0 5px 0 0; }
+        .org-chart li:first-child::after { border-radius: 5px 0 0 0; }
+        .org-chart ul ul::before { content: ''; position: absolute; top: 0; left: 50%; border-left: 2px solid #ccc; width: 0; height: 20px; }
+        .org-chart-node { border: 2px solid #ccc; padding: 10px 15px; text-decoration: none; color: #333; display: inline-block; border-radius: 20px; transition: all 0.3s; }
         
         /* Media grid styles */
-        .media-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-        }
+        .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        .media-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 1; cursor: pointer; transition: all 0.2s; }
+        .media-item:hover { transform: scale(1.03); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .media-item.selected { outline: 3px solid #3b82f6; outline-offset: 2px; }
+        .media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
+        .media-checkbox { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.9); border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; }
         
-        .media-item {
-            position: relative;
-            border-radius: 8px;
-            overflow: hidden;
-            aspect-ratio: 1;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
+        /* Loading spinner */
+        .spinner { border: 4px solid rgba(0, 0, 0, 0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #3b82f6; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .media-item:hover {
-            transform: scale(1.03);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-        
-        .media-item.selected {
-            outline: 3px solid #3b82f6;
-            outline-offset: 2px;
-        }
-        
-        .media-item img, .media-item video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        .media-checkbox {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            background: rgba(255,255,255,0.8);
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        /* Auth error modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="fixed inset-0 bg-white z-50 flex items-center justify-center">
+        <div class="text-center">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Memuatkan dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Auth Error Modal -->
+    <div id="authErrorModal" class="modal-overlay hidden">
+        <div class="bg-white rounded-lg p-6 max-w-md mx-4">
+            <div class="flex items-center mb-4">
+                <div class="flex-shrink-0 bg-red-100 rounded-full p-2">
+                    <i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>
+                </div>
+                <h3 class="ml-3 text-lg font-medium text-gray-900">Masalah Pengesahan</h3>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-gray-500">Kami tidak dapat mengesahkan sesi anda. Sila log masuk semula untuk meneruskan.</p>
+            </div>
+            <div class="flex justify-end">
+                <button id="retryAuthBtn" class="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors">
+                    Cuba Lagi
+                </button>
+                <button id="goToLoginBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                    Log Masuk
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <header class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -201,7 +118,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Partners</p>
-                        <p class="text-2xl font-semibold text-gray-900">—</p>
+                        <p id="statPartners" class="text-2xl font-semibold text-gray-900">—</p>
                     </div>
                 </div>
             </div>
@@ -213,7 +130,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Total Customers</p>
-                        <p class="text-2xl font-semibold text-gray-900">—</p>
+                        <p id="statCustomers" class="text-2xl font-semibold text-gray-900">—</p>
                     </div>
                 </div>
             </div>
@@ -225,7 +142,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Pending Approvals</p>
-                        <p class="text-2xl font-semibold text-gray-900">—</p>
+                        <p id="statPending" class="text-2xl font-semibold text-gray-900">—</p>
                     </div>
                 </div>
             </div>
@@ -237,7 +154,7 @@
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-600">Published Content</p>
-                        <p class="text-2xl font-semibold text-gray-900">—</p>
+                        <p id="statContent" class="text-2xl font-semibold text-gray-900">—</p>
                     </div>
                 </div>
             </div>
@@ -275,13 +192,19 @@
                     <h2 class="text-lg font-semibold mb-4">Kandungan</h2>
                     <div class="space-y-4">
                         <div>
+                            <label for="contentSelect" class="block text-sm font-medium text-gray-700 mb-1">Pilih Kandungan (untuk edit)</label>
+                            <select id="contentSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="">-- Kandungan Baru --</option>
+                            </select>
+                        </div>
+                        <div>
                             <label for="contentTitle" class="block text-sm font-medium text-gray-700 mb-1">Tajuk</label>
-                            <input type="text" id="contentTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Masukkan tajuk kandungan">
+                            <input type="text" id="contentTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan tajuk kandungan">
                         </div>
                         
                         <div>
                             <label for="contentBody" class="block text-sm font-medium text-gray-700 mb-1">Kandungan</label>
-                            <textarea id="contentBody" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Masukkan kandungan di sini"></textarea>
+                            <textarea id="contentBody" rows="6" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan kandungan di sini"></textarea>
                         </div>
                         
                         <div>
@@ -301,9 +224,9 @@
                         <div class="flex space-x-3">
                             <button id="saveContentBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
                                 <i data-lucide="save" class="inline-block w-4 h-4 mr-1"></i>
-                                Simpan
+                                Simpan Baru
                             </button>
-                            <button id="updateContentBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors">
+                            <button id="updateContentBtn" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors" disabled>
                                 <i data-lucide="refresh-cw" class="inline-block w-4 h-4 mr-1"></i>
                                 Kemas Kini
                             </button>
@@ -316,7 +239,7 @@
                         <div class="mt-8 pt-6 border-t border-gray-200">
                             <h3 class="text-md font-semibold mb-3">Broadcast Ringkas</h3>
                             <div class="flex space-x-3">
-                                <input type="text" id="broadcastMessage" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="Masukkan mesej broadcast">
+                                <input type="text" id="broadcastMessage" class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan mesej broadcast">
                                 <button id="sendBroadcastBtn" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
                                     <i data-lucide="send" class="inline-block w-4 h-4 mr-1"></i>
                                     Hantar
@@ -360,69 +283,86 @@
                 <!-- Add Partner Tab -->
                 <div id="partner-tab" class="tab-content hidden">
                     <h2 class="text-lg font-semibold mb-4">Tambah Partner</h2>
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-                        <i data-lucide="info" class="w-12 h-12 text-blue-500 mx-auto mb-3"></i>
-                        <p class="text-blue-800">UI tersedia, endpoint belum diaktifkan.</p>
+                    <div class="space-y-4 max-w-lg">
+                        <div>
+                            <label for="partnerName" class="block text-sm font-medium text-gray-700 mb-1">Nama Partner</label>
+                            <input type="text" id="partnerName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nama partner">
+                        </div>
+                        <div>
+                            <label for="partnerEmail" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input type="email" id="partnerEmail" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan email">
+                        </div>
+                        <div>
+                            <label for="partnerPhone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                            <input type="tel" id="partnerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nombor telefon">
+                        </div>
+                        <div>
+                            <label for="partnerPackage" class="block text-sm font-medium text-gray-700 mb-1">Pakej</label>
+                            <select id="partnerPackage" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="Basic">Basic</option>
+                                <option value="Premium">Premium</option>
+                                <option value="Enterprise">Enterprise</option>
+                            </select>
+                        </div>
+                        <button id="addPartnerBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                            <i data-lucide="user-plus" class="inline-block w-4 h-4 mr-1"></i>
+                            Tambah Partner
+                        </button>
                     </div>
                 </div>
 
                 <!-- Add Customer Tab -->
                 <div id="customer-tab" class="tab-content hidden">
                     <h2 class="text-lg font-semibold mb-4">Tambah Customer</h2>
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-                        <i data-lucide="info" class="w-12 h-12 text-blue-500 mx-auto mb-3"></i>
-                        <p class="text-blue-800">UI tersedia, endpoint belum diaktifkan.</p>
+                    <div class="space-y-4 max-w-lg">
+                        <div>
+                            <label for="customerName" class="block text-sm font-medium text-gray-700 mb-1">Nama Customer</label>
+                            <input type="text" id="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nama customer">
+                        </div>
+                        <div>
+                            <label for="customerPhone" class="block text-sm font-medium text-gray-700 mb-1">Telefon</label>
+                            <input type="tel" id="customerPhone" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nombor telefon">
+                        </div>
+                        <div>
+                            <label for="customerPartner" class="block text-sm font-medium text-gray-700 mb-1">Partner</label>
+                            <input type="text" id="customerPartner" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Masukkan nama partner">
+                        </div>
+                        <button id="addCustomerBtn" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors">
+                            <i data-lucide="user-plus" class="inline-block w-4 h-4 mr-1"></i>
+                            Tambah Customer
+                        </button>
                     </div>
                 </div>
 
                 <!-- Approve Registration Tab -->
                 <div id="approve-tab" class="tab-content hidden">
                     <h2 class="text-lg font-semibold mb-4">Approve Pendaftaran</h2>
-                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-                        <i data-lucide="info" class="w-12 h-12 text-blue-500 mx-auto mb-3"></i>
-                        <p class="text-blue-800">UI tersedia, endpoint belum diaktifkan.</p>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Telefon</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tindakan</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registrationList" class="bg-white divide-y divide-gray-200">
+                                <!-- Registrations will be loaded here -->
+                            </tbody>
+                        </table>
+                        <div id="noRegistrations" class="text-center py-8 text-gray-500 hidden">
+                            Tiada pendaftaran menunggu kelulusan.
+                        </div>
                     </div>
                 </div>
 
                 <!-- Organization Chart Tab -->
                 <div id="orgchart-tab" class="tab-content hidden">
                     <h2 class="text-lg font-semibold mb-4">Carta Organisasi</h2>
-                    <div class="overflow-x-auto">
-                        <div class="org-chart min-w-max">
-                            <ul>
-                                <li>
-                                    <div class="org-chart-node bg-indigo-100 text-indigo-800 font-semibold">LEADER</div>
-                                    <ul>
-                                        <li>
-                                            <div class="org-chart-node bg-amber-100 text-amber-800">Partner 1</div>
-                                            <ul>
-                                                <li><div class="org-chart-node bg-amber-50 text-amber-700">Customer 1.1</div></li>
-                                                <li><div class="org-chart-node bg-amber-50 text-amber-700">Customer 1.2</div></li>
-                                                <li><div class="org-chart-node bg-amber-50 text-amber-700">Customer 1.3</div></li>
-                                                <li><div class="org-chart-node bg-amber-50 text-amber-700">Customer 1.4</div></li>
-                                            </ul>
-                                        </li>
-                                        <li>
-                                            <div class="org-chart-node bg-emerald-100 text-emerald-800">Partner 2</div>
-                                            <ul>
-                                                <li><div class="org-chart-node bg-emerald-50 text-emerald-700">Customer 2.1</div></li>
-                                                <li><div class="org-chart-node bg-emerald-50 text-emerald-700">Customer 2.2</div></li>
-                                                <li><div class="org-chart-node bg-emerald-50 text-emerald-700">Customer 2.3</div></li>
-                                                <li><div class="org-chart-node bg-emerald-50 text-emerald-700">Customer 2.4</div></li>
-                                            </ul>
-                                        </li>
-                                        <li>
-                                            <div class="org-chart-node bg-fuchsia-100 text-fuchsia-800">Partner 3</div>
-                                            <ul>
-                                                <li><div class="org-chart-node bg-fuchsia-50 text-fuchsia-700">Customer 3.1</div></li>
-                                                <li><div class="org-chart-node bg-fuchsia-50 text-fuchsia-700">Customer 3.2</div></li>
-                                                <li><div class="org-chart-node bg-fuchsia-50 text-fuchsia-700">Customer 3.3</div></li>
-                                                <li><div class="org-chart-node bg-fuchsia-50 text-fuchsia-700">Customer 3.4</div></li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
+                    <div class="overflow-x-auto org-chart-container">
+                        <div id="orgChart" class="org-chart">
+                            <!-- Org chart will be dynamically generated here -->
                         </div>
                     </div>
                 </div>
@@ -439,6 +379,16 @@
         // API Configuration
         const EXEC_URL = 'https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec';
         
+        // Global State
+        let currentLeader = null;
+        let selectedContentId = null;
+        let selectedMediaItems = new Set();
+        let allContent = [];
+        let allMedia = [];
+        let allRegistrations = [];
+        let authRetryCount = 0;
+        const MAX_AUTH_RETRIES = 3;
+
         // DOM Elements
         const tabButtons = document.querySelectorAll('.tab-btn');
         const tabContents = document.querySelectorAll('.tab-content');
@@ -447,7 +397,14 @@
         const backToLoginBtn = document.getElementById('backToLoginBtn');
         const logoutBtn = document.getElementById('logoutBtn');
         
+        // Loading and Auth Elements
+        const loadingScreen = document.getElementById('loadingScreen');
+        const authErrorModal = document.getElementById('authErrorModal');
+        const retryAuthBtn = document.getElementById('retryAuthBtn');
+        const goToLoginBtn = document.getElementById('goToLoginBtn');
+        
         // Content Tab Elements
+        const contentSelect = document.getElementById('contentSelect');
         const contentTitle = document.getElementById('contentTitle');
         const contentBody = document.getElementById('contentBody');
         const saveContentBtn = document.getElementById('saveContentBtn');
@@ -463,6 +420,26 @@
         const mediaGrid = document.getElementById('mediaGrid');
         const insertToContentBtn = document.getElementById('insertToContentBtn');
         
+        // Partner Tab Elements
+        const partnerName = document.getElementById('partnerName');
+        const partnerEmail = document.getElementById('partnerEmail');
+        const partnerPhone = document.getElementById('partnerPhone');
+        const partnerPackage = document.getElementById('partnerPackage');
+        const addPartnerBtn = document.getElementById('addPartnerBtn');
+
+        // Customer Tab Elements
+        const customerName = document.getElementById('customerName');
+        const customerPhone = document.getElementById('customerPhone');
+        const customerPartner = document.getElementById('customerPartner');
+        const addCustomerBtn = document.getElementById('addCustomerBtn');
+
+        // Approve Tab Elements
+        const registrationList = document.getElementById('registrationList');
+        const noRegistrations = document.getElementById('noRegistrations');
+
+        // Org Chart Element
+        const orgChart = document.getElementById('orgChart');
+        
         // Toast Notification
         const toast = document.getElementById('toast');
         const toastMessage = document.getElementById('toastMessage');
@@ -470,43 +447,269 @@
         // Initialize Lucide icons
         lucide.createIcons();
         
-        // Initialize selected media items
-        let selectedMediaItems = new Set();
+        // --- CORE FUNCTIONS ---
         
-        // Load user profile from localStorage
-        function loadUserProfile() {
-            try {
-                const profile = JSON.parse(localStorage.getItem('mova_leader') || '{}').profile;
-                if (profile && profile.name) {
-                    leaderName.textContent = profile.name;
-                    leaderInitial.textContent = profile.name.charAt(0).toUpperCase();
-                } else {
-                    leaderName.textContent = 'Pengguna';
-                    leaderInitial.textContent = 'P';
-                }
-            } catch (error) {
-                console.error('Error loading user profile:', error);
-                leaderName.textContent = 'Pengguna';
-                leaderInitial.textContent = 'P';
-            }
-        }
-        
-        // Show toast notification
         function showToast(message, duration = 3000) {
             toastMessage.textContent = message;
             toast.classList.remove('translate-y-full');
+            setTimeout(() => toast.classList.add('translate-y-full'), duration);
+        }
+
+        async function apiCall(path, payload) {
+            try {
+                const response = await fetch(EXEC_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                    body: new URLSearchParams({ path, payload: JSON.stringify(payload) })
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('API Call Error:', error);
+                showToast('Ralat sambungan ke server.');
+                return { success: false, error: error.message };
+            }
+        }
+
+        function loadUserProfile() {
+            try {
+                console.log('Attempting to load user profile from localStorage...');
+                const movaData = localStorage.getItem('mova_leader');
+                console.log('Raw movaData:', movaData);
+                
+                if (!movaData) {
+                    console.log('No mova_leader data found in localStorage');
+                    return false;
+                }
+                
+                const parsedData = JSON.parse(movaData);
+                console.log('Parsed movaData:', parsedData);
+                
+                if (!parsedData.profile) {
+                    console.log('No profile found in movaData');
+                    return false;
+                }
+                
+                const profile = parsedData.profile;
+                console.log('Profile:', profile);
+                
+                if (!profile.id) {
+                    console.log('No id found in profile');
+                    return false;
+                }
+                
+                currentLeader = profile;
+                leaderName.textContent = profile.name || 'Leader';
+                leaderInitial.textContent = (profile.name || 'L').charAt(0).toUpperCase();
+                console.log('User profile loaded successfully');
+                return true;
+            } catch (error) {
+                console.error('Error loading user profile:', error);
+                return false;
+            }
+        }
+
+        function showAuthError() {
+            loadingScreen.classList.add('hidden');
+            authErrorModal.classList.remove('hidden');
+        }
+
+        function hideAuthError() {
+            authErrorModal.classList.add('hidden');
+        }
+
+        async function initializeApp() {
+            console.log('Initializing app...');
             
-            setTimeout(() => {
-                toast.classList.add('translate-y-full');
-            }, duration);
+            // Try to load user profile
+            if (loadUserProfile()) {
+                console.log('User profile loaded, initializing dashboard...');
+                // Load all initial data
+                await Promise.all([
+                    loadStats(),
+                    loadContentList(),
+                    loadMediaList(),
+                    loadRegistrationList(),
+                    loadOrgChart()
+                ]);
+                
+                // Hide loading screen
+                loadingScreen.classList.add('hidden');
+                lucide.createIcons();
+                console.log('Dashboard initialized successfully');
+            } else {
+                console.log('Failed to load user profile');
+                
+                // If we've retried too many times, show auth error
+                if (authRetryCount >= MAX_AUTH_RETRIES) {
+                    showAuthError();
+                } else {
+                    // Otherwise, retry after a short delay
+                    authRetryCount++;
+                    console.log(`Retrying authentication (${authRetryCount}/${MAX_AUTH_RETRIES})...`);
+                    setTimeout(initializeApp, 1000);
+                }
+            }
+        }
+
+        // --- DATA LOADING FUNCTIONS ---
+
+        async function loadStats() {
+            const res = await apiCall('stats', { leader_id: currentLeader.id });
+            if (res.success) {
+                document.getElementById('statPartners').textContent = res.stats.total_partners;
+                document.getElementById('statCustomers').textContent = res.stats.total_customers;
+                document.getElementById('statPending').textContent = res.stats.pending_approvals;
+                document.getElementById('statContent').textContent = res.stats.published_content;
+            }
+        }
+
+        async function loadContentList() {
+            const res = await apiCall('content_list', { leader_id: currentLeader.id });
+            if (res.success) {
+                allContent = res.items;
+                contentSelect.innerHTML = '<option value="">-- Kandungan Baru --</option>';
+                allContent.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = item.title;
+                    contentSelect.appendChild(option);
+                });
+            }
+        }
+
+        async function loadMediaList() {
+            const res = await apiCall('media_list', { leader_id: currentLeader.id });
+            if (res.success) {
+                allMedia = res.items;
+                renderMediaGrid();
+            }
         }
         
-        // Tab functionality
+        function renderMediaGrid() {
+            mediaGrid.innerHTML = '';
+            allMedia.forEach(item => {
+                const mediaItem = document.createElement('div');
+                mediaItem.className = 'media-item';
+                mediaItem.dataset.url = item.public_url;
+                
+                const checkbox = document.createElement('div');
+                checkbox.className = 'media-checkbox';
+                checkbox.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-blue-600"></i>';
+                
+                if (item.file_type.startsWith('image/')) {
+                    const img = document.createElement('img');
+                    img.src = item.public_url;
+                    img.alt = item.file_name;
+                    mediaItem.appendChild(img);
+                } else if (item.file_type.startsWith('video/')) {
+                    const video = document.createElement('video');
+                    video.src = item.public_url;
+                    mediaItem.appendChild(video);
+                }
+                
+                mediaItem.appendChild(checkbox);
+                mediaItem.addEventListener('click', () => toggleMediaSelection(item.public_url, mediaItem));
+                mediaGrid.appendChild(mediaItem);
+            });
+            lucide.createIcons();
+        }
+
+        function toggleMediaSelection(url, element) {
+            if (selectedMediaItems.has(url)) {
+                selectedMediaItems.delete(url);
+                element.classList.remove('selected');
+            } else {
+                selectedMediaItems.add(url);
+                element.classList.add('selected');
+            }
+            insertToContentBtn.disabled = selectedMediaItems.size === 0;
+        }
+
+        async function loadRegistrationList() {
+            const res = await apiCall('registration_list', {});
+            if (res.success) {
+                allRegistrations = res.items;
+                renderRegistrationTable();
+            }
+        }
+
+        function renderRegistrationTable() {
+            registrationList.innerHTML = '';
+            const pendingRegs = allRegistrations.filter(r => r.status.toLowerCase() !== 'lulus');
+            
+            if (pendingRegs.length === 0) {
+                noRegistrations.classList.remove('hidden');
+            } else {
+                noRegistrations.classList.add('hidden');
+                pendingRegs.forEach(reg => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${reg.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${reg.phone}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                ${reg.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onclick="approveRegistration('${reg.id}')" class="text-indigo-600 hover:text-indigo-900">Lulus</button>
+                        </td>
+                    `;
+                    registrationList.appendChild(row);
+                });
+            }
+        }
+
+        async function approveRegistration(id) {
+            const res = await apiCall('registration_approve', { id: id });
+            if (res.success) {
+                showToast('Pendaftaran diluluskan!');
+                loadRegistrationList(); // Refresh list
+                loadStats(); // Refresh stats
+            } else {
+                showToast(`Gagal meluluskan: ${res.error}`);
+            }
+        }
+
+        async function loadOrgChart() {
+            const res = await apiCall('org_tree', { leader_id: currentLeader.id, leader_name: currentLeader.name });
+            if (res.success) {
+                renderOrgChart(res.tree);
+            }
+        }
+
+        function renderOrgChart(node) {
+            orgChart.innerHTML = createOrgChartNode(node);
+            lucide.createIcons();
+        }
+
+        function createOrgChartNode(node) {
+            let colorClass = 'bg-gray-100 text-gray-800';
+            if (node.color === '#fde68a') colorClass = 'bg-amber-100 text-amber-800';
+            if (node.color === '#a7f3d0') colorClass = 'bg-emerald-100 text-emerald-800';
+            if (node.color === '#fecaca') colorClass = 'bg-red-100 text-red-800';
+
+            let html = `<ul><li><div class="org-chart-node ${colorClass}">${node.name}</div>`;
+            
+            if (node.children && node.children.length > 0) {
+                html += '<ul>';
+                node.children.forEach(child => {
+                    html += createOrgChartNode(child);
+                });
+                html += '</ul>';
+            }
+            
+            html += '</li></ul>';
+            return html;
+        }
+
+        // --- EVENT LISTENERS ---
+
+        // Tab Navigation
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const tabName = button.getAttribute('data-tab');
                 
-                // Update button styles
                 tabButtons.forEach(btn => {
                     btn.classList.remove('border-black', 'text-black', 'bg-gray-50');
                     btn.classList.add('border-transparent', 'text-gray-500');
@@ -515,142 +718,92 @@
                 button.classList.remove('border-transparent', 'text-gray-500');
                 button.classList.add('border-black', 'text-black', 'bg-gray-50');
                 
-                // Show corresponding tab content
-                tabContents.forEach(content => {
-                    content.classList.add('hidden');
-                });
-                
+                tabContents.forEach(content => content.classList.add('hidden'));
                 document.getElementById(`${tabName}-tab`).classList.remove('hidden');
                 
-                // Re-initialize Lucide icons for the new content
                 lucide.createIcons();
             });
         });
-        
-        // Content Tab Functions
+
+        // Content Tab
+        contentSelect.addEventListener('change', (e) => {
+            selectedContentId = e.target.value;
+            if (selectedContentId) {
+                const content = allContent.find(c => c.id === selectedContentId);
+                if (content) {
+                    contentTitle.value = content.title;
+                    contentBody.value = content.body;
+                    document.querySelector(`input[name="publishStatus"][value="${content.published}"]`).checked = true;
+                    updateContentBtn.disabled = false;
+                }
+            } else {
+                contentTitle.value = '';
+                contentBody.value = '';
+                document.querySelector('input[name="publishStatus"][value="no"]').checked = true;
+                updateContentBtn.disabled = true;
+            }
+        });
+
         saveContentBtn.addEventListener('click', async () => {
-            const title = contentTitle.value.trim();
-            const body = contentBody.value.trim();
-            const publishStatus = document.querySelector('input[name="publishStatus"]:checked').value;
-            
-            if (!title || !body) {
-                showToast('Sila isi semua medan yang diperlukan');
-                return;
-            }
-            
-            try {
-                const payload = {
-                    title,
-                    body,
-                    publishStatus: publishStatus === 'yes'
-                };
-                
-                const response = await fetch(EXEC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                    body: new URLSearchParams({
-                        path: 'content_save',
-                        payload: JSON.stringify(payload)
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showToast('Kandungan berjaya disimpan');
-                } else {
-                    showToast(`Ralat: ${result.message || 'Gagal menyimpan kandungan'}`);
-                }
-            } catch (error) {
-                console.error('Error saving content:', error);
-                showToast('Ralat semasa menyimpan kandungan');
+            const payload = {
+                leader_id: currentLeader.id,
+                title: contentTitle.value.trim(),
+                body: contentBody.value.trim(),
+                published: document.querySelector('input[name="publishStatus"]:checked').value === 'yes'
+            };
+            const res = await apiCall('content_save', payload);
+            if (res.success) {
+                showToast('Kandungan berjaya disimpan!');
+                loadContentList();
+                loadStats();
+                refreshContentBtn.click(); // Clear form
+            } else {
+                showToast(`Gagal menyimpan: ${res.error}`);
             }
         });
-        
+
         updateContentBtn.addEventListener('click', async () => {
-            const title = contentTitle.value.trim();
-            const body = contentBody.value.trim();
-            const publishStatus = document.querySelector('input[name="publishStatus"]:checked').value;
-            
-            if (!title || !body) {
-                showToast('Sila isi semua medan yang diperlukan');
-                return;
-            }
-            
-            try {
-                const payload = {
-                    title,
-                    body,
-                    publishStatus: publishStatus === 'yes',
-                    update: true
-                };
-                
-                const response = await fetch(EXEC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                    body: new URLSearchParams({
-                        path: 'content_save',
-                        payload: JSON.stringify(payload)
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showToast('Kandungan berjaya dikemas kini');
-                } else {
-                    showToast(`Ralat: ${result.message || 'Gagal mengemas kini kandungan'}`);
-                }
-            } catch (error) {
-                console.error('Error updating content:', error);
-                showToast('Ralat semasa mengemas kini kandungan');
+            if (!selectedContentId) return;
+            const payload = {
+                leader_id: currentLeader.id,
+                content_id: selectedContentId,
+                title: contentTitle.value.trim(),
+                body: contentBody.value.trim(),
+                published: document.querySelector('input[name="publishStatus"]:checked').value === 'yes',
+                update: true
+            };
+            const res = await apiCall('content_save', payload);
+            if (res.success) {
+                showToast('Kandungan berjaya dikemas kini!');
+                loadContentList();
+            } else {
+                showToast(`Gagal mengemas kini: ${res.error}`);
             }
         });
-        
+
         refreshContentBtn.addEventListener('click', () => {
+            contentSelect.value = '';
             contentTitle.value = '';
             contentBody.value = '';
             document.querySelector('input[name="publishStatus"][value="no"]').checked = true;
-            showToast('Kandungan telah disegarkan semula');
+            updateContentBtn.disabled = true;
+            selectedContentId = null;
+            showToast('Form telah dikosongkan.');
         });
-        
+
         sendBroadcastBtn.addEventListener('click', async () => {
             const message = broadcastMessage.value.trim();
-            
-            if (!message) {
-                showToast('Sila masukkan mesej broadcast');
-                return;
-            }
-            
-            try {
-                const payload = {
-                    message
-                };
-                
-                const response = await fetch(EXEC_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                    body: new URLSearchParams({
-                        path: 'broadcast',
-                        payload: JSON.stringify(payload)
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    showToast('Broadcast berjaya dihantar');
-                    broadcastMessage.value = '';
-                } else {
-                    showToast(`Ralat: ${result.message || 'Gagal menghantar broadcast'}`);
-                }
-            } catch (error) {
-                console.error('Error sending broadcast:', error);
-                showToast('Ralat semasa menghantar broadcast');
+            if (!message) { showToast('Sila masukkan mesej.'); return; }
+            const res = await apiCall('broadcast', { leader_id: currentLeader.id, message });
+            if (res.success) {
+                showToast('Broadcast dihantar!');
+                broadcastMessage.value = '';
+            } else {
+                showToast(`Gagal menghantar: ${res.error}`);
             }
         });
-        
-        // Media Tab Functions
+
+        // Media Tab
         mediaFile.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
@@ -661,174 +814,123 @@
                 uploadMediaBtn.disabled = true;
             }
         });
-        
+
         uploadMediaBtn.addEventListener('click', async () => {
             const file = mediaFile.files[0];
-            if (!file) {
-                showToast('Sila pilih fail untuk dimuat naik');
-                return;
-            }
+            if (!file) return;
             
-            try {
-                // Create a FormData object to handle file upload
-                const formData = new FormData();
-                formData.append('file', file);
-                
-                // Convert to base64 for the API
-                const reader = new FileReader();
-                reader.onload = async (event) => {
-                    try {
-                        const base64 = event.target.result;
-                        const payload = {
-                            filename: file.name,
-                            type: file.type,
-                            data: base64
-                        };
-                        
-                        const response = await fetch(EXEC_URL, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-                            body: new URLSearchParams({
-                                path: 'upload_media',
-                                payload: JSON.stringify(payload)
-                            })
-                        });
-                        
-                        const result = await response.json();
-                        
-                        if (result.success) {
-                            showToast('Media berjaya dimuat naik');
-                            mediaFile.value = '';
-                            fileName.textContent = 'Tiada fail dipilih';
-                            uploadMediaBtn.disabled = true;
-                            
-                            // Add the new media to the grid
-                            addMediaToGrid(result.url, file.type);
-                        } else {
-                            showToast(`Ralat: ${result.message || 'Gagal memuat naik media'}`);
-                        }
-                    } catch (error) {
-                        console.error('Error uploading media:', error);
-                        showToast('Ralat semasa memuat naik media');
-                    }
+            uploadMediaBtn.disabled = true;
+            uploadMediaBtn.textContent = 'Memuat naik...';
+            
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const payload = {
+                    leader_id: currentLeader.id,
+                    filename: file.name,
+                    type: file.type,
+                    data: event.target.result
                 };
-                
-                reader.readAsDataURL(file);
-            } catch (error) {
-                console.error('Error processing file:', error);
-                showToast('Ralat semasa memproses fail');
-            }
-        });
-        
-        // Function to add media to the grid
-        function addMediaToGrid(url, type) {
-            const mediaItem = document.createElement('div');
-            mediaItem.className = 'media-item';
-            mediaItem.dataset.url = url;
-            
-            const checkbox = document.createElement('div');
-            checkbox.className = 'media-checkbox';
-            checkbox.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-blue-600"></i>';
-            
-            if (type.startsWith('image/')) {
-                const img = document.createElement('img');
-                img.src = url;
-                img.alt = 'Media';
-                mediaItem.appendChild(img);
-            } else if (type.startsWith('video/')) {
-                const video = document.createElement('video');
-                video.src = url;
-                mediaItem.appendChild(video);
-            }
-            
-            mediaItem.appendChild(checkbox);
-            
-            mediaItem.addEventListener('click', () => {
-                if (selectedMediaItems.has(url)) {
-                    selectedMediaItems.delete(url);
-                    mediaItem.classList.remove('selected');
+                const res = await apiCall('upload_media', payload);
+                if (res.success) {
+                    showToast('Media berjaya dimuat naik!');
+                    mediaFile.value = '';
+                    fileName.textContent = 'Tiada fail dipilih';
+                    loadMediaList(); // Refresh grid
                 } else {
-                    selectedMediaItems.add(url);
-                    mediaItem.classList.add('selected');
+                    showToast(`Gagal memuat naik: ${res.error}`);
                 }
-                
-                // Update insert button state
-                insertToContentBtn.disabled = selectedMediaItems.size === 0;
-                
-                // Re-initialize Lucide icons
+                uploadMediaBtn.disabled = false;
+                uploadMediaBtn.innerHTML = '<i data-lucide="upload-cloud" class="inline-block w-4 h-4 mr-1"></i>Muat Naik';
                 lucide.createIcons();
-            });
-            
-            mediaGrid.appendChild(mediaItem);
-            
-            // Re-initialize Lucide icons
-            lucide.createIcons();
-        }
-        
-        // Insert selected media to content
+            };
+            reader.readAsDataURL(file);
+        });
+
         insertToContentBtn.addEventListener('click', () => {
-            if (selectedMediaItems.size === 0) {
-                showToast('Sila pilih media untuk dimasukkan');
-                return;
-            }
+            if (selectedMediaItems.size === 0) return;
             
-            // Switch to content tab
             document.querySelector('[data-tab="content"]').click();
-            
-            // Insert media URLs into content body
             let mediaText = '';
             selectedMediaItems.forEach(url => {
                 mediaText += `\n![Media](${url})\n`;
             });
-            
             contentBody.value += mediaText;
             
-            // Clear selection
             selectedMediaItems.clear();
-            document.querySelectorAll('.media-item').forEach(item => {
-                item.classList.remove('selected');
-            });
+            document.querySelectorAll('.media-item').forEach(item => item.classList.remove('selected'));
             insertToContentBtn.disabled = true;
             
-            showToast('Media berjaya dimasukkan ke kandungan');
+            showToast('Media dimasukkan ke kandungan.');
         });
-        
-        // Load sample media items
-        function loadSampleMedia() {
-            // Sample media URLs (in a real app, these would come from the API)
-            const sampleMedia = [
-                { url: 'https://picsum.photos/seed/mova1/300/300.jpg', type: 'image/jpeg' },
-                { url: 'https://picsum.photos/seed/mova2/300/300.jpg', type: 'image/jpeg' },
-                { url: 'https://picsum.photos/seed/mova3/300/300.jpg', type: 'image/jpeg' },
-                { url: 'https://picsum.photos/seed/mova4/300/300.jpg', type: 'image/jpeg' },
-                { url: 'https://picsum.photos/seed/mova5/300/300.jpg', type: 'image/jpeg' },
-                { url: 'https://picsum.photos/seed/mova6/300/300.jpg', type: 'image/jpeg' }
-            ];
+
+        // Partner Tab
+        addPartnerBtn.addEventListener('click', async () => {
+            const payload = {
+                leader_id: currentLeader.id,
+                name: partnerName.value.trim(),
+                email: partnerEmail.value.trim(),
+                phone: partnerPhone.value.trim(),
+                package: partnerPackage.value
+            };
+            if (!payload.name || !payload.phone) { showToast('Nama dan telefon diperlukan.'); return; }
             
-            sampleMedia.forEach(media => {
-                addMediaToGrid(media.url, media.type);
-            });
-        }
-        
-        // Logout functionality
+            const res = await apiCall('partner_create', payload);
+            if (res.success) {
+                showToast('Partner berjaya ditambah!');
+                partnerName.value = ''; partnerEmail.value = ''; partnerPhone.value = '';
+                loadStats(); loadOrgChart(); // Refresh dependent data
+            } else {
+                showToast(`Gagal menambah: ${res.error}`);
+            }
+        });
+
+        // Customer Tab
+        addCustomerBtn.addEventListener('click', async () => {
+            const payload = {
+                leader_id: currentLeader.id,
+                name: customerName.value.trim(),
+                phone: customerPhone.value.trim(),
+                partner: customerPartner.value.trim()
+            };
+            if (!payload.name || !payload.phone) { showToast('Nama dan telefon diperlukan.'); return; }
+
+            const res = await apiCall('customer_add', payload);
+            if (res.success) {
+                showToast('Customer berjaya ditambah!');
+                customerName.value = ''; customerPhone.value = ''; customerPartner.value = '';
+                loadStats(); loadOrgChart(); // Refresh dependent data
+            } else {
+                showToast(`Gagal menambah: ${res.error}`);
+            }
+        });
+
+        // Auth Error Modal
+        retryAuthBtn.addEventListener('click', () => {
+            authRetryCount = 0;
+            hideAuthError();
+            loadingScreen.classList.remove('hidden');
+            initializeApp();
+        });
+
+        goToLoginBtn.addEventListener('click', () => {
+            window.location.href = 'login.html';
+        });
+
+        // Logout & Navigation
         logoutBtn.addEventListener('click', () => {
             localStorage.removeItem('mova_leader');
-            showToast('Anda telah log keluar');
-            setTimeout(() => {
-                window.location.href = 'login.html'; // Assuming login page is login.html
-            }, 1000);
+            showToast('Anda telah log keluar.');
+            setTimeout(() => window.location.href = 'login.html', 1000);
         });
-        
-        // Back to login functionality
+
         backToLoginBtn.addEventListener('click', () => {
-            window.location.href = 'login.html'; // Assuming login page is login.html
+            window.location.href = 'login.html';
         });
-        
-        // Initialize the page
+
+        // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            loadUserProfile();
-            loadSampleMedia();
-            lucide.createIcons();
+            // Start the initialization process
+            initializeApp();
         });
     </script>
 </body>
