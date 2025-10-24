@@ -35,11 +35,16 @@
     .table{ width:100%; border-collapse:separate; border-spacing:0; }
     .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
     .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
-
     .recip-row{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-bottom:1px dashed #f1f5f9}
     .recip-row input[type="text"]{width:170px}
     .chip{display:inline-flex;align-items:center;gap:.4rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.8rem}
     .chip button{background:transparent;border:none;cursor:pointer}
+    .url-item{display:flex;align-items:center;gap:.5rem;padding:.4rem .5rem;border:1px dashed #e5e7eb;border-radius:.6rem}
+    .url-item input{flex:1}
+    .switch{position:relative;width:44px;height:26px;border-radius:9999px;background:#e5e7eb;display:inline-block;vertical-align:middle;cursor:pointer}
+    .switch input{display:none}
+    .switch span{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:9999px;transition:.2s}
+    .switch input:checked + span{left:21px;background:#111}
   </style>
 </head>
 <body class="bg-gray-50">
@@ -130,9 +135,38 @@
 
       <div>
         <label class="text-sm font-medium text-gray-700">Isi Kandungan</label>
-        <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi. Boleh selit <video> atau ![alt](url)."></textarea>
+        <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi."></textarea>
         <div class="mt-2 text-xs text-gray-500">
-          Tip: Guna tab <b>Media Library</b> → pilih media → <b>Insert ke Kandungan</b>.
+          Gunakan seksyen <b>Lampiran</b> di bawah untuk tambah gambar / video / pautan tanpa perlu tampal URL dalam teks.
+        </div>
+      </div>
+
+      <!-- LAMPIRAN: URL manager & pemilihan media -->
+      <div class="grid gap-4 md:grid-cols-2">
+        <!-- External URLs -->
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="link" class="w-4 h-4 text-gray-700"></i>
+            <div class="font-semibold">Lampiran URL (gambar / video / pautan)</div>
+          </div>
+          <div class="grid gap-2">
+            <div class="flex items-center gap-2">
+              <input id="urlInput" class="input" placeholder="https://contoh.com/media.jpg atau https://youtube.com/...">
+              <button id="btnAddUrl" class="btn-ghost">Tambah</button>
+            </div>
+            <div id="urlList" class="grid gap-2"></div>
+          </div>
+          <div class="text-xs text-gray-500 mt-2">URL yang ditambah akan disimpan bersama kandungan (dalam <code>media_urls</code>).</div>
+        </div>
+
+        <!-- Ringkasan media terpilih -->
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="images" class="w-4 h-4 text-gray-700"></i>
+            <div class="font-semibold">Media Terpilih (dari Media Library)</div>
+          </div>
+          <div id="chosenMedia" class="text-sm text-gray-600">Tiada media dipilih. Pergi ke tab <b>Media Library</b> dan klik untuk memilih.</div>
+          <div class="text-xs text-gray-500 mt-2">Media yang bertanda akan dihantar bersama URL list di atas semasa “Simpan”.</div>
         </div>
       </div>
 
@@ -200,8 +234,8 @@
               <button id="btnExportCSV" class="btn-ghost">Muat Turun CSV (Fonnte)</button>
             </div>
             <div class="text-xs text-gray-500 mt-2">
-              * “Log Broadcast” menyimpan rekod di sheet.  
-              * “Buka WhatsApp Tabs” akan membuka wa.me bagi setiap penerima terpilih.  
+              * “Log Broadcast” menyimpan rekod di sheet.<br/>
+              * “Buka WhatsApp Tabs” akan membuka wa.me bagi setiap penerima terpilih.<br/>
               * “CSV (Fonnte)” mengandungi kolum: <b>phone,message,media_urls,fonnte_api</b>.
             </div>
           </div>
@@ -220,7 +254,7 @@
         <input id="fileInput" type="file" accept="image/*,video/*" class="input"/>
         <div class="flex items-center gap-2">
           <button id="btnUpload" class="btn-primary">Muat Naik</button>
-          <button id="btnInsertToContent" class="btn-ghost">Insert ke Kandungan</button>
+          <button id="btnInsertToContent" class="btn-ghost">Tandakan sebagai Lampiran</button>
           <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
         </div>
       </div>
@@ -307,8 +341,10 @@
     <div id="tab-settings" class="card p-6 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="settings" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Settings — Laman User & Fonnte</h2>
+        <h2 class="text-lg font-semibold">Settings — Laman User, Fonnte & Typography</h2>
       </div>
+
+      <!-- Cashback + Contact + Brand -->
       <div class="grid md:grid-cols-3 gap-4 mt-2">
         <div>
           <label class="text-sm font-medium">Cashback Min (%)</label>
@@ -323,32 +359,79 @@
           <input id="setLeaderPhone" class="input mt-1" placeholder="60123456789">
         </div>
       </div>
+
       <div class="grid md:grid-cols-3 gap-4 mt-2">
         <div>
           <label class="text-sm font-medium">Fonnte API Key</label>
           <input id="setFonnteApi" type="password" class="input mt-1" placeholder="API Key Fonnte anda">
         </div>
         <div>
-          <label class="text-sm font-medium">Warna Tema</label>
+          <label class="text-sm font-medium">Warna Tema (Brand)</label>
           <input id="setThemeColor" type="color" class="input mt-1 p-1" value="#ef4444">
         </div>
         <div>
+          <label class="text-sm font-medium">Lebar Kandungan (px)</label>
+          <input id="setContentWidth" class="input mt-1" placeholder="cth: 980">
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <div class="grid md:grid-cols-3 gap-4 mt-2">
+        <div class="md:col-span-1">
           <label class="text-sm font-medium">Hero Title</label>
           <input id="setHeroTitle" class="input mt-1" placeholder="Selamat Datang ke MOVA">
         </div>
-      </div>
-      <div class="grid md:grid-cols-2 gap-4 mt-2">
         <div class="md:col-span-2">
           <label class="text-sm font-medium">Hero Media URL (gambar/video)</label>
           <input id="setHeroMedia" class="input mt-1" placeholder="https://...">
         </div>
       </div>
+
+      <!-- Typography -->
+      <div class="border border-gray-200 rounded-xl p-4 mt-4">
+        <div class="flex items-center gap-2 mb-2">
+          <i data-lucide="type" class="w-4 h-4 text-gray-700"></i>
+          <div class="font-semibold">Typography (Global)</div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium">Heading Size (px)</label>
+              <input id="setHeadingSize" class="input mt-1" placeholder="cth: 28">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Heading Color</label>
+              <input id="setHeadingColor" type="color" class="input mt-1 p-1" value="#111111">
+            </div>
+            <label class="text-sm font-medium flex items-center gap-2 mt-2">
+              <span class="switch"><input id="setHeadingBold" type="checkbox"><span></span></span>
+              <span>Heading Bold</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium">Body Size (px)</label>
+              <input id="setBodySize" class="input mt-1" placeholder="cth: 16">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Body Color</label>
+              <input id="setBodyColor" type="color" class="input mt-1 p-1" value="#374151">
+            </div>
+            <label class="text-sm font-medium flex items-center gap-2 mt-2">
+              <span class="switch"><input id="setBodyBold" type="checkbox"><span></span></span>
+              <span>Body Bold</span>
+            </label>
+          </div>
+        </div>
+        <div class="text-xs text-gray-500 mt-2">user.html akan mematuhi tetapan ini setiap kali halaman dimuatkan.</div>
+      </div>
+
       <div class="flex gap-2 mt-4">
         <button id="btnSaveSettings" class="btn-primary">Simpan</button>
         <button id="btnReloadSettings" class="btn-ghost">Muat Semula</button>
         <button id="btnPreviewUser2" class="btn-ghost">Preview Laman User</button>
       </div>
-      <div class="text-xs text-gray-500 mt-2">Nilai ini digunakan oleh <b>user.html</b> setiap kali halaman direfresh.</div>
     </div>
 
   </section>
@@ -366,10 +449,10 @@
     leader: (() => {
       try { return JSON.parse(localStorage.getItem('mova_leader') || '{}'); } catch(e){ return {}; }
     })(),
-    selectedMedia: new Set(),
+    selectedMedia: new Set(),  // URL dari Media Library
+    linkUrls: [],              // URL luaran yang ditambah dalam Kandungan
     partners: [],
-    recipients: [], // {type:'partner'|'customer', name, phone, partnerName?}
-    attachments: [] // array of URLs from upload_media
+    attachments: []            // untuk Broadcast
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -419,7 +502,7 @@
     document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
-    if (name === 'org') renderOrg(); // pastikan layout exist
+    if (name === 'org') renderOrg();
   }
 
   document.querySelectorAll('[data-tab]').forEach(btn=>{
@@ -427,7 +510,7 @@
   });
   setActiveTab('content');
 
-  // ====== INIT (setup + stats + partner list + media list + reg list + org + settings + recipients) ======
+  // ====== INIT ======
   (async function init(){
     try { await callApi('setup', {}); } catch(e){}
     await reloadStats();
@@ -436,7 +519,8 @@
     await reloadRegs();
     await renderOrg();
     await refreshSettings();
-    await buildRecipientTree(); // bina panel penerima
+    await buildRecipientTree();
+    updateChosenMediaHint();
   })();
 
   // ====== STATS ======
@@ -461,12 +545,58 @@
   const elPublished = document.getElementById('published');
   const elBody    = document.getElementById('body');
 
+  // URL Manager (Lampiran URL)
+  const urlInput = document.getElementById('urlInput');
+  const urlList  = document.getElementById('urlList');
+  document.getElementById('btnAddUrl').addEventListener('click', ()=>{
+    const u = (urlInput.value||'').trim();
+    if (!u) return;
+    try { new URL(u); } catch(e){ return toast('URL tidak sah'); }
+    if (!store.linkUrls.includes(u)) store.linkUrls.push(u);
+    urlInput.value='';
+    renderUrlList();
+  });
+
+  function renderUrlList(){
+    urlList.innerHTML = '';
+    if (!store.linkUrls.length){
+      const d = document.createElement('div');
+      d.className = 'text-sm text-gray-500';
+      d.textContent = 'Tiada URL.';
+      urlList.appendChild(d);
+      return;
+    }
+    store.linkUrls.forEach((u, idx)=>{
+      const row = document.createElement('div');
+      row.className='url-item';
+      row.innerHTML = `
+        <i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)?'video':'link'}" class="w-4 h-4 text-gray-600"></i>
+        <input class="input !py-1 !px-2 !text-xs" value="${u}">
+        <button class="btn-ghost !py-1">Padam</button>
+      `;
+      const input = row.querySelector('input');
+      input.addEventListener('change', ()=>{
+        const v = (input.value||'').trim();
+        try { new URL(v); } catch(e){ toast('URL tidak sah'); input.value = u; return; }
+        store.linkUrls[idx] = v;
+      });
+      row.querySelector('button').addEventListener('click', ()=>{
+        store.linkUrls.splice(idx,1);
+        renderUrlList();
+      });
+      urlList.appendChild(row);
+    });
+    lucide.createIcons();
+  }
+
+  // Simpan Kandungan
   document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
+    const allAttachments = [...Array.from(store.selectedMedia), ...store.linkUrls]; // digabung & simpan ke media_urls
     const payload = {
       leader_id: store.leader.leader_id,
       title: elTitle.value || '',
       body: elBody.value || '',
-      media_urls: Array.from(store.selectedMedia).join(','),
+      media_urls: allAttachments.join(','),
       published: (elPublished.value === 'yes')
     };
     try{
@@ -486,7 +616,10 @@
     elBody.value = '';
     elPublished.value = 'yes';
     store.selectedMedia.clear();
+    store.linkUrls = [];
     document.querySelectorAll('.media-tile').forEach(x=>x.classList.remove('selected'));
+    renderUrlList();
+    updateChosenMediaHint();
     toast('Dikemas kini semula');
   });
 
@@ -520,7 +653,7 @@
     }catch(e){ toast('Gagal muat senarai'); }
   }
 
-  // ====== BROADCAST (diperkasa) ======
+  // ====== BROADCAST ======
   const attachInput = document.getElementById('attachFile');
   const attachChips = document.getElementById('attachChips');
   document.getElementById('btnAttachUpload').addEventListener('click', uploadAttachment);
@@ -566,7 +699,6 @@
     lucide.createIcons();
   }
 
-  // Penerima: bina dari partner_list + org_tree (nama customers)
   document.getElementById('btnSelectAll').addEventListener('click', ()=>{
     document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true);
   });
@@ -585,7 +717,7 @@
         partners = outP.items || [];
       }catch(e){}
 
-      // org tree → customers (nama sahaja)
+      // org tree → customers
       let tree = { children:[] };
       try{
         const outT = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
@@ -606,7 +738,7 @@
         head.textContent = `${pName || 'Partner'}${pPkg? ' ('+pPkg+')':''}`;
         frag.appendChild(head);
 
-        // partner row (boleh tick)
+        // partner row
         frag.appendChild(recipientRow({
           type:'partner', name:pName, phone: partnerPhone, partnerName:pName
         }));
@@ -716,8 +848,8 @@
   function makeCSV(headers, rows){
     const esc = s => `"${String(s??'').replace(/"/g,'""')}"`;
     const head = headers.map(esc).join(',');
-    const body = rows.map(r=> headers.map(h=> esc(r[h])).join(',')).join('\n');
-    return head+'\n'+body;
+    theBody = rows.map(r=> headers.map(h=> esc(r[h])).join(',')).join('\n');
+    return head+'\n'+theBody;
   }
   function downloadText(text, filename, mime){
     const blob = new Blob([text], {type:mime||'text/plain'});
@@ -728,9 +860,10 @@
     URL.revokeObjectURL(a.href);
   }
 
-  // ====== MEDIA (tab media sedia ada) ======
+  // ====== MEDIA ======
   const fileInput = document.getElementById('fileInput');
   const mediaGrid = document.getElementById('mediaGrid');
+  const chosenMediaHint = document.getElementById('chosenMedia');
 
   document.getElementById('btnUpload').addEventListener('click', async ()=>{
     const f = fileInput.files?.[0];
@@ -754,14 +887,10 @@
   });
 
   document.getElementById('btnInsertToContent').addEventListener('click', ()=>{
-    const urls = Array.from(store.selectedMedia);
-    if (!urls.length) return toast('Tiada media dipilih');
-    const lines = urls.map(u=>{
-      if (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)) return `<video src="${u}" controls playsinline class="w-full"></video>`;
-      return `![media](${u})`;
-    });
-    document.getElementById('body').value += (document.getElementById('body').value ? '\n' : '') + lines.join('\n');
-    toast('Media dimasukkan ke kandungan');
+    // fungsi ini hanya memberi peringatan; pemilihan berlaku pada grid
+    const count = store.selectedMedia.size;
+    toast(count ? `Ditandakan ${count} media` : 'Tiada media dipilih');
+    updateChosenMediaHint();
   });
 
   document.getElementById('btnReloadMedia').addEventListener('click', reloadMedia);
@@ -774,7 +903,8 @@
       store.selectedMedia.clear();
       list.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
       list.forEach(row => addMediaTile(row.public_url, /^video\//i.test(row.file_type||'')));
-    }catch(e){ mediaGrid.innerHTML=''; }
+      updateChosenMediaHint();
+    }catch(e){ mediaGrid.innerHTML=''; updateChosenMediaHint(); }
   }
 
   function addMediaTile(url, isVideo=false){
@@ -785,6 +915,7 @@
     wrap.addEventListener('click', ()=>{
       if (wrap.classList.toggle('selected')) store.selectedMedia.add(url);
       else store.selectedMedia.delete(url);
+      updateChosenMediaHint();
     });
 
     if (isVideo){
@@ -797,6 +928,11 @@
       wrap.appendChild(img);
     }
     mediaGrid.appendChild(wrap);
+  }
+
+  function updateChosenMediaHint(){
+    const n = store.selectedMedia.size;
+    chosenMediaHint.textContent = n ? `${n} media dipilih (akan dilampirkan semasa Simpan)` : 'Tiada media dipilih. Pergi ke tab Media Library dan klik untuk memilih.';
   }
 
   function toBase64NoPrefix(file){
@@ -1038,6 +1174,15 @@
       document.getElementById('setThemeColor').value = s.theme_color || '#ef4444';
       document.getElementById('setHeroTitle').value = s.hero_title || '';
       document.getElementById('setHeroMedia').value = s.hero_media || '';
+      document.getElementById('setContentWidth').value = s.content_width || '';
+
+      document.getElementById('setHeadingSize').value  = s.heading_size || '';
+      document.getElementById('setHeadingColor').value = s.heading_color || '#111111';
+      document.getElementById('setHeadingBold').checked = String(s.heading_bold||'false') === 'true';
+
+      document.getElementById('setBodySize').value  = s.body_size || '';
+      document.getElementById('setBodyColor').value = s.body_color || '#374151';
+      document.getElementById('setBodyBold').checked = String(s.body_bold||'false') === 'true';
     }catch(e){ /* biarkan */ }
   }
   document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
@@ -1045,25 +1190,48 @@
     let min = Number(document.getElementById('setMin').value||5);
     let max = Number(document.getElementById('setMax').value||10);
     if (min<0) min=0; if (max<min) max=min;
-    const phone = (document.getElementById('setLeaderPhone').value||'').trim();
-    const fonnte = (document.getElementById('setFonnteApi').value||'').trim();
-    const theme = (document.getElementById('setThemeColor').value||'#ef4444');
-    const heroT = (document.getElementById('setHeroTitle').value||'').trim();
-    const heroM = (document.getElementById('setHeroMedia').value||'').trim();
+
+    const payload = {
+      leader_id: store.leader.leader_id,
+      cashback_min: String(min),
+      cashback_max: String(max),
+      whatsapp: (document.getElementById('setLeaderPhone').value||'').trim(),
+      fonnte_api: (document.getElementById('setFonnteApi').value||'').trim(),
+      theme_color: (document.getElementById('setThemeColor').value||'#ef4444'),
+      content_width: (document.getElementById('setContentWidth').value||'').trim(),
+      hero_title: (document.getElementById('setHeroTitle').value||'').trim(),
+      hero_media: (document.getElementById('setHeroMedia').value||'').trim(),
+
+      heading_size: (document.getElementById('setHeadingSize').value||'').trim(),
+      heading_color: (document.getElementById('setHeadingColor').value||'#111111'),
+      heading_bold: String( document.getElementById('setHeadingBold').checked ),
+
+      body_size: (document.getElementById('setBodySize').value||'').trim(),
+      body_color: (document.getElementById('setBodyColor').value||'#374151'),
+      body_bold: String( document.getElementById('setBodyBold').checked )
+    };
+
     try{
-      await callApi('settings_set', {
-        leader_id: store.leader.leader_id,
-        cashback_min: String(min),
-        cashback_max: String(max),
-        whatsapp: phone,
-        fonnte_api: fonnte,
-        theme_color: theme,
-        hero_title: heroT,
-        hero_media: heroM
-      });
+      await callApi('settings_set', payload);
       toast('Settings disimpan ✔️');
     }catch(e){ toast('Gagal simpan settings'); }
   });
+
+  // ====== Broadcast helper ======
+  function makeCSV(headers, rows){
+    const esc = s => `"${String(s??'').replace(/"/g,'""')}"`;
+    const head = headers.map(esc).join(',');
+    const body = rows.map(r=> headers.map(h=> esc(r[h])).join(',')).join('\n');
+    return head+'\n'+body;
+  }
+  function downloadText(text, filename, mime){
+    const blob = new Blob([text], {type:mime||'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
 </script>
 </body>
 </html>
