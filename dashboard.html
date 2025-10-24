@@ -35,6 +35,11 @@
     .table{ width:100%; border-collapse:separate; border-spacing:0; }
     .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
     .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
+
+    .recip-row{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-bottom:1px dashed #f1f5f9}
+    .recip-row input[type="text"]{width:170px}
+    .chip{display:inline-flex;align-items:center;gap:.4rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.8rem}
+    .chip button{background:transparent;border:none;cursor:pointer}
   </style>
 </head>
 <body class="bg-gray-50">
@@ -95,6 +100,8 @@
       <button data-tab="customer" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Tambah Customer</button>
       <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approve Pendaftaran</button>
       <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta Organisasi</button>
+      <!-- Tambahan kecil: Settings -->
+      <button data-tab="settings" class="pill pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
     </div>
   </section>
 
@@ -143,15 +150,61 @@
 
       <hr class="my-2">
 
+      <!-- ===== Broadcast: DIPERKASA ===== -->
       <div class="space-y-3">
         <div class="flex items-center gap-2">
           <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
-          <h3 class="font-semibold">Broadcast Ringkas</h3>
-          <span class="badge">log only</span>
+          <h3 class="font-semibold">Broadcast WhatsApp</h3>
+          <span class="badge">log only (server)</span>
+          <span class="badge">WA tabs & CSV (client)</span>
         </div>
-        <div class="grid gap-3 md:grid-cols-[1fr_auto]">
-          <input id="broadcastMsg" class="input" placeholder="Contoh: Perjumpaan malam ini jam 9.00 mlm."/>
-          <button id="btnBroadcast" class="btn-ghost">Hantar</button>
+
+        <!-- Compose -->
+        <div class="grid gap-3">
+          <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
+          <div id="attachChips" class="flex flex-wrap gap-2"></div>
+          <div class="grid md:grid-cols-[1fr_auto] gap-3">
+            <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
+            <div class="flex items-center gap-2">
+              <button id="btnAttachUpload" class="btn-ghost"><i data-lucide="paperclip" class="w-4 h-4"></i> Upload & Lampirkan</button>
+              <button id="btnClearAttach" class="btn-ghost">Kosongkan Lampiran</button>
+            </div>
+          </div>
+          <div class="text-xs text-gray-500">
+            * Lampiran akan diupload ke Google Drive dan pautan dimasukkan ke mesej. WhatsApp (wa.me) tidak menyokong attach fail automatik, tetapi penerima boleh klik pautan media.
+          </div>
+        </div>
+
+        <!-- Recipients -->
+        <div class="grid lg:grid-cols-2 gap-6 mt-2">
+          <!-- Kiri: Partner & Customers mengikut carta -->
+          <div class="p-4 border border-gray-200 rounded-xl">
+            <div class="flex items-center justify-between">
+              <div class="font-semibold">Penerima</div>
+              <div class="flex gap-2">
+                <button id="btnSelectAll" class="btn-ghost">Pilih Semua</button>
+                <button id="btnClearAll" class="btn-ghost">Kosongkan</button>
+              </div>
+            </div>
+            <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto">
+              <!-- Diisi: Partner (dengan phone) & Customer (input phone jika tiada) -->
+            </div>
+          </div>
+
+          <!-- Kanan: Tindakan -->
+          <div class="p-4 border border-gray-200 rounded-xl">
+            <div class="font-semibold mb-2">Tindakan</div>
+            <div class="grid gap-2">
+              <button id="btnBroadcast" class="btn-primary">Log Broadcast (server)</button>
+              <button id="btnOpenWA" class="btn-ghost">Buka WhatsApp Tabs (terpilih)</button>
+              <button id="btnExportCSV" class="btn-ghost">Muat Turun CSV (Fonnte)</button>
+            </div>
+            <div class="text-xs text-gray-500 mt-2">
+              * “Log Broadcast” menyimpan rekod di sheet.  
+              * “Buka WhatsApp Tabs” akan membuka wa.me bagi setiap penerima terpilih.  
+              * “CSV (Fonnte)” mengandungi kolum: <b>phone,message,media_urls</b>.
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -227,9 +280,7 @@
               <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
             </tr>
           </thead>
-          <tbody id="regTableBody">
-            <!-- rows -->
-          </tbody>
+          <tbody id="regTableBody"></tbody>
         </table>
       </div>
       <div class="flex gap-2">
@@ -252,6 +303,33 @@
       </div>
     </div>
 
+    <!-- ===== Tab: Settings (baru, kecil sahaja) ===== -->
+    <div id="tab-settings" class="card p-6 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="settings" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Settings — Laman User</h2>
+      </div>
+      <div class="grid md:grid-cols-3 gap-4 mt-2">
+        <div>
+          <label class="text-sm font-medium">Cashback Min (%)</label>
+          <input id="setMin" class="input mt-1" placeholder="cth: 5">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Cashback Max (%)</label>
+          <input id="setMax" class="input mt-1" placeholder="cth: 10">
+        </div>
+        <div>
+          <label class="text-sm font-medium">WhatsApp Leader</label>
+          <input id="setLeaderPhone" class="input mt-1" placeholder="60123456789">
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button id="btnSaveSettings" class="btn-primary">Simpan</button>
+        <button id="btnReloadSettings" class="btn-ghost">Muat Semula</button>
+      </div>
+      <div class="text-xs text-gray-500 mt-2">Nilai ini digunakan oleh <b>user.html</b> setiap kali halaman direfresh.</div>
+    </div>
+
   </section>
 </main>
 
@@ -268,7 +346,9 @@
       try { return JSON.parse(localStorage.getItem('mova_leader') || '{}'); } catch(e){ return {}; }
     })(),
     selectedMedia: new Set(),
-    partners: []
+    partners: [],
+    recipients: [], // {type:'partner'|'customer', name, phone, partnerName?}
+    attachments: [] // array of URLs from upload_media
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -317,7 +397,7 @@
     });
     document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
     document.getElementById('tab-'+name).classList.remove('hidden');
-    if (name === 'org') renderOrg(); // pastikan layout exist
+    if (name === 'org') renderOrg();
   }
 
   document.querySelectorAll('[data-tab]').forEach(btn=>{
@@ -325,7 +405,7 @@
   });
   setActiveTab('content');
 
-  // ====== INIT (setup + stats + partner list + media list + reg list + org) ======
+  // ====== INIT ======
   (async function init(){
     try { await callApi('setup', {}); } catch(e){}
     await reloadStats();
@@ -333,6 +413,8 @@
     await reloadMedia();
     await reloadRegs();
     await renderOrg();
+    await refreshSettings();
+    await buildRecipientTree(); // bina panel penerima
   })();
 
   // ====== STATS ======
@@ -410,18 +492,217 @@
     }catch(e){ toast('Gagal muat senarai'); }
   }
 
-  // ====== BROADCAST ======
-  document.getElementById('btnBroadcast').addEventListener('click', async ()=>{
-    const msg = document.getElementById('broadcastMsg').value.trim();
-    if (!msg) return toast('Tulis mesej broadcast');
-    try{
-      const json = await callApi('broadcast', { leader_id:store.leader.leader_id, message:msg });
-      if (json.success) { toast('Broadcast dihantar'); document.getElementById('broadcastMsg').value=''; }
-      else toast('Gagal: '+(json.error||''));
-    }catch(err){ toast('Ralat rangkaian'); }
+  // ====== BROADCAST (diperkasa) ======
+  const attachInput = document.getElementById('attachFile');
+  const attachChips = document.getElementById('attachChips');
+  document.getElementById('btnAttachUpload').addEventListener('click', uploadAttachment);
+  document.getElementById('btnClearAttach').addEventListener('click', ()=>{
+    store.attachments = [];
+    renderAttachChips();
   });
 
-  // ====== MEDIA ======
+  async function uploadAttachment(){
+    const f = attachInput.files?.[0];
+    if (!f) return toast('Pilih satu fail');
+    try{
+      const b64 = await toBase64NoPrefix(f);
+      const out = await callApi('upload_media', {
+        leader_id: store.leader.leader_id,
+        file_name: f.name,
+        file_type: f.type || 'application/octet-stream',
+        file_base64: b64
+      });
+      if (out.success){
+        store.attachments.push(out.public_url);
+        renderAttachChips();
+        attachInput.value = '';
+        toast('Lampiran dimuat naik ✔️');
+      } else {
+        toast(out.error||'Gagal upload');
+      }
+    }catch(e){ toast('Ralat muat naik'); }
+  }
+
+  function renderAttachChips(){
+    attachChips.innerHTML = '';
+    store.attachments.forEach((url, idx)=>{
+      const chip = document.createElement('span');
+      chip.className='chip';
+      chip.innerHTML = `<i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)?'video':'image'}" class="w-3.5 h-3.5"></i><span>Media ${idx+1}</span><button title="Buang">&times;</button>`;
+      chip.querySelector('button').addEventListener('click', ()=>{
+        store.attachments.splice(idx,1);
+        renderAttachChips();
+      });
+      attachChips.appendChild(chip);
+    });
+    lucide.createIcons();
+  }
+
+  // Penerima: bina dari partner_list + org_tree (nama customers)
+  document.getElementById('btnSelectAll').addEventListener('click', ()=>{
+    document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true);
+  });
+  document.getElementById('btnClearAll').addEventListener('click', ()=>{
+    document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false);
+  });
+
+  async function buildRecipientTree(){
+    const wrap = document.getElementById('recipientsWrap');
+    wrap.innerHTML = '<div class="text-sm text-gray-500">Memuat senarai penerima…</div>';
+    try{
+      // partners
+      let partners = [];
+      try{
+        const outP = await callApi('partner_list', { leader_id: store.leader.leader_id });
+        partners = outP.items || [];
+      }catch(e){}
+
+      // org tree → customers (nama sahaja)
+      let tree = { children:[] };
+      try{
+        const outT = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
+        if (outT.success) tree = outT.tree || tree;
+      }catch(e){}
+
+      const byPartner = new Map();
+      partners.forEach(p=> byPartner.set(p.name||'', p));
+
+      // render
+      const frag = document.createDocumentFragment();
+
+      (tree.children||[]).forEach(node=>{
+        const pName = node.name || '';
+        const pPkg  = node.title || '';
+        const partnerPhone = (byPartner.get(pName)||{}).phone || '';
+        const head = document.createElement('div');
+        head.className='mt-3 mb-1 font-semibold';
+        head.textContent = `${pName || 'Partner'}${pPkg? ' ('+pPkg+')':''}`;
+        frag.appendChild(head);
+
+        // partner row (boleh tick)
+        frag.appendChild(recipientRow({
+          type:'partner', name:pName, phone: partnerPhone, partnerName:pName
+        }));
+
+        // customers
+        (node.children||[]).forEach(c=>{
+          frag.appendChild(recipientRow({
+            type:'customer', name:(c.name||''), phone:'', partnerName:pName
+          }));
+        });
+      });
+
+      wrap.innerHTML = '';
+      if (!frag.children?.length && !wrap.childElementCount) {
+        wrap.innerHTML = '<div class="text-sm text-gray-500">Tiada data organisasi. Tambah partner & customer terlebih dahulu.</div>';
+      } else {
+        wrap.appendChild(frag);
+      }
+    }catch(e){
+      wrap.innerHTML = '<div class="text-sm text-red-600">Gagal memuat penerima.</div>';
+    }
+  }
+
+  function recipientRow(rec){
+    const row = document.createElement('div');
+    row.className='recip-row text-sm';
+    row.innerHTML = `
+      <input type="checkbox" class="recip-check">
+      <span class="min-w-[90px] inline-block ${rec.type==='partner'?'text-emerald-700':'text-rose-700'}">${rec.type==='partner'?'Partner':'Customer'}</span>
+      <span class="flex-1">${rec.name||'-'} ${rec.partnerName? '<span class="text-xs text-gray-400">• '+rec.partnerName+'</span>':''}</span>
+      <input type="text" class="input !py-1 !px-2 !text-xs recip-phone" placeholder="Telefon" value="${(rec.phone||'')}">
+    `;
+    row.dataset.type = rec.type;
+    row.dataset.name = rec.name||'';
+    row.dataset.partner = rec.partnerName||'';
+    return row;
+  }
+
+  // Log broadcast (server)
+  document.getElementById('btnBroadcast').addEventListener('click', async ()=>{
+    const message = buildMessageWithAttachments();
+    const selected = getSelectedRecipients();
+    if (!selected.length) return toast('Pilih sekurang-kurangnya seorang penerima');
+    // log satu rekod ringkas (mengikut endpoint sedia ada)
+    try{
+      const out = await callApi('broadcast', {
+        leader_id: store.leader.leader_id,
+        message: `[Recipients:${selected.length}] ${message}`
+      });
+      if (out.success){
+        toast('Broadcast direkod ✔️');
+      } else toast(out.error||'Gagal log broadcast');
+    }catch(e){ toast('Ralat log broadcast'); }
+  });
+
+  // Open WhatsApp tabs
+  document.getElementById('btnOpenWA').addEventListener('click', ()=>{
+    const msg = buildMessageWithAttachments();
+    const selected = getSelectedRecipients();
+    if (!selected.length) return toast('Pilih penerima dahulu');
+    let opened = 0;
+    selected.forEach((r, idx)=>{
+      const phone = cleanMsisdn(r.phone);
+      if (!phone) return;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      // throttle ringan
+      setTimeout(()=> window.open(url, '_blank'), 200*idx);
+      opened++;
+    });
+    toast(`Membuka ${opened} tab WhatsApp`);
+  });
+
+  // Export CSV (Fonnte)
+  document.getElementById('btnExportCSV').addEventListener('click', ()=>{
+    const rows = getSelectedRecipients().map(r=>{
+      return {
+        phone: cleanMsisdn(r.phone),
+        message: buildMessageWithAttachments(),
+        media_urls: (store.attachments||[]).join(' ')
+      };
+    }).filter(x=> x.phone);
+    if (!rows.length) return toast('Tiada penerima sah untuk dieksport');
+    const csv = makeCSV(['phone','message','media_urls'], rows);
+    downloadText(csv, `broadcast_${Date.now()}.csv`, 'text/csv');
+    toast('CSV dijana');
+  });
+
+  function buildMessageWithAttachments(){
+    const base = (document.getElementById('broadcastMsg').value||'').trim();
+    const medias = (store.attachments||[]);
+    if (!medias.length) return base;
+    return `${base}\n\nLampiran:\n${medias.map((u,i)=>`${i+1}. ${u}`).join('\n')}`.trim();
+  }
+  function getSelectedRecipients(){
+    const rows = Array.from(document.querySelectorAll('#recipientsWrap .recip-row'));
+    const sel = rows.filter(r=> r.querySelector('.recip-check').checked).map(r=>{
+      return {
+        type: r.dataset.type,
+        name: r.dataset.name,
+        partner: r.dataset.partner,
+        phone: r.querySelector('.recip-phone').value.trim()
+      };
+    });
+    return sel;
+  }
+  function cleanMsisdn(s){ return (s||'').replace(/\D/g,''); }
+
+  function makeCSV(headers, rows){
+    const esc = s => `"${String(s??'').replace(/"/g,'""')}"`;
+    const head = headers.map(esc).join(',');
+    const body = rows.map(r=> headers.map(h=> esc(r[h])).join(',')).join('\n');
+    return head+'\n'+body;
+  }
+  function downloadText(text, filename, mime){
+    const blob = new Blob([text], {type:mime||'text/plain'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ====== MEDIA (tab media sedia ada) ======
   const fileInput = document.getElementById('fileInput');
   const mediaGrid = document.getElementById('mediaGrid');
 
@@ -566,6 +847,7 @@
         document.getElementById('customerPartner').value='';
         await reloadStats();
         await renderOrg();
+        await buildRecipientTree();
       } else {
         toast(out.error||'Gagal tambah customer');
       }
@@ -695,7 +977,7 @@
     });
 
     // partner -> customers
-    const rows = Array.from(grid.children).slice(2); // selepas root & rowTop
+    const rows = Array.from(grid.children).slice(2);
     rows.forEach(row=>{
       const cells = Array.from(row.children);
       cells.forEach((cell, i)=>{
@@ -717,11 +999,29 @@
     }
   }
 
-  // ====== TAB SWITCH LISTENERS ======
-  document.getElementById('btnReloadOrg').addEventListener('click', renderOrg);
-
-  // ====== MEDIA HELPERS ======
-  // (telah didefinisikan di atas)
+  // ====== SETTINGS ======
+  async function refreshSettings(){
+    try{
+      const s = (await callApi('settings_get',{})).settings||{};
+      document.getElementById('setMin').value = s.default_cashback_min || 5;
+      document.getElementById('setMax').value = s.default_cashback_max || 10;
+      document.getElementById('setLeaderPhone').value = s.leader_phone || '';
+    }catch(e){ /* biarkan */ }
+  }
+  document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
+  document.getElementById('btnSaveSettings').addEventListener('click', async ()=>{
+    let min = Number(document.getElementById('setMin').value||5);
+    let max = Number(document.getElementById('setMax').value||10);
+    if (min<0) min=0; if (max<min) max=min;
+    const phone = (document.getElementById('setLeaderPhone').value||'').trim();
+    try{
+      await callApi('settings_set', {
+        leader_id: store.leader.leader_id,
+        pairs: { default_cashback_min: String(min), default_cashback_max: String(max), leader_phone: phone }
+      });
+      toast('Settings disimpan ✔️');
+    }catch(e){ toast('Gagal simpan settings'); }
+  });
 </script>
 </body>
 </html>
