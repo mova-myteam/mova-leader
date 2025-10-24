@@ -100,7 +100,6 @@
       <button data-tab="customer" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Tambah Customer</button>
       <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approve Pendaftaran</button>
       <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta Organisasi</button>
-      <!-- Tambahan kecil: Settings -->
       <button data-tab="settings" class="pill pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
     </div>
   </section>
@@ -141,6 +140,7 @@
         <button id="btnSaveContent" class="btn-primary">Simpan / Kemas Kini</button>
         <button id="btnRefreshContent" class="btn-ghost">Segar Semula</button>
         <button id="btnLoadLatestContent" class="btn-ghost">Muat Turun Terbaru</button>
+        <button id="btnPreviewUser" class="btn-ghost">Preview Laman User</button>
       </div>
 
       <div id="contentListWrap" class="hidden">
@@ -171,7 +171,7 @@
             </div>
           </div>
           <div class="text-xs text-gray-500">
-            * Lampiran akan diupload ke Google Drive dan pautan dimasukkan ke mesej. WhatsApp (wa.me) tidak menyokong attach fail automatik, tetapi penerima boleh klik pautan media.
+            * Lampiran diupload ke Google Drive dan pautan dimasukkan ke mesej. WhatsApp (wa.me) tidak menyokong attach fail automatik, tetapi penerima boleh klik pautan media.
           </div>
         </div>
 
@@ -202,7 +202,7 @@
             <div class="text-xs text-gray-500 mt-2">
               * “Log Broadcast” menyimpan rekod di sheet.  
               * “Buka WhatsApp Tabs” akan membuka wa.me bagi setiap penerima terpilih.  
-              * “CSV (Fonnte)” mengandungi kolum: <b>phone,message,media_urls</b>.
+              * “CSV (Fonnte)” mengandungi kolum: <b>phone,message,media_urls,fonnte_api</b>.
             </div>
           </div>
         </div>
@@ -303,11 +303,11 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Settings (baru, kecil sahaja) ===== -->
+    <!-- ===== Tab: Settings ===== -->
     <div id="tab-settings" class="card p-6 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="settings" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Settings — Laman User</h2>
+        <h2 class="text-lg font-semibold">Settings — Laman User & Fonnte</h2>
       </div>
       <div class="grid md:grid-cols-3 gap-4 mt-2">
         <div>
@@ -323,9 +323,30 @@
           <input id="setLeaderPhone" class="input mt-1" placeholder="60123456789">
         </div>
       </div>
+      <div class="grid md:grid-cols-3 gap-4 mt-2">
+        <div>
+          <label class="text-sm font-medium">Fonnte API Key</label>
+          <input id="setFonnteApi" type="password" class="input mt-1" placeholder="API Key Fonnte anda">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Warna Tema</label>
+          <input id="setThemeColor" type="color" class="input mt-1 p-1" value="#ef4444">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Hero Title</label>
+          <input id="setHeroTitle" class="input mt-1" placeholder="Selamat Datang ke MOVA">
+        </div>
+      </div>
+      <div class="grid md:grid-cols-2 gap-4 mt-2">
+        <div class="md:col-span-2">
+          <label class="text-sm font-medium">Hero Media URL (gambar/video)</label>
+          <input id="setHeroMedia" class="input mt-1" placeholder="https://...">
+        </div>
+      </div>
       <div class="flex gap-2 mt-4">
         <button id="btnSaveSettings" class="btn-primary">Simpan</button>
         <button id="btnReloadSettings" class="btn-ghost">Muat Semula</button>
+        <button id="btnPreviewUser2" class="btn-ghost">Preview Laman User</button>
       </div>
       <div class="text-xs text-gray-500 mt-2">Nilai ini digunakan oleh <b>user.html</b> setiap kali halaman direfresh.</div>
     </div>
@@ -396,8 +417,9 @@
       }
     });
     document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
-    document.getElementById('tab-'+name).classList.remove('hidden');
-    if (name === 'org') renderOrg();
+    const tab = document.getElementById('tab-'+name);
+    if (tab) tab.classList.remove('hidden');
+    if (name === 'org') renderOrg(); // pastikan layout exist
   }
 
   document.querySelectorAll('[data-tab]').forEach(btn=>{
@@ -405,7 +427,7 @@
   });
   setActiveTab('content');
 
-  // ====== INIT ======
+  // ====== INIT (setup + stats + partner list + media list + reg list + org + settings + recipients) ======
   (async function init(){
     try { await callApi('setup', {}); } catch(e){}
     await reloadStats();
@@ -469,6 +491,12 @@
   });
 
   document.getElementById('btnLoadLatestContent').addEventListener('click', loadLatestContent);
+  document.getElementById('btnPreviewUser').addEventListener('click', ()=>{
+    window.open('./user.html?preview='+Date.now(),'_blank');
+  });
+  document.getElementById('btnPreviewUser2').addEventListener('click', ()=>{
+    window.open('./user.html?preview='+Date.now(),'_blank');
+  });
 
   async function loadLatestContent(){
     try{
@@ -567,7 +595,6 @@
       const byPartner = new Map();
       partners.forEach(p=> byPartner.set(p.name||'', p));
 
-      // render
       const frag = document.createDocumentFragment();
 
       (tree.children||[]).forEach(node=>{
@@ -623,7 +650,6 @@
     const message = buildMessageWithAttachments();
     const selected = getSelectedRecipients();
     if (!selected.length) return toast('Pilih sekurang-kurangnya seorang penerima');
-    // log satu rekod ringkas (mengikut endpoint sedia ada)
     try{
       const out = await callApi('broadcast', {
         leader_id: store.leader.leader_id,
@@ -645,7 +671,6 @@
       const phone = cleanMsisdn(r.phone);
       if (!phone) return;
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-      // throttle ringan
       setTimeout(()=> window.open(url, '_blank'), 200*idx);
       opened++;
     });
@@ -658,11 +683,12 @@
       return {
         phone: cleanMsisdn(r.phone),
         message: buildMessageWithAttachments(),
-        media_urls: (store.attachments||[]).join(' ')
+        media_urls: (store.attachments||[]).join(' '),
+        fonnte_api: document.getElementById('setFonnteApi').value || ''
       };
     }).filter(x=> x.phone);
     if (!rows.length) return toast('Tiada penerima sah untuk dieksport');
-    const csv = makeCSV(['phone','message','media_urls'], rows);
+    const csv = makeCSV(['phone','message','media_urls','fonnte_api'], rows);
     downloadText(csv, `broadcast_${Date.now()}.csv`, 'text/csv');
     toast('CSV dijana');
   });
@@ -803,6 +829,7 @@
         await reloadPartners();
         await reloadStats();
         await renderOrg();
+        await buildRecipientTree();
         // kosongkan
         document.getElementById('partnerName').value='';
         document.getElementById('partnerEmail').value='';
@@ -977,7 +1004,7 @@
     });
 
     // partner -> customers
-    const rows = Array.from(grid.children).slice(2);
+    const rows = Array.from(grid.children).slice(2); // selepas root & rowTop
     rows.forEach(row=>{
       const cells = Array.from(row.children);
       cells.forEach((cell, i)=>{
@@ -1002,10 +1029,15 @@
   // ====== SETTINGS ======
   async function refreshSettings(){
     try{
-      const s = (await callApi('settings_get',{})).settings||{};
-      document.getElementById('setMin').value = s.default_cashback_min || 5;
-      document.getElementById('setMax').value = s.default_cashback_max || 10;
-      document.getElementById('setLeaderPhone').value = s.leader_phone || '';
+      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
+      const s = out.settings||{};
+      document.getElementById('setMin').value = s.cashback_min || 5;
+      document.getElementById('setMax').value = s.cashback_max || 10;
+      document.getElementById('setLeaderPhone').value = s.whatsapp || '';
+      document.getElementById('setFonnteApi').value = s.fonnte_api || '';
+      document.getElementById('setThemeColor').value = s.theme_color || '#ef4444';
+      document.getElementById('setHeroTitle').value = s.hero_title || '';
+      document.getElementById('setHeroMedia').value = s.hero_media || '';
     }catch(e){ /* biarkan */ }
   }
   document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
@@ -1014,10 +1046,20 @@
     let max = Number(document.getElementById('setMax').value||10);
     if (min<0) min=0; if (max<min) max=min;
     const phone = (document.getElementById('setLeaderPhone').value||'').trim();
+    const fonnte = (document.getElementById('setFonnteApi').value||'').trim();
+    const theme = (document.getElementById('setThemeColor').value||'#ef4444');
+    const heroT = (document.getElementById('setHeroTitle').value||'').trim();
+    const heroM = (document.getElementById('setHeroMedia').value||'').trim();
     try{
       await callApi('settings_set', {
         leader_id: store.leader.leader_id,
-        pairs: { default_cashback_min: String(min), default_cashback_max: String(max), leader_phone: phone }
+        cashback_min: String(min),
+        cashback_max: String(max),
+        whatsapp: phone,
+        fonnte_api: fonnte,
+        theme_color: theme,
+        hero_title: heroT,
+        hero_media: heroM
       });
       toast('Settings disimpan ✔️');
     }catch(e){ toast('Gagal simpan settings'); }
