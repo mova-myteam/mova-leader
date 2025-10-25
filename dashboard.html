@@ -17,7 +17,7 @@
     html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
     .scroll-bar::-webkit-scrollbar{height:8px}
     .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
-    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; }
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; white-space:nowrap;}
     .pill-active{ background:#111; color:#fff; border-color:#111; }
     .pill-idle{ background:#fff; color:#374151; }
     .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
@@ -47,6 +47,7 @@
     .row-rep{border:1px solid #e5e7eb;border-radius:.75rem;padding:.75rem}
     .row-rep + .row-rep{margin-top:.75rem}
     .drag-handle{cursor:grab}
+    .help{font-size:.75rem;color:#6b7280}
   </style>
 </head>
 <body class="bg-gray-50">
@@ -65,9 +66,7 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <a href="./index.html" class="btn-ghost flex items-center gap-2">
-        <i data-lucide="chevron-left" class="w-4 h-4"></i>Kembali Login
-      </a>
+      <!-- Kembali Login DIBUANG mengikut arahan -->
       <button id="btnLogout" class="btn-primary flex items-center gap-2">
         <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar
       </button>
@@ -98,15 +97,16 @@
     </div>
   </section>
 
-  <!-- TABS -->
+  <!-- TABS (tersusun supaya mudah faham) -->
   <section class="card p-3">
     <div class="flex gap-2 overflow-x-auto scroll-bar">
-      <button data-tab="content" class="pill pill-active"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
+      <button data-tab="user" class="pill pill-active"><i data-lucide="layout-template" class="w-4 h-4"></i> User Sections</button>
+      <button data-tab="content" class="pill pill-idle"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
       <button data-tab="media" class="pill pill-idle"><i data-lucide="image" class="w-4 h-4"></i> Media</button>
-      <button data-tab="user" class="pill pill-idle"><i data-lucide="layout-template" class="w-4 h-4"></i> User Sections</button>
       <button data-tab="partner" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Partner</button>
       <button data-tab="customer" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Customer</button>
       <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
+      <button data-tab="broadcast" class="pill pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
       <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta</button>
       <button data-tab="settings" class="pill pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
     </div>
@@ -115,11 +115,122 @@
   <!-- PANELS -->
   <section class="space-y-6">
 
-    <!-- ===== Tab: Kandungan ===== -->
-    <div id="tab-content" class="card p-6 space-y-5">
+    <!-- ===== Tab: User Sections (ikut user.html) ===== -->
+    <div id="tab-user" class="card p-6 space-y-6">
+      <div class="flex items-center gap-2">
+        <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">User Sections — Ikut Kedudukan Dalam user.html</h2>
+      </div>
+
+      <!-- 1) HERO -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="image" class="w-4 h-4"></i>
+          <div class="font-semibold">1) Hero <span class="help">Lokasi: Atas sekali</span></div>
+        </div>
+        <div class="grid md:grid-cols-3 gap-4 mt-2">
+          <div class="md:col-span-1">
+            <label class="text-sm font-medium">Hero Title</label>
+            <input id="setHeroTitle" class="input mt-1" placeholder="Selamat Datang ke MOVA">
+          </div>
+          <div class="md:col-span-2">
+            <label class="text-sm font-medium">Hero Media URL (gambar/video)</label>
+            <input id="setHeroMedia" class="input mt-1" placeholder="https://...">
+          </div>
+        </div>
+      </div>
+
+      <!-- 2) PENGENALAN -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="book-open" class="w-4 h-4"></i>
+          <div class="font-semibold">2) Pengenalan <span class="help">Lokasi: Bawah Hero</span></div>
+        </div>
+        <textarea id="introHtml" class="textarea mt-3" placeholder="HTML ringkas dibenarkan"></textarea>
+      </div>
+
+      <!-- 3) KEBAIKAN -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="stars" class="w-4 h-4"></i>
+          <div class="font-semibold">3) Kebaikan <span class="help">Lokasi: Seksyen “Kebaikan MOVA”</span></div>
+        </div>
+        <div id="benefitsWrap" class="mt-3"></div>
+        <button id="btnAddBenefit" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Kebaikan</button>
+      </div>
+
+      <!-- 4) CARA GUNA -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="workflow" class="w-4 h-4"></i>
+          <div class="font-semibold">4) Cara Guna <span class="help">Lokasi: Seksyen “Cara MOVA Berfungsi”</span></div>
+        </div>
+        <div id="stepsWrap" class="mt-3"></div>
+        <button id="btnAddStep" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Langkah</button>
+      </div>
+
+      <!-- 5) FAQ -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="help-circle" class="w-4 h-4"></i>
+          <div class="font-semibold">5) FAQ <span class="help">Lokasi: Soalan Lazim</span></div>
+        </div>
+        <div id="faqsWrap" class="mt-3"></div>
+        <button id="btnAddFaq" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah FAQ</button>
+      </div>
+
+      <!-- 6) TESTIMONI -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="messages-square" class="w-4 h-4"></i>
+          <div class="font-semibold">6) Testimoni <span class="help">Lokasi: Seksyen Testimoni</span></div>
+        </div>
+        <div id="testiWrap" class="mt-3"></div>
+        <button id="btnAddTesti" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Testimoni</button>
+      </div>
+
+      <!-- 7) BERITA / UPDATE -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="newspaper" class="w-4 h-4"></i>
+          <div class="font-semibold">7) Berita / Update <span class="help">Lokasi: “Terkini dari Leader” (boleh jadikan Utama)</span></div>
+        </div>
+        <div id="updatesWrap" class="mt-3"></div>
+        <button id="btnAddUpdate" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Update</button>
+      </div>
+
+      <!-- 8) GARIS PANDUAN -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shield-check" class="w-4 h-4"></i>
+          <div class="font-semibold">8) Garis Panduan <span class="help">Lokasi: Seksyen “Garis Panduan”</span></div>
+        </div>
+        <div id="guideWrap" class="mt-3"></div>
+        <button id="btnAddGuide" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Garis Panduan</button>
+      </div>
+
+      <!-- 9) LARANGAN -->
+      <div class="border border-gray-200 rounded-xl p-4">
+        <div class="flex items-center gap-2">
+          <i data-lucide="ban" class="w-4 h-4"></i>
+          <div class="font-semibold">9) Larangan <span class="help">Lokasi: Seksyen “Larangan”</span></div>
+        </div>
+        <div id="banWrap" class="mt-3"></div>
+        <button id="btnAddBan" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Larangan</button>
+      </div>
+
+      <div class="flex gap-2">
+        <button id="btnSaveUserSections" class="btn-primary">Simpan User Sections</button>
+        <button id="btnReloadUserSections" class="btn-ghost">Muat Semula</button>
+        <button id="btnPreviewUser" class="btn-ghost">Preview Laman User</button>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Kandungan (Pengumuman umum) ===== -->
+    <div id="tab-content" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Kandungan Laman (Paparan untuk Pelanggan)</h2>
+        <h2 class="text-lg font-semibold">Kandungan Umum (Paparan untuk Pelanggan)</h2>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
@@ -171,57 +282,11 @@
         <button id="btnSaveContent" class="btn-primary">Simpan / Kemas Kini</button>
         <button id="btnRefreshContent" class="btn-ghost">Segar Semula</button>
         <button id="btnLoadLatestContent" class="btn-ghost">Muat Terbaru</button>
-        <button id="btnPreviewUser" class="btn-ghost">Preview Laman User</button>
       </div>
 
       <div id="contentListWrap" class="hidden">
         <div class="mt-4 text-sm font-semibold">Kandungan Terkini</div>
         <div id="contentList" class="mt-2 grid gap-3"></div>
-      </div>
-
-      <hr class="my-2">
-
-      <!-- ===== Broadcast Ringkas (log + WA + CSV Fonnte) ===== -->
-      <div class="space-y-3">
-        <div class="flex items-center gap-2">
-          <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
-          <h3 class="font-semibold">Broadcast WhatsApp</h3>
-          <span class="badge">log only</span>
-        </div>
-
-        <div class="grid gap-3">
-          <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
-          <div id="attachChips" class="flex flex-wrap gap-2"></div>
-          <div class="grid md:grid-cols-[1fr_auto] gap-3">
-            <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
-            <div class="flex items-center gap-2">
-              <button id="btnAttachUpload" class="btn-ghost"><i data-lucide="paperclip" class="w-4 h-4"></i> Upload & Lampirkan</button>
-              <button id="btnClearAttach" class="btn-ghost">Kosongkan Lampiran</button>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid lg:grid-cols-2 gap-6 mt-2">
-          <div class="p-4 border border-gray-200 rounded-xl">
-            <div class="flex items-center justify-between">
-              <div class="font-semibold">Penerima (ikut partner)</div>
-              <div class="flex gap-2">
-                <button id="btnSelectAll" class="btn-ghost">Pilih Semua</button>
-                <button id="btnClearAll" class="btn-ghost">Kosongkan</button>
-              </div>
-            </div>
-            <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
-          </div>
-
-          <div class="p-4 border border-gray-200 rounded-xl">
-            <div class="font-semibold mb-2">Tindakan</div>
-            <div class="grid gap-2">
-              <button id="btnBroadcast" class="btn-primary">Log Broadcast (server)</button>
-              <button id="btnOpenWA" class="btn-ghost">Buka WhatsApp Tabs</button>
-              <button id="btnExportCSV" class="btn-ghost">Muat Turun CSV (Fonnte)</button>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -242,104 +307,6 @@
       </div>
 
       <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
-    </div>
-
-    <!-- ===== Tab: User Sections (EDIT kandungan user.html) ===== -->
-    <div id="tab-user" class="card p-6 space-y-6 hidden">
-      <div class="flex items-center gap-2">
-        <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">User Sections (Terus Ubah Kandungan user.html)</h2>
-      </div>
-
-      <!-- HERO -->
-      <div class="border border-gray-200 rounded-xl p-4">
-        <div class="flex items-center gap-2">
-          <i data-lucide="image" class="w-4 h-4"></i>
-          <div class="font-semibold">Hero</div>
-          <span class="badge">Lokasi di user.html: Atas sekali (banner)</span>
-        </div>
-        <div class="grid md:grid-cols-3 gap-4 mt-2">
-          <div class="md:col-span-1">
-            <label class="text-sm font-medium">Hero Title</label>
-            <input id="setHeroTitle" class="input mt-1" placeholder="Selamat Datang ke MOVA">
-          </div>
-          <div class="md:col-span-2">
-            <label class="text-sm font-medium">Hero Media URL (gambar/video)</label>
-            <input id="setHeroMedia" class="input mt-1" placeholder="https://...">
-          </div>
-        </div>
-      </div>
-
-      <!-- INTRO -->
-      <div class="border border-gray-200 rounded-xl p-4">
-        <div class="flex items-center gap-2">
-          <i data-lucide="book-open" class="w-4 h-4"></i>
-          <div class="font-semibold">Pengenalan</div>
-          <span class="badge">Lokasi: Selepas Hero</span>
-        </div>
-        <textarea id="introHtml" class="textarea mt-3" placeholder="Teks pengenalan (HTML ringkas dibenarkan)"></textarea>
-      </div>
-
-      <!-- BENEFITS -->
-      <div class="border border-gray-200 rounded-xl p-4">
-        <div class="flex items-center gap-2">
-          <i data-lucide="stars" class="w-4 h-4"></i>
-          <div class="font-semibold">Kebaikan</div>
-          <span class="badge">Lokasi: Bahagian “Kebaikan MOVA”</span>
-        </div>
-        <div id="benefitsWrap" class="mt-3"></div>
-        <button id="btnAddBenefit" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Kebaikan</button>
-      </div>
-
-      <!-- HOW IT WORKS -->
-      <div class="border border-gray-200 rounded-xl p-4">
-        <div class="flex items-center gap-2">
-          <i data-lucide="workflow" class="w-4 h-4"></i>
-          <div class="font-semibold">Cara Guna</div>
-          <span class="badge">Lokasi: Bahagian “Cara MOVA Berfungsi”</span>
-        </div>
-        <div id="stepsWrap" class="mt-3"></div>
-        <button id="btnAddStep" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Langkah</button>
-      </div>
-
-      <!-- FAQ -->
-      <div class="border border-gray-200 rounded-xl p-4">
-        <div class="flex items-center gap-2">
-          <i data-lucide="help-circle" class="w-4 h-4"></i>
-          <div class="font-semibold">FAQ</div>
-          <span class="badge">Lokasi: Soalan Lazim</span>
-        </div>
-        <div id="faqsWrap" class="mt-3"></div>
-        <button id="btnAddFaq" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah FAQ</button>
-      </div>
-
-      <!-- TESTIMONIALS -->
-      <div class="border border-gray-200 rounded-xl p-4">
-        <div class="flex items-center gap-2">
-          <i data-lucide="messages-square" class="w-4 h-4"></i>
-          <div class="font-semibold">Testimoni</div>
-          <span class="badge">Lokasi: Testimoni pengguna</span>
-        </div>
-        <div id="testiWrap" class="mt-3"></div>
-        <button id="btnAddTesti" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Testimoni</button>
-      </div>
-
-      <!-- UPDATES / NEWS -->
-      <div class="border border-gray-200 rounded-xl p-4">
-        <div class="flex items-center gap-2">
-          <i data-lucide="newspaper" class="w-4 h-4"></i>
-          <div class="font-semibold">Berita / Update</div>
-          <span class="badge">Lokasi: Seksyen “Terkini dari Leader” (boleh tanda sebagai <b>Utama</b>)</span>
-        </div>
-        <div id="updatesWrap" class="mt-3"></div>
-        <button id="btnAddUpdate" class="btn-ghost mt-2"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Update</button>
-      </div>
-
-      <div class="flex gap-2">
-        <button id="btnSaveUserSections" class="btn-primary">Simpan User Sections</button>
-        <button id="btnReloadUserSections" class="btn-ghost">Muat Semula</button>
-        <button id="btnPreviewUser3" class="btn-ghost">Preview user.html</button>
-      </div>
     </div>
 
     <!-- ===== Tab: Partner ===== -->
@@ -399,6 +366,49 @@
       </div>
       <div class="flex gap-2">
         <button id="btnReloadReg" class="btn-ghost">Segar Semula</button>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Broadcast (WA) ===== -->
+    <div id="tab-broadcast" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Broadcast WhatsApp</h2>
+        <span class="badge">log only</span>
+      </div>
+
+      <div class="grid gap-3">
+        <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
+        <div id="attachChips" class="flex flex-wrap gap-2"></div>
+        <div class="grid md:grid-cols-[1fr_auto] gap-3">
+          <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
+          <div class="flex items-center gap-2">
+            <button id="btnAttachUpload" class="btn-ghost"><i data-lucide="paperclip" class="w-4 h-4"></i> Upload & Lampirkan</button>
+            <button id="btnClearAttach" class="btn-ghost">Kosongkan Lampiran</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6 mt-2">
+        <div class="p-4 border border-gray-200 rounded-xl">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">Penerima (ikut partner)</div>
+            <div class="flex gap-2">
+              <button id="btnSelectAll" class="btn-ghost">Pilih Semua</button>
+              <button id="btnClearAll" class="btn-ghost">Kosongkan</button>
+            </div>
+          </div>
+          <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
+        </div>
+
+        <div class="p-4 border border-gray-200 rounded-xl">
+          <div class="font-semibold mb-2">Tindakan</div>
+          <div class="grid gap-2">
+            <button id="btnBroadcast" class="btn-primary">Log Broadcast (server)</button>
+            <button id="btnOpenWA" class="btn-ghost">Buka WhatsApp Tabs</button>
+            <button id="btnExportCSV" class="btn-ghost">Muat Turun CSV (Fonnte)</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -518,12 +528,14 @@
     linkUrls: [],               // URL luaran untuk Content
     partners: [],
     attachments: [],            // untuk Broadcast
-    // User sections temp state
+    // User sections
     benefits: [],
     steps: [],
     faqs: [],
     testimonials: [],
-    updates: [] // {title, body, media, featured}
+    updates: [],
+    guidelines: [], // Garis Panduan
+    bans: []        // Larangan
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -569,9 +581,10 @@
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
     if (name === 'org') renderOrg();
+    if (name === 'broadcast') buildRecipientTree();
   }
   document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab)));
-  setActiveTab('content');
+  setActiveTab('user');
 
   // ====== INIT ======
   (async function init(){
@@ -582,9 +595,7 @@
     await reloadRegs();
     await renderOrg();
     await refreshSettings();
-    await buildRecipientTree();
-    updateChosenMediaHint();
-    await loadUserSections(); // load data untuk tab User Sections
+    await loadUserSections();
   })();
 
   // ====== STATS ======
@@ -665,8 +676,6 @@
     renderUrlList(); updateChosenMediaHint(); toast('Dikemas kini semula');
   });
   document.getElementById('btnLoadLatestContent').addEventListener('click', loadLatestContent);
-  document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
-  document.getElementById('btnPreviewUser2').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
 
   async function loadLatestContent(){
     try{
@@ -691,6 +700,7 @@
   }
 
   // ====== BROADCAST ======
+  // (Berada di tab Broadcast)
   const attachInput = document.getElementById('attachFile');
   const attachChips = document.getElementById('attachChips');
   document.getElementById('btnAttachUpload').addEventListener('click', uploadAttachment);
@@ -719,11 +729,13 @@
     });
     lucide.createIcons();
   }
-  document.getElementById('btnSelectAll').addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true); });
-  document.getElementById('btnClearAll').addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false); });
+
+  document.getElementById('btnSelectAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true); });
+  document.getElementById('btnClearAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false); });
 
   async function buildRecipientTree(){
     const wrap = document.getElementById('recipientsWrap');
+    if (!wrap) return;
     wrap.innerHTML = '<div class="text-sm text-gray-500">Memuat senarai penerima…</div>';
     try{
       let partners = []; try{ const outP = await callApi('partner_list', { leader_id: store.leader.leader_id }); partners = outP.items || []; }catch(e){}
@@ -737,7 +749,8 @@
         frag.appendChild(recipientRow({ type:'partner', name:pName, phone: partnerPhone, partnerName:pName }));
         (node.children||[]).forEach(c=>{ frag.appendChild(recipientRow({ type:'customer', name:(c.name||''), phone:'', partnerName:pName })); });
       });
-      wrap.innerHTML = ''; frag.children?.length || wrap.childElementCount ? wrap.appendChild(frag) : wrap.innerHTML = '<div class="text-sm text-gray-500">Tiada data organisasi.</div>';
+      wrap.innerHTML = '';
+      frag.childElementCount ? wrap.appendChild(frag) : wrap.innerHTML = '<div class="text-sm text-gray-500">Tiada data organisasi.</div>';
     }catch(e){ wrap.innerHTML = '<div class="text-sm text-red-600">Gagal memuat penerima.</div>'; }
   }
   function recipientRow(rec){
@@ -753,7 +766,7 @@
     return row;
   }
 
-  document.getElementById('btnBroadcast').addEventListener('click', async ()=>{
+  document.getElementById('btnBroadcast')?.addEventListener('click', async ()=>{
     const message = buildMessageWithAttachments();
     const selected = getSelectedRecipients();
     if (!selected.length) return toast('Pilih sekurang-kurangnya seorang penerima');
@@ -762,7 +775,7 @@
       if (out.success){ toast('Broadcast direkod ✔️'); } else toast(out.error||'Gagal log broadcast');
     }catch(e){ toast('Ralat log broadcast'); }
   });
-  document.getElementById('btnOpenWA').addEventListener('click', ()=>{
+  document.getElementById('btnOpenWA')?.addEventListener('click', ()=>{
     const msg = buildMessageWithAttachments();
     const selected = getSelectedRecipients(); if (!selected.length) return toast('Pilih penerima dahulu');
     let opened = 0;
@@ -773,7 +786,7 @@
     });
     toast(`Membuka ${opened} tab WhatsApp`);
   });
-  document.getElementById('btnExportCSV').addEventListener('click', ()=>{
+  document.getElementById('btnExportCSV')?.addEventListener('click', ()=>{
     const rows = getSelectedRecipients().map(r=>({ phone: (r.phone||'').replace(/\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone);
     if (!rows.length) return toast('Tiada penerima sah untuk dieksport');
     const csv = makeCSV(['phone','message','media_urls','fonnte_api'], rows);
@@ -826,7 +839,7 @@
     else { const img=document.createElement('img'); img.src=url; img.loading='lazy'; img.className='w-full h-full object-cover'; wrap.appendChild(img); }
     mediaGrid.appendChild(wrap);
   }
-  function updateChosenMediaHint(){ const n = store.selectedMedia.size; chosenMediaHint.textContent = n ? `${n} media dipilih (akan dilampirkan semasa Simpan)` : 'Tiada media dipilih. Pergi ke tab Media dan klik untuk memilih.'; }
+  function updateChosenMediaHint(){ const n = store.selectedMedia.size; if (chosenMediaHint) chosenMediaHint.textContent = n ? `${n} media dipilih (akan dilampirkan semasa Simpan)` : 'Tiada media dipilih. Pergi ke tab Media dan klik untuk memilih.'; }
   function toBase64NoPrefix(file){
     return new Promise((resolve,reject)=>{
       const fr = new FileReader();
@@ -959,19 +972,23 @@
       // typography
       setHeadingSize.value  = s.heading_size || ''; setHeadingColor.value = s.heading_color || '#111111'; setHeadingBold.checked = String(s.heading_bold||'false')==='true';
       setBodySize.value  = s.body_size || ''; setBodyColor.value = s.body_color || '#374151'; setBodyBold.checked = String(s.body_bold||'false')==='true';
-      // user sections (quick seed)
+      // user sections
       setHeroTitle.value = s.hero_title || ''; setHeroMedia.value = s.hero_media || '';
       introHtml.value = s.intro_html || '';
-      store.benefits = safeParseJSON(s.benefits_json, []);
-      store.steps = safeParseJSON(s.steps_json, []);
-      store.faqs = safeParseJSON(s.faqs_json, []);
+      store.benefits     = safeParseJSON(s.benefits_json, []);
+      store.steps        = safeParseJSON(s.steps_json, []);
+      store.faqs         = safeParseJSON(s.faqs_json, []);
       store.testimonials = safeParseJSON(s.testimonials_json, []);
-      store.updates = safeParseJSON(s.updates_json, []);
+      store.updates      = safeParseJSON(s.updates_json, []);
+      store.guidelines   = safeParseJSON(s.guidelines_json, []);
+      store.bans         = safeParseJSON(s.bans_json, []);
       renderRepeater('benefitsWrap', store.benefits, benefitRow);
-      renderRepeater('stepsWrap', store.steps, stepRow);
-      renderRepeater('faqsWrap', store.faqs, faqRow);
-      renderRepeater('testiWrap', store.testimonials, testiRow);
-      renderRepeater('updatesWrap', store.updates, updateRow);
+      renderRepeater('stepsWrap',   store.steps,    stepRow);
+      renderRepeater('faqsWrap',    store.faqs,     faqRow);
+      renderRepeater('testiWrap',   store.testimonials, testiRow);
+      renderRepeater('updatesWrap', store.updates,  updateRow);
+      renderRepeater('guideWrap',   store.guidelines, guideRow);
+      renderRepeater('banWrap',     store.bans,     banRow);
     }catch(e){ /* biarkan */ }
   }
   document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
@@ -1003,15 +1020,17 @@
       steps_json: JSON.stringify(store.steps||[]),
       faqs_json: JSON.stringify(store.faqs||[]),
       testimonials_json: JSON.stringify(store.testimonials||[]),
-      updates_json: JSON.stringify(store.updates||[])
+      updates_json: JSON.stringify(store.updates||[]),
+      guidelines_json: JSON.stringify(store.guidelines||[]),
+      bans_json: JSON.stringify(store.bans||[])
     };
     try{ await callApi('settings_set', payload); toast('User sections disimpan ✔️'); }catch(e){ toast('Gagal simpan user sections'); }
   });
-  document.getElementById('btnPreviewUser3').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
+  document.getElementById('btnPreviewUser')?.addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
+  document.getElementById('btnPreviewUser2')?.addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
 
   // ====== REPEATER BUILDERS ======
   function safeParseJSON(s, def){ try{ return JSON.parse(s||''); }catch(e){ return def; } }
-
   function renderRepeater(containerId, arr, rowBuilder){
     const wrap = document.getElementById(containerId);
     wrap.innerHTML = '';
@@ -1019,7 +1038,6 @@
     arr.forEach((item, idx)=> wrap.appendChild(rowBuilder(item, idx, arr, wrap)));
     lucide.createIcons();
   }
-
   function rowBase(fieldsHtml, onRemove){
     const d = document.createElement('div');
     d.className='row-rep';
@@ -1113,12 +1131,34 @@
   }
   document.getElementById('btnAddUpdate').addEventListener('click', ()=>{ store.updates.push({title:'',body:'',media:'',featured:false}); renderRepeater('updatesWrap', store.updates, updateRow); });
 
-  // ====== TAB SWITCH QUICK PREVIEWS ======
-  document.getElementById('btnPreviewUser2').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
-  document.getElementById('btnPreviewUser3').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
+  // Guide row: {title, desc}
+  function guideRow(item, idx, arr){
+    const html = `
+      <div><label class="text-sm">Tajuk</label><input class="input mt-1 f-title" value="${item.title||''}"></div>
+      <div><label class="text-sm">Penerangan</label><input class="input mt-1 f-desc" value="${item.desc||''}"></div>
+      <div><label class="text-sm">Lokasi di user.html</label><input class="input mt-1" value="Seksyen Garis Panduan" disabled></div>
+    `;
+    const d = rowBase(html, ()=>{ arr.splice(idx,1); renderRepeater('guideWrap', arr, guideRow); });
+    d.querySelector('.f-title').addEventListener('input', e=> item.title = e.target.value);
+    d.querySelector('.f-desc').addEventListener('input', e=> item.desc  = e.target.value);
+    return d;
+  }
+  document.getElementById('btnAddGuide').addEventListener('click', ()=>{ store.guidelines.push({title:'',desc:''}); renderRepeater('guideWrap', store.guidelines, guideRow); });
 
-  // ====== HELPERS ======
-  function downloadText(text, filename, mime){ const blob=new Blob([text],{type:mime||'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+  // Ban row: {title, desc}
+  function banRow(item, idx, arr){
+    const html = `
+      <div><label class="text-sm">Perkara Dilarang</label><input class="input mt-1 f-title" value="${item.title||''}"></div>
+      <div><label class="text-sm">Penjelasan</label><input class="input mt-1 f-desc" value="${item.desc||''}"></div>
+      <div><label class="text-sm">Lokasi di user.html</label><input class="input mt-1" value="Seksyen Larangan" disabled></div>
+    `;
+    const d = rowBase(html, ()=>{ arr.splice(idx,1); renderRepeater('banWrap', arr, banRow); });
+    d.querySelector('.f-title').addEventListener('input', e=> item.title = e.target.value);
+    d.querySelector('.f-desc').addEventListener('input', e=> item.desc  = e.target.value);
+    return d;
+  }
+  document.getElementById('btnAddBan').addEventListener('click', ()=>{ store.bans.push({title:'',desc:''}); renderRepeater('banWrap', store.bans, banRow); });
+
 </script>
 </body>
 </html>
