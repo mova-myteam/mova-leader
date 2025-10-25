@@ -42,12 +42,11 @@
     .switch input{display:none}
     .switch span{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:9999px;transition:.2s}
     .switch input:checked + span{left:21px;background:#111}
-    .sec-card{border:1px solid #e5e7eb;border-radius:12px;padding:12px}
-    .sec-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
-    .sec-head .title{display:flex;align-items:center;gap:.5rem;font-weight:600}
-    .help{font-size:.75rem;color:#6b7280}
     .row-rep{border:1px solid #e5e7eb;border-radius:.75rem;padding:.75rem}
     .row-rep + .row-rep{margin-top:.75rem}
+    .help{font-size:.75rem;color:#6b7280}
+    .block-row{border:1px dashed #e5e7eb;border-radius:.6rem;padding:.6rem}
+    .block-row + .block-row{margin-top:.5rem}
   </style>
 </head>
 <body class="bg-gray-50">
@@ -64,6 +63,7 @@
         <div class="text-xs text-gray-500">Hai, <span id="leaderName">leader</span></div>
       </div>
     </div>
+
     <div class="flex items-center gap-2">
       <button id="btnLogout" class="btn-primary flex items-center gap-2">
         <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar
@@ -77,10 +77,22 @@
 
   <!-- KPI -->
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card p-5"><div class="text-3xl font-extrabold" id="statPartners">—</div><div class="text-sm text-gray-600">Total Partners</div></div>
-    <div class="card p-5"><div class="text-3xl font-extrabold" id="statCustomers">—</div><div class="text-sm text-gray-600">Total Customers</div></div>
-    <div class="card p-5"><div class="text-3xl font-extrabold" id="statPending">—</div><div class="text-sm text-gray-600">Pending Approvals</div></div>
-    <div class="card p-5"><div class="text-3xl font-extrabold" id="statPublished">—</div><div class="text-sm text-gray-600">Published Content</div></div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPartners">—</div>
+      <div class="text-sm text-gray-600">Total Partners</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statCustomers">—</div>
+      <div class="text-sm text-gray-600">Total Customers</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPending">—</div>
+      <div class="text-sm text-gray-600">Pending Approvals</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPublished">—</div>
+      <div class="text-sm text-gray-600">Published Content</div>
+    </div>
   </section>
 
   <!-- TABS -->
@@ -101,38 +113,37 @@
   <!-- PANELS -->
   <section class="space-y-6">
 
-    <!-- ===== Tab: User Sections (Dinamik) ===== -->
-    <div id="tab-user" class="card p-6 space-y-5">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
-          <h2 class="text-lg font-semibold">User Sections — (Tambah/Padam/Edit & Susun)</h2>
+    <!-- ===== Tab: User Sections (Section Builder) ===== -->
+    <div id="tab-user" class="card p-6 space-y-6">
+      <div class="flex items-center gap-2">
+        <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">User Sections — Susun, Tambah, Padam & Edit</h2>
+      </div>
+
+      <!-- Composer Controls -->
+      <div class="grid gap-3 md:grid-cols-[1fr_auto]">
+        <div class="text-sm text-gray-600">
+          Gunakan “Tambah Seksyen” untuk buat seksyen baharu. Anda boleh isi:
+          <b>Text</b>, <b>Gambar (URL)</b>, <b>Video (URL)</b>, atau <b>Link</b>.  
+          Urutan seksyen di sini = urutan paparan dalam <b>user.html</b>.
         </div>
         <div class="flex items-center gap-2">
-          <select id="newSectionType" class="input w-52">
-            <option value="hero">Hero</option>
-            <option value="intro">Pengenalan</option>
-            <option value="benefit">Kebaikan</option>
-            <option value="step">Cara Guna</option>
-            <option value="faq">FAQ</option>
-            <option value="testi">Testimoni</option>
-            <option value="update">Berita/Update</option>
-            <option value="guide">Garis Panduan</option>
-            <option value="ban">Larangan</option>
-            <option value="custom">Custom (Rich HTML)</option>
-          </select>
           <button id="btnAddSection" class="btn-ghost"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Seksyen</button>
+          <button id="btnPreviewUser" class="btn-ghost">Preview Laman User</button>
         </div>
       </div>
 
-      <div class="help">Susun ikut urutan paparan di <b>user.html</b>. Gunakan butang <b>Naik</b>/<b>Turun</b> untuk susun.</div>
-      <div id="sectionsWrap" class="space-y-3"></div>
+      <div id="sectionsWrap" class="space-y-4">
+        <!-- Section cards will render here -->
+      </div>
 
       <div class="flex gap-2">
-        <button id="btnSaveUserSections" class="btn-primary">Simpan User Sections</button>
-        <button id="btnReloadUserSections" class="btn-ghost">Muat Semula</button>
-        <button id="btnPreviewUser" class="btn-ghost">Preview Laman User</button>
+        <button id="btnSaveSections" class="btn-primary">Simpan User Sections</button>
+        <button id="btnReloadSections" class="btn-ghost">Muat Semula</button>
       </div>
+
+      <hr class="my-2">
+      <div class="help">Tip: Jika anda sebelum ini menggunakan medan lama (Hero, Pengenalan, Kebaikan, dll), sistem akan automasi “migrasi” sekali ke struktur baharu <b>sections_json</b> agar user.html kekal stabil.</div>
     </div>
 
     <!-- ===== Tab: Kandungan (Pengumuman umum) ===== -->
@@ -161,6 +172,7 @@
         <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi."></textarea>
       </div>
 
+      <!-- Lampiran URL -->
       <div class="grid gap-4 md:grid-cols-2">
         <div class="border border-gray-200 rounded-xl p-4">
           <div class="flex items-center gap-2 mb-2">
@@ -176,6 +188,7 @@
           </div>
         </div>
 
+        <!-- Ringkasan media terpilih -->
         <div class="border border-gray-200 rounded-xl p-4">
           <div class="flex items-center gap-2 mb-2">
             <i data-lucide="images" class="w-4 h-4 text-gray-700"></i>
@@ -203,6 +216,7 @@
         <i data-lucide="image" class="w-5 h-5 text-gray-700"></i>
         <h2 class="text-lg font-semibold">Media Library (Gambar & Video)</h2>
       </div>
+
       <div class="grid gap-3 md:grid-cols-[1fr_auto]">
         <input id="fileInput" type="file" accept="image/*,video/*" class="input"/>
         <div class="flex items-center gap-2">
@@ -211,52 +225,78 @@
           <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
         </div>
       </div>
+
       <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
     </div>
 
     <!-- ===== Tab: Partner ===== -->
     <div id="tab-partner" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2"><i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Tambah Partner</h2></div>
+      <div class="flex items-center gap-2">
+        <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah Partner</h2>
+      </div>
       <div class="grid gap-3 md:grid-cols-4">
         <input id="partnerName" class="input" placeholder="Nama penuh">
         <input id="partnerEmail" class="input" placeholder="Email">
         <input id="partnerPhone" class="input" placeholder="No. Telefon">
         <select id="partnerPackage" class="input">
-          <option value="">Pakej</option><option>Silver</option><option>Gold</option><option>Diamond</option>
+          <option value="">Pakej</option>
+          <option>Silver</option>
+          <option>Gold</option>
+          <option>Diamond</option>
         </select>
       </div>
       <div class="flex items-center gap-2">
         <button id="btnCreatePartner" class="btn-primary">Cipta Partner</button>
-        <span class="text-xs text-gray-500">* Partner muncul dalam Carta selepas ditambah.</span>
+        <span class="text-xs text-gray-500">* partner akan dipaparkan dalam Carta Organisasi selepas ditambah.</span>
       </div>
     </div>
 
     <!-- ===== Tab: Customer ===== -->
     <div id="tab-customer" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Tambah Customer</h2></div>
+      <div class="flex items-center gap-2">
+        <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah Customer</h2>
+      </div>
       <div class="grid gap-3 md:grid-cols-3">
         <input id="customerName" class="input" placeholder="Nama customer">
         <input id="customerPhone" class="input" placeholder="+60XXXXXXXXX">
         <select id="customerPartner" class="input"><option value="">Pilih Partner</option></select>
       </div>
-      <div><button id="btnAddCustomer" class="btn-primary">Tambah Customer</button></div>
+      <div>
+        <button id="btnAddCustomer" class="btn-primary">Tambah Customer</button>
+      </div>
     </div>
 
     <!-- ===== Tab: Approvals ===== -->
     <div id="tab-approve" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Approve Pendaftaran</h2></div>
+      <div class="flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Approve Pendaftaran</h2>
+      </div>
       <div class="overflow-auto">
         <table class="table">
-          <thead><tr><th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th></tr></thead>
+          <thead>
+            <tr>
+              <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
+            </tr>
+          </thead>
           <tbody id="regTableBody"></tbody>
         </table>
       </div>
-      <div class="flex gap-2"><button id="btnReloadReg" class="btn-ghost">Segar Semula</button></div>
+      <div class="flex gap-2">
+        <button id="btnReloadReg" class="btn-ghost">Segar Semula</button>
+      </div>
     </div>
 
-    <!-- ===== Tab: Broadcast ===== -->
+    <!-- ===== Tab: Broadcast (WA) ===== -->
     <div id="tab-broadcast" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2"><i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Broadcast WhatsApp</h2><span class="badge">log only</span></div>
+      <div class="flex items-center gap-2">
+        <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Broadcast WhatsApp</h2>
+        <span class="badge">log only</span>
+      </div>
+
       <div class="grid gap-3">
         <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
         <div id="attachChips" class="flex flex-wrap gap-2"></div>
@@ -268,6 +308,7 @@
           </div>
         </div>
       </div>
+
       <div class="grid lg:grid-cols-2 gap-6 mt-2">
         <div class="p-4 border border-gray-200 rounded-xl">
           <div class="flex items-center justify-between">
@@ -279,6 +320,7 @@
           </div>
           <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
         </div>
+
         <div class="p-4 border border-gray-200 rounded-xl">
           <div class="font-semibold mb-2">Tindakan</div>
           <div class="grid gap-2">
@@ -290,47 +332,92 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Carta ===== -->
+    <!-- ===== Tab: Carta Organisasi ===== -->
     <div id="tab-org" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-4"><i data-lucide="network" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Carta Organisasi</h2></div>
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="network" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Carta Organisasi</h2>
+      </div>
       <div id="orgWrap" class="relative overflow-x-auto">
         <svg id="orgSvg" class="absolute inset-0 pointer-events-none"></svg>
         <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
       </div>
-      <div class="mt-4 flex gap-2"><button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button></div>
+      <div class="mt-4 flex gap-2">
+        <button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button>
+      </div>
     </div>
 
     <!-- ===== Tab: Settings ===== -->
     <div id="tab-settings" class="card p-6 hidden">
-      <div class="flex items-center gap-2"><i data-lucide="settings" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Settings — Laman User, Fonnte & Typography</h2></div>
-
-      <div class="grid md:grid-cols-3 gap-4 mt-2">
-        <div><label class="text-sm font-medium">Cashback Min (%)</label><input id="setMin" class="input mt-1" placeholder="cth: 5"></div>
-        <div><label class="text-sm font-medium">Cashback Max (%)</label><input id="setMax" class="input mt-1" placeholder="cth: 10"></div>
-        <div><label class="text-sm font-medium">WhatsApp Leader</label><input id="setLeaderPhone" class="input mt-1" placeholder="60123456789"></div>
+      <div class="flex items-center gap-2">
+        <i data-lucide="settings" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Settings — Laman User, Fonnte & Typography</h2>
       </div>
 
       <div class="grid md:grid-cols-3 gap-4 mt-2">
-        <div><label class="text-sm font-medium">Fonnte API Key</label><input id="setFonnteApi" type="password" class="input mt-1" placeholder="API Key Fonnte anda"></div>
-        <div><label class="text-sm font-medium">Warna Tema (Brand)</label><input id="setThemeColor" type="color" class="input mt-1 p-1" value="#ef4444"></div>
-        <div><label class="text-sm font-medium">Lebar Kandungan (px)</label><input id="setContentWidth" class="input mt-1" placeholder="cth: 980"></div>
+        <div>
+          <label class="text-sm font-medium">Cashback Min (%)</label>
+          <input id="setMin" class="input mt-1" placeholder="cth: 5">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Cashback Max (%)</label>
+          <input id="setMax" class="input mt-1" placeholder="cth: 10">
+        </div>
+        <div>
+          <label class="text-sm font-medium">WhatsApp Leader</label>
+          <input id="setLeaderPhone" class="input mt-1" placeholder="60123456789">
+        </div>
       </div>
 
+      <div class="grid md:grid-cols-3 gap-4 mt-2">
+        <div>
+          <label class="text-sm font-medium">Fonnte API Key</label>
+          <input id="setFonnteApi" type="password" class="input mt-1" placeholder="API Key Fonnte anda">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Warna Tema (Brand)</label>
+          <input id="setThemeColor" type="color" class="input mt-1 p-1" value="#ef4444">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Lebar Kandungan (px)</label>
+          <input id="setContentWidth" class="input mt-1" placeholder="cth: 980">
+        </div>
+      </div>
+
+      <!-- Typography -->
       <div class="border border-gray-200 rounded-xl p-4 mt-4">
-        <div class="flex items-center gap-2 mb-2"><i data-lucide="type" class="w-4 h-4 text-gray-700"></i><div class="font-semibold">Typography (Global)</div></div>
+        <div class="flex items-center gap-2 mb-2">
+          <i data-lucide="type" class="w-4 h-4 text-gray-700"></i>
+          <div class="font-semibold">Typography (Global)</div>
+        </div>
         <div class="grid md:grid-cols-2 gap-4">
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="text-sm font-medium">Heading Size (px)</label><input id="setHeadingSize" class="input mt-1" placeholder="cth: 28"></div>
-            <div><label class="text-sm font-medium">Heading Color</label><input id="setHeadingColor" type="color" class="input mt-1 p-1" value="#111111"></div>
+            <div>
+              <label class="text-sm font-medium">Heading Size (px)</label>
+              <input id="setHeadingSize" class="input mt-1" placeholder="cth: 28">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Heading Color</label>
+              <input id="setHeadingColor" type="color" class="input mt-1 p-1" value="#111111">
+            </div>
             <label class="text-sm font-medium flex items-center gap-2 mt-2">
-              <span class="switch"><input id="setHeadingBold" type="checkbox"><span></span></span><span>Heading Bold</span>
+              <span class="switch"><input id="setHeadingBold" type="checkbox"><span></span></span>
+              <span>Heading Bold</span>
             </label>
           </div>
+
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="text-sm font-medium">Body Size (px)</label><input id="setBodySize" class="input mt-1" placeholder="cth: 16"></div>
-            <div><label class="text-sm font-medium">Body Color</label><input id="setBodyColor" type="color" class="input mt-1 p-1" value="#374151"></div>
+            <div>
+              <label class="text-sm font-medium">Body Size (px)</label>
+              <input id="setBodySize" class="input mt-1" placeholder="cth: 16">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Body Color</label>
+              <input id="setBodyColor" type="color" class="input mt-1 p-1" value="#374151">
+            </div>
             <label class="text-sm font-medium flex items-center gap-2 mt-2">
-              <span class="switch"><input id="setBodyBold" type="checkbox"><span></span></span><span>Body Bold</span>
+              <span class="switch"><input id="setBodyBold" type="checkbox"><span></span></span>
+              <span>Body Bold</span>
             </label>
           </div>
         </div>
@@ -361,10 +448,13 @@
     linkUrls: [],               // URL luaran untuk Content
     partners: [],
     attachments: [],            // untuk Broadcast
-    // User sections (dinamik)
-    sections: []                // [{type:'hero'|'intro'|... , data:{...}}]
+    // Section Builder (user.html)
+    sections: []                // [{id,title,type,featured,blocks:[{kind:'text'|'image'|'video'|'link',value:string}], hidden:false}]
   };
-  if (!store.leader || !store.leader.leader_id) { location.href = "./index.html"; }
+
+  if (!store.leader || !store.leader.leader_id) {
+    location.href = "./index.html";
+  }
   document.getElementById('leaderName').textContent = store.leader?.profile?.name || 'leader';
 
   document.getElementById('btnLogout').addEventListener('click', () => {
@@ -372,6 +462,7 @@
     location.href = "./index.html";
   });
 
+  // icons
   lucide.createIcons();
 
   // ====== UTIL ======
@@ -382,6 +473,8 @@
     clearTimeout(toastEl._t);
     toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
   }
+  function uid(){ return 's' + Math.random().toString(36).slice(2,9); }
+
   async function callApi(path, payload) {
     const res = await fetch(EXEC_URL, {
       method:'POST',
@@ -393,6 +486,7 @@
     if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
     return json;
   }
+
   function setActiveTab(name){
     document.querySelectorAll('[data-tab]').forEach(btn=>{
       if (btn.dataset.tab === name) { btn.classList.remove('pill-idle'); btn.classList.add('pill-active'); }
@@ -415,7 +509,8 @@
     await reloadMedia();
     await reloadRegs();
     await renderOrg();
-    await refreshSettingsAndSections();
+    await refreshSettings();     // untuk theme/typography dll
+    await loadSections();        // untuk Section Builder
   })();
 
   // ====== STATS ======
@@ -432,317 +527,11 @@
     }
   }
 
-  // ====== USER SECTIONS (Dinamik) ======
-  const sectionsWrap = document.getElementById('sectionsWrap');
-  const newSectionType = document.getElementById('newSectionType');
-  document.getElementById('btnAddSection').addEventListener('click', ()=>{
-    addSection(newSectionType.value || 'custom');
-    renderSections();
-  });
-
-  function addSection(type, data){
-    const d = data || defaultDataFor(type);
-    store.sections.push({ type, data: d });
-  }
-  function defaultDataFor(type){
-    switch(type){
-      case 'hero':   return { title:'', media:'' };
-      case 'intro':  return { html:'' };
-      case 'benefit':return { title:'', desc:'', icon:'star' };
-      case 'step':   return { title:'', desc:'' };
-      case 'faq':    return { q:'', a:'' };
-      case 'testi':  return { name:'', text:'', media:'' };
-      case 'update': return { title:'', body:'', media:'', featured:false };
-      case 'guide':  return { title:'', desc:'' };
-      case 'ban':    return { title:'', desc:'' };
-      case 'custom': return { title:'', html:'', media:'' };
-      default:       return {};
-    }
-  }
-
-  function renderSections(){
-    sectionsWrap.innerHTML = '';
-    if (!store.sections.length){
-      sectionsWrap.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Tambah menggunakan menu di atas.</div>';
-      return;
-    }
-    store.sections.forEach((sec, idx)=>{
-      const card = document.createElement('div');
-      card.className = 'sec-card';
-
-      card.innerHTML = `
-        <div class="sec-head">
-          <div class="title">
-            <i data-lucide="layout" class="w-4 h-4"></i>
-            <span>${labelFor(sec.type)}</span>
-            <span class="help">(#${idx+1} di user.html)</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <button class="btn-ghost btn-up"><i data-lucide="arrow-up" class="w-4 h-4"></i> Naik</button>
-            <button class="btn-ghost btn-down"><i data-lucide="arrow-down" class="w-4 h-4"></i> Turun</button>
-            <button class="btn-ghost btn-del text-red-600"><i data-lucide="trash" class="w-4 h-4"></i> Padam</button>
-          </div>
-        </div>
-        <div class="mt-3 grid md:grid-cols-2 gap-3" data-fields></div>
-      `;
-
-      // butang
-      card.querySelector('.btn-up').addEventListener('click', ()=>{
-        if (idx>0){ const t = store.sections[idx-1]; store.sections[idx-1]=store.sections[idx]; store.sections[idx]=t; renderSections(); }
-      });
-      card.querySelector('.btn-down').addEventListener('click', ()=>{
-        if (idx<store.sections.length-1){ const t = store.sections[idx+1]; store.sections[idx+1]=store.sections[idx]; store.sections[idx]=t; renderSections(); }
-      });
-      card.querySelector('.btn-del').addEventListener('click', ()=>{
-        store.sections.splice(idx,1);
-        renderSections();
-      });
-
-      const fields = card.querySelector('[data-fields]');
-      buildFields(fields, sec);
-
-      sectionsWrap.appendChild(card);
-    });
-    lucide.createIcons();
-  }
-
-  function labelFor(type){
-    return ({
-      hero:'Hero',
-      intro:'Pengenalan',
-      benefit:'Kebaikan',
-      step:'Cara Guna',
-      faq:'FAQ',
-      testi:'Testimoni',
-      update:'Berita/Update',
-      guide:'Garis Panduan',
-      ban:'Larangan',
-      custom:'Custom (Rich HTML)'
-    })[type] || type;
-  }
-
-  function buildFields(container, sec){
-    const D = sec.data;
-    container.innerHTML = '';
-    switch(sec.type){
-      case 'hero':
-        container.innerHTML = `
-          <div><label class="text-sm">Hero Title</label><input class="input mt-1 f-title" value="${D.title||''}"></div>
-          <div><label class="text-sm">Hero Media URL</label><input class="input mt-1 f-media" placeholder="https://..." value="${D.media||''}"></div>
-        `;
-        container.querySelector('.f-title').addEventListener('input', e=> D.title = e.target.value);
-        container.querySelector('.f-media').addEventListener('input', e=> D.media = e.target.value);
-        break;
-
-      case 'intro':
-        container.innerHTML = `
-          <div class="md:col-span-2">
-            <label class="text-sm">Kandungan (HTML ringkas dibenarkan)</label>
-            <textarea class="textarea mt-1 f-html" placeholder="<p>...</p>">${D.html||''}</textarea>
-          </div>
-        `;
-        container.querySelector('.f-html').addEventListener('input', e=> D.html = e.target.value);
-        break;
-
-      case 'benefit':
-        container.innerHTML = `
-          <div><label class="text-sm">Tajuk</label><input class="input mt-1 f-title" value="${D.title||''}"></div>
-          <div><label class="text-sm">Penerangan</label><input class="input mt-1 f-desc" value="${D.desc||''}"></div>
-          <div><label class="text-sm">Ikon (lucide, cth: star)</label><input class="input mt-1 f-icon" value="${D.icon||'star'}"></div>
-          <div class="help md:col-span-1">Lokasi: Seksyen Kebaikan</div>
-        `;
-        container.querySelector('.f-title').addEventListener('input', e=> D.title = e.target.value);
-        container.querySelector('.f-desc').addEventListener('input', e=> D.desc  = e.target.value);
-        container.querySelector('.f-icon').addEventListener('input', e=> D.icon  = e.target.value);
-        break;
-
-      case 'step':
-        container.innerHTML = `
-          <div><label class="text-sm">Tajuk Langkah</label><input class="input mt-1 f-title" value="${D.title||''}"></div>
-          <div><label class="text-sm">Penerangan</label><input class="input mt-1 f-desc" value="${D.desc||''}"></div>
-          <div class="help md:col-span-1">Lokasi: Seksyen Cara Guna</div>
-        `;
-        container.querySelector('.f-title').addEventListener('input', e=> D.title = e.target.value);
-        container.querySelector('.f-desc').addEventListener('input', e=> D.desc  = e.target.value);
-        break;
-
-      case 'faq':
-        container.innerHTML = `
-          <div><label class="text-sm">Soalan</label><input class="input mt-1 f-q" value="${D.q||''}"></div>
-          <div><label class="text-sm">Jawapan</label><input class="input mt-1 f-a" value="${D.a||''}"></div>
-          <div class="help md:col-span-1">Lokasi: Seksyen FAQ</div>
-        `;
-        container.querySelector('.f-q').addEventListener('input', e=> D.q = e.target.value);
-        container.querySelector('.f-a').addEventListener('input', e=> D.a = e.target.value);
-        break;
-
-      case 'testi':
-        container.innerHTML = `
-          <div><label class="text-sm">Nama</label><input class="input mt-1 f-name" value="${D.name||''}"></div>
-          <div><label class="text-sm">Testimoni</label><input class="input mt-1 f-text" value="${D.text||''}"></div>
-          <div><label class="text-sm">Media URL (pilihan)</label><input class="input mt-1 f-media" placeholder="https://..." value="${D.media||''}"></div>
-          <div class="help md:col-span-1">Lokasi: Seksyen Testimoni</div>
-        `;
-        container.querySelector('.f-name').addEventListener('input', e=> D.name = e.target.value);
-        container.querySelector('.f-text').addEventListener('input', e=> D.text = e.target.value);
-        container.querySelector('.f-media').addEventListener('input', e=> D.media = e.target.value);
-        break;
-
-      case 'update':
-        container.innerHTML = `
-          <div><label class="text-sm">Tajuk Update</label><input class="input mt-1 f-title" value="${D.title||''}"></div>
-          <div><label class="text-sm">Kandungan Ringkas</label><input class="input mt-1 f-body" value="${D.body||''}"></div>
-          <div><label class="text-sm">Media URL (pilihan)</label><input class="input mt-1 f-media" placeholder="https://..." value="${D.media||''}"></div>
-          <div>
-            <label class="text-sm">Utama (Featured)?</label>
-            <label class="switch ml-2"><input type="checkbox" class="f-featured" ${D.featured?'checked':''}><span></span></label>
-          </div>
-        `;
-        container.querySelector('.f-title').addEventListener('input', e=> D.title = e.target.value);
-        container.querySelector('.f-body').addEventListener('input', e=> D.body  = e.target.value);
-        container.querySelector('.f-media').addEventListener('input', e=> D.media = e.target.value);
-        container.querySelector('.f-featured').addEventListener('change', e=> D.featured = e.target.checked);
-        break;
-
-      case 'guide':
-        container.innerHTML = `
-          <div><label class="text-sm">Tajuk</label><input class="input mt-1 f-title" value="${D.title||''}"></div>
-          <div><label class="text-sm">Penerangan</label><input class="input mt-1 f-desc" value="${D.desc||''}"></div>
-          <div class="help md:col-span-1">Lokasi: Seksyen Garis Panduan</div>
-        `;
-        container.querySelector('.f-title').addEventListener('input', e=> D.title = e.target.value);
-        container.querySelector('.f-desc').addEventListener('input', e=> D.desc  = e.target.value);
-        break;
-
-      case 'ban':
-        container.innerHTML = `
-          <div><label class="text-sm">Perkara Dilarang</label><input class="input mt-1 f-title" value="${D.title||''}"></div>
-          <div><label class="text-sm">Penjelasan</label><input class="input mt-1 f-desc" value="${D.desc||''}"></div>
-          <div class="help md:col-span-1">Lokasi: Seksyen Larangan</div>
-        `;
-        container.querySelector('.f-title').addEventListener('input', e=> D.title = e.target.value);
-        container.querySelector('.f-desc').addEventListener('input', e=> D.desc  = e.target.value);
-        break;
-
-      case 'custom':
-        container.innerHTML = `
-          <div><label class="text-sm">Tajuk Seksyen</label><input class="input mt-1 f-title" value="${D.title||''}"></div>
-          <div><label class="text-sm">Media URL (pilihan)</label><input class="input mt-1 f-media" placeholder="https://..." value="${D.media||''}"></div>
-          <div class="md:col-span-2">
-            <label class="text-sm">HTML Kandungan</label>
-            <textarea class="textarea mt-1 f-html" placeholder="<section>...</section>">${D.html||''}</textarea>
-          </div>
-        `;
-        container.querySelector('.f-title').addEventListener('input', e=> D.title = e.target.value);
-        container.querySelector('.f-media').addEventListener('input', e=> D.media = e.target.value);
-        container.querySelector('.f-html').addEventListener('input', e=> D.html = e.target.value);
-        break;
-    }
-  }
-
-  async function refreshSettingsAndSections(){
-    try{
-      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
-      const s = out.settings||{};
-
-      // Typography & global (di tab Settings)
-      setMin.value = s.cashback_min || 5;
-      setMax.value = s.cashback_max || 10;
-      setLeaderPhone.value = s.whatsapp || '';
-      setFonnteApi.value = s.fonnte_api || '';
-      setThemeColor.value = s.theme_color || '#ef4444';
-      setContentWidth.value = s.content_width || '';
-      setHeadingSize.value = s.heading_size || '';
-      setHeadingColor.value = s.heading_color || '#111111';
-      setHeadingBold.checked = String(s.heading_bold||'false')==='true';
-      setBodySize.value = s.body_size || '';
-      setBodyColor.value = s.body_color || '#374151';
-      setBodyBold.checked = String(s.body_bold||'false')==='true';
-
-      // --- User Sections Dinamik ---
-      // 1) Cuba baca sections_json (jika ada)
-      let sections = [];
-      try { sections = JSON.parse(s.sections_json || '[]'); } catch(e){ sections = []; }
-
-      // 2) Jika tiada, bina dari medan lama supaya serasi user.html semasa.
-      if (!sections.length){
-        // Hero
-        if (s.hero_title || s.hero_media){ sections.push({type:'hero', data:{ title: s.hero_title||'', media: s.hero_media||'' }}); }
-        // Pengenalan
-        if (s.intro_html){ sections.push({type:'intro', data:{ html: s.intro_html||'' }}); }
-        // Kebaikan
-        const benefits = safeParseArr(s.benefits_json);
-        benefits.forEach(b=> sections.push({ type:'benefit', data:{ title:b.title||'', desc:b.desc||'', icon:b.icon||'star' } }));
-        // Cara Guna
-        const steps = safeParseArr(s.steps_json);
-        steps.forEach(st=> sections.push({ type:'step', data:{ title:st.title||'', desc:st.desc||'' } }));
-        // FAQ
-        const faqs = safeParseArr(s.faqs_json);
-        faqs.forEach(f=> sections.push({ type:'faq', data:{ q:f.q||'', a:f.a||'' } }));
-        // Testimoni
-        const testis = safeParseArr(s.testimonials_json);
-        testis.forEach(t=> sections.push({ type:'testi', data:{ name:t.name||'', text:t.text||'', media:t.media||'' } }));
-        // Updates
-        const updates = safeParseArr(s.updates_json);
-        updates.forEach(u=> sections.push({ type:'update', data:{ title:u.title||'', body:u.body||'', media:u.media||'', featured: !!u.featured } }));
-        // Garis Panduan
-        const guides = safeParseArr(s.guidelines_json);
-        guides.forEach(g=> sections.push({ type:'guide', data:{ title:g.title||'', desc:g.desc||'' } }));
-        // Larangan
-        const bans = safeParseArr(s.bans_json);
-        bans.forEach(b=> sections.push({ type:'ban', data:{ title:b.title||'', desc:b.desc||'' } }));
-      }
-
-      store.sections = sections;
-      renderSections();
-    }catch(e){ toast('Gagal memuat settings/sections'); }
-  }
-
-  function safeParseArr(s){ try{ const a=JSON.parse(s||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; } }
-
-  // Simpan User Sections → kekalkan keserasian
-  document.getElementById('btnSaveUserSections').addEventListener('click', async ()=>{
-    // Sediakan mirror lama
-    const hero     = store.sections.find(x=>x.type==='hero')?.data || {title:'',media:''};
-    const intro    = store.sections.find(x=>x.type==='intro')?.data || {html:''};
-    const benefits = store.sections.filter(x=>x.type==='benefit').map(x=>x.data);
-    const steps    = store.sections.filter(x=>x.type==='step').map(x=>x.data);
-    const faqs     = store.sections.filter(x=>x.type==='faq').map(x=>x.data);
-    const testis   = store.sections.filter(x=>x.type==='testi').map(x=>x.data);
-    const updates  = store.sections.filter(x=>x.type==='update').map(x=>x.data);
-    const guides   = store.sections.filter(x=>x.type==='guide').map(x=>x.data);
-    const bans     = store.sections.filter(x=>x.type==='ban').map(x=>x.data);
-
-    const payload = {
-      leader_id: store.leader.leader_id,
-      // lama (serasi user.html semasa)
-      hero_title: hero.title || '',
-      hero_media: hero.media || '',
-      intro_html: intro.html || '',
-      benefits_json: JSON.stringify(benefits),
-      steps_json: JSON.stringify(steps),
-      faqs_json: JSON.stringify(faqs),
-      testimonials_json: JSON.stringify(testis),
-      updates_json: JSON.stringify(updates),
-      guidelines_json: JSON.stringify(guides),
-      bans_json: JSON.stringify(bans),
-      // baru (susunan penuh)
-      sections_json: JSON.stringify(store.sections)
-    };
-
-    try{
-      await callApi('settings_set', payload);
-      toast('User Sections disimpan ✔️');
-    }catch(e){ toast('Gagal simpan User Sections'); }
-  });
-
-  document.getElementById('btnReloadUserSections').addEventListener('click', refreshSettingsAndSections);
-  document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
-
-  // ====== KANDUNGAN UMUM ======
+  // ====== KANDUNGAN (pengumuman) ======
   const elTitle   = document.getElementById('title');
   const elPublished = document.getElementById('published');
   const elBody    = document.getElementById('body');
+
   const urlInput = document.getElementById('urlInput');
   const urlList  = document.getElementById('urlList');
   document.getElementById('btnAddUrl').addEventListener('click', ()=>{
@@ -758,11 +547,12 @@
     if (!store.linkUrls.length){ urlList.innerHTML='<div class="text-sm text-gray-500">Tiada URL.</div>'; return; }
     store.linkUrls.forEach((u, idx)=>{
       const row = document.createElement('div');
-      row.className='row-rep';
+      row.className='block-row';
       row.innerHTML = `
-        <div class="grid md:grid-cols-[1fr_auto] gap-2">
-          <input class="input !py-1 !px-2" value="${u}">
-          <button class="btn-ghost">Padam</button>
+        <div class="flex items-center gap-2">
+          <i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)?'video':'link'}" class="w-4 h-4 text-gray-600"></i>
+          <input class="input !py-1 !px-2 !text-xs flex-1" value="${u}">
+          <button class="btn-ghost !py-1">Padam</button>
         </div>
       `;
       const input = row.querySelector('input');
@@ -777,6 +567,7 @@
       });
       urlList.appendChild(row);
     });
+    lucide.createIcons();
   }
 
   document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
@@ -801,6 +592,7 @@
     renderUrlList(); updateChosenMediaHint(); toast('Dikemas kini semula');
   });
   document.getElementById('btnLoadLatestContent').addEventListener('click', loadLatestContent);
+
   async function loadLatestContent(){
     try{
       const out = await callApi('content_list', { leader_id: store.leader.leader_id });
@@ -870,7 +662,7 @@
         const pName = node.name || ''; const pPkg  = node.title || ''; const partnerPhone = (byPartner.get(pName)||{}).phone || '';
         const head = document.createElement('div'); head.className='mt-3 mb-1 font-semibold'; head.textContent = `${pName || 'Partner'}${pPkg? ' ('+pPkg+')':''}`; frag.appendChild(head);
         frag.appendChild(recipientRow({ type:'partner', name:pName, phone: partnerPhone, partnerName:pName }));
-        (node.children|||[]).forEach(c=>{ frag.appendChild(recipientRow({ type:'customer', name:(c.name||''), phone:'', partnerName:pName })); });
+        (node.children||[]).forEach(c=>{ frag.appendChild(recipientRow({ type:'customer', name:(c.name||''), phone:'', partnerName:pName })); });
       });
       wrap.innerHTML = '';
       frag.childElementCount ? wrap.appendChild(frag) : wrap.innerHTML = '<div class="text-sm text-gray-500">Tiada data organisasi.</div>';
@@ -941,6 +733,7 @@
   });
   document.getElementById('btnInsertToContent').addEventListener('click', ()=>{ const count = store.selectedMedia.size; toast(count ? `Ditandakan ${count} media` : 'Tiada media dipilih'); updateChosenMediaHint(); });
   document.getElementById('btnReloadMedia').addEventListener('click', reloadMedia);
+
   async function reloadMedia(){
     try{
       const out = await callApi('media_list', { leader_id: store.leader.leader_id });
@@ -961,7 +754,7 @@
     else { const img=document.createElement('img'); img.src=url; img.loading='lazy'; img.className='w-full h-full object-cover'; wrap.appendChild(img); }
     mediaGrid.appendChild(wrap);
   }
-  function updateChosenMediaHint(){ const n = store.selectedMedia.size; if (chosenMediaHint) chosenMediaHint.textContent = n ? `${n} media dipilih (boleh lampir di kandungan)` : 'Tiada media dipilih. Pergi ke tab Media dan klik untuk memilih.'; }
+  function updateChosenMediaHint(){ const n = store.selectedMedia.size; if (chosenMediaHint) chosenMediaHint.textContent = n ? `${n} media dipilih (akan dilampirkan semasa Simpan)` : 'Tiada media dipilih. Pergi ke tab Media dan klik untuk memilih.'; }
   function toBase64NoPrefix(file){
     return new Promise((resolve,reject)=>{
       const fr = new FileReader();
@@ -1083,8 +876,20 @@
     function drawLine(x1,y1,x2,y2){ const [sx1,sy1] = toSvg(x1,y1); const [sx2,sy2] = toSvg(x2,y2); const ln = document.createElementNS('http://www.w3.org/2000/svg','line'); ln.setAttribute('x1', sx1); ln.setAttribute('y1', sy1); ln.setAttribute('x2', sx2); ln.setAttribute('y2', sy2); ln.setAttribute('stroke', '#e5e7eb'); ln.setAttribute('stroke-width', '2'); svg.appendChild(ln); }
   }
 
-  // ====== SETTINGS SAVE ======
-  document.getElementById('btnReloadSettings').addEventListener('click', refreshSettingsAndSections);
+  // ====== SETTINGS (global + typography) ======
+  async function refreshSettings(){
+    try{
+      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
+      const s = out.settings||{};
+      // global
+      setMin.value = s.cashback_min || 5; setMax.value = s.cashback_max || 10; setLeaderPhone.value = s.whatsapp || '';
+      setFonnteApi.value = s.fonnte_api || ''; setThemeColor.value = s.theme_color || '#ef4444'; setContentWidth.value = s.content_width || '';
+      // typography
+      setHeadingSize.value  = s.heading_size || ''; setHeadingColor.value = s.heading_color || '#111111'; setHeadingBold.checked = String(s.heading_bold||'false')==='true';
+      setBodySize.value  = s.body_size || ''; setBodyColor.value = s.body_color || '#374151'; setBodyBold.checked = String(s.body_bold||'false')==='true';
+    }catch(e){ /* biarkan */ }
+  }
+  document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
   document.getElementById('btnSaveSettings').addEventListener('click', async ()=>{
     let min = Number(setMin.value||5), max = Number(setMax.value||10); if (min<0) min=0; if (max<min) max=min;
     const payload = {
@@ -1097,39 +902,306 @@
     };
     try{ await callApi('settings_set', payload); toast('Settings disimpan ✔️'); }catch(e){ toast('Gagal simpan settings'); }
   });
-  document.getElementById('btnPreviewUser2').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
 
-  // ====== KANDUNGAN API helpers ======
-  function updateChosenMediaHint(){ const n = store.selectedMedia.size; if (chosenMediaHint) chosenMediaHint.textContent = n ? `${n} media dipilih` : 'Tiada media dipilih. Pergi ke tab Media dan klik untuk memilih.'; }
-  function toBase64NoPrefix(file){ return new Promise((resolve,reject)=>{ const fr = new FileReader(); fr.onload = () => { const s = String(fr.result||''); resolve(s.includes(',') ? s.split(',')[1] : s); }; fr.onerror = reject; fr.readAsDataURL(file); }); }
+  // ====== SECTION BUILDER ======
+  const sectionsWrap = document.getElementById('sectionsWrap');
+  document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
+  document.getElementById('btnPreviewUser2')?.addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
 
-  // ====== Kandungan (senarai, dsb.) ======
-  async function loadLatestContent(){ /* telah didefinisikan di atas */ }
+  document.getElementById('btnAddSection').addEventListener('click', ()=>{
+    store.sections.push(defaultSection());
+    renderSections();
+  });
+  document.getElementById('btnReloadSections').addEventListener('click', loadSections);
+  document.getElementById('btnSaveSections').addEventListener('click', async ()=>{
+    try{
+      await callApi('settings_set', { leader_id: store.leader.leader_id, sections_json: JSON.stringify(store.sections||[]) });
+      toast('User Sections disimpan ✔️');
+    }catch(e){ toast('Gagal simpan user sections'); }
+  });
 
-  // ====== PARTNER/CUSTOMER/APPROVAL helpers ======
-  function recipientRow(rec){ /* telah didefinisikan di atas */ }
+  function defaultSection(){
+    return { id: uid(), title:'Seksyen Baharu', type:'custom', featured:false, hidden:false, blocks:[
+      { kind:'text', value:'Teks contoh — ubah ikut keperluan.' }
+    ]};
+  }
 
-  // ====== BROADCAST helpers ======
-  function buildMessageWithAttachments(){ /* telah didefinisikan di atas */ }
-  function getSelectedRecipients(){ /* telah didefinisikan di atas */ }
-  function makeCSV(headers, rows){ /* telah didefinisikan di atas */ }
-  function downloadText(text, filename, mime){ /* telah didefinisikan di atas */ }
-  function renderAttachChips(){ /* telah didefinisikan di atas */ }
+  async function loadSections(){
+    try{
+      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
+      const s = out.settings||{};
+      // jika ada sections_json, guna terus
+      let sections = safeJSON(s.sections_json, null);
+      if (!Array.isArray(sections)){
+        // MIGRASI dari struktur lama (hero, intro, benefits, steps, faqs, testimonials, updates, guidelines, bans)
+        sections = migrateLegacyToSections(s);
+      }
+      store.sections = sections || [];
+      renderSections();
+    }catch(e){
+      store.sections = [];
+      renderSections();
+    }
+  }
 
-  // ====== SIMPLE URL list render ======
-  function renderUrlList(){ /* telah didefinisikan di atas */ }
+  function migrateLegacyToSections(s){
+    const arr = [];
+    // Hero
+    if (s.hero_title || s.hero_media){
+      const blocks = [];
+      if (s.hero_title) blocks.push({kind:'text', value:`<h1>${s.hero_title}</h1>`});
+      if (s.hero_media){
+        if (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(s.hero_media)) blocks.push({kind:'video', value:s.hero_media});
+        else blocks.push({kind:'image', value:s.hero_media});
+      }
+      arr.push({ id:uid(), title:'Hero', type:'hero', featured:true, hidden:false, blocks });
+    }
+    // Pengenalan
+    if (s.intro_html){
+      arr.push({ id:uid(), title:'Pengenalan', type:'rich', featured:false, hidden:false, blocks:[{kind:'text', value:s.intro_html}] });
+    }
+    // Kebaikan
+    const benefits = safeJSON(s.benefits_json, []);
+    if (benefits.length){
+      const blocks = benefits.map(b=> ({kind:'text', value:`<strong>${b.title||''}</strong> — ${b.desc||''}`}));
+      arr.push({ id:uid(), title:'Kebaikan', type:'list', featured:false, hidden:false, blocks });
+    }
+    // Steps
+    const steps = safeJSON(s.steps_json, []);
+    if (steps.length){
+      const blocks = steps.map(b=> ({kind:'text', value:`${b.title||''}: ${b.desc||''}`}));
+      arr.push({ id:uid(), title:'Cara Guna', type:'list', featured:false, hidden:false, blocks });
+    }
+    // FAQ
+    const faqs = safeJSON(s.faqs_json, []);
+    if (faqs.length){
+      const blocks = faqs.map(b=> ({kind:'text', value:`<b>Q:</b> ${b.q||''}<br><b>A:</b> ${b.a||''}`}));
+      arr.push({ id:uid(), title:'FAQ', type:'faq', featured:false, hidden:false, blocks });
+    }
+    // Testimoni
+    const testi = safeJSON(s.testimonials_json, []);
+    if (testi.length){
+      const blocks = testi.map(t=> ({kind: t.media ? (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(t.media)?'video':'image') : 'text', value: t.media || (`“${t.text||''}” — ${t.name||''}`)}));
+      arr.push({ id:uid(), title:'Testimoni', type:'testimonials', featured:false, hidden:false, blocks });
+    }
+    // Updates
+    const updates = safeJSON(s.updates_json, []);
+    if (updates.length){
+      const blocks = updates.map(u=>{
+        let v = `<strong>${u.title||''}</strong> — ${u.body||''}`;
+        if (u.media) v += `\n${u.media}`;
+        return {kind: u.media ? (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u.media)?'video':'image') : 'text', value: u.media || v, featured: !!u.featured};
+      });
+      arr.push({ id:uid(), title:'Terkini dari Leader', type:'updates', featured:true, hidden:false, blocks });
+    }
+    // Garis Panduan
+    const guides = safeJSON(s.guidelines_json, []);
+    if (guides.length){
+      const blocks = guides.map(g=> ({kind:'text', value:`<strong>${g.title||''}</strong> — ${g.desc||''}`}));
+      arr.push({ id:uid(), title:'Garis Panduan', type:'list', featured:false, hidden:false, blocks });
+    }
+    // Larangan
+    const bans = safeJSON(s.bans_json, []);
+    if (bans.length){
+      const blocks = bans.map(b=> ({kind:'text', value:`<strong>${b.title||''}</strong> — ${b.desc||''}`}));
+      arr.push({ id:uid(), title:'Larangan', type:'list', featured:false, hidden:false, blocks });
+    }
+    // fallback kalau kosong
+    if (!arr.length){
+      arr.push(defaultSection());
+    }
+    return arr;
+  }
 
-  // ====== TAB switching ======
-  function setActiveTab(name){ /* telah didefinisikan di atas */ }
+  function renderSections(){
+    sectionsWrap.innerHTML = '';
+    if (!store.sections.length){
+      sectionsWrap.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Klik “Tambah Seksyen”.</div>';
+      return;
+    }
+    store.sections.forEach((sec, idx)=>{
+      sectionsWrap.appendChild(sectionCard(sec, idx));
+    });
+    lucide.createIcons();
+  }
 
-  // ====== ORG CHART ======
-  async function renderOrg(){ /* telah didefinisikan di atas */ }
+  function sectionCard(sec, idx){
+    const card = document.createElement('div');
+    card.className = 'border border-gray-200 rounded-xl p-4';
+    card.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="panels-top-left" class="w-4 h-4"></i>
+          <input class="input !py-1 !px-2 !h-9 !text-sm w-[240px]" value="${sec.title||''}" placeholder="Tajuk seksyen">
+          <select class="input !py-1 !px-2 !h-9 !text-sm w-[160px]">
+            <option value="custom"${sec.type==='custom'?' selected':''}>Custom</option>
+            <option value="hero"${sec.type==='hero'?' selected':''}>Hero</option>
+            <option value="rich"${sec.type==='rich'?' selected':''}>Rich Text</option>
+            <option value="list"${sec.type==='list'?' selected':''}>Senarai</option>
+            <option value="faq"${sec.type==='faq'?' selected':''}>FAQ</option>
+            <option value="testimonials"${sec.type==='testimonials'?' selected':''}>Testimoni</option>
+            <option value="updates"${sec.type==='updates'?' selected':''}>Berita/Update</option>
+          </select>
+          <label class="text-xs flex items-center gap-2">
+            <span class="switch"><input type="checkbox" ${sec.featured?'checked':''}><span></span></span> Featured
+          </label>
+          <label class="text-xs flex items-center gap-2">
+            <span class="switch"><input type="checkbox" ${sec.hidden?'checked':''}><span></span></span> Sembunyi
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-ghost btn-up" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+          <button class="btn-ghost btn-down" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+          <button class="btn-ghost btn-del" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+      </div>
 
-  // ====== List reloaders ======
-  async function reloadMedia(){ /* telah didefinisikan di atas */ }
-  async function reloadPartners(){ /* telah didefinisikan di atas */ }
-  async function reloadRegs(){ /* telah didefinisikan di atas */ }
-  async function buildRecipientTree(){ /* telah didefinisikan di atas */ }
+      <div class="mt-3">
+        <div class="text-sm font-semibold mb-1">Blok Kandungan</div>
+        <div class="grid md:grid-cols-[1fr_auto] gap-2">
+          <div id="blk-${sec.id}"></div>
+          <div class="flex md:flex-col gap-2">
+            <button class="btn-ghost btn-add-text"><i data-lucide="type" class="w-4 h-4"></i> Text</button>
+            <button class="btn-ghost btn-add-image"><i data-lucide="image" class="w-4 h-4"></i> Gambar URL</button>
+            <button class="btn-ghost btn-add-video"><i data-lucide="video" class="w-4 h-4"></i> Video URL</button>
+            <button class="btn-ghost btn-add-link"><i data-lucide="link" class="w-4 h-4"></i> Link</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    // wiring header fields
+    const [titleInput, typeSelect, featuredToggle, hiddenToggle] = card.querySelectorAll('input,select');
+    titleInput.addEventListener('input', e=> sec.title = e.target.value);
+    typeSelect.addEventListener('change', e=> sec.type = e.target.value);
+    featuredToggle.addEventListener('change', e=> sec.featured = e.target.checked);
+    hiddenToggle.addEventListener('change', e=> sec.hidden = e.target.checked);
+
+    // move up/down/delete
+    card.querySelector('.btn-up').addEventListener('click', ()=>{
+      if (idx<=0) return;
+      const tmp = store.sections[idx-1]; store.sections[idx-1] = store.sections[idx]; store.sections[idx] = tmp;
+      renderSections();
+    });
+    card.querySelector('.btn-down').addEventListener('click', ()=>{
+      if (idx>=store.sections.length-1) return;
+      const tmp = store.sections[idx+1]; store.sections[idx+1] = store.sections[idx]; store.sections[idx] = tmp;
+      renderSections();
+    });
+    card.querySelector('.btn-del').addEventListener('click', ()=>{
+      if (!confirm('Padam seksyen ini?')) return;
+      store.sections.splice(idx,1);
+      renderSections();
+    });
+
+    // render blocks
+    function renderBlocks(){
+      const host = card.querySelector(`#blk-${sec.id}`);
+      host.innerHTML = '';
+      if (!Array.isArray(sec.blocks) || !sec.blocks.length){
+        host.innerHTML = '<div class="text-sm text-gray-500">Tiada blok. Tambah blok di sebelah kanan.</div>';
+        return;
+      }
+      sec.blocks.forEach((blk, bIdx)=>{
+        const row = document.createElement('div');
+        row.className = 'block-row';
+        if (blk.kind === 'text'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="type" class="w-3.5 h-3.5"></i> Text</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <textarea class="textarea">${blk.value||''}</textarea>
+            <div class="help mt-1">Boleh guna HTML ringkas (cth &lt;strong&gt;, &lt;em&gt;, &lt;br&gt;). Untuk tajuk besar, gunakan &lt;h2&gt;Tajuk&lt;/h2&gt;.</div>
+          `;
+          row.querySelector('textarea').addEventListener('input', e=> blk.value = e.target.value);
+        } else if (blk.kind === 'image'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="image" class="w-3.5 h-3.5"></i> Gambar URL</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <input class="input" placeholder="https://..." value="${blk.value||''}">
+            <div class="help mt-1">Letak pautan gambar (Google Drive “Anyone with link” / CDN / hosting sendiri).</div>
+          `;
+          row.querySelector('input').addEventListener('input', e=> blk.value = e.target.value);
+        } else if (blk.kind === 'video'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="video" class="w-3.5 h-3.5"></i> Video URL</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <input class="input" placeholder="https://... (mp4/webm dll)" value="${blk.value||''}">
+            <div class="help mt-1">Letak fail .mp4 / .webm (atau link YouTube — user.html akan cuba embed).</div>
+          `;
+          row.querySelector('input').addEventListener('input', e=> blk.value = e.target.value);
+        } else if (blk.kind === 'link'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="link" class="w-3.5 h-3.5"></i> Pautan</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-2">
+              <input class="input" placeholder="Teks link (cth: Lihat panduan)" value="${blk.text||''}">
+              <input class="input" placeholder="https://..." value="${blk.value||''}">
+            </div>
+          `;
+          const [txt, url] = row.querySelectorAll('input');
+          txt.addEventListener('input', e=> blk.text = e.target.value);
+          url.addEventListener('input', e=> blk.value = e.target.value);
+        }
+        // move/del block
+        row.querySelector('.btn-upb').addEventListener('click', ()=>{
+          if (bIdx<=0) return;
+          const t=sec.blocks[bIdx-1]; sec.blocks[bIdx-1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
+        });
+        row.querySelector('.btn-downb').addEventListener('click', ()=>{
+          if (bIdx>=sec.blocks.length-1) return;
+          const t=sec.blocks[bIdx+1]; sec.blocks[bIdx+1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
+        });
+        row.querySelector('.btn-delb').addEventListener('click', ()=>{
+          sec.blocks.splice(bIdx,1); renderBlocks();
+        });
+        host.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+    renderBlocks();
+
+    // add block buttons
+    card.querySelector('.btn-add-text').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'text', value:''}); renderBlocks();
+    });
+    card.querySelector('.btn-add-image').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'image', value:''}); renderBlocks();
+    });
+    card.querySelector('.btn-add-video').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'video', value:''}); renderBlocks();
+    });
+    card.querySelector('.btn-add-link').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'link', text:'', value:''}); renderBlocks();
+    });
+
+    return card;
+  }
+
+  function safeJSON(s, def){ try{ const x = JSON.parse(s||''); return x; }catch(_){ return def; } }
 
 </script>
 </body>
