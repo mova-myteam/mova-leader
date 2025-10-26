@@ -47,6 +47,7 @@
     .help{font-size:.75rem;color:#6b7280}
     .block-row{border:1px dashed #e5e7eb;border-radius:.6rem;padding:.6rem}
     .block-row + .block-row{margin-top:.5rem}
+    .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
   </style>
 </head>
 <body class="bg-gray-50">
@@ -125,7 +126,7 @@
         <div class="text-sm text-gray-600">
           Gunakan “Tambah Seksyen” untuk buat seksyen baharu. Anda boleh isi:
           <b>Text</b>, <b>Gambar (URL)</b>, <b>Video (URL)</b>, atau <b>Link</b>.  
-          Urutan seksyen di sini = urutan paparan dalam <b>user.html</b>.
+          Urutan seksyen di sini = urutan paparan dalam <b>user.html</b>. Klik <b>Preview Mini</b> untuk prarupa.
         </div>
         <div class="flex items-center gap-2">
           <button id="btnAddSection" class="btn-ghost"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Seksyen</button>
@@ -268,7 +269,7 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Approvals ===== -->
+    <!-- ===== Tab: Approvals ====== -->
     <div id="tab-approve" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
@@ -448,8 +449,8 @@
     linkUrls: [],               // URL luaran untuk Content
     partners: [],
     attachments: [],            // untuk Broadcast
-    // Section Builder (user.html)
-    sections: []                // [{id,title,type,featured,blocks:[{kind:'text'|'image'|'video'|'link',value:string}], hidden:false}]
+    sections: [],               // Section Builder
+    settings: {}                // Settings terkini untuk preview mini
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -509,7 +510,7 @@
     await reloadMedia();
     await reloadRegs();
     await renderOrg();
-    await refreshSettings();     // untuk theme/typography dll
+    await refreshSettings();     // untuk theme/typography dll + preview mini
     await loadSections();        // untuk Section Builder
   })();
 
@@ -881,12 +882,15 @@
     try{
       const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
       const s = out.settings||{};
+      store.settings = s || {};
       // global
       setMin.value = s.cashback_min || 5; setMax.value = s.cashback_max || 10; setLeaderPhone.value = s.whatsapp || '';
       setFonnteApi.value = s.fonnte_api || ''; setThemeColor.value = s.theme_color || '#ef4444'; setContentWidth.value = s.content_width || '';
       // typography
       setHeadingSize.value  = s.heading_size || ''; setHeadingColor.value = s.heading_color || '#111111'; setHeadingBold.checked = String(s.heading_bold||'false')==='true';
       setBodySize.value  = s.body_size || ''; setBodyColor.value = s.body_color || '#374151'; setBodyBold.checked = String(s.body_bold||'false')==='true';
+      // kemas kini CSS root untuk brand color mini preview
+      document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
     }catch(e){ /* biarkan */ }
   }
   document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
@@ -900,7 +904,7 @@
       heading_size: (setHeadingSize.value||'').trim(), heading_color: (setHeadingColor.value||'#111111'), heading_bold: String(setHeadingBold.checked),
       body_size: (setBodySize.value||'').trim(), body_color: (setBodyColor.value||'#374151'), body_bold: String(setBodyBold.checked)
     };
-    try{ await callApi('settings_set', payload); toast('Settings disimpan ✔️'); }catch(e){ toast('Gagal simpan settings'); }
+    try{ await callApi('settings_set', payload); toast('Settings disimpan ✔️'); store.settings = payload; }catch(e){ toast('Gagal simpan settings'); }
   });
 
   // ====== SECTION BUILDER ======
@@ -930,10 +934,9 @@
     try{
       const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
       const s = out.settings||{};
-      // jika ada sections_json, guna terus
+      store.settings = s || store.settings;
       let sections = safeJSON(s.sections_json, null);
       if (!Array.isArray(sections)){
-        // MIGRASI dari struktur lama (hero, intro, benefits, steps, faqs, testimonials, updates, guidelines, bans)
         sections = migrateLegacyToSections(s);
       }
       store.sections = sections || [];
@@ -946,7 +949,6 @@
 
   function migrateLegacyToSections(s){
     const arr = [];
-    // Hero
     if (s.hero_title || s.hero_media){
       const blocks = [];
       if (s.hero_title) blocks.push({kind:'text', value:`<h1>${s.hero_title}</h1>`});
@@ -956,35 +958,29 @@
       }
       arr.push({ id:uid(), title:'Hero', type:'hero', featured:true, hidden:false, blocks });
     }
-    // Pengenalan
     if (s.intro_html){
       arr.push({ id:uid(), title:'Pengenalan', type:'rich', featured:false, hidden:false, blocks:[{kind:'text', value:s.intro_html}] });
     }
-    // Kebaikan
     const benefits = safeJSON(s.benefits_json, []);
     if (benefits.length){
       const blocks = benefits.map(b=> ({kind:'text', value:`<strong>${b.title||''}</strong> — ${b.desc||''}`}));
       arr.push({ id:uid(), title:'Kebaikan', type:'list', featured:false, hidden:false, blocks });
     }
-    // Steps
     const steps = safeJSON(s.steps_json, []);
     if (steps.length){
       const blocks = steps.map(b=> ({kind:'text', value:`${b.title||''}: ${b.desc||''}`}));
       arr.push({ id:uid(), title:'Cara Guna', type:'list', featured:false, hidden:false, blocks });
     }
-    // FAQ
     const faqs = safeJSON(s.faqs_json, []);
     if (faqs.length){
       const blocks = faqs.map(b=> ({kind:'text', value:`<b>Q:</b> ${b.q||''}<br><b>A:</b> ${b.a||''}`}));
       arr.push({ id:uid(), title:'FAQ', type:'faq', featured:false, hidden:false, blocks });
     }
-    // Testimoni
     const testi = safeJSON(s.testimonials_json, []);
     if (testi.length){
       const blocks = testi.map(t=> ({kind: t.media ? (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(t.media)?'video':'image') : 'text', value: t.media || (`“${t.text||''}” — ${t.name||''}`)}));
       arr.push({ id:uid(), title:'Testimoni', type:'testimonials', featured:false, hidden:false, blocks });
     }
-    // Updates
     const updates = safeJSON(s.updates_json, []);
     if (updates.length){
       const blocks = updates.map(u=>{
@@ -994,22 +990,17 @@
       });
       arr.push({ id:uid(), title:'Terkini dari Leader', type:'updates', featured:true, hidden:false, blocks });
     }
-    // Garis Panduan
     const guides = safeJSON(s.guidelines_json, []);
     if (guides.length){
       const blocks = guides.map(g=> ({kind:'text', value:`<strong>${g.title||''}</strong> — ${g.desc||''}`}));
       arr.push({ id:uid(), title:'Garis Panduan', type:'list', featured:false, hidden:false, blocks });
     }
-    // Larangan
     const bans = safeJSON(s.bans_json, []);
     if (bans.length){
       const blocks = bans.map(b=> ({kind:'text', value:`<strong>${b.title||''}</strong> — ${b.desc||''}`}));
       arr.push({ id:uid(), title:'Larangan', type:'list', featured:false, hidden:false, blocks });
     }
-    // fallback kalau kosong
-    if (!arr.length){
-      arr.push(defaultSection());
-    }
+    if (!arr.length){ arr.push(defaultSection()); }
     return arr;
   }
 
@@ -1030,7 +1021,7 @@
     card.className = 'border border-gray-200 rounded-xl p-4';
     card.innerHTML = `
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           <i data-lucide="panels-top-left" class="w-4 h-4"></i>
           <input class="input !py-1 !px-2 !h-9 !text-sm w-[240px]" value="${sec.title||''}" placeholder="Tajuk seksyen">
           <select class="input !py-1 !px-2 !h-9 !text-sm w-[160px]">
@@ -1050,6 +1041,7 @@
           </label>
         </div>
         <div class="flex items-center gap-2">
+          <button class="btn-ghost btn-prev-mini" title="Preview Mini"><i data-lucide="eye" class="w-4 h-4"></i></button>
           <button class="btn-ghost btn-up" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
           <button class="btn-ghost btn-down" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
           <button class="btn-ghost btn-del" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
@@ -1068,14 +1060,18 @@
           </div>
         </div>
       </div>
+
+      <div class="mt-3 hidden mini-prev" id="prev-${sec.id}">
+        <!-- mini preview render here -->
+      </div>
     `;
 
     // wiring header fields
     const [titleInput, typeSelect, featuredToggle, hiddenToggle] = card.querySelectorAll('input,select');
-    titleInput.addEventListener('input', e=> sec.title = e.target.value);
-    typeSelect.addEventListener('change', e=> sec.type = e.target.value);
-    featuredToggle.addEventListener('change', e=> sec.featured = e.target.checked);
-    hiddenToggle.addEventListener('change', e=> sec.hidden = e.target.checked);
+    titleInput.addEventListener('input', e=>{ sec.title = e.target.value; rerenderMini(); });
+    typeSelect.addEventListener('change', e=>{ sec.type = e.target.value; rerenderMini(); });
+    featuredToggle.addEventListener('change', e=>{ sec.featured = e.target.checked; rerenderMini(); });
+    hiddenToggle.addEventListener('change', e=>{ sec.hidden = e.target.checked; rerenderMini(); });
 
     // move up/down/delete
     card.querySelector('.btn-up').addEventListener('click', ()=>{
@@ -1093,6 +1089,20 @@
       store.sections.splice(idx,1);
       renderSections();
     });
+
+    // preview mini toggle
+    const btnPrev = card.querySelector('.btn-prev-mini');
+    const prevBox = card.querySelector('#prev-'+sec.id);
+    btnPrev.addEventListener('click', ()=>{
+      prevBox.classList.toggle('hidden');
+      if (!prevBox.classList.contains('hidden')) rerenderMini();
+    });
+
+    function rerenderMini(){
+      // Render HTML kecil berdasarkan blocks + settings
+      const html = sectionPreviewHTML(sec, store.settings);
+      prevBox.innerHTML = html;
+    }
 
     // render blocks
     function renderBlocks(){
@@ -1116,9 +1126,9 @@
               </div>
             </div>
             <textarea class="textarea">${blk.value||''}</textarea>
-            <div class="help mt-1">Boleh guna HTML ringkas (cth &lt;strong&gt;, &lt;em&gt;, &lt;br&gt;). Untuk tajuk besar, gunakan &lt;h2&gt;Tajuk&lt;/h2&gt;.</div>
+            <div class="help mt-1">Boleh guna HTML ringkas (cth &lt;h2&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;br&gt;).</div>
           `;
-          row.querySelector('textarea').addEventListener('input', e=> blk.value = e.target.value);
+          row.querySelector('textarea').addEventListener('input', e=>{ blk.value = e.target.value; });
         } else if (blk.kind === 'image'){
           row.innerHTML = `
             <div class="flex items-center justify-between mb-1">
@@ -1143,8 +1153,8 @@
                 <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
               </div>
             </div>
-            <input class="input" placeholder="https://... (mp4/webm dll)" value="${blk.value||''}">
-            <div class="help mt-1">Letak fail .mp4 / .webm (atau link YouTube — user.html akan cuba embed).</div>
+            <input class="input" placeholder="https://... (mp4/webm atau YouTube)" value="${blk.value||''}">
+            <div class="help mt-1">Fail .mp4/.webm atau link YouTube — user.html akan cuba embed.</div>
           `;
           row.querySelector('input').addEventListener('input', e=> blk.value = e.target.value);
         } else if (blk.kind === 'link'){
@@ -1199,6 +1209,68 @@
     });
 
     return card;
+  }
+
+  // ==== MINI PREVIEW RENDERER ====
+  function sectionPreviewHTML(sec, s){
+    // s = settings (typography/theme)
+    const hSize = Number(s?.heading_size||0) || 28;
+    const bSize = Number(s?.body_size||0) || 16;
+    const hColor = s?.heading_color || '#111111';
+    const bColor = s?.body_color || '#374151';
+    const hBold = String(s?.heading_bold||'false')==='true';
+    const bBold = String(s?.body_bold||'false')==='true';
+    const theme = s?.theme_color || '#ef4444';
+
+    const style = `
+      style="
+        --theme:${theme};
+        --hSize:${hSize}px; --bSize:${bSize}px;
+        --hColor:${hColor}; --bColor:${bColor};
+        --hWeight:${hBold?'800':'600'}; --bWeight:${bBold?'600':'400'};
+      "
+    `;
+    const esc = (t)=> String(t||'');
+    const blocks = (sec.blocks||[]).map(b=>{
+      if (b.kind==='text'){
+        // render as is (allow simple HTML)
+        return `<div style="font-size:var(--bSize);color:var(--bColor);font-weight:var(--bWeight);line-height:1.6;margin:.4rem 0">${esc(b.value)}</div>`;
+      } else if (b.kind==='image'){
+        const u = esc(b.value);
+        return u? `<img src="${u}" alt="" style="max-width:100%;border-radius:12px;border:1px solid #eee;margin:.4rem 0">` : '';
+      } else if (b.kind==='video'){
+        const u = esc(b.value);
+        if (!u) return '';
+        // youtube embed?
+        const yt = parseYouTube(u);
+        if (yt) return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid #eee;margin:.4rem 0"><iframe src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe></div>`;
+        return `<video src="${u}" controls playsinline style="width:100%;border-radius:12px;border:1px solid #eee;margin:.4rem 0"></video>`;
+      } else if (b.kind==='link'){
+        const text = esc(b.text||'Pautan');
+        const u = esc(b.value||'#');
+        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--theme);color:#fff;padding:.5rem .8rem;border-radius:.6rem;text-decoration:none;margin:.4rem 0">${text}</a>`;
+      }
+      return '';
+    }).join('');
+
+    const title = sec.title ? `<div style="font-size:var(--hSize);color:var(--hColor);font-weight:var(--hWeight);margin-bottom:.4rem">${esc(sec.title)}</div>` : '';
+    const tag = sec.featured ? `<span style="display:inline-block;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:9999px;font-size:12px;padding:2px 8px;margin-bottom:6px">Featured</span>` : '';
+
+    return `<div ${style}>
+      ${tag}
+      ${title}
+      ${blocks || '<div style="color:#6b7280;font-size:14px">Tiada kandungan.</div>'}
+      ${sec.hidden ? '<div style="margin-top:6px;color:#9ca3af;font-size:12px">* Seksyen ini ditanda Sembunyi</div>' : ''}
+    </div>`;
+  }
+
+  function parseYouTube(url){
+    try{
+      const u = new URL(url);
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    }catch(_){}
+    return null;
   }
 
   function safeJSON(s, def){ try{ const x = JSON.parse(s||''); return x; }catch(_){ return def; } }
