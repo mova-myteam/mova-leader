@@ -5,31 +5,38 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MOVA Leader — Dashboard</title>
 
-  <!-- Inter -->
+  <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind (CDN untuk tool dalaman ok) -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    :root{ --brand:#ef4444 }
+    :root { --brand:#ef4444; }
     html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
-    .scrollbar::-webkit-scrollbar{height:8px;width:8px}
-    .scrollbar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
-    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06) }
-    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb }
-    .pill-active{ background:#111; color:#fff; border-color:#111 }
-    .btn{ border-radius:.75rem; font-weight:700; padding:.56rem .95rem }
-    .btn-primary{ background:var(--brand); color:#fff }
-    .btn-ghost{ background:#fff; border:1px solid #e5e7eb }
-    .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem .9rem; background:#fff }
-    .textarea{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; min-height:120px }
-    .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151 }
-    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999 }
-    .media-tile{ position:relative; overflow:hidden; border:1px solid #e5e7eb; border-radius:.75rem; cursor:pointer }
-    .media-tile.selected{ outline:2px solid #111 }
-    /* preview mini */
+    .scroll-bar::-webkit-scrollbar{height:8px}
+    .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; }
+    .pill-active{ background:#111; color:#fff; border-color:#111; }
+    .pill-idle{ background:#fff; color:#374151; }
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
+    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.5rem 1rem; font-weight:700; }
+    .btn-primary:hover{ filter:brightness(0.95); }
+    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.5rem 1rem; }
+    .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem .9rem; background:#fff; }
+    .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .textarea{ width:100%; min-height:140px; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; background:#fff; }
+    .textarea:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
+    .media-tile{ position:relative; overflow:hidden; border:1px solid #e5e7eb; border-radius:.75rem; cursor:pointer; }
+    .media-tile.selected{ outline:2px solid #111; }
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
+    .table{ width:100%; border-collapse:separate; border-spacing:0; }
+    .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
+    .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
+
+    /* Preview mini (user.html look & feel ringkas) */
     .mini h1{font-size:1.25rem;font-weight:800}
     .mini h2{font-size:1.1rem;font-weight:700}
     .mini p{color:#374151}
@@ -37,7 +44,7 @@
 </head>
 <body class="bg-gray-50">
 
-<!-- ===== HEADER ===== -->
+<!-- ====== HEADER ====== -->
 <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
@@ -51,142 +58,220 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <button id="btnLogout" class="btn btn-primary flex items-center gap-2">
+      <button id="btnLogout" class="btn-primary flex items-center gap-2">
         <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar
       </button>
     </div>
   </div>
 </header>
 
-<!-- ===== MAIN ===== -->
+<!-- ====== CONTENT ====== -->
 <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
   <!-- KPI -->
   <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    <div class="card p-5"><div class="text-3xl font-extrabold" id="statPartners">—</div><div class="text-sm text-gray-600">Total Partners</div></div>
-    <div class="card p-5"><div class="text-3xl font-extrabold" id="statCustomers">—</div><div class="text-sm text-gray-600">Total Customers</div></div>
-    <div class="card p-5"><div class="text-3xl font-extrabold" id="statPending">—</div><div class="text-sm text-gray-600">Pending Approvals</div></div>
-    <div class="card p-5"><div class="text-3xl font-extrabold" id="statPublished">—</div><div class="text-sm text-gray-600">Published Content</div></div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPartners">—</div>
+      <div class="text-sm text-gray-600">Total Partners</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statCustomers">—</div>
+      <div class="text-sm text-gray-600">Total Customers</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPending">—</div>
+      <div class="text-sm text-gray-600">Pending Approvals</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPublished">—</div>
+      <div class="text-sm text-gray-600">Published Content</div>
+    </div>
   </section>
 
-  <!-- Tabs -->
+  <!-- TABS -->
   <section class="card p-3">
-    <div class="flex gap-2 overflow-x-auto scrollbar">
+    <div class="flex gap-2 overflow-x-auto scroll-bar">
       <button data-tab="content" class="pill pill-active"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
-      <button data-tab="media" class="pill"><i data-lucide="image" class="w-4 h-4"></i> Media Library</button>
-      <button data-tab="partner" class="pill"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Partner</button>
-      <button data-tab="customer" class="pill"><i data-lucide="users" class="w-4 h-4"></i> Tambah Customer</button>
-      <button data-tab="approve" class="pill"><i data-lucide="check-circle" class="w-4 h-4"></i> Approve Pendaftaran</button>
-      <button data-tab="org" class="pill"><i data-lucide="network" class="w-4 h-4"></i> Carta Organisasi</button>
-      <button data-tab="usersite" class="pill"><i data-lucide="layout-template" class="w-4 h-4"></i> User Sections</button>
-      <button data-tab="settings" class="pill"><i data-lucide="settings" class="w-4 h-4"></i> Setting</button>
+      <button data-tab="media" class="pill pill-idle"><i data-lucide="image" class="w-4 h-4"></i> Media Library</button>
+      <button data-tab="partner" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Partner</button>
+      <button data-tab="customer" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Tambah Customer</button>
+      <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approve Pendaftaran</button>
+      <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta Organisasi</button>
+      <!-- ✅ Tab baharu/kemaskini: User Sections -->
+      <button data-tab="usersite" class="pill pill-idle"><i data-lucide="layout-template" class="w-4 h-4"></i> User Sections</button>
+      <!-- ✅ Settings (Fonnte + default cashback) — seperti versi sebelumnya -->
+      <button data-tab="settings" class="pill pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Setting</button>
     </div>
   </section>
 
-  <!-- ===== PANELS ===== -->
+  <!-- ==================== PANELS (KEKAL SEPERTI ASAL) ==================== -->
 
-  <!-- Content (asal) -->
+  <!-- ===== Tab: Kandungan (ASAL) ===== -->
   <section id="tab-content" class="card p-6 space-y-5">
-    <div class="flex items-center gap-2"><i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Kandungan Laman (Paparan untuk Pelanggan)</h2></div>
+    <div class="flex items-center gap-2">
+      <i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="text-lg font-semibold">Kandungan Laman (Paparan untuk Pelanggan)</h2>
+    </div>
+
     <div class="grid gap-4 md:grid-cols-2">
-      <div><label class="text-sm font-medium">Tajuk</label><input id="title" class="input mt-1" placeholder="Contoh: Promosi MOVA"/></div>
-      <div><label class="text-sm font-medium">Terbit?</label><select id="published" class="input mt-1"><option value="yes">Ya</option><option value="no">Tidak</option></select></div>
+      <div>
+        <label class="text-sm font-medium text-gray-700">Tajuk</label>
+        <input id="title" class="input mt-1" placeholder="Contoh: Promosi MOVA" />
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700">Terbit?</label>
+        <select id="published" class="input mt-1">
+          <option value="yes">Ya</option>
+          <option value="no">Tidak</option>
+        </select>
+      </div>
     </div>
+
     <div>
-      <label class="text-sm font-medium">Isi Kandungan</label>
-      <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi."></textarea>
-      <div class="mt-2 text-xs text-gray-500">Tip: Guna tab <b>Media Library</b> untuk selit media dengan kemas.</div>
+      <label class="text-sm font-medium text-gray-700">Isi Kandungan</label>
+      <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi. Boleh selit <video> atau ![alt](url)."></textarea>
+      <div class="mt-2 text-xs text-gray-500">
+        Tip: Guna tab <b>Media Library</b> → pilih media → <b>Insert ke Kandungan</b>.
+      </div>
     </div>
+
     <div class="flex items-center gap-3">
-      <button id="btnSaveContent" class="btn btn-primary">Simpan / Kemas Kini</button>
-      <button id="btnRefreshContent" class="btn btn-ghost">Segar Semula</button>
-      <button id="btnLoadLatestContent" class="btn btn-ghost">Muat Terbaru</button>
+      <button id="btnSaveContent" class="btn-primary">Simpan / Kemas Kini</button>
+      <button id="btnRefreshContent" class="btn-ghost">Segar Semula</button>
+      <button id="btnLoadLatestContent" class="btn-ghost">Muat Turun Terbaru</button>
     </div>
+
     <div id="contentListWrap" class="hidden">
       <div class="mt-4 text-sm font-semibold">Kandungan Terkini</div>
       <div id="contentList" class="mt-2 grid gap-3"></div>
     </div>
+
     <hr class="my-2">
+
     <div class="space-y-3">
-      <div class="flex items-center gap-2"><i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i><h3 class="font-semibold">Broadcast Ringkas</h3><span class="badge">log only</span></div>
+      <div class="flex items-center gap-2">
+        <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
+        <h3 class="font-semibold">Broadcast Ringkas</h3>
+        <span class="badge">log only</span>
+      </div>
       <div class="grid gap-3 md:grid-cols-[1fr_auto]">
         <input id="broadcastMsg" class="input" placeholder="Contoh: Perjumpaan malam ini jam 9.00 mlm."/>
-        <button id="btnBroadcast" class="btn btn-ghost">Hantar</button>
+        <button id="btnBroadcast" class="btn-ghost">Hantar</button>
       </div>
     </div>
   </section>
 
-  <!-- Media -->
+  <!-- ===== Tab: Media (ASAL) ===== -->
   <section id="tab-media" class="card p-6 space-y-5 hidden">
-    <div class="flex items-center gap-2"><i data-lucide="image" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Media Library</h2></div>
+    <div class="flex items-center gap-2">
+      <i data-lucide="image" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="text-lg font-semibold">Media Library (Gambar & Video)</h2>
+    </div>
+
     <div class="grid gap-3 md:grid-cols-[1fr_auto]">
       <input id="fileInput" type="file" accept="image/*,video/*" class="input"/>
       <div class="flex items-center gap-2">
-        <button id="btnUpload" class="btn btn-primary">Muat Naik</button>
-        <button id="btnReloadMedia" class="btn btn-ghost">Segar Semula</button>
+        <button id="btnUpload" class="btn-primary">Muat Naik</button>
+        <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
       </div>
     </div>
+
     <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
   </section>
 
-  <!-- Partner -->
+  <!-- ===== Tab: Partner (ASAL) ===== -->
   <section id="tab-partner" class="card p-6 space-y-5 hidden">
-    <div class="flex items-center gap-2"><i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Tambah Partner</h2></div>
+    <div class="flex items-center gap-2">
+      <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="text-lg font-semibold">Tambah Partner</h2>
+    </div>
     <div class="grid gap-3 md:grid-cols-4">
       <input id="partnerName" class="input" placeholder="Nama penuh">
       <input id="partnerEmail" class="input" placeholder="Email">
       <input id="partnerPhone" class="input" placeholder="No. Telefon">
-      <select id="partnerPackage" class="input"><option value="">Pakej</option><option>Silver</option><option>Gold</option><option>Diamond</option></select>
+      <select id="partnerPackage" class="input">
+        <option value="">Pakej</option>
+        <option>Silver</option>
+        <option>Gold</option>
+        <option>Diamond</option>
+      </select>
     </div>
-    <div class="flex items-center gap-2"><button id="btnCreatePartner" class="btn btn-primary">Cipta Partner</button></div>
+    <div class="flex items-center gap-2">
+      <button id="btnCreatePartner" class="btn-primary">Cipta Partner</button>
+      <span class="text-xs text-gray-500">* partner akan dipaparkan dalam Carta Organisasi selepas ditambah.</span>
+    </div>
   </section>
 
-  <!-- Customer -->
+  <!-- ===== Tab: Customer (ASAL) ===== -->
   <section id="tab-customer" class="card p-6 space-y-5 hidden">
-    <div class="flex items-center gap-2"><i data-lucide="users" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Tambah Customer</h2></div>
+    <div class="flex items-center gap-2">
+      <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="text-lg font-semibold">Tambah Customer</h2>
+    </div>
     <div class="grid gap-3 md:grid-cols-3">
       <input id="customerName" class="input" placeholder="Nama customer">
       <input id="customerPhone" class="input" placeholder="+60XXXXXXXXX">
       <select id="customerPartner" class="input"><option value="">Pilih Partner</option></select>
     </div>
-    <div><button id="btnAddCustomer" class="btn btn-primary">Tambah Customer</button></div>
+    <div>
+      <button id="btnAddCustomer" class="btn-primary">Tambah Customer</button>
+    </div>
   </section>
 
-  <!-- Approvals -->
+  <!-- ===== Tab: Approve (ASAL) ===== -->
   <section id="tab-approve" class="card p-6 space-y-5 hidden">
-    <div class="flex items-center gap-2"><i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Approve Pendaftaran</h2></div>
+    <div class="flex items-center gap-2">
+      <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="text-lg font-semibold">Approve Pendaftaran</h2>
+    </div>
     <div class="overflow-auto">
-      <table class="w-full border-separate border-spacing-0">
-        <thead><tr><th class="text-left p-2 border-b">ID</th><th class="text-left p-2 border-b">Nama</th><th class="text-left p-2 border-b">Telefon</th><th class="text-left p-2 border-b">Status</th><th class="text-left p-2 border-b">Tindakan</th></tr></thead>
-        <tbody id="regTableBody"></tbody>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
+          </tr>
+        </thead>
+        <tbody id="regTableBody">
+          <!-- rows -->
+        </tbody>
       </table>
     </div>
-    <div class="flex gap-2"><button id="btnReloadReg" class="btn btn-ghost">Segar Semula</button></div>
+    <div class="flex gap-2">
+      <button id="btnReloadReg" class="btn-ghost">Segar Semula</button>
+    </div>
   </section>
 
-  <!-- Org -->
+  <!-- ===== Tab: Carta Organisasi (ASAL) ===== -->
   <section id="tab-org" class="card p-6 hidden">
-    <div class="flex items-center gap-2 mb-4"><i data-lucide="network" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Carta Organisasi</h2></div>
+    <div class="flex items-center gap-2 mb-4">
+      <i data-lucide="network" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="text-lg font-semibold">Carta Organisasi</h2>
+    </div>
     <div id="orgWrap" class="relative overflow-x-auto">
       <svg id="orgSvg" class="absolute inset-0 pointer-events-none"></svg>
       <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
     </div>
-    <div class="mt-4 flex gap-2"><button id="btnReloadOrg" class="btn btn-ghost">Segar Semula Carta</button></div>
+    <div class="mt-4 flex gap-2">
+      <button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button>
+    </div>
   </section>
 
-  <!-- ===== USER SECTIONS (dikemaskini ikut user.html) ===== -->
+  <!-- ===== Tab: User Sections (DIKEMASKINI) ===== -->
   <section id="tab-usersite" class="card p-6 space-y-5 hidden">
     <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2"><i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">User Sections — Susun, Tambah, Padam & Edit</h2></div>
       <div class="flex items-center gap-2">
-        <button id="btnPreviewMini" class="btn btn-ghost">Preview Laman User</button>
-        <button id="btnSaveSections" class="btn btn-primary">Simpan User Sections</button>
+        <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">User Sections — Susun, Tambah, Padam & Edit</h2>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnPreviewMini" class="btn-ghost">Preview Laman User</button>
+        <button id="btnSaveSections" class="btn-primary">Simpan User Sections</button>
       </div>
     </div>
 
-    <!-- Toolbar -->
+    <!-- Toolbar tambah seksyen -->
     <div class="flex flex-wrap items-center gap-2">
-      <select id="newSectionType" class="input w-56">
+      <select id="newSectionType" class="input w-64">
         <option value="hero">Hero (tajuk, subtitle, gambar/video)</option>
         <option value="how">Bagaimana Ia Berfungsi</option>
         <option value="calc">Kalkulator Cashback</option>
@@ -197,56 +282,88 @@
         <option value="cta">Call To Action</option>
         <option value="section">Seksyen Tersuai</option>
       </select>
-      <button id="btnAddSection" class="btn btn-ghost flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Tambah Seksyen</button>
+      <button id="btnAddSection" class="btn-ghost flex items-center gap-2"><i data-lucide="plus" class="w-4 h-4"></i>Tambah Seksyen</button>
     </div>
 
     <div class="grid md:grid-cols-[300px_1fr] gap-4">
-      <!-- senarai seksyen -->
+      <!-- Senarai urutan -->
       <div class="card p-3">
         <div class="text-sm font-semibold mb-2">Urutan Seksyen</div>
         <ul id="sectionList" class="space-y-2"></ul>
-        <div class="mt-3 text-xs text-gray-500">Klik item untuk edit. Guna butang ↑↓ di item untuk susun.</div>
+        <div class="mt-3 text-xs text-gray-500">Tekan ↑↓ untuk susun. Klik item untuk edit.</div>
       </div>
 
-      <!-- editor -->
+      <!-- Editor -->
       <div class="card p-3 space-y-3" id="editorWrap">
-        <div id="noSelection" class="text-sm text-gray-500">Pilih satu seksyen pada senarai kiri untuk mengedit kandungan. 👈</div>
+        <div id="noSelection" class="text-sm text-gray-500">Pilih satu seksyen pada senarai kiri untuk mengedit. 👈</div>
 
         <div id="editor" class="hidden space-y-4">
           <div class="grid md:grid-cols-2 gap-3">
-            <div><label class="text-sm font-medium">ID Seksyen</label><input id="secId" class="input mt-1" readonly></div>
-            <div><label class="text-sm font-medium">Jenis</label><input id="secType" class="input mt-1 bg-gray-50" readonly></div>
-          </div>
-
-          <div class="grid md:grid-cols-2 gap-3">
-            <div><label class="text-sm font-medium">Tajuk</label><input id="secTitle" class="input mt-1" placeholder="Tajuk seksyen"></div>
-            <div class="grid grid-cols-3 gap-2">
-              <div><label class="text-xs text-gray-600">Saiz Font</label>
-                <select id="fontSize" class="input mt-1"><option value="text-base">Normal</option><option value="text-lg">Besar</option><option value="text-xl">XL</option><option value="text-2xl">2XL</option><option value="text-3xl">3XL</option></select>
-              </div>
-              <div><label class="text-xs text-gray-600">Tebal</label>
-                <select id="fontWeight" class="input mt-1"><option value="font-normal">Normal</option><option value="font-semibold">SemiBold</option><option value="font-bold">Bold</option><option value="font-extrabold">ExtraBold</option></select>
-              </div>
-              <div><label class="text-xs text-gray-600">Warna</label><input id="fontColor" type="color" class="input mt-1 p-1"></div>
+            <div>
+              <label class="text-sm font-medium">ID Seksyen</label>
+              <input id="secId" class="input mt-1" readonly>
+            </div>
+            <div>
+              <label class="text-sm font-medium">Jenis</label>
+              <input id="secType" class="input mt-1 bg-gray-50" readonly>
             </div>
           </div>
 
-          <div id="wrapSubtitle"><label class="text-sm font-medium">Subtitle</label><textarea id="secSubtitle" class="textarea mt-1" placeholder="Subtitle (opsyenal)"></textarea></div>
-          <div id="wrapBody"><label class="text-sm font-medium">Isi/Body</label><textarea id="secBody" class="textarea mt-1" placeholder="Teks (markdown ringkas dibenarkan)"></textarea></div>
+          <div class="grid md:grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium">Tajuk</label>
+              <input id="secTitle" class="input mt-1" placeholder="Tajuk seksyen">
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="text-xs text-gray-600">Saiz Font</label>
+                <select id="fontSize" class="input mt-1">
+                  <option value="text-base">Normal</option>
+                  <option value="text-lg">Besar</option>
+                  <option value="text-xl">XL</option>
+                  <option value="text-2xl">2XL</option>
+                  <option value="text-3xl">3XL</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-gray-600">Tebal</label>
+                <select id="fontWeight" class="input mt-1">
+                  <option value="font-normal">Normal</option>
+                  <option value="font-semibold">SemiBold</option>
+                  <option value="font-bold">Bold</option>
+                  <option value="font-extrabold">ExtraBold</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-xs text-gray-600">Warna</label>
+                <input id="fontColor" type="color" class="input mt-1 p-1">
+              </div>
+            </div>
+          </div>
 
-          <!-- media terpisah -->
+          <div id="wrapSubtitle">
+            <label class="text-sm font-medium">Subtitle</label>
+            <textarea id="secSubtitle" class="textarea mt-1" placeholder="Subtitle (opsyenal)"></textarea>
+          </div>
+
+          <div id="wrapBody">
+            <label class="text-sm font-medium">Isi/Body</label>
+            <textarea id="secBody" class="textarea mt-1" placeholder="Teks (boleh markdown ringkas)"></textarea>
+          </div>
+
+          <!-- Kawalan media -->
           <div>
             <div class="text-sm font-medium mb-1">Media</div>
             <div class="grid md:grid-cols-2 gap-3">
               <div class="card p-3">
-                <div class="text-xs text-gray-500 mb-2">Muat naik ke Google Drive (public link)</div>
+                <div class="text-xs text-gray-500 mb-2">Muat naik ke Google Drive (public)</div>
                 <input id="uploadFile" type="file" accept="image/*,video/*" class="input">
-                <button id="btnUploadMedia" class="btn btn-ghost mt-2">Muat Naik</button>
+                <button id="btnUploadMedia" class="btn-ghost mt-2">Muat Naik</button>
               </div>
               <div class="card p-3">
                 <div class="text-xs text-gray-500 mb-2">Atau tampal URL media</div>
                 <input id="mediaUrl" class="input" placeholder="https://... (jpg/png/mp4/webm)">
-                <button id="btnAddMediaUrl" class="btn btn-ghost mt-2">Tambah URL ke senarai</button>
+                <button id="btnAddMediaUrl" class="btn-ghost mt-2">Tambah URL</button>
               </div>
             </div>
             <div class="mt-3">
@@ -255,35 +372,34 @@
             </div>
           </div>
 
-          <!-- khas: kalkulator -->
+          <!-- Editor khas -->
           <div id="wrapCalc" class="hidden card p-3">
             <div class="text-sm font-semibold mb-2">Kalkulator Cashback</div>
             <div class="grid md:grid-cols-3 gap-3">
-              <div><label class="text-sm">Min %</label><input id="calcMin" class="input mt-1" type="number" step="0.1" min="0" value="5"></div>
-              <div><label class="text-sm">Maks %</label><input id="calcMax" class="input mt-1" type="number" step="0.1" min="0" value="10"></div>
+              <div><label class="text-sm">Min %</label><input id="calcMin" type="number" step="0.1" min="0" class="input mt-1" value="5"></div>
+              <div><label class="text-sm">Maks %</label><input id="calcMax" type="number" step="0.1" min="0" class="input mt-1" value="10"></div>
               <div><label class="text-sm">Nota</label><input id="calcNote" class="input mt-1" placeholder="Ringkasan faktor anggaran"></div>
             </div>
           </div>
 
-          <!-- khas: FAQ -->
           <div id="wrapFAQ" class="hidden card p-3">
             <div class="flex items-center justify-between">
               <div class="text-sm font-semibold">FAQ</div>
-              <button id="btnAddFAQ" class="btn btn-ghost">Tambah Soalan</button>
+              <button id="btnAddFAQ" class="btn-ghost">Tambah Soalan</button>
             </div>
             <div id="faqList" class="space-y-2 mt-2"></div>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button id="btnUpdateSection" class="btn btn-primary">Kemas Kini Seksyen</button>
-            <button id="btnRemoveSection" class="btn btn-ghost">Padam Seksyen</button>
+            <button id="btnUpdateSection" class="btn-primary">Kemas Kini Seksyen</button>
+            <button id="btnRemoveSection" class="btn-ghost">Padam Seksyen</button>
           </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Settings -->
+  <!-- ===== Tab: Setting (KEKAL seperti versi dikemaskini) ===== -->
   <section id="tab-settings" class="card p-6 space-y-4 hidden">
     <div class="flex items-center gap-2"><i data-lucide="settings" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Setting</h2></div>
     <div class="grid md:grid-cols-3 gap-3">
@@ -292,8 +408,8 @@
       <div><label class="text-sm font-medium">Cashback Default Max (%)</label><input id="cbMax" type="number" step="0.1" min="0" class="input mt-1" value="10"></div>
     </div>
     <div class="flex gap-2">
-      <button id="btnSaveSettings" class="btn btn-primary">Simpan Setting</button>
-      <button id="btnReloadSettings" class="btn btn-ghost">Muat Semula</button>
+      <button id="btnSaveSettings" class="btn-primary">Simpan Setting</button>
+      <button id="btnReloadSettings" class="btn-ghost">Muat Semula</button>
     </div>
   </section>
 
@@ -302,367 +418,641 @@
 <!-- Toast -->
 <div id="toast" class="toast hidden"></div>
 
-<!-- Preview modal -->
+<!-- Modal Preview mini -->
 <div id="previewWrap" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50">
   <div class="bg-white rounded-2xl w-[min(1000px,92vw)] h-[80vh] p-4 flex flex-col">
     <div class="flex items-center justify-between">
       <div class="font-semibold">Prarupa Laman User</div>
-      <button id="btnClosePreview" class="btn btn-ghost">Tutup</button>
+      <button id="btnClosePreview" class="btn-ghost">Tutup</button>
     </div>
-    <div id="previewArea" class="mini overflow-auto scrollbar mt-3 p-3 bg-gray-50 rounded-xl border"></div>
+    <div id="previewArea" class="mini overflow-auto mt-3 p-3 bg-gray-50 rounded-xl border"></div>
   </div>
 </div>
 
 <script>
-/* ================== CONFIG ================== */
-const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+  // ====== KONFIG ======
+  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-/* ============== SESSION / ICONS ============== */
-const store = {
-  leader: (()=>{ try{ return JSON.parse(localStorage.getItem('mova_leader')||'{}'); }catch(_){ return {}; } })(),
-  partners: [],
-  sections: [],
-  selectedIndex: -1
-};
-if (!store.leader?.leader_id) location.href="./index.html";
-document.getElementById('leaderName').textContent = store.leader?.profile?.name || 'leader';
-document.getElementById('btnLogout').onclick = ()=>{ localStorage.removeItem('mova_leader'); location.href="./index.html"; };
-lucide.createIcons();
-
-/* ================== UTIL ================== */
-const toastEl = document.getElementById('toast');
-function toast(msg,ms=2200){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms); }
-async function callApi(path, payload){
-  const res = await fetch(EXEC_URL,{ method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-    body:new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })});
-  const t=await res.text(); let j; try{ j=JSON.parse(t);}catch(_){ throw new Error(t); }
-  if(j?.success===false) throw new Error(j.error||'Ralat'); return j;
-}
-function fileToB64(file){ return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>{ const s=String(fr.result||''); res(s.includes(',')?s.split(',')[1]:s); }; fr.onerror=rej; fr.readAsDataURL(file); }); }
-
-/* ============== TABS ============== */
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
-function setTab(name){
-  document.querySelectorAll('[data-tab]').forEach(b=>{
-    b.classList.toggle('pill-active', b.dataset.tab===name);
-    if(b.dataset.tab===name) b.classList.remove('pill'); else b.classList.add('pill');
-  });
-  document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
-  document.getElementById('tab-'+name).classList.remove('hidden');
-  if(name==='org') renderOrg();
-}
-setTab('content');
-
-/* ============== INIT ============== */
-(async function init(){
-  try{ await callApi('setup',{});}catch(_){}
-  await reloadStats();
-  await reloadPartners();
-  await reloadMedia();
-  await reloadRegs();
-  await renderOrg();
-  await loadSettings();
-  await loadSections();
-})();
-
-/* ================== STATS ================== */
-async function reloadStats(){
-  try{
-    const out = await callApi('stats',{leader_id:store.leader.leader_id});
-    const t = out.totals||{};
-    statPartners.textContent  = t.partners??'—';
-    statCustomers.textContent = t.customers??'—';
-    statPending.textContent   = t.pending??'—';
-    statPublished.textContent = t.published??'—';
-  }catch(_){}
-}
-
-/* ================== CONTENT (asal) ================== */
-btnSaveContent.onclick = async ()=>{
-  const payload = {
-    leader_id: store.leader.leader_id,
-    title: title.value||'',
-    body: body.value||'',
-    media_urls: '',
-    published: (published.value==='yes')
+  // ====== STATE LOGIN ======
+  const store = {
+    leader: (() => {
+      try { return JSON.parse(localStorage.getItem('mova_leader') || '{}'); } catch(e){ return {}; }
+    })(),
+    selectedMedia: new Set(),
+    partners: [],
+    sections: [],
+    selectedIndex: -1
   };
-  try{ const j=await callApi('content_save',payload); if(j.success){ toast('Disimpan'); await reloadStats(); await loadLatestContent(); } }catch(e){ toast(e.message); }
-};
-btnRefreshContent.onclick = ()=>{ title.value=''; body.value=''; published.value='yes'; };
-btnLoadLatestContent.onclick = loadLatestContent;
-async function loadLatestContent(){
-  try{
-    const out=await callApi('content_list',{leader_id:store.leader.leader_id});
-    const items=(out.items||[]).sort((a,b)=>new Date(b.updated_at||0)-new Date(a.updated_at||0)).slice(0,6);
-    contentList.innerHTML=''; contentListWrap.classList.toggle('hidden',items.length===0);
-    items.forEach(r=>{
-      const d=document.createElement('div'); d.className='border rounded-xl p-3';
-      d.innerHTML=`<div class="font-semibold">${r.title||'-'}</div>
-      <div class="text-xs text-gray-500 mt-1">Terbit: ${String(r.published||'').toUpperCase()==='YES'?'Ya':'Tidak'} • ${r.updated_at||'-'}</div>
-      <div class="text-sm text-gray-700 mt-2 line-clamp-2">${(r.body||'').slice(0,160)}</div>`;
-      contentList.appendChild(d);
-    });
-  }catch(_){}
-}
-btnBroadcast.onclick = async ()=>{
-  const msg = broadcastMsg.value.trim(); if(!msg) return toast('Tulis mesej');
-  try{ const j=await callApi('broadcast',{leader_id:store.leader.leader_id,message:msg}); if(j.success){ toast('Broadcast dihantar'); broadcastMsg.value=''; } }catch(e){ toast(e.message); }
-};
 
-/* ================== MEDIA ================== */
-btnUpload.onclick = async ()=>{
-  const f=fileInput.files?.[0]; if(!f) return toast('Pilih fail');
-  try{
-    const b64=await fileToB64(f);
-    const j=await callApi('upload_media',{leader_id:store.leader.leader_id,file_name:f.name,file_type:f.type||'application/octet-stream',file_base64:b64});
-    if(j.success){ toast('Muat naik ✔'); await reloadMedia(); }
-  }catch(e){ toast(e.message); }
-};
-btnReloadMedia.onclick = reloadMedia;
-async function reloadMedia(){
-  try{
-    const out=await callApi('media_list',{leader_id:store.leader.leader_id});
-    const list=(out.items||[]).sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0));
-    mediaGrid.innerHTML='';
-    list.forEach(row=>{
-      const wrap=document.createElement('div'); wrap.className='media-tile aspect-square';
-      const isVideo=/^video\//i.test(row.file_type||'');
-      wrap.innerHTML=isVideo?`<video src="${row.public_url}" class="w-full h-full object-cover" muted playsinline></video>`:`<img src="${row.public_url}" class="w-full h-full object-cover" loading="lazy"/>`;
-      mediaGrid.appendChild(wrap);
-    });
-  }catch(_){ mediaGrid.innerHTML=''; }
-}
+  if (!store.leader || !store.leader.leader_id) {
+    location.href = "./index.html";
+  }
 
-/* ================== PARTNER / CUSTOMER / REG ================== */
-btnCreatePartner.onclick = async ()=>{
-  const name=partnerName.value.trim(), email=partnerEmail.value.trim(), phone=partnerPhone.value.trim(), pkg=partnerPackage.value.trim();
-  if(!name) return toast('Nama partner diperlukan');
-  try{ const out=await callApi('partner_create',{leader_id:store.leader.leader_id,name,email,phone,package:pkg}); if(out.success){ toast('Partner ditambah'); partnerName.value=partnerEmail.value=partnerPhone.value=partnerPackage.value=''; await reloadPartners(); await reloadStats(); await renderOrg(); } }catch(e){ toast(e.message); }
-};
-async function reloadPartners(){
-  try{
-    const out=await callApi('partner_list',{leader_id:store.leader.leader_id}); store.partners=out.items||[];
-    customerPartner.innerHTML='<option value="">Pilih Partner</option>'; store.partners.forEach(p=>{ const o=document.createElement('option'); o.value=p.name; o.textContent=p.name; customerPartner.appendChild(o); });
-  }catch(_){ customerPartner.innerHTML='<option value="">Pilih Partner</option>'; }
-}
-btnAddCustomer.onclick = async ()=>{
-  const name=customerName.value.trim(), phone=customerPhone.value.trim(), partner=customerPartner.value.trim();
-  if(!name||!phone) return toast('Nama & telefon diperlukan');
-  try{ const out=await callApi('customer_add',{leader_id:store.leader.leader_id,name,phone,partner}); if(out.success){ toast('Customer ditambah'); customerName.value=customerPhone.value=customerPartner.value=''; await reloadStats(); await renderOrg(); } }catch(e){ toast(e.message); }
-};
-btnReloadReg.onclick = reloadRegs;
-async function reloadRegs(){
-  try{
-    const out=await callApi('registration_list',{}); const items=out.items||[]; regTableBody.innerHTML='';
-    items.forEach(r=>{
-      const tr=document.createElement('tr');
-      tr.innerHTML=`<td class="p-2 border-b text-xs">${r.id||''}</td><td class="p-2 border-b">${r.name||''}</td><td class="p-2 border-b">${r.phone||''}</td><td class="p-2 border-b"><span class="badge">${r.status||''}</span></td><td class="p-2 border-b">${String(r.status||'').toLowerCase()==='lulus' ? '<span class="text-green-700 text-sm">Diluluskan</span>' : '<button class="btn btn-ghost text-sm">Luluskan</button>'}</td>`;
-      const btn=tr.querySelector('button'); if(btn) btn.onclick=async()=>{ try{ const res=await callApi('registration_approve',{id:r.id}); if(res.success){ toast('Diluluskan'); await reloadRegs(); await reloadStats(); } }catch(e){ toast(e.message); } };
-      regTableBody.appendChild(tr);
-    });
-  }catch(_){ regTableBody.innerHTML='<tr><td colspan="5" class="p-2 text-sm text-gray-500">Gagal memuat</td></tr>'; }
-}
+  document.getElementById('leaderName').textContent =
+    store.leader?.profile?.name || 'leader';
 
-/* ================== ORG (ringkas) ================== */
-btnReloadOrg.onclick = renderOrg;
-async function renderOrg(){
-  const grid=orgGrid, svg=orgSvg, wrap=orgWrap; grid.innerHTML=''; svg.innerHTML='';
-  let tree; try{ const out=await callApi('org_tree',{leader_id:store.leader.leader_id,leader_name:store.leader?.profile?.name||'Leader'}); if(!out.success) throw 0; tree=out.tree; }catch(_){ tree={name:'LEADER',children:[]}; }
-  const root=document.createElement('div'); root.className='mx-auto px-4 py-2 rounded-full bg-amber-100 text-amber-900 font-semibold border'; root.textContent=tree.name||'LEADER';
-  root.style.gridColumn='1 / -1'; grid.style.gridTemplateColumns=`repeat(${Math.max(1,(tree.children||[]).length)}, minmax(180px,1fr))`; grid.appendChild(root);
-  const rowTop=document.createElement('div'); rowTop.className='grid gap-8 mt-6'; rowTop.style.gridColumn='1 / -1'; rowTop.style.gridTemplateColumns=grid.style.gridTemplateColumns; grid.appendChild(rowTop);
-  const partnerNodes=[]; (tree.children||[]).forEach(p=>{ const n=document.createElement('div'); n.className='px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-center font-medium border'; n.textContent=(p.name||'PARTNER'); rowTop.appendChild(n); partnerNodes.push({el:n,children:p.children||[]}); });
-  const maxDepth=Math.max(0,...partnerNodes.map(x=>x.children.length));
-  for(let r=0;r<maxDepth;r++){ const row=document.createElement('div'); row.className='grid gap-8 mt-6'; row.style.gridColumn='1 / -1'; row.style.gridTemplateColumns=grid.style.gridTemplateColumns; grid.appendChild(row);
-    partnerNodes.forEach(col=>{ const cust=col.children[r]; const cell=document.createElement('div'); cell.innerHTML=cust?`<div class="px-4 py-2 rounded-full bg-rose-100 text-rose-900 text-center border">${cust.name||'Customer'}</div>`:'&nbsp;'; row.appendChild(cell); }); }
-  const rect=wrap.getBoundingClientRect(); svg.setAttribute('width',Math.ceil(rect.width)); svg.setAttribute('height',Math.ceil(wrap.scrollHeight));
-  const toSvg=(x,y)=>{ const sb=svg.getBoundingClientRect(); return [x-sb.left+wrap.scrollLeft,y-sb.top+wrap.scrollTop]; };
-  const rb=root.getBoundingClientRect(); partnerNodes.forEach(p=>{ const pb=p.el.getBoundingClientRect(); drawLine(rb.left+rb.width/2,rb.bottom,pb.left+pb.width/2,pb.top); });
-  const rows=Array.from(grid.children).slice(2); rows.forEach(row=>{ Array.from(row.children).forEach((cell,i)=>{ if(!cell.textContent.trim())return; const pb=partnerNodes[i].el.getBoundingClientRect(); const cb=cell.getBoundingClientRect(); drawLine(pb.left+pb.width/2,pb.bottom,cb.left+cb.width/2,cb.top); }); });
-  function drawLine(x1,y1,x2,y2){ const [sx1,sy1]=toSvg(x1,y1),[sx2,sy2]=toSvg(x2,y2); const ln=document.createElementNS('http://www.w3.org/2000/svg','line'); ln.setAttribute('x1',sx1); ln.setAttribute('y1',sy1); ln.setAttribute('x2',sx2); ln.setAttribute('y2',sy2); ln.setAttribute('stroke','#e5e7eb'); ln.setAttribute('stroke-width','2'); svg.appendChild(ln); }
-}
-
-/* ================== SETTINGS ================== */
-btnSaveSettings.onclick = async ()=>{
-  try{
-    const j=await callApi('settings_set',{leader_id:store.leader.leader_id,fonnte_key:fonnteKey.value||'',cashback_min:parseFloat(cbMin.value||'5'),cashback_max:parseFloat(cbMax.value||'10')});
-    if(j.success) toast('Setting disimpan');
-  }catch(e){ toast(e.message); }
-};
-btnReloadSettings.onclick = loadSettings;
-async function loadSettings(){
-  try{
-    const j=await callApi('settings_get',{leader_id:store.leader.leader_id});
-    const s=j.settings||{}; fonnteKey.value=s.fonnte_key||''; cbMin.value=s.cashback_min??5; cbMax.value=s.cashback_max??10;
-  }catch(_){}
-}
-
-/* ================== USER SECTIONS EDITOR ================== */
-const listEl = document.getElementById('sectionList');
-const noSel = document.getElementById('noSelection');
-const ed = {
-  id:secId, type:secType, title:secTitle, subtitle:secSubtitle, body:secBody,
-  fontSize, fontWeight, fontColor,
-  calcMin, calcMax, calcNote,
-  uploadFile, mediaUrl, mediaList, btnUploadMedia, btnAddMediaUrl,
-  wrapSubtitle, wrapBody, wrapCalc, wrapFAQ, faqList
-};
-
-btnAddSection.onclick = ()=> addSection(newSectionType.value);
-btnUpdateSection.onclick = updateCurrentSection;
-btnRemoveSection.onclick = removeCurrentSection;
-btnSaveSections.onclick = saveSections;
-btnPreviewMini.onclick = showPreview;
-btnClosePreview.onclick = ()=> previewWrap.classList.add('hidden');
-
-btnUploadMedia.onclick = async ()=>{
-  const f=uploadFile.files?.[0]; if(!f) return toast('Pilih fail');
-  try{ const b64=await fileToB64(f); const j=await callApi('upload_media',{leader_id:store.leader.leader_id,file_name:f.name,file_type:f.type||'application/octet-stream',file_base64:b64});
-    if(j.success){ addMediaToEditor(j.public_url); uploadFile.value=''; toast('Media ditambah'); } }catch(e){ toast(e.message); }
-};
-btnAddMediaUrl.onclick = ()=>{ const u=mediaUrl.value.trim(); if(!u) return; addMediaToEditor(u); mediaUrl.value=''; };
-
-function addMediaToEditor(url){
-  const s=store.sections[store.selectedIndex]; if(!s) return;
-  s.media=s.media||[]; s.media.push(url); paintEditor(s); paintList();
-}
-function removeMediaAt(i){
-  const s=store.sections[store.selectedIndex]; if(!s) return; s.media.splice(i,1); paintEditor(s);
-}
-function paintMediaChips(media=[]){
-  mediaList.innerHTML='';
-  media.forEach((u,i)=>{
-    const chip=document.createElement('div'); chip.className='flex items-center gap-2 bg-gray-100 rounded-full pl-2 pr-1 py-1 text-xs';
-    chip.innerHTML=`<span class="truncate max-w-[220px]">${u}</span><button class="btn btn-ghost px-2 py-0 text-xs">Padam</button>`;
-    chip.querySelector('button').onclick=()=>removeMediaAt(i);
-    mediaList.appendChild(chip);
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    localStorage.removeItem('mova_leader');
+    location.href = "./index.html";
   });
-}
 
-function addSection(type){
-  const id = `${type}-${Date.now().toString(36).slice(-6)}`;
-  const base = {id, type, title:'', subtitle:'', body:'', font:{size:'text-xl', weight:'font-bold', color:'#111827'}, media:[]};
-  if(type==='hero'){ base.title='Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan MOVA.'; base.subtitle='Mula sebagai Free User, faham cara dan manfaat; kemudian anda boleh naik taraf ke Silver/Gold/Diamond & bina potensi pendapatan.'; }
-  if(type==='how'){ base.title='Apa itu MOVA & Bagaimana Ia Berfungsi'; base.body='1) Daftar percuma  2) Belanja melalui MOVA  3) Terima Cashback'; }
-  if(type==='calc'){ base.title='Anggaran Cashback Anda'; base.calc={min:5,max:10,note:'Anggaran bergantung pada kategori & terma merchant.'}; }
-  if(type==='tiers'){ base.title='Naik Taraf — Silver, Gold, Diamond'; base.body='Laluan naik taraf bertahap untuk faham etika & strategi pembelian.'; }
-  if(type==='updates'){ base.title='Promosi & Update Terkini'; base.body='Ikuti siaran penting & pengumuman baharu di sini.'; }
-  if(type==='faq'){ base.title='Soalan Lazim (FAQ)'; base.faq=[{q:'Apa itu MOVA?',a:'Platform shopping cashback untuk belanja berbaloi.'}]; }
-  if(type==='guidelines'){ base.title='Larangan & Garis Panduan'; base.body='Patuhi terma merchant, elak spam, saling hormat & bantu pengguna baharu.'; }
-  if(type==='cta'){ base.title='Sedia Untuk Langkah Seterusnya?'; base.body='Klik butang untuk kami bantu proses upgrade dengan cara yang betul.'; }
-  if(type==='section'){ base.title='Seksyen Baharu'; base.body='Teks contoh — ubah ikut keperluan.'; }
+  // ====== ICONS ======
+  lucide.createIcons();
 
-  store.sections.push(base);
-  paintList(); selectIndex(store.sections.length-1);
-}
-function removeCurrentSection(){
-  if(store.selectedIndex<0) return;
-  store.sections.splice(store.selectedIndex,1);
-  paintList(); selectIndex(-1); toast('Seksyen dipadam');
-}
-function move(idx,dir){
-  const n=idx+dir; if(n<0||n>=store.sections.length) return;
-  const tmp=store.sections[idx]; store.sections[idx]=store.sections[n]; store.sections[n]=tmp; paintList(); selectIndex(n);
-}
-function paintList(){
-  sectionList.innerHTML='';
-  store.sections.forEach((s,i)=>{
-    const li=document.createElement('li'); li.className='border rounded-lg px-3 py-2 flex items-center justify-between gap-2';
-    li.innerHTML=`<div class="min-w-0"><div class="font-semibold truncate">${s.title||('('+s.type+')')}</div><div class="text-xs text-gray-500 truncate">${s.id}</div></div>
-    <div class="flex items-center gap-1">
-      <button class="btn btn-ghost px-2" title="Naik">↑</button>
-      <button class="btn btn-ghost px-2" title="Turun">↓</button>
-      <button class="btn btn-ghost px-2 text-red-600" title="Padam">✕</button>
-    </div>`;
-    li.onclick = (ev)=>{ if(ev.target.tagName==='BUTTON') return; selectIndex(i); };
-    const [bUp,bDown,bDel]=li.querySelectorAll('button');
-    bUp.onclick=(e)=>{e.stopPropagation(); move(i,-1);};
-    bDown.onclick=(e)=>{e.stopPropagation(); move(i,+1);};
-    bDel.onclick=(e)=>{e.stopPropagation(); if(confirm('Padam seksyen ini?')){ if(store.selectedIndex===i) store.selectedIndex=-1; store.sections.splice(i,1); paintList(); selectIndex(-1);} };
-    if(i===store.selectedIndex) li.classList.add('bg-amber-50');
-    sectionList.appendChild(li);
+  // ====== UTIL ======
+  const toastEl = document.getElementById('toast');
+  function toast(msg, ms=2200){
+    toastEl.textContent = msg;
+    toastEl.classList.remove('hidden');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
+  }
+
+  async function callApi(path, payload) {
+    const res = await fetch(EXEC_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
+    });
+    const text = await res.text();
+    let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
+    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+    return json;
+  }
+
+  function setActiveTab(name){
+    document.querySelectorAll('[data-tab]').forEach(btn=>{
+      if (btn.dataset.tab === name) {
+        btn.classList.remove('pill-idle'); btn.classList.add('pill-active');
+      } else {
+        btn.classList.add('pill-idle'); btn.classList.remove('pill-active');
+      }
+    });
+    document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
+    document.getElementById('tab-'+name).classList.remove('hidden');
+    if (name === 'org') renderOrg();
+  }
+
+  document.querySelectorAll('[data-tab]').forEach(btn=>{
+    btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab));
   });
-}
-function selectIndex(i){
-  store.selectedIndex=i; paintList();
-  if(i<0){ noSelection.classList.remove('hidden'); editor.classList.add('hidden'); return; }
-  const s=store.sections[i]; noSelection.classList.add('hidden'); editor.classList.remove('hidden'); paintEditor(s);
-}
-function paintEditor(s){
-  secId.value=s.id; secType.value=s.type; secTitle.value=s.title||''; secSubtitle.value=s.subtitle||''; secBody.value=s.body||'';
-  fontSize.value=s.font?.size||'text-xl'; fontWeight.value=s.font?.weight||'font-bold'; fontColor.value=s.font?.color||'#111827';
-  wrapSubtitle.classList.toggle('hidden', !['hero'].includes(s.type));
-  wrapBody.classList.toggle('hidden', ['calc','faq','hero'].includes(s.type));
-  wrapCalc.classList.toggle('hidden', s.type!=='calc');
-  wrapFAQ.classList.toggle('hidden', s.type!=='faq');
-  if(s.type==='calc'){ calcMin.value=s.calc?.min??5; calcMax.value=s.calc?.max??10; calcNote.value=s.calc?.note||''; }
-  if(s.type==='faq'){ paintFaq(s.faq||[]); }
-  paintMediaChips(s.media||[]);
-}
-function updateCurrentSection(){
-  if(store.selectedIndex<0) return;
-  const s=store.sections[store.selectedIndex];
-  s.title=secTitle.value.trim(); s.subtitle=secSubtitle.value.trim(); s.body=secBody.value.trim();
-  s.font={size:fontSize.value, weight:fontWeight.value, color:fontColor.value};
-  if(s.type==='calc'){ s.calc={ min:parseFloat(calcMin.value||'5'), max:parseFloat(calcMax.value||'10'), note:calcNote.value||'' }; }
-  if(s.type==='faq'){ s.faq = readFaq(); }
-  paintList(); toast('Seksyen dikemas kini');
-}
-function paintFaq(items){
-  faqList.innerHTML='';
-  items.forEach((it,idx)=>{
-    const row=document.createElement('div'); row.className='border rounded-lg p-2 grid md:grid-cols-[1fr_1fr_auto] gap-2';
-    row.innerHTML=`<input class="input" placeholder="Soalan" value="${it.q||''}">
-                   <input class="input" placeholder="Jawapan ringkas" value="${it.a||''}">
-                   <button class="btn btn-ghost">Padam</button>`;
-    row.querySelector('button').onclick=()=>{ const s=store.sections[store.selectedIndex]; s.faq.splice(idx,1); paintFaq(s.faq); };
-    faqList.appendChild(row);
+  setActiveTab('content');
+
+  // ====== INIT ======
+  (async function init(){
+    try { await callApi('setup', {}); } catch(e){}
+    await reloadStats();
+    await reloadPartners();
+    await reloadMedia();
+    await reloadRegs();
+    await renderOrg();
+    await loadSettings();
+    await loadSections();
+  })();
+
+  // ====== STATS ======
+  async function reloadStats(){
+    try{
+      const out = await callApi('stats', { leader_id: store.leader.leader_id });
+      const t = out.totals || {};
+      document.getElementById('statPartners').textContent  = t.partners ?? '—';
+      document.getElementById('statCustomers').textContent = t.customers ?? '—';
+      document.getElementById('statPending').textContent   = t.pending ?? '—';
+      document.getElementById('statPublished').textContent = t.published ?? '—';
+    }catch(e){}
+  }
+
+  // ====== KANDUNGAN (ASAL) ======
+  const elTitle   = document.getElementById('title');
+  const elPublished = document.getElementById('published');
+  const elBody    = document.getElementById('body');
+
+  document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
+    const payload = {
+      leader_id: store.leader.leader_id,
+      title: elTitle.value || '',
+      body: elBody.value || '',
+      media_urls: Array.from(store.selectedMedia).join(','),
+      published: (elPublished.value === 'yes')
+    };
+    try{
+      const json = await callApi('content_save', payload);
+      if (json.success) {
+        toast('Kandungan disimpan ✔️');
+        await reloadStats();
+        await loadLatestContent();
+      } else {
+        toast('Gagal simpan: '+(json.error||''));
+      }
+    }catch(err){ toast('Ralat rangkaian: '+err.message); }
   });
-}
-function readFaq(){ return Array.from(faqList.children).map(r=>{ const [q,a]=r.querySelectorAll('input'); return { q:q.value.trim(), a:a.value.trim() }; }).filter(x=>x.q||x.a); }
 
-async function loadSections(){
-  try{
-    const j=await callApi('sections_get',{leader_id:store.leader.leader_id});
-    store.sections = j.sections || [];
-    paintList(); selectIndex(store.sections.length?0:-1);
-  }catch(e){ store.sections=[]; paintList(); selectIndex(-1); }
-}
-async function saveSections(){
-  try{
-    const j=await callApi('sections_set',{leader_id:store.leader.leader_id, sections:store.sections});
-    if(j.success) toast('User Sections disimpan');
-  }catch(e){ toast(e.message); }
-}
+  document.getElementById('btnRefreshContent').addEventListener('click', ()=>{
+    elTitle.value = '';
+    elBody.value = '';
+    elPublished.value = 'yes';
+    store.selectedMedia.clear();
+    document.querySelectorAll('.media-tile').forEach(x=>x.classList.remove('selected'));
+    toast('Dikemas kini semula');
+  });
 
-/* ============== PREVIEW ============== */
-function showPreview(){
-  previewWrap.classList.remove('hidden');
-  const area=previewArea; area.innerHTML='';
-  store.sections.forEach(s=>{
-    const box=document.createElement('section'); box.className='bg-white border rounded-xl p-4 mb-3';
-    const title = s.title? `<h2 class="${s.font?.size||'text-xl'} ${s.font?.weight||'font-bold'}" style="color:${s.font?.color||'#111827'}">${s.title}</h2>` : '';
-    const subtitle = s.subtitle? `<p class="mt-1">${s.subtitle}</p>` : '';
-    const body = s.body? `<p class="mt-2 whitespace-pre-wrap">${s.body}</p>` : '';
-    let special='';
-    if(s.type==='calc'){
-      special = `<div class="mt-3 grid sm:grid-cols-3 gap-2 items-end">
-        <div><label class="text-xs">Harga Produk (RM)</label><input id="pv" type="number" class="input mt-1" value="200"></div>
-        <div><div class="text-xs">Anggaran Min (${s.calc?.min??5}%)</div><div id="outMin" class="font-semibold">RM 0.00</div></div>
-        <div><div class="text-xs">Anggaran Maks (${s.calc?.max??10}%)</div><div id="outMax" class="font-semibold">RM 0.00</div></div>
-      </div><div class="text-xs text-gray-500 mt-2">${s.calc?.note||''}</div>`;
+  document.getElementById('btnLoadLatestContent').addEventListener('click', loadLatestContent);
+
+  async function loadLatestContent(){
+    try{
+      const out = await callApi('content_list', { leader_id: store.leader.leader_id });
+      const items = (out.items||[]).sort((a,b)=> new Date(b.updated_at||0) - new Date(a.updated_at||0)).slice(0,6);
+      const wrap = document.getElementById('contentList');
+      const contWrap = document.getElementById('contentListWrap');
+      wrap.innerHTML = '';
+      items.forEach(row=>{
+        const d = document.createElement('div');
+        d.className = 'border border-gray-200 rounded-xl p-3';
+        d.innerHTML = `
+          <div class="font-semibold">${row.title||'-'}</div>
+          <div class="text-xs text-gray-500 mt-1">Terbit: ${(String(row.published||'').toUpperCase()==='YES'?'Ya':'Tidak')} • Kemas kini: ${row.updated_at || '-'}</div>
+          <div class="text-sm text-gray-700 mt-2 line-clamp-2">${(row.body||'').slice(0,160)}</div>
+        `;
+        wrap.appendChild(d);
+      });
+      contWrap.classList.toggle('hidden', items.length===0);
+    }catch(e){}
+  }
+
+  // ====== BROADCAST (ASAL) ======
+  document.getElementById('btnBroadcast').addEventListener('click', async ()=>{
+    const msg = document.getElementById('broadcastMsg').value.trim();
+    if (!msg) return toast('Tulis mesej broadcast');
+    try{
+      const json = await callApi('broadcast', { leader_id:store.leader.leader_id, message:msg });
+      if (json.success) { toast('Broadcast dihantar'); document.getElementById('broadcastMsg').value=''; }
+      else toast('Gagal: '+(json.error||''));
+    }catch(err){ toast('Ralat rangkaian'); }
+  });
+
+  // ====== MEDIA (ASAL) ======
+  const fileInput = document.getElementById('fileInput');
+  const mediaGrid = document.getElementById('mediaGrid');
+
+  document.getElementById('btnUpload').addEventListener('click', async ()=>{
+    const f = fileInput.files?.[0];
+    if (!f) return toast('Pilih satu fail');
+    try{
+      const b64 = await toBase64NoPrefix(f);
+      const json = await callApi('upload_media', {
+        leader_id: store.leader.leader_id,
+        file_name: f.name,
+        file_type: f.type || 'application/octet-stream',
+        file_base64: b64
+      });
+      if (json.success){
+        toast('Muat naik berjaya ✔️');
+        fileInput.value = '';
+        await reloadMedia();
+      } else {
+        toast('Gagal: '+(json.error||''));
+      }
+    }catch(err){ toast('Ralat muat naik'); }
+  });
+
+  document.getElementById('btnReloadMedia').addEventListener('click', reloadMedia);
+
+  async function reloadMedia(){
+    try{
+      const out = await callApi('media_list', { leader_id: store.leader.leader_id });
+      const list = out.items || [];
+      mediaGrid.innerHTML = '';
+      store.selectedMedia.clear();
+      list.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
+      list.forEach(row => addMediaTile(row.public_url, /^video\//i.test(row.file_type||'')));
+    }catch(e){ mediaGrid.innerHTML=''; }
+  }
+
+  function addMediaTile(url, isVideo=false){
+    if (!url) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'media-tile aspect-square';
+    wrap.dataset.url = url;
+    wrap.addEventListener('click', ()=>{
+      if (wrap.classList.toggle('selected')) store.selectedMedia.add(url);
+      else store.selectedMedia.delete(url);
+    });
+
+    if (isVideo){
+      const v = document.createElement('video');
+      v.src = url; v.controls = false; v.muted = true; v.playsInline = true; v.className = 'w-full h-full object-cover';
+      wrap.appendChild(v);
+    }else{
+      const img = document.createElement('img');
+      img.src = url; img.loading='lazy'; img.className = 'w-full h-full object-cover';
+      wrap.appendChild(img);
     }
-    let media=''; if(s.media?.length){ media = `<div class="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2">${s.media.map(u=>(/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)?`<video src="${u}" controls class="rounded-md"></video>`:`<img src="${u}" class="rounded-md">`).join('')}</div>`; }
-    box.innerHTML = `${title}${subtitle}${body}${special}${media}`;
-    area.appendChild(box);
-    if(s.type==='calc'){
-      const pv=box.querySelector('#pv'), outMin=box.querySelector('#outMin'), outMax=box.querySelector('#outMax');
-      const render=()=>{ const val=parseFloat(pv.value||'0'); const mn=(s.calc?.min??5)/100*val, mx=(s.calc?.max??10)/100*val;
-        outMin.textContent='RM '+(mn.toFixed(2)); outMax.textContent='RM '+(mx.toFixed(2)); };
-      pv.oninput=render; render();
-    }
+    mediaGrid.appendChild(wrap);
+  }
+
+  function toBase64NoPrefix(file){
+    return new Promise((resolve,reject)=>{
+      const fr = new FileReader();
+      fr.onload = () => {
+        const s = String(fr.result||''); resolve(s.includes(',') ? s.split(',')[1] : s);
+      };
+      fr.onerror = reject;
+      fr.readAsDataURL(file);
+    });
+  }
+
+  // ====== PARTNER (ASAL) ======
+  const partnerSelect = document.getElementById('customerPartner');
+
+  document.getElementById('btnCreatePartner').addEventListener('click', async ()=>{
+    const name = document.getElementById('partnerName').value.trim();
+    const email = document.getElementById('partnerEmail').value.trim();
+    const phone = document.getElementById('partnerPhone').value.trim();
+    const pkg   = document.getElementById('partnerPackage').value.trim();
+
+    if (!name) return toast('Nama partner diperlukan');
+    try{
+      const out = await callApi('partner_create', {
+        leader_id: store.leader.leader_id, name, email, phone, package: pkg
+      });
+      if (out.success){
+        toast('Partner ditambah ✔️');
+        await reloadPartners();
+        await reloadStats();
+        await renderOrg();
+        document.getElementById('partnerName').value='';
+        document.getElementById('partnerEmail').value='';
+        document.getElementById('partnerPhone').value='';
+        document.getElementById('partnerPackage').value='';
+      } else {
+        toast(out.error||'Gagal tambah partner');
+      }
+    }catch(e){ toast('Ralat tambah partner'); }
   });
-}
+
+  async function reloadPartners(){
+    try{
+      const out = await callApi('partner_list', { leader_id: store.leader.leader_id });
+      store.partners = out.items || [];
+      partnerSelect.innerHTML = '<option value="">Pilih Partner</option>';
+      store.partners.forEach(p=>{
+        const opt = document.createElement('option');
+        opt.value = p.name; opt.textContent = p.name;
+        partnerSelect.appendChild(opt);
+      });
+    }catch(e){
+      partnerSelect.innerHTML = '<option value="">Pilih Partner</option>';
+    }
+  }
+
+  // ====== CUSTOMER (ASAL) ======
+  document.getElementById('btnAddCustomer').addEventListener('click', async ()=>{
+    const name = document.getElementById('customerName').value.trim();
+    const phone = document.getElementById('customerPhone').value.trim();
+    const partner = document.getElementById('customerPartner').value.trim();
+    if (!name || !phone) return toast('Nama & telefon diperlukan');
+    try{
+      const out = await callApi('customer_add', {
+        leader_id: store.leader.leader_id, name, phone, partner
+      });
+      if (out.success){
+        toast('Customer ditambah ✔️');
+        document.getElementById('customerName').value='';
+        document.getElementById('customerPhone').value='';
+        document.getElementById('customerPartner').value='';
+        await reloadStats();
+        await renderOrg();
+      } else {
+        toast(out.error||'Gagal tambah customer');
+      }
+    }catch(e){ toast('Ralat tambah customer'); }
+  });
+
+  // ====== APPROVALS (ASAL) ======
+  const regTableBody = document.getElementById('regTableBody');
+  document.getElementById('btnReloadReg').addEventListener('click', reloadRegs);
+
+  async function reloadRegs(){
+    try{
+      const out = await callApi('registration_list', {});
+      const items = out.items || [];
+      regTableBody.innerHTML = '';
+      items.forEach(row=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-xs">${row.id||''}</td>
+          <td>${row.name||''}</td>
+          <td>${row.phone||''}</td>
+          <td><span class="badge">${row.status||''}</span></td>
+          <td>
+            ${String(row.status||'').toLowerCase()==='lulus' ? 
+              '<span class="text-green-700 text-sm">Diluluskan</span>' :
+              '<button class="btn-ghost text-sm">Luluskan</button>'
+            }
+          </td>
+        `;
+        const btn = tr.querySelector('button');
+        if (btn) {
+          btn.addEventListener('click', async ()=>{
+            try{
+              const res = await callApi('registration_approve', { id: row.id });
+              if (res.success){
+                toast('Diluluskan ✔️'); await reloadRegs(); await reloadStats();
+              } else toast(res.error||'Gagal meluluskan');
+            }catch(e){ toast('Ralat meluluskan'); }
+          });
+        }
+        regTableBody.appendChild(tr);
+      });
+    }catch(e){
+      regTableBody.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Gagal memuat pendaftaran.</td></tr>';
+    }
+  }
+
+  // ====== ORG CHART (ASAL) ======
+  document.getElementById('btnReloadOrg').addEventListener('click', renderOrg);
+
+  async function renderOrg(){
+    const grid = document.getElementById('orgGrid');
+    const svg  = document.getElementById('orgSvg');
+    const wrap = document.getElementById('orgWrap');
+    grid.innerHTML = ''; svg.innerHTML = '';
+
+    let tree;
+    try{
+      const out = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
+      if (!out.success) throw new Error('Fail org_tree');
+      tree = out.tree;
+    }catch(e){
+      tree = { name:'LEADER', children:[] };
+    }
+
+    const root = document.createElement('div');
+    root.className = 'mx-auto px-4 py-2 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-200';
+    root.textContent = (tree.name || 'LEADER');
+    root.style.gridColumn = '1 / -1';
+    grid.style.gridTemplateColumns = `repeat(${Math.max(1,(tree.children||[]).length)}, minmax(180px,1fr))`;
+    grid.appendChild(root);
+
+    const rowTop = document.createElement('div');
+    rowTop.className = 'grid gap-8 mt-6';
+    rowTop.style.gridColumn = '1 / -1';
+    rowTop.style.gridTemplateColumns = grid.style.gridTemplateColumns;
+    grid.appendChild(rowTop);
+
+    const partnerNodes = [];
+    (tree.children||[]).forEach(p=>{
+      const n = document.createElement('div');
+      n.className = 'px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-center font-medium border border-emerald-200';
+      n.textContent = (p.name || 'PARTNER') + (p.title ? ` • ${p.title}` : '');
+      rowTop.appendChild(n);
+      partnerNodes.push({ el:n, children: p.children||[] });
+    });
+
+    const maxDepth = Math.max(0, ...partnerNodes.map(x=>x.children.length));
+    for (let r=0; r<maxDepth; r++){
+      const row = document.createElement('div');
+      row.className = 'grid gap-8 mt-6';
+      row.style.gridColumn = '1 / -1';
+      row.style.gridTemplateColumns = grid.style.gridTemplateColumns;
+      grid.appendChild(row);
+      partnerNodes.forEach(col=>{
+        const cust = col.children[r];
+        const cell = document.createElement('div');
+        if (cust){
+          cell.className = 'px-4 py-2 rounded-full bg-rose-100 text-rose-900 text-center border border-rose-200';
+          cell.textContent = cust.name || 'Customer';
+        } else {
+          cell.innerHTML = '&nbsp;';
+        }
+        row.appendChild(cell);
+      });
+    }
+
+    const rect = wrap.getBoundingClientRect();
+    svg.setAttribute('width', Math.ceil(rect.width));
+    svg.setAttribute('height', Math.ceil(wrap.scrollHeight));
+
+    const toSvg = (x,y)=> {
+      const sb = svg.getBoundingClientRect();
+      return [x - sb.left + wrap.scrollLeft, y - sb.top + wrap.scrollTop];
+    };
+
+    const rb = root.getBoundingClientRect();
+    partnerNodes.forEach(p=>{
+      const pb = p.el.getBoundingClientRect();
+      drawLine(rb.left + rb.width/2, rb.bottom, pb.left + pb.width/2, pb.top);
+    });
+
+    const rows = Array.from(grid.children).slice(2);
+    rows.forEach(row=>{
+      const cells = Array.from(row.children);
+      cells.forEach((cell, i)=>{
+        if (!cell.textContent.trim()) return;
+        const pb = partnerNodes[i].el.getBoundingClientRect();
+        const cb = cell.getBoundingClientRect();
+        drawLine(pb.left + pb.width/2, pb.bottom, cb.left + cb.width/2, cb.top);
+      });
+    });
+
+    function drawLine(x1,y1,x2,y2){
+      const [sx1,sy1] = toSvg(x1,y1);
+      const [sx2,sy2] = toSvg(x2,y2);
+      const ln = document.createElementNS('http://www.w3.org/2000/svg','line');
+      ln.setAttribute('x1', sx1); ln.setAttribute('y1', sy1);
+      ln.setAttribute('x2', sx2); ln.setAttribute('y2', sy2);
+      ln.setAttribute('stroke', '#e5e7eb'); ln.setAttribute('stroke-width', '2');
+      svg.appendChild(ln);
+    }
+  }
+
+  // ===================== SETTINGS =====================
+  document.getElementById('btnSaveSettings').onclick = async ()=>{
+    try{
+      const j=await callApi('settings_set',{
+        leader_id:store.leader.leader_id,
+        fonnte_key:document.getElementById('fonnteKey').value||'',
+        cashback_min:parseFloat(document.getElementById('cbMin').value||'5'),
+        cashback_max:parseFloat(document.getElementById('cbMax').value||'10')
+      });
+      if(j.success) toast('Setting disimpan');
+    }catch(e){ toast(e.message); }
+  };
+  document.getElementById('btnReloadSettings').onclick = loadSettings;
+  async function loadSettings(){
+    try{
+      const j=await callApi('settings_get',{leader_id:store.leader.leader_id});
+      const s=j.settings||{};
+      document.getElementById('fonnteKey').value=s.fonnte_key||'';
+      document.getElementById('cbMin').value=s.cashback_min??5;
+      document.getElementById('cbMax').value=s.cashback_max??10;
+    }catch(e){}
+  }
+
+  // ===================== USER SECTIONS EDITOR (BARU) =====================
+  const listEl = document.getElementById('sectionList');
+  const noSel  = document.getElementById('noSelection');
+  const edWrap = document.getElementById('editor');
+  const ed = {
+    id: secId, type: secType, title: secTitle, subtitle: secSubtitle, body: secBody,
+    fontSize, fontWeight, fontColor,
+    uploadFile, mediaUrl, mediaList, btnUploadMedia, btnAddMediaUrl,
+    wrapSubtitle, wrapBody,
+    wrapCalc, calcMin, calcMax, calcNote,
+    wrapFAQ, faqList
+  };
+
+  document.getElementById('btnAddSection').onclick = ()=> addSection(document.getElementById('newSectionType').value);
+  document.getElementById('btnUpdateSection').onclick = updateCurrentSection;
+  document.getElementById('btnRemoveSection').onclick = removeCurrentSection;
+  document.getElementById('btnSaveSections').onclick = saveSections;
+  document.getElementById('btnPreviewMini').onclick = showPreview;
+  document.getElementById('btnClosePreview').onclick = ()=> document.getElementById('previewWrap').classList.add('hidden');
+
+  ed.btnUploadMedia.onclick = async ()=>{
+    const f=ed.uploadFile.files?.[0]; if(!f) return toast('Pilih fail');
+    try{
+      const b64 = await toBase64NoPrefix(f);
+      const j=await callApi('upload_media',{leader_id:store.leader.leader_id,file_name:f.name,file_type:f.type||'application/octet-stream',file_base64:b64});
+      if(j.success){ addMediaToEditor(j.public_url); ed.uploadFile.value=''; toast('Media ditambah'); }
+    }catch(e){ toast(e.message); }
+  };
+  ed.btnAddMediaUrl.onclick = ()=>{ const u=ed.mediaUrl.value.trim(); if(!u) return; addMediaToEditor(u); ed.mediaUrl.value=''; };
+
+  function addMediaToEditor(url){
+    const s=store.sections[store.selectedIndex]; if(!s) return;
+    s.media=s.media||[]; s.media.push(url); paintEditor(s); paintList();
+  }
+  function removeMediaAt(i){
+    const s=store.sections[store.selectedIndex]; if(!s) return;
+    s.media.splice(i,1); paintEditor(s);
+  }
+  function paintMediaChips(media=[]){
+    ed.mediaList.innerHTML='';
+    media.forEach((u,i)=>{
+      const chip=document.createElement('div'); chip.className='flex items-center gap-2 bg-gray-100 rounded-full pl-2 pr-1 py-1 text-xs';
+      chip.innerHTML=`<span class="truncate max-w-[220px]">${u}</span><button class="btn-ghost px-2 py-0 text-xs">Padam</button>`;
+      chip.querySelector('button').onclick=()=>removeMediaAt(i);
+      ed.mediaList.appendChild(chip);
+    });
+  }
+
+  function addSection(type){
+    const id=`${type}-${Date.now().toString(36).slice(-6)}`;
+    const base={id,type,title:'',subtitle:'',body:'',font:{size:'text-xl',weight:'font-bold',color:'#111827'},media:[]};
+    if(type==='hero'){ base.title='Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan MOVA.'; base.subtitle='Mula sebagai Free User, faham manfaat & aliran; boleh naik taraf ke Silver/Gold/Diamond bila bersedia.'; }
+    if(type==='how'){ base.title='Apa itu MOVA & Bagaimana Ia Berfungsi'; base.body='1) Daftar percuma  2) Belanja melalui MOVA  3) Terima Cashback'; }
+    if(type==='calc'){ base.title='Anggaran Cashback Anda'; base.calc={min:5,max:10,note:'Anggaran bergantung pada kategori & terma merchant.'}; }
+    if(type==='tiers'){ base.title='Naik Taraf — Silver, Gold, Diamond'; base.body='Laluan naik taraf bertahap untuk faham etika & strategi pembelian.'; }
+    if(type==='updates'){ base.title='Promosi & Update Terkini'; base.body='Ikuti siaran penting & pengumuman baharu di sini.'; }
+    if(type==='faq'){ base.title='Soalan Lazim (FAQ)'; base.faq=[{q:'Apa itu MOVA?',a:'Platform shopping cashback untuk belanja berbaloi.'}]; }
+    if(type==='guidelines'){ base.title='Larangan & Garis Panduan'; base.body='Patuhi terma merchant, elak spam, saling hormat & bantu pengguna baharu.'; }
+    if(type==='cta'){ base.title='Sedia Untuk Langkah Seterusnya?'; base.body='Klik butang untuk kami bantu proses upgrade dengan cara yang betul.'; }
+    if(type==='section'){ base.title='Seksyen Baharu'; base.body='Teks contoh — ubah ikut keperluan.'; }
+    store.sections.push(base); paintList(); selectIndex(store.sections.length-1);
+  }
+  function removeCurrentSection(){
+    if(store.selectedIndex<0) return;
+    store.sections.splice(store.selectedIndex,1); paintList(); selectIndex(-1); toast('Seksyen dipadam');
+  }
+  function move(idx,dir){ const n=idx+dir; if(n<0||n>=store.sections.length) return; const t=store.sections[idx]; store.sections[idx]=store.sections[n]; store.sections[n]=t; paintList(); selectIndex(n); }
+  function paintList(){
+    listEl.innerHTML='';
+    store.sections.forEach((s,i)=>{
+      const li=document.createElement('li'); li.className='border rounded-lg px-3 py-2 flex items-center justify-between gap-2';
+      li.innerHTML=`<div class="min-w-0"><div class="font-semibold truncate">${s.title||('('+s.type+')')}</div><div class="text-xs text-gray-500 truncate">${s.id}</div></div>
+      <div class="flex items-center gap-1">
+        <button class="btn-ghost px-2" title="Naik">↑</button>
+        <button class="btn-ghost px-2" title="Turun">↓</button>
+        <button class="btn-ghost px-2 text-red-600" title="Padam">✕</button>
+      </div>`;
+      li.onclick=(ev)=>{ if(ev.target.tagName==='BUTTON')return; selectIndex(i); };
+      li.querySelectorAll('button')[0].onclick=(e)=>{e.stopPropagation(); move(i,-1);};
+      li.querySelectorAll('button')[1].onclick=(e)=>{e.stopPropagation(); move(i,+1);};
+      li.querySelectorAll('button')[2].onclick=(e)=>{e.stopPropagation(); if(confirm('Padam seksyen ini?')){ if(store.selectedIndex===i) store.selectedIndex=-1; store.sections.splice(i,1); paintList(); selectIndex(-1);} };
+      if(i===store.selectedIndex) li.classList.add('bg-amber-50');
+      listEl.appendChild(li);
+    });
+  }
+  function selectIndex(i){
+    store.selectedIndex=i; paintList();
+    if(i<0){ noSel.classList.remove('hidden'); edWrap.classList.add('hidden'); return; }
+    const s=store.sections[i]; noSel.classList.add('hidden'); edWrap.classList.remove('hidden'); paintEditor(s);
+  }
+  function paintEditor(s){
+    secId.value=s.id; secType.value=s.type; secTitle.value=s.title||''; secSubtitle.value=s.subtitle||''; secBody.value=s.body||'';
+    fontSize.value=s.font?.size||'text-xl'; fontWeight.value=s.font?.weight||'font-bold'; fontColor.value=s.font?.color||'#111827';
+    wrapSubtitle.classList.toggle('hidden', !['hero'].includes(s.type));
+    wrapBody.classList.toggle('hidden', ['calc','faq','hero'].includes(s.type));
+    wrapCalc.classList.toggle('hidden', s.type!=='calc');
+    wrapFAQ.classList.toggle('hidden', s.type!=='faq');
+    if(s.type==='calc'){ calcMin.value=s.calc?.min??5; calcMax.value=s.calc?.max??10; calcNote.value=s.calc?.note||''; }
+    if(s.type==='faq'){ paintFaq(s.faq||[]); }
+    paintMediaChips(s.media||[]);
+  }
+  function updateCurrentSection(){
+    if(store.selectedIndex<0) return;
+    const s=store.sections[store.selectedIndex];
+    s.title=secTitle.value.trim(); s.subtitle=secSubtitle.value.trim(); s.body=secBody.value.trim();
+    s.font={size:fontSize.value, weight:fontWeight.value, color:fontColor.value};
+    if(s.type==='calc'){ s.calc={min:parseFloat(calcMin.value||'5'),max:parseFloat(calcMax.value||'10'),note:calcNote.value||''}; }
+    if(s.type==='faq'){ s.faq = readFaq(); }
+    paintList(); toast('Seksyen dikemas kini');
+  }
+  function paintFaq(items){
+    faqList.innerHTML='';
+    items.forEach((it,idx)=>{
+      const row=document.createElement('div'); row.className='border rounded-lg p-2 grid md:grid-cols-[1fr_1fr_auto] gap-2';
+      row.innerHTML=`<input class="input" placeholder="Soalan" value="${it.q||''}">
+                     <input class="input" placeholder="Jawapan ringkas" value="${it.a||''}">
+                     <button class="btn-ghost">Padam</button>`;
+      row.querySelector('button').onclick=()=>{ const s=store.sections[store.selectedIndex]; s.faq.splice(idx,1); paintFaq(s.faq); };
+      faqList.appendChild(row);
+    });
+  }
+  function readFaq(){ return Array.from(faqList.children).map(r=>{ const [q,a]=r.querySelectorAll('input'); return {q:q.value.trim(),a:a.value.trim()}; }).filter(x=>x.q||x.a); }
+
+  async function loadSections(){
+    try{
+      const j=await callApi('sections_get',{leader_id:store.leader.leader_id});
+      store.sections = j.sections || [];
+      paintList(); selectIndex(store.sections.length?0:-1);
+    }catch(e){ store.sections=[]; paintList(); selectIndex(-1); }
+  }
+  async function saveSections(){
+    try{
+      const j=await callApi('sections_set',{leader_id:store.leader.leader_id,sections:store.sections});
+      if(j.success) toast('User Sections disimpan');
+    }catch(e){ toast(e.message); }
+  }
+
+  function showPreview(){
+    const wrap=document.getElementById('previewWrap'), area=document.getElementById('previewArea');
+    wrap.classList.remove('hidden'); area.innerHTML='';
+    store.sections.forEach(s=>{
+      const box=document.createElement('section'); box.className='bg-white border rounded-xl p-4 mb-3';
+      const title=s.title?`<h2 class="${s.font?.size||'text-xl'} ${s.font?.weight||'font-bold'}" style="color:${s.font?.color||'#111827'}">${s.title}</h2>`:'';
+      const subtitle=s.subtitle?`<p class="mt-1">${s.subtitle}</p>`:'';
+      const body=s.body?`<p class="mt-2 whitespace-pre-wrap">${s.body}</p>`:'';
+      let special='';
+      if(s.type==='calc'){
+        special = `<div class="mt-3 grid sm:grid-cols-3 gap-2 items-end">
+          <div><label class="text-xs">Harga Produk (RM)</label><input id="pv" type="number" class="input mt-1" value="200"></div>
+          <div><div class="text-xs">Anggaran Min (${s.calc?.min??5}%)</div><div id="outMin" class="font-semibold">RM 0.00</div></div>
+          <div><div class="text-xs">Anggaran Maks (${s.calc?.max??10}%)</div><div id="outMax" class="font-semibold">RM 0.00</div></div>
+        </div><div class="text-xs text-gray-500 mt-2">${s.calc?.note||''}</div>`;
+      }
+      let media=''; if(s.media?.length){ media=`<div class="mt-3 grid sm:grid-cols-2 lg:grid-cols-3 gap-2">${s.media.map(u=>/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)?`<video src="${u}" controls class="rounded-md"></video>`:`<img src="${u}" class="rounded-md">`).join('')}</div>`; }
+      box.innerHTML = `${title}${subtitle}${body}${special}${media}`;
+      area.appendChild(box);
+      if(s.type==='calc'){
+        const pv=box.querySelector('#pv'), outMin=box.querySelector('#outMin'), outMax=box.querySelector('#outMax');
+        const render=()=>{ const v=parseFloat(pv.value||'0'); const mn=(s.calc?.min??5)/100*v, mx=(s.calc?.max??10)/100*v; outMin.textContent='RM '+mn.toFixed(2); outMax.textContent='RM '+mx.toFixed(2); };
+        pv.oninput=render; render();
+      }
+    });
+  }
+
 </script>
 </body>
 </html>
