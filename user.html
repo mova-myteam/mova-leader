@@ -3,380 +3,409 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA — Laman Pengguna</title>
+  <title>MOVA — Untuk Pengguna (Free Users)</title>
 
-  <!-- Inter font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    :root{
-      --brand:#ef4444; /* akan diubah runtime ikut Settings.theme_color */
-      --content-max: 64rem; /* fallback; akan diubah ikut Settings.content_width */
-      --heading-color:#111111;
-      --body-color:#374151;
-    }
-    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial;background:#fff;color:#0f172a}
-    .container-narrow{max-width:var(--content-max); margin-inline:auto}
-    .btn{
-      display:inline-flex; align-items:center; gap:.5rem;
-      border-radius:.75rem; padding:.7rem 1.1rem; font-weight:700;
-    }
-    .btn-primary{ background:var(--brand); color:#fff; }
-    .btn-primary:hover{ filter:brightness(.95) }
-    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; color:#111; }
-    .chip{ display:inline-flex; align-items:center; gap:.5rem; border:1px solid #e5e7eb; border-radius:999px; padding:.35rem .8rem; background:#fff; }
-    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 8px 28px rgba(15,23,42,.06); }
-    .media{ border-radius:.75rem; overflow:hidden; border:1px solid #f1f5f9 }
-    .section-title{
-      color:var(--heading-color);
-    }
-    .section-body{
-      color:var(--body-color);
-    }
-    .lead-pill{
-      display:inline-flex; align-items:center; gap:.5rem;
-      background:#fff; border:1px solid #eaeaea; border-radius:999px; padding:.4rem .9rem;
-    }
-    .note{ font-size:.85rem; color:#64748b }
-    .kbd{
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-      border:1px solid #e5e7eb; border-bottom-width:2px; border-radius:.5rem; padding:.1rem .35rem; background:#fff;
-    }
-    .prose p{ margin:0 0 .85rem 0; line-height:1.7 }
-    .prose ul{ list-style:disc; padding-left:1.25rem; margin:.25rem 0 1rem 0 }
-    .prose ol{ list-style:decimal; padding-left:1.25rem; margin:.25rem 0 1rem 0 }
-    .prose h3{ font-weight:700; margin:1.25rem 0 .5rem 0 }
+    :root { --brand:#ef4444; }
+    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.7rem 1rem;font-weight:700}
+    .btn-primary{background:var(--brand);color:#fff}
+    .btn-ghost{background:#fff;border:1px solid #e5e7eb}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
+    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.7rem .9rem;background:#fff}
+    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
+    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
+    .section-title{font-weight:800;font-size:1.25rem}
+    .muted{color:#6b7280}
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
+<!-- NAV -->
+<nav class="bg-white border-b border-gray-200">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
+      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
         <i data-lucide="rocket" class="w-5 h-5"></i>
       </div>
-      <div>
-        <div class="text-lg font-semibold">MOVA</div>
-        <div class="text-xs text-gray-500">Laman info & pembelajaran</div>
+      <div class="font-extrabold">MOVA</div>
+    </div>
+    <div class="hidden sm:flex items-center gap-6 text-sm">
+      <a href="#intro" class="hover:underline">Apa itu MOVA</a>
+      <a href="#calc" class="hover:underline">Anggaran Cashback</a>
+      <a href="#upgrade" class="hover:underline">Naik Taraf</a>
+      <a href="#faq" class="hover:underline">FAQ</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="bg-white">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-2 gap-8 items-center">
+    <div>
+      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+        Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan <span class="text-[color:var(--brand)]">MOVA</span>.
+      </h1>
+      <p class="mt-3 text-gray-600">
+        Mula sebagai Free User, fahami cara berfungsi, dan bila bersedia anda boleh naik taraf ke Silver/Gold/Diamond di bawah bimbingan Leader.
+      </p>
+      <div class="mt-6 flex gap-3">
+        <a href="#intro" class="btn btn-primary"><i data-lucide="play-circle" class="w-4 h-4"></i> Saya Nak Faham MOVA</a>
+        <a href="#upgrade" class="btn btn-ghost">Saya Mahu Naik Taraf</a>
       </div>
     </div>
-    <div class="flex items-center gap-2">
-      <a id="btnUpgrade" class="btn btn-primary" href="#" target="_blank" rel="noopener">
-        <i data-lucide="sparkles" class="w-4 h-4"></i>
-        Saya mahu upgrade
-      </a>
+    <div class="card p-0 overflow-hidden">
+      <div id="heroVideoWrap" class="aspect-video bg-gray-100 grid place-items-center text-gray-500">
+        <div class="p-6 text-center">
+          <i data-lucide="video" class="w-10 h-10 mx-auto"></i>
+          <div class="mt-2 text-sm">Video pengenalan akan dipaparkan di sini</div>
+        </div>
+      </div>
     </div>
   </div>
 </header>
 
-<!-- HERO + CONTENT -->
-<main id="app" class="pb-16">
-  <!-- HERO dinamik -->
-  <section id="hero" class="pt-10 md:pt-14">
-    <div class="container-narrow px-4 sm:px-6">
-      <div class="grid md:grid-cols-2 gap-8 items-center">
-        <div>
-          <div class="lead-pill text-sm text-gray-700 mb-3">
-            <i data-lucide="badge-percent" class="w-4 h-4"></i>
-            Cashback pintar, belanja berbaloi
-          </div>
-          <h1 id="heroTitle" class="font-extrabold text-3xl md:text-5xl leading-tight mb-3 section-title">MOVA — Cashback Pintar</h1>
-          <p id="heroSubtitle" class="text-gray-600 text-base md:text-lg section-body">Belanja macam biasa, dapat pulangan tunai.</p>
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12 pb-16">
 
-          <!-- Kalkulator Cashback -->
-          <div class="card p-4 mt-6">
-            <div class="flex items-center gap-2 mb-2">
-              <i data-lucide="calculator" class="w-4 h-4 text-gray-700"></i>
-              <div class="font-semibold">Anggaran Cashback</div>
-            </div>
-            <div class="grid sm:grid-cols-[1fr_auto] gap-3">
-              <input id="inputPrice" type="number" min="0" step="0.01" placeholder="Masukkan harga produk (RM)" class="w-full border border-gray-300 rounded-lg px-3 py-2"/>
-              <button id="btnCalc" class="btn btn-ghost">Kira</button>
-            </div>
-            <div id="cashbackOut" class="mt-3 text-gray-800 text-lg font-semibold">—</div>
-            <div id="cashbackNote" class="note mt-1">
-              Anggaran berdasarkan kadar cashback semasa. Nilai sebenar boleh berbeza mengikut terma merchant (contoh: penggunaan baucar/kupon, kategori produk, caj penghantaran & pemulangan).
-            </div>
-          </div>
+  <!-- INTRO -->
+  <section id="intro" class="card p-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="info" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="section-title">Apa itu MOVA & Bagaimana Ia Berfungsi</h2>
+    </div>
+    <p class="text-gray-700">
+      MOVA ialah platform ganjaran **cashback** apabila anda berbelanja melalui rakan kongsi. Daftar percuma, belanja seperti biasa, dan terima pulangan mengikut polisi merchant & kempen semasa.
+    </p>
 
-          <!-- CTA -->
-          <div class="mt-6 flex flex-wrap items-center gap-2">
-            <a id="btnContactLeader" class="btn btn-primary" target="_blank" rel="noopener">
-              <i data-lucide="message-circle" class="w-4 h-4"></i>
-              Tanya Leader
-            </a>
-            <a id="btnContactPartner" class="btn btn-ghost hidden" target="_blank" rel="noopener">
-              <i data-lucide="headset" class="w-4 h-4"></i>
-              Hubungi Partner
-            </a>
-          </div>
-        </div>
-        <div>
-          <div id="heroMedia" class="media aspect-video bg-gray-50 grid place-items-center text-gray-400">
-            <i data-lucide="play-circle" class="w-12 h-12"></i>
-          </div>
-        </div>
+    <div class="grid sm:grid-cols-3 gap-4 mt-5">
+      <div class="p-4 border border-gray-200 rounded-xl">
+        <div class="font-semibold mb-1">1) Daftar Percuma</div>
+        <div class="text-sm text-gray-600">Guna nombor telefon anda untuk aktifkan akaun MOVA.</div>
+      </div>
+      <div class="p-4 border border-gray-200 rounded-xl">
+        <div class="font-semibold mb-1">2) Belanja Melalui MOVA</div>
+        <div class="text-sm text-gray-600">Pilih kedai/marketplace rakan kongsi dan buat pembelian seperti biasa.</div>
+      </div>
+      <div class="p-4 border border-gray-200 rounded-xl">
+        <div class="font-semibold mb-1">3) Terima Cashback</div>
+        <div class="text-sm text-gray-600">Cashback disemak & dikredit ikut polisi merchant (anggaran 5–10% ditetapkan oleh Leader).</div>
       </div>
     </div>
   </section>
 
-  <!-- SECTIONS dinamik -->
-  <section id="sections" class="mt-12">
-    <div class="container-narrow px-4 sm:px-6 space-y-10" id="sectionsWrap">
-      <!-- Seksyen akan disuntik di sini -->
+  <!-- CALCULATOR (rate dikunci dari server) -->
+  <section id="calc" class="card p-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="calculator" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="section-title">Anggaran Cashback Anda</h2>
+    </div>
+    <div class="text-sm text-gray-700 mb-3">Kadar semasa yang ditetapkan oleh Leader: <span id="rateLabel" class="font-semibold">—</span></div>
+    <div class="grid md:grid-cols-2 gap-3">
+      <div>
+        <label class="text-sm font-medium">Nilai Belanja (RM)</label>
+        <input id="spend" type="number" min="0" class="input mt-1" placeholder="cth: 200" />
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm font-medium">Anggaran Minimum (RM)</label>
+          <input id="rmMin" class="input mt-1" disabled />
+        </div>
+        <div>
+          <label class="text-sm font-medium">Anggaran Maksimum (RM)</label>
+          <input id="rmMax" class="input mt-1" disabled />
+        </div>
+      </div>
+    </div>
+    <div class="mt-4">
+      <button id="btnCalc" class="btn btn-primary">Kira Anggaran</button>
+    </div>
+    <div class="mt-2 text-xs text-gray-600 leading-relaxed">
+      * Anggaran boleh berubah mengikut polisi merchant/affiliate dan promosi semasa, termasuk penggunaan kupon/voucher, tempoh kelulusan & pengesahan transaksi, pembatalan/return, pengecualian item/caj (cth. cukai & penghantaran), serta had per pesanan dan kempen dinamik. Kadar di setiap merchant boleh berbeza.
     </div>
   </section>
 
-  <!-- UPDATE TERKINI (jika ada type=updates) akan turut dirender dalam loops) -->
+  <!-- UPGRADE -->
+  <section id="upgrade" class="card p-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="sparkles" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="section-title">Naik Taraf — Silver, Gold, Diamond</h2>
+    </div>
+    <p class="text-gray-700">Laluan naik taraf <b>dibimbing Leader</b>: Free → <b>Silver</b> (asas) → <b>Gold</b> (lanjutan) → <b>Diamond</b> (kepimpinan). Fokus kami: asas kukuh, strategi betul, dan etika perniagaan — bukan janji pendapatan terjamin.</p>
+
+    <div class="grid md:grid-cols-3 gap-4 mt-5">
+      <div class="p-5 border border-gray-200 rounded-xl">
+        <div class="text-sm badge">Partner</div>
+        <div class="font-extrabold text-xl mt-1">Silver</div>
+        <ul class="mt-3 space-y-2 text-sm text-gray-700">
+          <li>• Komisen asas & panduan komuniti</li>
+          <li>• Bahan marketing asas</li>
+        </ul>
+      </div>
+      <div class="p-5 border border-gray-200 rounded-xl">
+        <div class="text-sm badge">Partner</div>
+        <div class="font-extrabold text-xl mt-1">Gold</div>
+        <ul class="mt-3 space-y-2 text-sm text-gray-700">
+          <li>• Komisen lebih tinggi</li>
+          <li>• Latihan berkala & strategi</li>
+        </ul>
+      </div>
+      <div class="p-5 border border-gray-200 rounded-xl">
+        <div class="text-sm badge">Partner</div>
+        <div class="font-extrabold text-xl mt-1">Diamond</div>
+        <ul class="mt-3 space-y-2 text-sm text-gray-700">
+          <li>• Potensi pendapatan maksimum</li>
+          <li>• Bimbingan rapat daripada Leader</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Notify Intent -->
+    <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
+      <div class="font-semibold mb-2">Saya Sedia Naik Taraf</div>
+      <div class="grid md:grid-cols-5 gap-3">
+        <input id="uName" class="input" placeholder="Nama penuh">
+        <input id="uPhone" class="input" placeholder="No. telefon">
+        <select id="uTarget" class="input">
+          <option value="">Pilih Peringkat</option>
+          <option>Silver</option>
+          <option>Gold</option>
+          <option>Diamond</option>
+        </select>
+        <select id="uPartner" class="input">
+          <option value="">Pilih Partner Anda</option>
+        </select>
+        <input id="uNote" class="input" placeholder="Nota (opsyen)">
+      </div>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <button id="btnNotify" class="btn btn-primary"><i data-lucide="bell-ring" class="w-4 h-4"></i> Saya Sedia Naik Taraf</button>
+        <button id="btnWAPar" class="btn btn-ghost"><i data-lucide="messages-square" class="w-4 h-4"></i> WhatsApp Partner</button>
+        <button id="btnWALeader" class="btn btn-ghost"><i data-lucide="send" class="w-4 h-4"></i> WhatsApp Leader</button>
+      </div>
+      <div class="mt-2 text-xs text-gray-500">
+        * Niat anda akan dihantar kepada Leader & Partner untuk tindakan susulan.
+      </div>
+    </div>
+  </section>
+
+  <!-- ANNOUNCEMENTS / UPDATES -->
+  <section class="card p-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="section-title">Promosi & Update Terkini</h2>
+    </div>
+    <div id="updatesGrid" class="grid md:grid-cols-3 gap-3"></div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="card p-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="help-circle" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="section-title">Soalan Lazim (FAQ)</h2>
+    </div>
+    <div id="faqWrap" class="space-y-3"></div>
+  </section>
+
+  <!-- RULES -->
+  <section class="card p-6">
+    <div class="flex items-center gap-2 mb-2">
+      <i data-lucide="shield" class="w-5 h-5 text-gray-700"></i>
+      <h2 class="section-title">Larangan & Garis Panduan</h2>
+    </div>
+    <ul id="rulesList" class="list-disc pl-6 text-gray-700"></ul>
+  </section>
+
 </main>
 
-<!-- FOOTER -->
-<footer class="border-t border-gray-200 py-10 mt-16">
-  <div class="container-narrow px-4 sm:px-6 text-sm text-gray-500">
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <div class="h-8 w-8 rounded-lg bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
-          <i data-lucide="rocket" class="w-4 h-4"></i>
-        </div>
-        <div>© <span id="yearNow"></span> MOVA. Semua hak cipta terpelihara.</div>
-      </div>
-      <div class="note">
-        Ditentukan oleh Leader anda · Kandungan boleh berubah dari semasa ke semasa.
-      </div>
-    </div>
-  </div>
+<footer class="mt-10 py-10 text-center text-sm text-gray-500">
+  © <span id="year"></span> MOVA. Hak cipta terpelihara.
 </footer>
 
+<div id="toast" class="toast hidden"></div>
+
 <script>
-  // ================== KONFIG ==================
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
-  const urlParams = new URLSearchParams(location.search);
-  const LEADER_ID = urlParams.get('leader') || 'LEAD-0001';
+  lucide.createIcons();
+  document.getElementById('year').textContent = new Date().getFullYear();
 
-  // (pilihan) override partner agar WhatsApp CTA boleh terus ke partner
-  const PARTNER_NAME = urlParams.get('partner') || '';
-  const PARTNER_PHONE = urlParams.get('partner_phone') || '';
-
-  // ================== UTIL ==================
-  function money(n){ if(isNaN(n)) return '—'; return 'RM ' + Number(n).toFixed(2); }
-  function isVideoUrl(u){ return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u||''); }
-  function isImageUrl(u){ return /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(u||''); }
-  function createEl(tag, cls){ const el = document.createElement(tag); if(cls) el.className = cls; return el; }
-  function whatsappLink(phone, text){
-    const p = (String(phone||'').replace(/^\+/, '')).trim();
-    const msg = encodeURIComponent(text || 'Hai, saya berminat dengan MOVA.');
-    return `https://wa.me/${p}?text=${msg}`;
-  }
-  function parseJSON(s, def){ try { return JSON.parse(s); } catch(e){ return def; } }
-
-  async function callApi(path, payload) {
+  // UTIL
+  const toastEl = document.getElementById('toast');
+  function toast(msg, ms=2200){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms); }
+  async function api(path, payload){
     const res = await fetch(EXEC_URL, {
       method:'POST',
-      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
       body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
     });
-    const txt = await res.text();
-    let json; try { json = JSON.parse(txt); } catch(e){ throw new Error(txt); }
-    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+    const text=await res.text(); let json; try{ json=JSON.parse(text) }catch(e){ throw new Error(text) }
+    if (json && json.success===false) throw new Error(json.error||'Ralat tidak diketahui');
     return json;
   }
+  function qs(key){ return new URLSearchParams(location.search).get(key) || ''; }
 
-  // ================== INIT ==================
-  document.getElementById('yearNow').textContent = new Date().getFullYear();
-  lucide.createIcons();
+  let RATE_MIN = 5, RATE_MAX = 10;
+  let partners = [];
 
+  // INIT
   (async function init(){
-    try{
-      // ambil SETTING
-      const out = await callApi('settings_get', { leader_id: LEADER_ID });
-      const S = out.settings || {};
-
-      // theme / gaya
-      if (S.theme_color) document.documentElement.style.setProperty('--brand', S.theme_color);
-      const widthMap = {
-        'max-w-2xl':'42rem','max-w-3xl':'48rem','max-w-4xl':'56rem','max-w-5xl':'64rem','max-w-6xl':'72rem'
-      };
-      const cw = S.content_width && widthMap[S.content_width] ? widthMap[S.content_width] : '64rem';
-      document.documentElement.style.setProperty('--content-max', cw);
-
-      if (S.heading_color) document.documentElement.style.setProperty('--heading-color', S.heading_color);
-      if (S.body_color) document.documentElement.style.setProperty('--body-color', S.body_color);
-
-      // sections_json
-      const sections = parseJSON(S.sections_json || '[]', []);
-      renderHero(sections);
-      renderSections(sections);
-
-      // kalkulator cashback
-      setupCashback(S);
-
-      // CTA WhatsApp (leader / partner)
-      const leaderWA = (S.whatsapp || '').replace(/\D/g,'');
-      const btnL = document.getElementById('btnContactLeader');
-      if (leaderWA) {
-        btnL.href = whatsappLink(leaderWA, 'Hai Leader, saya ingin tahu tentang MOVA.');
-      } else {
-        btnL.classList.add('hidden');
-      }
-      const btnP = document.getElementById('btnContactPartner');
-      if (PARTNER_PHONE) {
-        btnP.classList.remove('hidden');
-        btnP.href = whatsappLink(PARTNER_PHONE, `Hai ${PARTNER_NAME || 'Partner'}, saya ingin tahu tentang MOVA.`);
-      }
-
-      // Butang upgrade — ke WhatsApp leader sebagai notifikasi minat upgrade
-      const btnU = document.getElementById('btnUpgrade');
-      if (leaderWA) btnU.href = whatsappLink(leaderWA, 'Saya berminat untuk upgrade akaun MOVA. Mohon pandu saya langkah seterusnya.');
-
-    }catch(err){
-      console.error(err);
-      // fallback ringkas supaya laman tetap berguna
-      renderHero([]);
-      renderSections([]);
-      setupCashback({});
-    }
+    try{ await api('setup',{}); }catch(e){}
+    await loadSettings();
+    await loadHeroVideo();
+    await loadUpdates();
+    await loadPartners();
+    await loadFaq();
+    await loadRules();
+    // prefill partner/leader if present in URL
+    const partnerParam = qs('partner'); if (partnerParam) document.getElementById('uPartner').value = partnerParam;
+    document.getElementById('uName').value  = qs('name') || '';
+    document.getElementById('uPhone').value = qs('phone') || '';
   })();
 
-  // ================== RENDERING ==================
-  function renderHero(sections){
-    const hero = sections.find(s => (s.type||'').toLowerCase()==='hero') || {};
-    const heroTitle = document.getElementById('heroTitle');
-    const heroSubtitle = document.getElementById('heroSubtitle');
-    const heroMedia = document.getElementById('heroMedia');
-
-    if (hero.title) heroTitle.textContent = hero.title;
-    if (hero.subtitle) heroSubtitle.textContent = hero.subtitle;
-
-    heroMedia.innerHTML = '';
-    // Jika ada media (url)
-    if (hero.media && hero.media.length){
-      const url = hero.media[0];
-      if (isVideoUrl(url)) {
-        const v = document.createElement('video');
-        v.src = url; v.controls = true; v.playsInline = true; v.className = 'w-full h-full object-cover';
-        heroMedia.appendChild(v);
-      } else if (isImageUrl(url)) {
-        const img = document.createElement('img');
-        img.src = url; img.alt = 'Hero media'; img.className = 'w-full h-full object-cover';
-        heroMedia.appendChild(img);
-      } else {
-        heroMedia.innerHTML = `<div class="text-gray-400 text-sm p-4">Media tidak dikenali</div>`;
-      }
-    } else {
-      // ikon fallback sudah ada dalam HTML asal, biarkan jika kosong
-      heroMedia.innerHTML = `<div class="w-full h-full grid place-items-center text-gray-300">
-        <i data-lucide="play-circle" class="w-12 h-12"></i>
-      </div>`;
-      lucide.createIcons();
+  async function loadSettings(){
+    try{
+      const s = (await api('settings_get',{})).settings || {};
+      RATE_MIN = Number(s.default_cashback_min || 5);
+      RATE_MAX = Number(s.default_cashback_max || 10);
+      if (RATE_MIN < 0) RATE_MIN = 0;
+      if (RATE_MAX < RATE_MIN) RATE_MAX = RATE_MIN;
+      document.getElementById('rateLabel').textContent = `${RATE_MIN}% – ${RATE_MAX}%`;
+    }catch(e){
+      document.getElementById('rateLabel').textContent = `${RATE_MIN}% – ${RATE_MAX}%`;
     }
   }
 
-  function renderSections(sections){
-    const wrap = document.getElementById('sectionsWrap');
-    wrap.innerHTML = '';
-    sections.filter(s => (s.type||'').toLowerCase()!=='hero').forEach(sec => {
-      const type = (sec.type||'section').toLowerCase();
-      const block = createEl('div', 'grid md:grid-cols-2 gap-6 items-start');
-      const left = createEl('div', '');
-      const right = createEl('div', '');
-
-      // Tajuk + isi
-      const h = createEl('h2', 'section-title font-extrabold text-2xl md:text-3xl');
-      h.textContent = sec.title || 'Seksyen';
-      left.appendChild(h);
-
-      const body = createEl('div', 'prose section-body mt-3 text-[1rem]');
-      body.innerHTML = mdToHtml_(sec.body || ''); // render markdown ringkas
-      left.appendChild(body);
-
-      // Media (jika ada)
-      const mediaWrap = createEl('div', 'grid grid-cols-2 gap-3');
-      if (Array.isArray(sec.media) && sec.media.length){
-        (sec.media||[]).forEach(u=>{
-          if (isVideoUrl(u)) {
-            const v = createEl('video', 'w-full h-44 md:h-52 object-cover media'); v.src=u; v.controls=true; v.playsInline=true; mediaWrap.appendChild(v);
-          } else if (isImageUrl(u)) {
-            const img = createEl('img', 'w-full h-44 md:h-52 object-cover media'); img.src=u; img.loading='lazy'; mediaWrap.appendChild(img);
-          } else {
-            const a = createEl('a', 'media p-3 text-xs text-blue-600 underline'); a.href=u; a.target='_blank'; a.textContent=u; mediaWrap.appendChild(a);
-          }
-        });
-        right.appendChild(mediaWrap);
+  // HERO VIDEO (ambil media pertama jenis video jika ada)
+  async function loadHeroVideo(){
+    try{
+      const out = await api('media_list', {});
+      const list = (out.items||[]).filter(x => /^video\//i.test(x.file_type||''));
+      if (list.length){
+        const v = list.sort((a,b)=> new Date(b.created_at||0)-new Date(a.created_at||0))[0];
+        document.getElementById('heroVideoWrap').innerHTML =
+          `<video src="${v.public_url}" controls playsinline class="w-full h-full"></video>`;
       }
-
-      // Jenis khas
-      if (type==='updates'){
-        const note = createEl('div','note mt-2');
-        note.textContent = 'Kemas kini ini ditentukan oleh Leader & boleh berubah dari semasa ke semasa.';
-        left.appendChild(note);
-      } else if (type==='faq'){
-        // body dianggap markdown berformat Q/A
-      } else if (type==='gallery'){
-        // sudah dirender sebagai media di kanan
-      } else if (type==='cta'){
-        const btn = createEl('a','btn btn-primary mt-3 inline-flex');
-        btn.innerHTML = '<i data-lucide="sparkles" class="w-4 h-4"></i> Saya berminat untuk upgrade';
-        btn.target = '_blank'; btn.rel='noopener';
-        btn.href = document.getElementById('btnUpgrade').href;
-        left.appendChild(btn);
-      }
-
-      // susun: jika tiada media, gunakan full
-      if (!right.hasChildNodes()){
-        block.className = 'block';
-        block.appendChild(left);
-      } else {
-        block.appendChild(left);
-        block.appendChild(right);
-      }
-
-      // Render
-      wrap.appendChild(block);
-
-      // garisan pemisah
-      const hr = createEl('hr','border-gray-200');
-      wrap.appendChild(hr);
-    });
-
-    // hidupkan ikon semula selepas inject
-    lucide.createIcons();
+    }catch(e){}
   }
 
-  // Markdown ringkas (bold, italic, link, linebreak)
-  function mdToHtml_(s){
-    let html = (s||'')
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-    html = html.replace(/\*(.+?)\*/g,'<em>$1</em>');
-    html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g,'<img src="$2" alt="$1" class="media my-2"/>');
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a class="text-blue-600 underline" href="$2" target="_blank" rel="noopener">$1</a>');
-    html = html.replace(/\n/g,'<br/>');
-    return html;
+  // UPDATES (site_content published=yes)
+  async function loadUpdates(){
+    try{
+      const out = await api('content_list', {});
+      const items = (out.items||[]).filter(x => String(x.published||'').toLowerCase()==='yes')
+        .sort((a,b)=> new Date(b.updated_at||0)-new Date(a.updated_at||0)).slice(0,6);
+      const wrap = document.getElementById('updatesGrid'); wrap.innerHTML='';
+      items.forEach(row=>{
+        const card = document.createElement('div'); card.className='p-4 border border-gray-200 rounded-xl bg-white';
+        const media = (String(row.media_urls||'').split(',')[0]||'').trim();
+        card.innerHTML = `
+          ${media ? (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(media) ?
+            `<video src="${media}" class="w-full rounded-lg mb-3" controls playsinline></video>` :
+            `<img src="${media}" class="w-full rounded-lg mb-3" loading="lazy" />`
+          ) : ''}
+          <div class="font-semibold">${row.title||'-'}</div>
+          <div class="text-xs text-gray-500 mt-1">${row.updated_at||''}</div>
+          <div class="text-sm text-gray-700 mt-2">${(row.body||'').slice(0,220)}</div>
+        `;
+        wrap.appendChild(card);
+      });
+    }catch(e){}
   }
 
-  // ================== KALKULATOR CASHBACK ==================
-  function setupCashback(S){
-    const minR = Number(S.cashback_min || 5);
-    const maxR = Number(S.cashback_max || 10);
-    const input = document.getElementById('inputPrice');
-    const out = document.getElementById('cashbackOut');
-
-    function compute(){
-      const price = Number(input.value || 0);
-      if (!price || price<=0) { out.textContent = '—'; return; }
-      const minAmt = price * (minR/100);
-      const maxAmt = price * (maxR/100);
-      out.textContent = `${money(minAmt)} — ${money(maxAmt)} (anggaran ${minR}%–${maxR}%)`;
-    }
-    document.getElementById('btnCalc').addEventListener('click', compute);
-    input.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ compute(); } });
+  // PARTNERS (untuk dropdown & WhatsApp)
+  async function loadPartners(){
+    try{
+      const out = await api('partner_list', {});
+      partners = out.items || [];
+      const sel = document.getElementById('uPartner'); sel.innerHTML='<option value="">Pilih Partner Anda</option>';
+      partners.forEach(p=>{
+        const opt = document.createElement('option');
+        opt.value = p.name || ''; opt.textContent = p.name || '';
+        sel.appendChild(opt);
+      });
+    }catch(e){}
   }
+
+  // FAQ
+  async function loadFaq(){
+    try{
+      const out = await api('faq_list', {});
+      const list = out.items || [];
+      const wrap = document.getElementById('faqWrap'); wrap.innerHTML='';
+      if (!list.length){ wrap.innerHTML = '<div class="text-sm muted">Belum ada FAQ diterbit.</div>'; return; }
+      list.forEach(f=>{
+        const box = document.createElement('details');
+        box.className='p-4 border border-gray-200 rounded-xl';
+        box.innerHTML = `<summary class="font-semibold cursor-pointer">${f.question||'-'}</summary>
+          <div class="mt-2 text-sm text-gray-700">${f.answer||''}</div>`;
+        wrap.appendChild(box);
+      });
+    }catch(e){}
+  }
+
+  // RULES
+  async function loadRules(){
+    try{
+      const out = await api('rules_list', {});
+      const list = out.items || [];
+      const ul = document.getElementById('rulesList'); ul.innerHTML='';
+      if (!list.length){ ul.innerHTML = '<li class="muted">Belum ada larangan diterbit.</li>'; return; }
+      list.forEach(r=>{
+        const li = document.createElement('li'); li.textContent = r.text||''; ul.appendChild(li);
+      });
+    }catch(e){}
+  }
+
+  // CALC
+  document.getElementById('btnCalc').addEventListener('click', ()=>{
+    const spend = Math.max(0, Number(document.getElementById('spend').value||0));
+    const rmMin = (spend * (RATE_MIN/100)).toFixed(2);
+    const rmMax = (spend * (RATE_MAX/100)).toFixed(2);
+    document.getElementById('rmMin').value = spend ? rmMin : '';
+    document.getElementById('rmMax').value = spend ? rmMax : '';
+  });
+
+  // NOTIFY (UPGRADE INTENT)
+  document.getElementById('btnNotify').addEventListener('click', async ()=>{
+    const user_name = document.getElementById('uName').value.trim();
+    const user_phone= document.getElementById('uPhone').value.trim();
+    const target    = document.getElementById('uTarget').value.trim();
+    const partner_name = document.getElementById('uPartner').value.trim();
+    const leader_id = qs('leader') || ''; // boleh letak leader_id di URL jika ada
+    const note      = document.getElementById('uNote').value.trim();
+    if (!user_name || !user_phone || !target) return toast('Lengkapkan nama, telefon & peringkat.');
+
+    try{
+      const out = await api('upgrade_intent', { user_name, user_phone, partner_name, leader_id, target, note });
+      if (out.success){ toast('Niat upgrade dihantar ✔️'); }
+    }catch(e){ toast('Gagal menghantar niat.'); }
+  });
+
+  // WhatsApp helper
+  function waUrl(num, txt){ 
+    const p = String(num||'').replace(/\D/g,''); 
+    return p ? `https://wa.me/${p}?text=${encodeURIComponent(txt||'')}` : '';
+  }
+  document.getElementById('btnWAPar').addEventListener('click', ()=>{
+    const partner = partners.find(p=> (p.name||'') === document.getElementById('uPartner').value);
+    if (!partner || !partner.phone) return toast('Sila pilih partner yang ada nombor.');
+    const msg = `Hai, saya mahu naik taraf ke ${document.getElementById('uTarget').value||'-'}. Nama: ${document.getElementById('uName').value||'-'}, Telefon: ${document.getElementById('uPhone').value||'-'}.`;
+    const url = waUrl(partner.phone, msg); if (url) window.open(url,'_blank');
+  });
+  document.getElementById('btnWALeader').addEventListener('click', async ()=>{
+    // cuba ambil no leader dari settings (key: leader_phone)
+    let leaderPhone = '';
+    try{
+      const s = (await api('settings_get',{})).settings||{};
+      leaderPhone = s.leader_phone || '';
+    }catch(e){}
+    if (!leaderPhone){ toast('Nombor leader belum ditetapkan.'); return; }
+    const msg = `Hai, saya mahu naik taraf ke ${document.getElementById('uTarget').value||'-'}. Nama: ${document.getElementById('uName').value||'-'}, Telefon: ${document.getElementById('uPhone').value||'-'}.`;
+    const url = waUrl(leaderPhone, msg); if (url) window.open(url,'_blank');
+  });
 </script>
 </body>
 </html>
