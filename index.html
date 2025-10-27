@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Login</title>
+  <title>MOVA — Login (Leader / Partner / User)</title>
 
   <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -19,9 +19,11 @@
     .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.65rem .9rem; background:#fff; }
     .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
     .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.7rem 1rem; font-weight:700; width:100%; }
+    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.6rem 1rem; font-weight:700; }
     .btn-primary[disabled]{ opacity:.7; cursor:not-allowed; }
     .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
     .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
+    .muted{ color:#6b7280; }
   </style>
 </head>
 <body>
@@ -35,22 +37,26 @@
         <i data-lucide="rocket" class="w-5 h-5"></i>
       </div>
       <div>
-        <div class="text-xl font-extrabold tracking-tight">MOVA Leader</div>
-        <div class="text-xs text-gray-500">Panel log masuk</div>
+        <div class="text-xl font-extrabold tracking-tight">MOVA</div>
+        <div class="text-xs text-gray-500">Panel log masuk — Leader / Partner / User</div>
       </div>
     </div>
 
     <!-- Info -->
     <div class="mb-6 text-sm text-gray-600 leading-relaxed">
-      Masukkan <b>Nama Leader</b> dan <b>No. Telefon</b> yang telah didaftarkan pada helaian <code>profiles</code>  
-      (<span class="badge">id | role | name | phone</span>). Hanya <b>role = leader</b> dibenarkan.
+      Masukkan <b>Nama</b> dan <b>No. Telefon</b> anda. Sistem akan tentukan akses:
+      <div class="mt-2 grid gap-2">
+        <div class="text-xs"><span class="badge">Leader</span> → <code>dashboard.html</code></div>
+        <div class="text-xs"><span class="badge">Partner</span> → <code>partner.html</code></div>
+        <div class="text-xs"><span class="badge">User</span> (lulus) → <code>user.html</code></div>
+      </div>
     </div>
 
     <!-- Form -->
     <form id="loginForm" class="space-y-4" autocomplete="on">
       <div>
-        <label class="text-sm font-medium text-gray-700">Nama Leader</label>
-        <input id="leaderName" class="input mt-1" placeholder="cth: ahmad rahman" required />
+        <label class="text-sm font-medium text-gray-700">Nama</label>
+        <input id="fullName" class="input mt-1" placeholder="cth: ahmad rahman" required />
       </div>
       <div>
         <label class="text-sm font-medium text-gray-700">No. Telefon</label>
@@ -73,9 +79,9 @@
     <div class="my-6 h-px bg-gray-200"></div>
 
     <!-- Bantuan -->
-    <div class="text-xs text-gray-500 space-y-1">
-      <div>Selepas berjaya, anda akan dibawa ke <code>dashboard.html</code>.</div>
-      <div>Pastikan anda telah ‘Deploy as Web App’ dan akses ‘Anyone’ pada Apps Script.</div>
+    <div class="text-xs text-gray-500 space-y-2">
+      <div>Jika anda belum didaftar / belum diluluskan, hubungi Leader/Partner untuk kelulusan.</div>
+      <div class="muted">Web App perlu <b>Deploy as Web App</b> dan akses <b>Anyone</b>.</div>
     </div>
   </div>
 </div>
@@ -98,6 +104,9 @@
     clearTimeout(toastEl._t);
     toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
   }
+  function qs(key){ return new URLSearchParams(location.search).get(key) || ''; }
+  function normPhone(p){ return String(p||'').replace(/\D/g,''); }
+  function same(strA,strB){ return String(strA||'').trim().toLowerCase() === String(strB||'').trim().toLowerCase(); }
 
   async function callApi(path, payload){
     const res = await fetch(EXEC_URL, {
@@ -114,35 +123,83 @@
   // ===== AUTO-SETUP (selamat untuk diulang) =====
   (async ()=>{ try { await callApi('setup', {}); } catch(e){} })();
 
-  // ===== LOGIN =====
+  // ===== LOGIN SERAGAM =====
   const form = document.getElementById('loginForm');
   const btnLogin = document.getElementById('btnLogin');
 
   form.addEventListener('submit', async (e)=>{
     e.preventDefault();
-    const leader_name = String(document.getElementById('leaderName').value||'').trim();
-    const phone = String(document.getElementById('phone').value||'').trim();
-
-    if (!leader_name || !phone){
-      toast('Sila isi semua medan'); return;
-    }
+    const name = String(document.getElementById('fullName').value||'').trim();
+    const phoneRaw = String(document.getElementById('phone').value||'').trim();
+    if (!name || !phoneRaw){ toast('Sila isi semua medan'); return; }
+    const phone = normPhone(phoneRaw);
 
     btnLogin.disabled = true; btnLogin.style.opacity = .8;
 
     try{
-      const out = await callApi('login', { leader_name, phone });
-      if (out && out.success){
-        // Simpan sesi — struktur yang dashboard.html jangka
-        localStorage.setItem('mova_leader', JSON.stringify({
-          leader_id: out.leader_id,
-          profile: out.profile
-        }));
-        toast('Berjaya log masuk ✔️', 1200);
-        // Redirect
-        setTimeout(()=>{ window.location.href = './dashboard.html'; }, 800);
-      } else {
-        toast(out?.error || 'Log masuk gagal');
+      // 1) Cuba endpoint baharu (jika ada)
+      try{
+        const out = await callApi('resolve_access', { name, phone });
+        if (out && out.success) {
+          await handleAccessResolution(out, {name, phone});
+          return;
+        }
+      }catch(e){
+        // jatuh ke fallback lama
       }
+
+      // 2) Fallback lama:
+      // 2a) Cuba login sebagai LEADER (endpoint asal)
+      try{
+        const outL = await callApi('login', { leader_name: name, phone: phoneRaw });
+        if (outL && outL.success){
+          localStorage.setItem('mova_leader', JSON.stringify({ leader_id: outL.leader_id, profile: outL.profile }));
+          toast('Log masuk Leader ✔️', 1200);
+          setTimeout(()=> goNext('./dashboard.html'), 700);
+          return;
+        }
+      }catch(_){ /* ignore */ }
+
+      // 2b) Semak PARTNER dalam sheet 'partners'
+      let partnerHit = null, leaderIdFromPartner = '';
+      try{
+        const pl = await callApi('partner_list', {});
+        const items = pl.items || [];
+        partnerHit = items.find(p => same(p.name, name) && (!p.phone || normPhone(p.phone)===phone));
+        if (partnerHit){ leaderIdFromPartner = String(partnerHit.leader_id||''); }
+      }catch(_){}
+      if (partnerHit){
+        localStorage.setItem('mova_partner', JSON.stringify({
+          partner_name: partnerHit.name, leader_id: leaderIdFromPartner || 'LEAD-0001'
+        }));
+        toast('Log masuk Partner ✔️', 1200);
+        setTimeout(()=> goNext('./partner.html'), 700);
+        return;
+      }
+
+      // 2c) Semak USER di 'registrations' (perlu status = lulus)
+      try{
+        const rl = await callApi('registration_list', {});
+        const items = rl.items || [];
+        const match = items.find(r => same(r.name, name) && normPhone(r.phone)===phone);
+        if (match){
+          if (String(match.status||'').toLowerCase()==='lulus'){
+            // simpan sesi user (opsyenal — untuk masa depan)
+            localStorage.setItem('mova_user', JSON.stringify({
+              name: match.name, phone: match.phone, leader_id: match.leader_id||'', partner_name: match.partner_id||''
+            }));
+            toast('Akses User ✔️', 1200);
+            setTimeout(()=> goNext('./user.html'), 700);
+            return;
+          } else {
+            toast('Akaun anda belum diluluskan. Sila hubungi Admin/Partner/Leader anda.');
+            return;
+          }
+        }
+      }catch(_){}
+
+      // 2d) Jika sampai sini — tiada padanan
+      toast('Rekod tidak ditemui. Sila hubungi Admin/Partner/Leader untuk daftar/semakan.');
     }catch(err){
       toast(err.message || 'Ralat rangkaian');
     }finally{
@@ -157,6 +214,58 @@
       toast(out?.message || 'Setup selesai');
     }catch(e){ toast('Gagal setup'); }
   });
+
+  // ===== HELPER: tangani output resolve_access (moden) =====
+  async function handleAccessResolution(out, cred){
+    const role = String(out.role||'').toLowerCase();
+    if (role === 'leader'){
+      localStorage.setItem('mova_leader', JSON.stringify({ leader_id: out.leader_id, profile: out.profile||{} }));
+      toast('Log masuk Leader ✔️', 1200);
+      setTimeout(()=> goNext('./dashboard.html'), 700);
+      return;
+    }
+    if (role === 'partner'){
+      localStorage.setItem('mova_partner', JSON.stringify({
+        partner_name: out.partner_name || cred.name,
+        leader_id: out.leader_id || 'LEAD-0001',
+        partner_id: out.partner_id || ''
+      }));
+      toast('Log masuk Partner ✔️', 1200);
+      setTimeout(()=> goNext('./partner.html'), 700);
+      return;
+    }
+    if (role === 'user'){
+      const approved = !!out.approved;
+      if (!approved){
+        toast('Akaun anda belum diluluskan. Sila hubungi Admin/Partner/Leader.');
+        return;
+      }
+      localStorage.setItem('mova_user', JSON.stringify({
+        name: out.user_name || cred.name,
+        phone: out.phone || cred.phone,
+        leader_id: out.leader_id || '',
+        partner_name: out.partner_name || ''
+      }));
+      toast('Akses User ✔️', 1200);
+      setTimeout(()=> goNext('./user.html'), 700);
+      return;
+    }
+    // fallback jika role tak dikenali
+    toast('Peranan tidak dikenali. Sila hubungi Admin.');
+  }
+
+  // ===== Redirect helper (sokong ?next=/something.html) =====
+  function goNext(defaultPath){
+    const next = qs('next');
+    if (next){
+      try{
+        const u = new URL(next, location.href);
+        location.href = u.toString();
+        return;
+      }catch(_){}
+    }
+    location.href = defaultPath;
+  }
 </script>
 </body>
 </html>
