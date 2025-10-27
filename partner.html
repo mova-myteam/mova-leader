@@ -5,55 +5,43 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MOVA Partner — Panel</title>
 
-  <!-- Inter font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide icons -->
+  <!-- Lucide -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root { --brand:#ef4444; }
-    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial;background:#fafafa}
-    .scroll-bar::-webkit-scrollbar{height:8px}
-    .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
-    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; white-space:nowrap;}
+    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:700; border:1px solid #e5e7eb; white-space:nowrap;}
     .pill-active{ background:#111; color:#fff; border-color:#111; }
     .pill-idle{ background:#fff; color:#374151; }
-    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
-    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.5rem 1rem; font-weight:700; }
-    .btn-primary:hover{ filter:brightness(0.95); }
-    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.5rem 1rem; }
+    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.55rem .9rem; font-weight:800;}
+    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.55rem .9rem; font-weight:700;}
     .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem .9rem; background:#fff; }
     .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
-    .textarea{ width:100%; min-height:120px; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; background:#fff; }
-    .textarea:focus{ outline:none; box-shadow:0 0 0 2px #111; }
     .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
-    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
     .table{ width:100%; border-collapse:separate; border-spacing:0; }
     .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
     .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
-    .chip{display:inline-flex;align-items:center;gap:.4rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.8rem}
-    .chip button{background:transparent;border:none;cursor:pointer}
-    .recip-row{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-bottom:1px dashed #f1f5f9}
-    .switch{position:relative;width:44px;height:26px;border-radius:9999px;background:#e5e7eb;display:inline-block;vertical-align:middle;cursor:pointer}
-    .switch input{display:none}
-    .switch span{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:9999px;transition:.2s}
-    .switch input:checked + span{left:21px;background:#111}
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
   </style>
 </head>
-<body class="bg-gray-50">
+<body>
 
 <!-- ====== HEADER ====== -->
 <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
       <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
-        <i data-lucide="rocket" class="w-5 h-5"></i>
+        <i data-lucide="shield-check" class="w-5 h-5"></i>
       </div>
       <div>
         <div class="text-lg font-semibold">MOVA Partner</div>
-        <div class="text-xs text-gray-500">Hai, <span id="partnerName">partner</span></div>
+        <div class="text-xs text-gray-500">Hai, <span id="whoName">partner</span></div>
       </div>
     </div>
 
@@ -68,155 +56,98 @@
   </div>
 </header>
 
-<!-- ====== CONTENT ====== -->
 <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
   <!-- KPI -->
-  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <div class="card p-5">
-      <div class="text-3xl font-extrabold" id="statCustomers">—</div>
-      <div class="text-sm text-gray-600">Customers Anda</div>
+      <div class="text-3xl font-extrabold" id="statMyUsers">—</div>
+      <div class="text-sm text-gray-600">User Di Bawah Saya</div>
     </div>
     <div class="card p-5">
       <div class="text-3xl font-extrabold" id="statPending">—</div>
-      <div class="text-sm text-gray-600">Pending Approvals</div>
+      <div class="text-sm text-gray-600">Pendaftaran Perlu Dilulus</div>
     </div>
     <div class="card p-5">
-      <div class="text-3xl font-extrabold" id="statBroadcasts">—</div>
-      <div class="text-sm text-gray-600">Broadcast Log (Anda)</div>
-    </div>
-    <div class="card p-5">
-      <div class="text-3xl font-extrabold" id="statMedia">—</div>
-      <div class="text-sm text-gray-600">Media Dimuat Naik</div>
+      <div class="text-3xl font-extrabold" id="statApproved">—</div>
+      <div class="text-sm text-gray-600">Diluluskan (30 hari)</div>
     </div>
   </section>
 
   <!-- TABS -->
   <section class="card p-3">
-    <div class="flex gap-2 overflow-x-auto scroll-bar">
-      <button data-tab="customer" class="pill pill-active"><i data-lucide="users" class="w-4 h-4"></i> Customer</button>
-      <button data-tab="approve"  class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
-      <button data-tab="broadcast" class="pill pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
-      <button data-tab="media" class="pill pill-idle"><i data-lucide="image" class="w-4 h-4"></i> Media</button>
-      <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta</button>
+    <div class="flex gap-2 overflow-x-auto">
+      <button data-tab="add" class="pill pill-active"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah User</button>
+      <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Approvals</button>
+      <button data-tab="list" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Senarai User Saya</button>
+      <button data-tab="links" class="pill pill-idle"><i data-lucide="link" class="w-4 h-4"></i> Pautan Pantas</button>
     </div>
   </section>
 
   <!-- PANELS -->
   <section class="space-y-6">
 
-    <!-- ===== Customer ===== -->
-    <div id="tab-customer" class="card p-6 space-y-5">
+    <!-- Tambah User -->
+    <div id="tab-add" class="card p-6 space-y-5">
       <div class="flex items-center gap-2">
-        <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Tambah Customer</h2>
+        <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah User Baharu (di bawah anda)</h2>
       </div>
       <div class="grid gap-3 md:grid-cols-3">
-        <input id="customerName" class="input" placeholder="Nama customer">
-        <input id="customerPhone" class="input" placeholder="+60XXXXXXXXX">
-        <button id="btnAddCustomer" class="btn-primary">Tambah Customer</button>
+        <input id="custName" class="input" placeholder="Nama penuh">
+        <input id="custPhone" class="input" placeholder="No. telefon">
+        <input id="custNote" class="input" placeholder="Nota (opsyen)">
       </div>
-
-      <div class="mt-6 overflow-auto">
-        <table class="table">
-          <thead>
-            <tr><th>Nama</th><th>Telefon</th><th>Didaftar</th></tr>
-          </thead>
-          <tbody id="custTable"></tbody>
-        </table>
+      <div class="flex items-center gap-2">
+        <button id="btnAdd" class="btn-primary">Tambah User</button>
+        <span class="text-xs text-gray-500">User akan muncul di senarai anda sebaik ditambah.</span>
       </div>
     </div>
 
-    <!-- ===== Approvals ===== -->
+    <!-- Approvals -->
     <div id="tab-approve" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
-        <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Approve Pendaftaran (di bawah anda)</h2>
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Luluskan Pendaftaran (di bawah anda)</h2>
       </div>
       <div class="overflow-auto">
         <table class="table">
           <thead>
-            <tr><th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th></tr>
+            <tr>
+              <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
+            </tr>
           </thead>
-        </table>
-        <table class="table">
-          <tbody id="regTableBody"></tbody>
+          <tbody id="tblApprovals"></tbody>
         </table>
       </div>
       <div class="flex gap-2">
-        <button id="btnReloadReg" class="btn-ghost">Segar Semula</button>
+        <button id="btnReloadApprove" class="btn-ghost">Segar Semula</button>
       </div>
     </div>
 
-    <!-- ===== Broadcast ===== -->
-    <div id="tab-broadcast" class="card p-6 space-y-5 hidden">
+    <!-- Senarai User Saya -->
+    <div id="tab-list" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
-        <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Broadcast WhatsApp</h2>
-        <span class="badge">log only</span>
+        <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">User Di Bawah Saya</h2>
       </div>
-
-      <div class="grid gap-3">
-        <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
-        <div id="attachChips" class="flex flex-wrap gap-2"></div>
-        <div class="grid md:grid-cols-[1fr_auto] gap-3">
-          <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
-          <div class="flex items-center gap-2">
-            <button id="btnAttachUpload" class="btn-ghost"><i data-lucide="paperclip" class="w-4 h-4"></i> Upload & Lampirkan</button>
-            <button id="btnClearAttach" class="btn-ghost">Kosongkan Lampiran</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid lg:grid-cols-2 gap-6 mt-2">
-        <div class="p-4 border border-gray-200 rounded-xl">
-          <div class="flex items-center justify-between">
-            <div class="font-semibold">Penerima (customer anda)</div>
-            <div class="flex gap-2">
-              <button id="btnSelectAll" class="btn-ghost">Pilih Semua</button>
-              <button id="btnClearAll" class="btn-ghost">Kosongkan</button>
-            </div>
-          </div>
-          <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
-        </div>
-
-        <div class="p-4 border border-gray-200 rounded-xl">
-          <div class="font-semibold mb-2">Tindakan</div>
-          <div class="grid gap-2">
-            <button id="btnBroadcast" class="btn-primary">Log Broadcast (server)</button>
-            <button id="btnOpenWA" class="btn-ghost">Buka WhatsApp Tabs</button>
-            <button id="btnExportCSV" class="btn-ghost">Muat Turun CSV (Fonnte)</button>
-          </div>
-        </div>
+      <div id="myUsersWrap" class="grid md:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+      <div class="flex gap-2">
+        <button id="btnReloadUsers" class="btn-ghost">Segar Semula</button>
       </div>
     </div>
 
-    <!-- ===== Media ===== -->
-    <div id="tab-media" class="card p-6 space-y-5 hidden">
+    <!-- Pautan Pantas -->
+    <div id="tab-links" class="card p-6 space-y-4 hidden">
       <div class="flex items-center gap-2">
-        <i data-lucide="image" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Media</h2>
+        <i data-lucide="link" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Pautan Pantas</h2>
       </div>
-      <div class="grid gap-3 md:grid-cols-[1fr_auto]">
-        <input id="fileInput" type="file" accept="image/*,video/*" class="input"/>
-        <div class="flex items-center gap-2">
-          <button id="btnUpload" class="btn-primary">Muat Naik</button>
-          <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
-        </div>
+      <div class="flex flex-wrap gap-2">
+        <a href="./user.html" target="_blank" class="btn-ghost"><i data-lucide="external-link" class="w-4 h-4"></i> Buka Laman User</a>
+        <a href="./index.html" class="btn-ghost"><i data-lucide="home" class="w-4 h-4"></i> Kembali ke Halaman Login</a>
       </div>
-      <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
-    </div>
-
-    <!-- ===== Carta ===== -->
-    <div id="tab-org" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2">
-        <i data-lucide="network" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Carta (Anda → Customers)</h2>
-      </div>
-      <div id="orgWrap" class="space-y-2"></div>
-      <div class="mt-3">
-        <button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button>
-      </div>
+      <div class="text-xs text-gray-500">* Gunakan <b>dashboard.html</b> hanya untuk Leader.</div>
     </div>
 
   </section>
@@ -226,89 +157,67 @@
 <div id="toast" class="toast hidden"></div>
 
 <script>
-  // ====== KONFIG ======
+  // ===== KONFIG =====
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-  // ====== STATE LOGIN (multi-compat) ======
-  /**
-   * Menyokong beberapa bentuk sesi yang mungkin:
-   * - mova_session    : { user:{ id, role('partner'|'leader'|'user'), name, leader_id?, partner_id? } }
-   * - mova_partner    : { partner_id, leader_id, profile:{ name, phone, ... } }
-   * - mova_leader     : { leader_id, profile:{ id, role, name, phone } }  // fallback jika role=partner
-   */
+  // ===== ICONS =====
+  lucide.createIcons();
+
+  // ===== STATE / SESSION =====
   const store = {
-    session: loadSessionCompat(),
-    attachments: [],
-    customers: [],
-    media: []
+    session: getSession(),     // cuba mova_session; fallback mova_leader
+    leader_id: null,
+    partner_id: null,
+    partner_name: null
   };
 
-  function loadSessionCompat(){
-    // 1) Prefer mova_session
-    try {
-      const s = JSON.parse(localStorage.getItem('mova_session')||'null');
-      if (s && s.user && (s.user.role==='partner' || s.user.role==='leader')) return s;
-    } catch(_) {}
-    // 2) Partner
-    try {
-      const p = JSON.parse(localStorage.getItem('mova_partner')||'null');
-      if (p && p.partner_id) return { user:{ id:p.partner_id, role:'partner', name:p.profile?.name||'Partner', leader_id:p.leader_id, partner_id:p.partner_id, phone:p.profile?.phone||'' } };
-    } catch(_) {}
-    // 3) Leader (jika kebetulan role partner disimpan di sini)
-    try {
-      const l = JSON.parse(localStorage.getItem('mova_leader')||'null');
-      if (l && l.profile && String(l.profile.role||'').toLowerCase()==='partner') {
-        return { user:{ id:l.profile.id||'',
-                        role:'partner',
-                        name:l.profile.name||'Partner',
-                        leader_id:l.profile.leader_id||l.leader_id||'',
-                        partner_id:l.profile.partner_id||'',
-                        phone:l.profile.phone||'' } };
-      }
-    } catch(_) {}
-    return null;
-  }
+  // Semak akses
+  (function guard(){
+    if (!store.session) return redirectLogin('Sesi tiada. Sila log masuk.');
+    const role = (store.session.role || store.session.profile?.role || '').toLowerCase();
+    const isLeader = role === 'leader';
+    const isPartner = role === 'partner';
+    if (!isLeader && !isPartner) {
+      redirectLogin('Akses terhad kepada Partner/Leader.');
+      return;
+    }
+    // Papar nama
+    document.getElementById('whoName').textContent = store.session.name || store.session.profile?.name || 'partner';
+  })();
 
-  if (!store.session || !store.session.user || (store.session.user.role!=='partner' && store.session.user.role!=='leader')) {
-    // hanya partner/leader boleh akses halaman ini
-    location.href = './index.html';
-  }
-
-  const PARTNER_NAME = store.session?.user?.name || 'partner';
-  const PARTNER_ID   = store.session?.user?.partner_id || '';  // optional
-  const LEADER_ID    = store.session?.user?.leader_id || '';   // diperlukan untuk kebanyakan API
-
-  document.getElementById('partnerName').textContent = PARTNER_NAME;
-  document.getElementById('btnLogout').addEventListener('click', () => {
+  document.getElementById('btnLogout').addEventListener('click', ()=>{
     localStorage.removeItem('mova_session');
-    localStorage.removeItem('mova_partner');
-    // Jangan kacau sesi leader lain
+    localStorage.removeItem('mova_leader');
     location.href = './index.html';
   });
 
-  // icons
-  lucide.createIcons();
-
-  // ====== UTIL ======
+  // ===== UTIL =====
   const toastEl = document.getElementById('toast');
-  function toast(msg, ms=2200){
-    toastEl.textContent = msg;
-    toastEl.classList.remove('hidden');
-    clearTimeout(toastEl._t);
-    toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
-  }
-  async function callApi(path, payload) {
+  function toast(msg, ms=2200){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms); }
+  async function api(path, payload){
     const res = await fetch(EXEC_URL, {
       method:'POST',
       headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
       body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
     });
     const text = await res.text();
-    let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
-    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+    let json; try{ json = JSON.parse(text) }catch(e){ throw new Error(text) }
+    if (json && json.success===false) throw new Error(json.error || 'Ralat tidak diketahui');
     return json;
   }
-
+  function redirectLogin(msg){ toast(msg || 'Sila log masuk'); setTimeout(()=> location.href='./index.html', 900); }
+  function getSession(){
+    // format cadangan B
+    const s = localStorage.getItem('mova_session');
+    if (s) { try{ return JSON.parse(s); }catch(_){ } }
+    // fallback lama (leader sahaja)
+    const l = localStorage.getItem('mova_leader');
+    if (l) { try{
+      const o = JSON.parse(l);
+      return { role:'leader', id:o.leader_id, name:o.profile?.name, profile:o.profile };
+    }catch(_){ } }
+    return null;
+  }
   function setActiveTab(name){
     document.querySelectorAll('[data-tab]').forEach(btn=>{
       if (btn.dataset.tab === name) { btn.classList.remove('pill-idle'); btn.classList.add('pill-active'); }
@@ -317,262 +226,194 @@
     document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
-    if (name === 'broadcast') buildRecipientList();
-    if (name === 'org') renderOrg();
   }
   document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab)));
-  setActiveTab('customer');
+  setActiveTab('add');
 
-  // ====== INIT ======
+  // ===== INISIALISASI =====
   (async function init(){
-    if (!LEADER_ID){
-      toast('Sesi tidak lengkap (leader_id tiada). Sila login semula.');
-      return;
+    try { await api('setup', {}); } catch(_){}
+    try{
+      await resolvePartnerContext();   // set store.leader_id, partner_id, partner_name
+      await reloadKPIs();
+      await loadApprovals();
+      await loadMyUsers();
+    }catch(e){
+      toast(e.message || 'Ralat awal.');
     }
-    try { await callApi('setup', {}); } catch(e){}
-    await reloadCustomers();
-    await reloadRegs();
-    await reloadMedia();
-    await reloadStats();
   })();
 
-  // ====== STATS (ringkas partner) ======
-  async function reloadStats(){
-    // kiraan tempatan dari senarai yang dimuat
-    document.getElementById('statCustomers').textContent = store.customers.length || '0';
-    document.getElementById('statPending').textContent   = document.querySelectorAll('#regTableBody .btn-approve').length || '0';
-    document.getElementById('statBroadcasts').textContent= '—';
-    document.getElementById('statMedia').textContent     = store.media.length || '0';
-  }
-
-  // ====== CUSTOMERS ======
-  document.getElementById('btnAddCustomer').addEventListener('click', async ()=>{
-    const name = document.getElementById('customerName').value.trim();
-    const phone= document.getElementById('customerPhone').value.trim();
-    if (!name || !phone) return toast('Nama & telefon diperlukan');
-    try{
-      const out = await callApi('customer_add', { leader_id: LEADER_ID, name, phone, partner: PARTNER_NAME });
-      if (out.success){
-        toast('Customer ditambah ✔️');
-        document.getElementById('customerName').value='';
-        document.getElementById('customerPhone').value='';
-        await reloadCustomers();
-        await buildRecipientList();
-        await renderOrg();
-      } else toast(out.error||'Gagal tambah');
-    }catch(e){ toast('Ralat tambah'); }
-  });
-
-  async function reloadCustomers(){
-    // Kita guna org_tree untuk dapatkan customers di bawah partner ini.
-    try{
-      const treeOut = await callApi('org_tree', { leader_id: LEADER_ID, leader_name: 'LEADER' });
-      const tree = treeOut.tree || { children:[] };
-      const node = (tree.children||[]).find(n=> (n.name||'') === PARTNER_NAME);
-      const list = (node && node.children) ? node.children : [];
-      store.customers = list.map(c=> ({ name:c.name||'', phone:c.phone||'' }));
-    }catch(e){
-      store.customers = [];
-    }
-    // render table
-    const tbody = document.getElementById('custTable'); tbody.innerHTML='';
-    if (!store.customers.length){
-      tbody.innerHTML = '<tr><td colspan="3" class="text-sm text-gray-500">Tiada customer.</td></tr>';
-    } else {
-      store.customers.forEach(c=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${c.name||''}</td><td>${c.phone||''}</td><td class="text-xs text-gray-500">—</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-    await reloadStats();
-  }
-
-  // ====== APPROVALS ======
-  const regTableBody = document.getElementById('regTableBody');
-  document.getElementById('btnReloadReg').addEventListener('click', reloadRegs);
-
-  async function reloadRegs(){
-    try{
-      const out = await callApi('registration_list', {});
-      const items = (out.items||[])
-        .filter(r => String(r.status||'').toLowerCase()!=='lulus')
-        .filter(r => {
-          // tapis hanya di bawah partner ini jika partner_id/nama sepadan
-          const pid = String(r.partner_id||'').trim();
-          const pname = String(r.partner_name||'').trim();
-          return (pid && PARTNER_ID && pid===PARTNER_ID) || (pname && pname===PARTNER_NAME);
-        });
-
-      regTableBody.innerHTML = '';
-      if (!items.length){
-        regTableBody.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Tiada pendaftaran menunggu di bawah anda.</td></tr>';
-      } else {
-        items.forEach(row=>{
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td class="text-xs">${row.id||''}</td>
-            <td>${row.name||''}</td>
-            <td>${row.phone||''}</td>
-            <td><span class="badge">${row.status||''}</span></td>
-            <td>${String(row.status||'').toLowerCase()==='lulus' ? '<span class="text-green-700 text-sm">Diluluskan</span>' : '<button class="btn-ghost btn-approve text-sm">Luluskan</button>'}</td>
-          `;
-          const btn = tr.querySelector('.btn-approve');
-          if (btn) btn.addEventListener('click', async ()=>{
-            try{ const res = await callApi('registration_approve', { id: row.id });
-              if (res.success){ toast('Diluluskan ✔️'); await reloadRegs(); await reloadStats(); } else toast(res.error||'Gagal meluluskan'); }
-            catch(e){ toast('Ralat meluluskan'); }
-          });
-          regTableBody.appendChild(tr);
-        });
-      }
-    }catch(e){
-      regTableBody.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Gagal memuat pendaftaran.</td></tr>';
-    }
-    await reloadStats();
-  }
-
-  // ====== BROADCAST ======
-  const attachInput = document.getElementById('attachFile');
-  const attachChips = document.getElementById('attachChips');
-  document.getElementById('btnAttachUpload').addEventListener('click', uploadAttachment);
-  document.getElementById('btnClearAttach').addEventListener('click', ()=>{ store.attachments = []; renderAttachChips(); });
-
-  async function uploadAttachment(){
-    const f = attachInput.files?.[0];
-    if (!f) return toast('Pilih satu fail');
-    try{
-      const b64 = await toBase64NoPrefix(f);
-      const out = await callApi('upload_media', {
-        leader_id: LEADER_ID, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64
-      });
-      if (out.success){ store.attachments.push(out.public_url); renderAttachChips(); attachInput.value = ''; toast('Lampiran dimuat naik ✔️'); }
-      else { toast(out.error||'Gagal upload'); }
-    }catch(e){ toast('Ralat muat naik'); }
-  }
-  function renderAttachChips(){
-    attachChips.innerHTML = '';
-    store.attachments.forEach((url, idx)=>{
-      const chip = document.createElement('span'); chip.className='chip';
-      chip.innerHTML = `<i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)?'video':'image'}" class="w-3.5 h-3.5"></i><span>Media ${idx+1}</span><button title="Buang">&times;</button>`;
-      chip.querySelector('button').addEventListener('click', ()=>{ store.attachments.splice(idx,1); renderAttachChips(); });
-      attachChips.appendChild(chip);
-    });
-    lucide.createIcons();
-  }
-
-  document.getElementById('btnSelectAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true); });
-  document.getElementById('btnClearAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false); });
-
-  function buildMessageWithAttachments(){
-    const base = (document.getElementById('broadcastMsg').value||'').trim();
-    const medias = (store.attachments||[]); if (!medias.length) return base;
-    return `${base}\n\nLampiran:\n${medias.map((u,i)=>`${i+1}. ${u}`).join('\n')}`.trim();
-  }
-  function getSelectedRecipients(){
-    return Array.from(document.querySelectorAll('#recipientsWrap .recip-row')).filter(r=> r.querySelector('.recip-check').checked).map(r=>({ name:r.dataset.name, phone:r.querySelector('.recip-phone').value.trim() }));
-  }
-
-  document.getElementById('btnBroadcast')?.addEventListener('click', async ()=>{
-    const message = buildMessageWithAttachments();
-    const selected = getSelectedRecipients();
-    if (!selected.length) return toast('Pilih sekurang-kurangnya seorang penerima');
-    try{
-      const out = await callApi('broadcast', { leader_id: LEADER_ID, message: `[Partner:${PARTNER_NAME}] [Recipients:${selected.length}] ${message}` });
-      if (out.success){ toast('Broadcast direkod ✔️'); } else toast(out.error||'Gagal log broadcast');
-    }catch(e){ toast('Ralat log broadcast'); }
-  });
-  document.getElementById('btnOpenWA')?.addEventListener('click', ()=>{
-    const msg = buildMessageWithAttachments();
-    const selected = getSelectedRecipients(); if (!selected.length) return toast('Pilih penerima dahulu');
-    let opened = 0;
-    selected.forEach((r, idx)=>{
-      const phone = (r.phone||'').replace(/\D/g,''); if (!phone) return;
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
-      setTimeout(()=> window.open(url, '_blank'), 200*idx); opened++;
-    });
-    toast(`Membuka ${opened} tab WhatsApp`);
-  });
-  document.getElementById('btnExportCSV')?.addEventListener('click', ()=>{
-    const rows = getSelectedRecipients().map(r=>({ phone: (r.phone||'').replace(/\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' ') })).filter(x=> x.phone);
-    if (!rows.length) return toast('Tiada penerima sah untuk dieksport');
-    const csv = makeCSV(['phone','message','media_urls'], rows);
-    downloadText(csv, `broadcast_${Date.now()}.csv`, 'text/csv'); toast('CSV dijana');
-  });
-  function makeCSV(headers, rows){ const esc=s=>`"${String(s??'').replace(/"/g,'""')}"`; const head=headers.map(esc).join(','); const body=rows.map(r=>headers.map(h=>esc(r[h])).join(',')).join('\n'); return head+'\n'+body; }
-  function downloadText(text, filename, mime){ const blob=new Blob([text],{type:mime||'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
-  function toBase64NoPrefix(file){
-    return new Promise((resolve,reject)=>{
-      const fr = new FileReader();
-      fr.onload = () => { const s = String(fr.result||''); resolve(s.includes(',') ? s.split(',')[1] : s); };
-      fr.onerror = reject; fr.readAsDataURL(file);
-    });
-  }
-
-  async function buildRecipientList(){
-    const wrap = document.getElementById('recipientsWrap');
-    wrap.innerHTML = '';
-    if (!store.customers.length){ wrap.innerHTML = '<div class="text-sm text-gray-500">Tiada customer di bawah anda.</div>'; return; }
-    store.customers.forEach(c=>{
-      const row = document.createElement('div');
-      row.className='recip-row text-sm';
-      row.dataset.name = c.name||'';
-      row.innerHTML = \`
-        <input type="checkbox" class="recip-check">
-        <span class="flex-1">\${c.name||'-'}</span>
-        <input type="text" class="input !py-1 !px-2 !text-xs recip-phone" placeholder="Telefon" value="\${(c.phone||'')}">
-      \`;
-      wrap.appendChild(row);
-    });
-  }
-
-  // ====== MEDIA ======
-  const fileInput = document.getElementById('fileInput');
-  const mediaGrid = document.getElementById('mediaGrid');
-  document.getElementById('btnUpload').addEventListener('click', async ()=>{
-    const f = fileInput.files?.[0]; if (!f) return toast('Pilih satu fail');
-    try{
-      const b64 = await toBase64NoPrefix(f);
-      const json = await callApi('upload_media', { leader_id: LEADER_ID, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64 });
-      if (json.success){ addMediaTile(json.public_url, json.isVideo); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
-    }catch(err){ toast('Ralat muat naik'); }
-  });
-  document.getElementById('btnReloadMedia').addEventListener('click', reloadMedia);
-  async function reloadMedia(){
-    try{
-      const out = await callApi('media_list', { leader_id: LEADER_ID });
+  // Dapatkan leader_id & partner_id untuk sesi partner
+  async function resolvePartnerContext(){
+    const role = (store.session.role || store.session.profile?.role || '').toLowerCase();
+    if (role === 'leader') {
+      // Leader boleh guna portal ini, tapi fungsinya tertumpu pada partner — kita biar leader pilih “identiti partner” berdasar profile (jika ada).
+      // Cara ringkas: cuba padankan rekod partners mengikut nombor telefon / nama leader sebagai pemilik; benarkan tambah user di bawah mana-mana partner miliknya.
+      const out = await api('partner_list', { leader_id: store.session.id || store.session.leader_id });
       const list = out.items || [];
-      mediaGrid.innerHTML = '';
-      list.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
-      list.forEach(row => addMediaTile(row.public_url, /^video\\//i.test(row.file_type||'')));
-    }catch(e){ mediaGrid.innerHTML=''; }
-    document.getElementById('statMedia').textContent = document.querySelectorAll('#mediaGrid > div').length || '0';
-  }
-  function addMediaTile(url, isVideo=false){
-    if (!url) return;
-    const wrap = document.createElement('div');
-    wrap.className = 'border border-gray-200 rounded-lg overflow-hidden';
-    if (isVideo){ const v=document.createElement('video'); v.src=url; v.controls=false; v.muted=true; v.playsInline=true; v.className='w-full h-full object-cover'; wrap.appendChild(v); }
-    else { const img=document.createElement('img'); img.src=url; img.loading='lazy'; img.className='w-full h-full object-cover'; wrap.appendChild(img); }
-    mediaGrid.appendChild(wrap);
-  }
+      store.leader_id = store.session.id || store.session.leader_id || 'LEAD-0001';
+      // Jika tiada partner, sekadar set nama partner kepada nama leader (untuk tambah user tanpa kolum partner)
+      store.partner_id = null;
+      store.partner_name = null;
+      return;
+    }
 
-  // ====== ORG (ringkas) ======
-  document.getElementById('btnReloadOrg').addEventListener('click', renderOrg);
-  async function renderOrg(){
-    const wrap = document.getElementById('orgWrap'); wrap.innerHTML='';
-    try{
-      const out = await callApi('org_tree', { leader_id: LEADER_ID, leader_name:'Leader' });
-      const node = (out.tree?.children||[]).find(n=> (n.name||'') === PARTNER_NAME);
-      if (!node){ wrap.innerHTML = '<div class="text-sm text-gray-500">Tiada data.</div>'; return; }
-      const head = document.createElement('div'); head.className='font-semibold'; head.textContent = PARTNER_NAME; wrap.appendChild(head);
-      (node.children||[]).forEach(c=>{
-        const div = document.createElement('div'); div.className='text-sm text-gray-700'; div.textContent = '• '+(c.name||'Customer'); wrap.appendChild(div);
-      });
-    }catch(e){
-      wrap.innerHTML = '<div class="text-sm text-gray-500">Gagal memuat carta.</div>';
+    if (role === 'partner') {
+      // Cari diri dalam sheet partners (ikut phone atau name), untuk tahu leader_id
+      const out = await api('partner_list', {}); // ambil semua, tapis di klien
+      const list = out.items || [];
+      const myName  = (store.session.name || store.session.profile?.name || '').trim().toLowerCase();
+      const myPhone = String(store.session.phone || store.session.profile?.phone || '').replace(/\D/g,'');
+      // cuba padan ikut telefon dahulu, kemudian nama
+      let me = list.find(p => String(p.phone||'').replace(/\D/g,'') === myPhone);
+      if (!me) me = list.find(p => String(p.name||'').trim().toLowerCase() === myName);
+      if (!me) throw new Error('Rekod partner anda tidak ditemui dalam helaian. Hubungi Leader.');
+      store.leader_id = me.leader_id;
+      store.partner_id = me.id;
+      store.partner_name = me.name;
+      return;
     }
   }
+
+  // ===== KPI ringkas =====
+  async function reloadKPIs(){
+    // Pending approvals (untuk partner ini sahaja)
+    const regs = await api('registration_list', {});
+    const items = regs.items || [];
+    const pendingMine = items.filter(r => (String(r.status||'').toLowerCase() !== 'lulus') && (matchPartner(r)));
+    document.getElementById('statPending').textContent = pendingMine.length;
+
+    // Approved last 30 days (untuk partner ini)
+    const days30 = Date.now() - (30*24*3600*1000);
+    const approvedMine = items.filter(r => (String(r.status||'').toLowerCase() === 'lulus') && matchPartner(r) && (new Date(r.created_at||0).getTime() >= days30));
+    document.getElementById('statApproved').textContent = approvedMine.length;
+
+    // My users count (daripada org_tree)
+    const mine = await loadMyUsers(true);
+    document.getElementById('statMyUsers').textContent = mine.length || '0';
+  }
+
+  // ===== Tambah User =====
+  document.getElementById('btnAdd').addEventListener('click', async ()=>{
+    const name = document.getElementById('custName').value.trim();
+    const phone= document.getElementById('custPhone').value.trim();
+    if (!name || !phone) return toast('Isi nama & telefon.');
+    try{
+      const payload = {
+        leader_id: store.leader_id || store.session.id || store.session.leader_id || 'LEAD-0001',
+        name, phone,
+        partner: store.partner_name || (store.session.role==='leader' ? '' : '')
+      };
+      const out = await api('customer_add', payload);
+      if (out.success){
+        toast('User ditambah ✔️');
+        document.getElementById('custName').value='';
+        document.getElementById('custPhone').value='';
+        document.getElementById('custNote').value='';
+        await reloadKPIs();
+      }
+    }catch(e){ toast(e.message || 'Gagal tambah user'); }
+  });
+
+  // ===== Approvals (partner hanya lihat miliknya) =====
+  const tblApprovals = document.getElementById('tblApprovals');
+  document.getElementById('btnReloadApprove').addEventListener('click', loadApprovals);
+
+  async function loadApprovals(){
+    try{
+      const out = await api('registration_list', {});
+      const items = (out.items||[]).filter(r => matchPartner(r));
+      tblApprovals.innerHTML = '';
+      if (!items.length){
+        tblApprovals.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Tiada pendaftaran untuk anda.</td></tr>';
+        return;
+      }
+      items.forEach(row=>{
+        const isApproved = String(row.status||'').toLowerCase()==='lulus';
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-xs">${row.id||''}</td>
+          <td>${row.name||''}</td>
+          <td>${row.phone||''}</td>
+          <td>${isApproved? '<span class="badge">lulus</span>' : '<span class="badge">menunggu</span>'}</td>
+          <td>${isApproved ? '<span class="text-green-700 text-sm">Diluluskan</span>' : '<button class="btn-ghost text-sm">Luluskan</button>'}</td>
+        `;
+        const btn = tr.querySelector('button');
+        if (btn){
+          btn.addEventListener('click', async ()=>{
+            try{
+              const res = await api('registration_approve', { id: row.id });
+              if (res.success){ toast('Diluluskan ✔️'); await loadApprovals(); await reloadKPIs(); }
+              else { toast(res.error||'Gagal meluluskan'); }
+            }catch(e){ toast('Ralat meluluskan'); }
+          });
+        }
+        tblApprovals.appendChild(tr);
+      });
+    }catch(e){
+      tblApprovals.innerHTML = '<tr><td colspan="5" class="text-sm text-red-600">Gagal memuat senarai.</td></tr>';
+    }
+  }
+
+  // ===== Senarai User Saya =====
+  document.getElementById('btnReloadUsers').addEventListener('click', ()=> loadMyUsers(false));
+
+  async function loadMyUsers(silent){
+    try{
+      const leader_id = store.leader_id || store.session.id || store.session.leader_id || 'LEAD-0001';
+      const out = await api('org_tree', { leader_id, leader_name: (store.session.profile?.name || store.session.name || 'LEADER') });
+      const tree = out.tree || { children:[] };
+      const meName = (store.partner_name || '').trim();
+      let myCustomers = [];
+
+      // Cari node partner saya
+      (tree.children||[]).forEach(p=>{
+        if (!meName) return; // jika leader gunakan portal ini, biar kosong
+        if (String(p.name||'').trim() === meName) {
+          (p.children||[]).forEach(c=> myCustomers.push(c));
+        }
+      });
+
+      if (!silent){
+        const wrap = document.getElementById('myUsersWrap'); wrap.innerHTML = '';
+        if (!myCustomers.length){
+          wrap.innerHTML = '<div class="text-sm text-gray-500">Belum ada user di bawah anda.</div>';
+        } else {
+          myCustomers.forEach(c=>{
+            const card = document.createElement('div');
+            card.className = 'p-4 border border-gray-200 rounded-xl bg-white';
+            card.innerHTML = `
+              <div class="font-semibold">${c.name||'-'}</div>
+              <div class="text-xs text-gray-500 mt-1">Partner: ${meName||'-'}</div>
+            `;
+            wrap.appendChild(card);
+          });
+        }
+      }
+      return myCustomers;
+    }catch(e){
+      if (!silent){
+        const wrap = document.getElementById('myUsersWrap');
+        wrap.innerHTML = '<div class="text-sm text-red-600">Gagal memuat senarai.</div>';
+      }
+      return [];
+    }
+  }
+
+  // Padanan “hak milik partner” pada rekod pendaftaran
+  function matchPartner(rec){
+    // Rekod mungkin ada partner_id (disyorkan) atau sekadar nama partner
+    if (!rec) return false;
+    const myId = store.partner_id || '';
+    const myName = (store.partner_name || '').trim();
+    if (myId && String(rec.partner_id||'').trim() === myId) return true;
+    if (myName && String(rec.partner_name||'').trim() === myName) return true;
+    // fallback: tiada maklumat partner di rekod → jangan paparkan
+    return false;
+  }
+
+  // ===== Tabs init & helper =====
+  // (sudah dipanggil di atas)
 
 </script>
 </body>
