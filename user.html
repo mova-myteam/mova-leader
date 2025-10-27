@@ -3,121 +3,105 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA — Untuk Pengguna (Free Users)</title>
+  <title>MOVA — Laman Pengguna</title>
 
+  <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    :root { --brand:#ef4444; }
+    :root {
+      --brand:#ef4444;
+      --hSize:28px;   --bSize:16px;
+      --hColor:#111;  --bColor:#374151;
+      --hWeight:800;  --bWeight:400;
+      --contentW: 1152px; /* max-w-7xl ~ 80rem */
+    }
     html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa}
-    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.7rem 1rem;font-weight:700}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.7rem 1rem;font-weight:800}
     .btn-primary{background:var(--brand);color:#fff}
     .btn-ghost{background:#fff;border:1px solid #e5e7eb}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
-    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.7rem .9rem;background:#fff}
-    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
-    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
     .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
-    .section-title{font-weight:800;font-size:1.25rem}
+    .section-title{font-weight:var(--hWeight);font-size:calc(var(--hSize) - 4px);color:var(--hColor)}
     .muted{color:#6b7280}
+    .prose p{font-size:var(--bSize);color:var(--bColor);font-weight:var(--bWeight);line-height:1.7;margin:.5rem 0}
+    .prose h1,.prose h2,.prose h3{color:var(--hColor);font-weight:var(--hWeight);margin:.6rem 0}
+    .prose a{color:var(--brand);text-decoration:underline}
+    .mxw{max-width:var(--contentW)}
   </style>
 </head>
 <body>
 
 <!-- NAV -->
 <nav class="bg-white border-b border-gray-200">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <div class="mx-auto mxw px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
       <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
         <i data-lucide="rocket" class="w-5 h-5"></i>
       </div>
       <div class="font-extrabold">MOVA</div>
     </div>
-    <div class="hidden sm:flex items-center gap-6 text-sm">
-      <a href="#intro" class="hover:underline">Apa itu MOVA</a>
-      <a href="#calc" class="hover:underline">Anggaran Cashback</a>
-      <a href="#upgrade" class="hover:underline">Naik Taraf</a>
-      <a href="#faq" class="hover:underline">FAQ</a>
+    <div class="hidden sm:flex items-center gap-2">
+      <button id="btnLogout" class="btn btn-ghost"><i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar</button>
     </div>
   </div>
 </nav>
 
-<!-- HERO -->
+<!-- HERO (optional media dari sections) -->
 <header class="bg-white">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-2 gap-8 items-center">
+  <div class="mx-auto mxw px-4 sm:px-6 lg:px-8 py-10 grid md:grid-cols-2 gap-8 items-center">
     <div>
-      <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">
-        Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan <span class="text-[color:var(--brand)]">MOVA</span>.
+      <h1 id="heroTitle" class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+        Selamat Datang ke <span class="text-[color:var(--brand)]">MOVA</span>
       </h1>
-      <p class="mt-3 text-gray-600">
-        Mula sebagai Free User, fahami cara berfungsi, dan bila bersedia anda boleh naik taraf ke Silver/Gold/Diamond di bawah bimbingan Leader.
+      <p id="heroSub" class="mt-3 muted">
+        Belanja, kumpul cashback, dan bina masa depan — dimulakan di sini.
       </p>
       <div class="mt-6 flex gap-3">
-        <a href="#intro" class="btn btn-primary"><i data-lucide="play-circle" class="w-4 h-4"></i> Saya Nak Faham MOVA</a>
-        <a href="#upgrade" class="btn btn-ghost">Saya Mahu Naik Taraf</a>
+        <a href="#calc" class="btn btn-primary"><i data-lucide="calculator" class="w-4 h-4"></i> Kira Cashback</a>
+        <a href="#updates" class="btn btn-ghost">Promosi Terkini</a>
       </div>
     </div>
     <div class="card p-0 overflow-hidden">
-      <div id="heroVideoWrap" class="aspect-video bg-gray-100 grid place-items-center text-gray-500">
+      <div id="heroMedia" class="aspect-video bg-gray-100 grid place-items-center text-gray-500">
         <div class="p-6 text-center">
           <i data-lucide="video" class="w-10 h-10 mx-auto"></i>
-          <div class="mt-2 text-sm">Video pengenalan akan dipaparkan di sini</div>
+          <div class="mt-2 text-sm">Video/Gambar pengenalan akan dipaparkan di sini</div>
         </div>
       </div>
     </div>
   </div>
 </header>
 
-<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12 pb-16">
+<main class="mx-auto mxw px-4 sm:px-6 lg:px-8 space-y-12 pb-16">
 
-  <!-- INTRO -->
-  <section id="intro" class="card p-6">
-    <div class="flex items-center gap-2 mb-2">
-      <i data-lucide="info" class="w-5 h-5 text-gray-700"></i>
-      <h2 class="section-title">Apa itu MOVA & Bagaimana Ia Berfungsi</h2>
-    </div>
-    <p class="text-gray-700">
-      MOVA ialah platform ganjaran **cashback** apabila anda berbelanja melalui rakan kongsi. Daftar percuma, belanja seperti biasa, dan terima pulangan mengikut polisi merchant & kempen semasa.
-    </p>
+  <!-- SECTION RENDERED FROM SETTINGS -->
+  <section id="sectionsHost" class="space-y-6"></section>
 
-    <div class="grid sm:grid-cols-3 gap-4 mt-5">
-      <div class="p-4 border border-gray-200 rounded-xl">
-        <div class="font-semibold mb-1">1) Daftar Percuma</div>
-        <div class="text-sm text-gray-600">Guna nombor telefon anda untuk aktifkan akaun MOVA.</div>
-      </div>
-      <div class="p-4 border border-gray-200 rounded-xl">
-        <div class="font-semibold mb-1">2) Belanja Melalui MOVA</div>
-        <div class="text-sm text-gray-600">Pilih kedai/marketplace rakan kongsi dan buat pembelian seperti biasa.</div>
-      </div>
-      <div class="p-4 border border-gray-200 rounded-xl">
-        <div class="font-semibold mb-1">3) Terima Cashback</div>
-        <div class="text-sm text-gray-600">Cashback disemak & dikredit ikut polisi merchant (anggaran 5–10% ditetapkan oleh Leader).</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CALCULATOR (rate dikunci dari server) -->
+  <!-- CALCULATOR -->
   <section id="calc" class="card p-6">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="calculator" class="w-5 h-5 text-gray-700"></i>
       <h2 class="section-title">Anggaran Cashback Anda</h2>
     </div>
-    <div class="text-sm text-gray-700 mb-3">Kadar semasa yang ditetapkan oleh Leader: <span id="rateLabel" class="font-semibold">—</span></div>
+    <div class="text-sm text-gray-700 mb-3">Kadar semasa ditetapkan: <span id="rateLabel" class="font-semibold">—</span></div>
     <div class="grid md:grid-cols-2 gap-3">
       <div>
         <label class="text-sm font-medium">Nilai Belanja (RM)</label>
-        <input id="spend" type="number" min="0" class="input mt-1" placeholder="cth: 200" />
+        <input id="spend" type="number" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 mt-1" placeholder="cth: 200" />
       </div>
       <div class="grid grid-cols-2 gap-3">
         <div>
           <label class="text-sm font-medium">Anggaran Minimum (RM)</label>
-          <input id="rmMin" class="input mt-1" disabled />
+          <input id="rmMin" class="w-full border border-gray-200 rounded-lg px-3 py-2 mt-1 bg-gray-50" disabled />
         </div>
         <div>
           <label class="text-sm font-medium">Anggaran Maksimum (RM)</label>
-          <input id="rmMax" class="input mt-1" disabled />
+          <input id="rmMax" class="w-full border border-gray-200 rounded-lg px-3 py-2 mt-1 bg-gray-50" disabled />
         </div>
       </div>
     </div>
@@ -125,98 +109,17 @@
       <button id="btnCalc" class="btn btn-primary">Kira Anggaran</button>
     </div>
     <div class="mt-2 text-xs text-gray-600 leading-relaxed">
-      * Anggaran boleh berubah mengikut polisi merchant/affiliate dan promosi semasa, termasuk penggunaan kupon/voucher, tempoh kelulusan & pengesahan transaksi, pembatalan/return, pengecualian item/caj (cth. cukai & penghantaran), serta had per pesanan dan kempen dinamik. Kadar di setiap merchant boleh berbeza.
+      * Anggaran berubah ikut polisi merchant/affiliate dan promosi semasa (baucar, tempoh kelulusan, pembatalan, pengecualian caj, had kempen, dsb.). Kadar setiap merchant berbeza.
     </div>
   </section>
 
-  <!-- UPGRADE -->
-  <section id="upgrade" class="card p-6">
-    <div class="flex items-center gap-2 mb-2">
-      <i data-lucide="sparkles" class="w-5 h-5 text-gray-700"></i>
-      <h2 class="section-title">Naik Taraf — Silver, Gold, Diamond</h2>
-    </div>
-    <p class="text-gray-700">Laluan naik taraf <b>dibimbing Leader</b>: Free → <b>Silver</b> (asas) → <b>Gold</b> (lanjutan) → <b>Diamond</b> (kepimpinan). Fokus kami: asas kukuh, strategi betul, dan etika perniagaan — bukan janji pendapatan terjamin.</p>
-
-    <div class="grid md:grid-cols-3 gap-4 mt-5">
-      <div class="p-5 border border-gray-200 rounded-xl">
-        <div class="text-sm badge">Partner</div>
-        <div class="font-extrabold text-xl mt-1">Silver</div>
-        <ul class="mt-3 space-y-2 text-sm text-gray-700">
-          <li>• Komisen asas & panduan komuniti</li>
-          <li>• Bahan marketing asas</li>
-        </ul>
-      </div>
-      <div class="p-5 border border-gray-200 rounded-xl">
-        <div class="text-sm badge">Partner</div>
-        <div class="font-extrabold text-xl mt-1">Gold</div>
-        <ul class="mt-3 space-y-2 text-sm text-gray-700">
-          <li>• Komisen lebih tinggi</li>
-          <li>• Latihan berkala & strategi</li>
-        </ul>
-      </div>
-      <div class="p-5 border border-gray-200 rounded-xl">
-        <div class="text-sm badge">Partner</div>
-        <div class="font-extrabold text-xl mt-1">Diamond</div>
-        <ul class="mt-3 space-y-2 text-sm text-gray-700">
-          <li>• Potensi pendapatan maksimum</li>
-          <li>• Bimbingan rapat daripada Leader</li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Notify Intent -->
-    <div class="mt-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
-      <div class="font-semibold mb-2">Saya Sedia Naik Taraf</div>
-      <div class="grid md:grid-cols-5 gap-3">
-        <input id="uName" class="input" placeholder="Nama penuh">
-        <input id="uPhone" class="input" placeholder="No. telefon">
-        <select id="uTarget" class="input">
-          <option value="">Pilih Peringkat</option>
-          <option>Silver</option>
-          <option>Gold</option>
-          <option>Diamond</option>
-        </select>
-        <select id="uPartner" class="input">
-          <option value="">Pilih Partner Anda</option>
-        </select>
-        <input id="uNote" class="input" placeholder="Nota (opsyen)">
-      </div>
-      <div class="mt-3 flex flex-wrap gap-2">
-        <button id="btnNotify" class="btn btn-primary"><i data-lucide="bell-ring" class="w-4 h-4"></i> Saya Sedia Naik Taraf</button>
-        <button id="btnWAPar" class="btn btn-ghost"><i data-lucide="messages-square" class="w-4 h-4"></i> WhatsApp Partner</button>
-        <button id="btnWALeader" class="btn btn-ghost"><i data-lucide="send" class="w-4 h-4"></i> WhatsApp Leader</button>
-      </div>
-      <div class="mt-2 text-xs text-gray-500">
-        * Niat anda akan dihantar kepada Leader & Partner untuk tindakan susulan.
-      </div>
-    </div>
-  </section>
-
-  <!-- ANNOUNCEMENTS / UPDATES -->
-  <section class="card p-6">
+  <!-- UPDATES -->
+  <section id="updates" class="card p-6">
     <div class="flex items-center gap-2 mb-2">
       <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
       <h2 class="section-title">Promosi & Update Terkini</h2>
     </div>
     <div id="updatesGrid" class="grid md:grid-cols-3 gap-3"></div>
-  </section>
-
-  <!-- FAQ -->
-  <section id="faq" class="card p-6">
-    <div class="flex items-center gap-2 mb-2">
-      <i data-lucide="help-circle" class="w-5 h-5 text-gray-700"></i>
-      <h2 class="section-title">Soalan Lazim (FAQ)</h2>
-    </div>
-    <div id="faqWrap" class="space-y-3"></div>
-  </section>
-
-  <!-- RULES -->
-  <section class="card p-6">
-    <div class="flex items-center gap-2 mb-2">
-      <i data-lucide="shield" class="w-5 h-5 text-gray-700"></i>
-      <h2 class="section-title">Larangan & Garis Panduan</h2>
-    </div>
-    <ul id="rulesList" class="list-disc pl-6 text-gray-700"></ul>
   </section>
 
 </main>
@@ -225,137 +128,240 @@
   © <span id="year"></span> MOVA. Hak cipta terpelihara.
 </footer>
 
+<!-- Toast -->
 <div id="toast" class="toast hidden"></div>
 
 <script>
-  /* ===== GATE AKSES: Leader / Partner / User(lulus) sahaja =====
-     - Jika ada sesi Leader/Partner/User → benarkan.
-     - Jika tiada sesi, cuba auto-sahkan guna ?name=&phone=
-       (jika lulus, simpan mova_user; jika tidak, kembali ke index). */
-  (function gate(){
-    function norm(p){ return String(p||'').replace(/\D/g,''); }
-    function qs(k){ return new URLSearchParams(location.search).get(k)||''; }
-
-    // 1) Leader?
-    try{
-      const L = JSON.parse(localStorage.getItem('mova_leader')||'{}');
-      if (L && L.leader_id) return; // benarkan
-    }catch(_){}
-    // 2) Partner?
-    try{
-      const P = JSON.parse(localStorage.getItem('mova_partner')||'{}');
-      if (P && (P.partner_name||P.partner_id)) return; // benarkan
-    }catch(_){}
-    // 3) User lulus?
-    try{
-      const U = JSON.parse(localStorage.getItem('mova_user')||'{}');
-      if (U && (U.name||U.phone)) return; // benarkan
-    }catch(_){}
-
-    // 4) Tiada sesi — cuba auto-sahkan melalui URL param
-    const name = qs('name'), phone = norm(qs('phone'));
-    if (name && phone){
-      // simpan niat untuk diverifikasi selepas EXEC_URL & api() wujud
-      window.__mova_gate__ = { name, phone };
-      return;
-    }
-
-    // 5) Tiada sesi & tiada param → kembali ke login
-    location.href = "./index.html?next=user.html";
-  })();
-
+  // ====== KONFIG ======
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+
+  // ====== ICONS ======
   lucide.createIcons();
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // UTIL
+  // ====== UTIL ======
   const toastEl = document.getElementById('toast');
   function toast(msg, ms=2200){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms); }
+  function qs(key){ return new URLSearchParams(location.search).get(key) || ''; }
   async function api(path, payload){
     const res = await fetch(EXEC_URL, {
       method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
       body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
     });
     const text=await res.text(); let json; try{ json=JSON.parse(text) }catch(e){ throw new Error(text) }
     if (json && json.success===false) throw new Error(json.error||'Ralat tidak diketahui');
     return json;
   }
-  function qs(key){ return new URLSearchParams(location.search).get(key) || ''; }
-
-  let RATE_MIN = 5, RATE_MAX = 10;
-  let partners = [];
-
-  // —— AUTO-SAHKAN USER GUNA ?name=&phone= (jika diperlukan)
-  (async function maybeResolveUser(){
-    if (!window.__mova_gate__) return;
+  function getSession(){
+    const s = localStorage.getItem('mova_session');
+    if (s){ try{ return JSON.parse(s); }catch(_){ } }
+    const l = localStorage.getItem('mova_leader');
+    if (l){ try{ const o=JSON.parse(l); return { role:'leader', id:o.leader_id, name:o.profile?.name, profile:o.profile }; }catch(_){ } }
+    return null;
+  }
+  function setCSSVarsFromSettings(s){
+    if (!s) return;
+    const root = document.documentElement.style;
+    if (s.theme_color || s.theme_primary) root.setProperty('--brand', s.theme_color || s.theme_primary);
+    if (s.content_width) root.setProperty('--contentW', (String(s.content_width).endsWith('px')? s.content_width : s.content_width + 'px'));
+    if (s.heading_size)  root.setProperty('--hSize',  (String(s.heading_size).endsWith('px')? s.heading_size : s.heading_size + 'px'));
+    if (s.body_size)     root.setProperty('--bSize',  (String(s.body_size).endsWith('px')? s.body_size : s.body_size + 'px'));
+    if (s.heading_color || s.theme_text) root.setProperty('--hColor', s.heading_color || s.theme_text);
+    if (s.body_color)    root.setProperty('--bColor', s.body_color);
+    if (String(s.heading_bold||'').toLowerCase()==='true') root.setProperty('--hWeight','800');
+    if (String(s.body_bold||'').toLowerCase()==='true')    root.setProperty('--bWeight','600');
+  }
+  function parseYouTube(url){
     try{
-      const { name, phone } = window.__mova_gate__;
-      const out = await api('registration_list', {});
-      const items = (out.items||[]);
-      const hit = items.find(r => (String(r.name||'').trim().toLowerCase() === String(name||'').trim().toLowerCase())
-                                   && (String(r.phone||'').replace(/\D/g,'') === phone));
-      if (hit && String(hit.status||'').toLowerCase()==='lulus') {
-        localStorage.setItem('mova_user', JSON.stringify({
-          name: hit.name, phone: hit.phone, leader_id: hit.leader_id||'', partner_name: hit.partner_id||''
-        }));
-        // dibenarkan kekal di user.html
+      const u = new URL(url);
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    }catch(_){}
+    return null;
+  }
+
+  // ====== AKSES/GUARD ======
+  (function guard(){
+    const preview = !!qs('preview');
+    if (preview) return; // benarkan prarupa dari dashboard
+    const s = getSession();
+    if (!s){
+      toast('Sila log masuk untuk akses laman ini.'); setTimeout(()=> location.href='./index.html', 900);
+      return;
+    }
+    // Jika role = user, benarkan hanya jika approved (jika wujud dalam sesi)
+    if (String(s.role||'').toLowerCase()==='user' && String(s.approved||'')!=='true' && String(s.approved||'').toLowerCase()!=='yes'){
+      toast('Akaun anda belum diluluskan. Hubungi partner/leader.'); setTimeout(()=> location.href='./index.html', 1200);
+      return;
+    }
+  })();
+
+  // ====== INIT PAGE ======
+  let RATE_MIN = 5, RATE_MAX = 10;
+  (async function init(){
+    try{ await api('setup',{}); }catch(_){}
+    await loadSettingsAndSections();
+    await loadUpdates();
+    await tryLoadHeroFromSections(); // selepas sections dimuat
+  })();
+
+  // ====== SETTINGS + SECTIONS ======
+  async function loadSettingsAndSections(){
+    try{
+      const out = await api('settings_get', {}); // code.gs: apiSettingsGet_
+      const s   = out.settings || {};
+      // serap kemungkinan nama medan dari dashboard (versi baru)
+      const set = {
+        theme_color   : s.theme_color || s.theme_primary,
+        heading_size  : s.heading_size,
+        heading_color : s.heading_color || s.theme_text,
+        heading_bold  : s.heading_bold,
+        body_size     : s.body_size,
+        body_color    : s.body_color,
+        body_bold     : s.body_bold,
+        content_width : s.content_width,
+        cashback_min  : Number(s.cashback_min || s.default_cashback_min || 5),
+        cashback_max  : Number(s.cashback_max || s.default_cashback_max || 10),
+        sections      : s.sections || []
+      };
+      setCSSVarsFromSettings(set);
+
+      RATE_MIN = Math.max(0, set.cashback_min);
+      RATE_MAX = Math.max(RATE_MIN, set.cashback_max);
+      document.getElementById('rateLabel').textContent = `${RATE_MIN}% – ${RATE_MAX}%`;
+
+      renderSections(set.sections);
+    }catch(e){
+      document.getElementById('rateLabel').textContent = `${RATE_MIN}% – ${RATE_MAX}%`;
+      // tiada sections → biar kosong
+    }
+  }
+
+  function renderSections(sections){
+    const host = document.getElementById('sectionsHost');
+    host.innerHTML = '';
+    if (!Array.isArray(sections) || !sections.length){
+      // fallback nota ringkas
+      const fallback = document.createElement('section');
+      fallback.className = 'card p-6';
+      fallback.innerHTML = `<div class="section-title mb-2">Pengenalan</div>
+        <div class="prose">MOVA ialah platform cashback. Kandungan terperinci akan dipaparkan di sini apabila Leader melengkapkan “User Sections”.</div>`;
+      host.appendChild(fallback);
+      return;
+    }
+
+    sections.forEach(sec=>{
+      // Sembunyi?
+      if (String(sec.hidden||'').toLowerCase()==='true') return;
+
+      // Jika ada blocks (format baru dari Section Builder)
+      if (Array.isArray(sec.blocks) && sec.blocks.length){
+        const box = document.createElement('section');
+        box.className = 'card p-6';
+        const title = sec.title ? `<div class="section-title mb-2">${escapeHTML(sec.title)}</div>` : '';
+        const blocksHTML = sec.blocks.map(b=>{
+          const k = b.kind || 'text';
+          if (k==='text'){
+            return `<div class="prose">${b.value||''}</div>`;
+          } else if (k==='image'){
+            const u = String(b.value||'').trim();
+            return u ? `<img src="${u}" class="w-full rounded-lg border border-gray-200 my-2" loading="lazy">` : '';
+          } else if (k==='video'){
+            const u = String(b.value||'').trim();
+            if (!u) return '';
+            const yt = parseYouTube(u);
+            if (yt) return `<div class="relative pb-[56.25%] my-2"><iframe class="absolute inset-0 w-full h-full rounded-lg border border-gray-200" src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen></iframe></div>`;
+            return `<video src="${u}" class="w-full rounded-lg border border-gray-200 my-2" controls playsinline></video>`;
+          } else if (k==='link'){
+            const text = escapeHTML(b.text||'Pautan');
+            const u = String(b.value||'#').trim();
+            return `<a href="${u}" target="_blank" class="btn btn-primary my-2 inline-flex">${text}</a>`;
+          }
+          return '';
+        }).join('');
+        box.innerHTML = `${title}${blocksHTML || '<div class="muted text-sm">Tiada kandungan.</div>'}`;
+        host.appendChild(box);
         return;
       }
-      alert('Akaun anda belum diluluskan. Sila hubungi Admin/Partner/Leader.');
-      location.href = "./index.html?next=user.html";
-    }catch(e){
-      location.href = "./index.html?next=user.html";
-    }
-  })();
 
-  // INIT
-  (async function init(){
-    try{ await api('setup',{}); }catch(e){}
-    await loadSettings();
-    await loadHeroVideo();
-    await loadUpdates();
-    await loadPartners();
-    await loadFaq();
-    await loadRules();
-    // prefill partner/leader if present in URL
-    const partnerParam = qs('partner'); if (partnerParam) document.getElementById('uPartner').value = partnerParam;
-    document.getElementById('uName').value  = qs('name') || '';
-    document.getElementById('uPhone').value = qs('phone') || '';
-  })();
+      // Format lama (title/body/media)
+      const box = document.createElement('section');
+      box.className = 'card p-6';
+      const media = Array.isArray(sec.media) ? sec.media : [];
+      const mediaHTML = media.map(u=>{
+        u = String(u||'').trim();
+        if (!u) return '';
+        const isVid = /\.(mp4|webm|mov|m4v)(\?|$)/i.test(u);
+        if (isVid) return `<video src="${u}" class="w-full rounded-lg border border-gray-200 my-2" controls playsinline></video>`;
+        return `<img src="${u}" class="w-full rounded-lg border border-gray-200 my-2" loading="lazy">`;
+      }).join('');
 
-  async function loadSettings(){
-    try{
-      const s = (await api('settings_get',{})).settings || {};
-      RATE_MIN = Number(s.default_cashback_min || 5);
-      RATE_MAX = Number(s.default_cashback_max || 10);
-      if (RATE_MIN < 0) RATE_MIN = 0;
-      if (RATE_MAX < RATE_MIN) RATE_MAX = RATE_MIN;
-      document.getElementById('rateLabel').textContent = `${RATE_MIN}% – ${RATE_MAX}%`;
-    }catch(e){
-      document.getElementById('rateLabel').textContent = `${RATE_MIN}% – ${RATE_MAX}%`;
-    }
+      box.innerHTML = `
+        ${sec.title ? `<div class="section-title mb-2">${escapeHTML(sec.title)}</div>` : ''}
+        ${sec.body ? `<div class="prose">${renderMarkdownish(sec.body)}</div>` : ''}
+        ${mediaHTML}
+      `;
+      host.appendChild(box);
+    });
   }
 
-  // HERO VIDEO (ambil media pertama jenis video jika ada)
-  async function loadHeroVideo(){
+  // Gunakan block dari section 'hero' jika ada
+  async function tryLoadHeroFromSections(){
+    const secWrap = document.getElementById('sectionsHost');
+    // Jika ada section pertama bertipe hero dengan media, ambil ke header
     try{
-      const out = await api('media_list', {});
-      const list = (out.items||[]).filter(x => /^video\//i.test(x.file_type||''));
-      if (list.length){
-        const v = list.sort((a,b)=> new Date(b.created_at||0)-new Date(a.created_at||0))[0];
-        document.getElementById('heroVideoWrap').innerHTML =
-          `<video src="${v.public_url}" controls playsinline class="w-full h-full"></video>`;
+      // cari di settings lagi (elakkan re-simpan)
+      const out = await api('settings_get', {});
+      const secs = (out.settings||{}).sections || [];
+      const hero = secs.find(s => (s.type==='hero' || String(s.title||'').toLowerCase().includes('hero') || String(s.featured||'')==='true'));
+      if (!hero) return;
+      if (hero.title) document.getElementById('heroTitle').textContent = hero.title;
+      if (hero.subtitle) document.getElementById('heroSub').textContent = hero.subtitle;
+
+      // dari blocks
+      if (Array.isArray(hero.blocks)){
+        const mediaBlk = hero.blocks.find(b => b.kind==='video' || b.kind==='image');
+        if (mediaBlk){
+          const u = String(mediaBlk.value||'').trim();
+          const el = document.getElementById('heroMedia');
+          if (!u) return;
+          const yt = parseYouTube(u);
+          if (mediaBlk.kind==='video'){
+            if (yt){
+              el.innerHTML = `<div class="relative pb-[56.25%]"><iframe class="absolute inset-0 w-full h-full rounded-none" src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen></iframe></div>`;
+            } else {
+              el.innerHTML = `<video src="${u}" controls playsinline class="w-full h-full"></video>`;
+            }
+          } else if (mediaBlk.kind==='image'){
+            el.innerHTML = `<img src="${u}" class="w-full h-full object-cover">`;
+          }
+        }
+        return;
       }
-    }catch(e){}
+
+      // dari format lama (media array)
+      const media = Array.isArray(hero.media) ? hero.media : [];
+      if (media.length){
+        const first = String(media[0]||'').trim();
+        const el = document.getElementById('heroMedia');
+        if (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(first)){
+          el.innerHTML = `<video src="${first}" controls playsinline class="w-full h-full"></video>`;
+        } else {
+          el.innerHTML = `<img src="${first}" class="w-full h-full object-cover">`;
+        }
+      }
+    }catch(_){}
   }
 
-  // UPDATES (site_content published=yes)
+  // ====== UPDATES (site_content published=yes) ======
   async function loadUpdates(){
     try{
-      const out = await api('content_list', {});
-      const items = (out.items||[]).filter(x => String(x.published||'').toLowerCase()==='yes')
-        .sort((a,b)=> new Date(b.updated_at||0)-new Date(a.updated_at||0)).slice(0,6);
+      const out = await api('content_list', {}); // code.gs: apiContentList_
+      const items = (out.items||[])
+        .filter(x => String(x.published||'').toLowerCase()==='yes')
+        .sort((a,b)=> new Date(b.updated_at||0)-new Date(a.updated_at||0))
+        .slice(0,6);
       const wrap = document.getElementById('updatesGrid'); wrap.innerHTML='';
       items.forEach(row=>{
         const card = document.createElement('div'); card.className='p-4 border border-gray-200 rounded-xl bg-white';
@@ -364,61 +370,17 @@
           ${media ? (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(media) ?
             `<video src="${media}" class="w-full rounded-lg mb-3" controls playsinline></video>` :
             `<img src="${media}" class="w-full rounded-lg mb-3" loading="lazy" />`
-          ) : ''}
-          <div class="font-semibold">${row.title||'-'}</div>
-          <div class="text-xs text-gray-500 mt-1">${row.updated_at||''}</div>
-          <div class="text-sm text-gray-700 mt-2">${(row.body||'').slice(0,220)}</div>
+          ) : '' }
+          <div class="font-semibold">${escapeHTML(row.title||'-')}</div>
+          <div class="text-xs text-gray-500 mt-1">${row.updated_at? new Date(row.updated_at).toLocaleString() : ''}</div>
+          <div class="text-sm text-gray-700 mt-2">${escapeHTML((row.body||'').slice(0,220))}</div>
         `;
         wrap.appendChild(card);
       });
-    }catch(e){}
+    }catch(_){}
   }
 
-  // PARTNERS (untuk dropdown & WhatsApp)
-  async function loadPartners(){
-    try{
-      const out = await api('partner_list', {});
-      partners = out.items || [];
-      const sel = document.getElementById('uPartner'); sel.innerHTML='<option value="">Pilih Partner Anda</option>';
-      partners.forEach(p=>{
-        const opt = document.createElement('option');
-        opt.value = p.name || ''; opt.textContent = p.name || '';
-        sel.appendChild(opt);
-      });
-    }catch(e){}
-  }
-
-  // FAQ
-  async function loadFaq(){
-    try{
-      const out = await api('faq_list', {});
-      const list = out.items || [];
-      const wrap = document.getElementById('faqWrap'); wrap.innerHTML='';
-      if (!list.length){ wrap.innerHTML = '<div class="text-sm muted">Belum ada FAQ diterbit.</div>'; return; }
-      list.forEach(f=>{
-        const box = document.createElement('details');
-        box.className='p-4 border border-gray-200 rounded-xl';
-        box.innerHTML = `<summary class="font-semibold cursor-pointer">${f.question||'-'}</summary>
-          <div class="mt-2 text-sm text-gray-700">${f.answer||''}</div>`;
-        wrap.appendChild(box);
-      });
-    }catch(e){}
-  }
-
-  // RULES
-  async function loadRules(){
-    try{
-      const out = await api('rules_list', {});
-      const list = out.items || [];
-      const ul = document.getElementById('rulesList'); ul.innerHTML='';
-      if (!list.length){ ul.innerHTML = '<li class="muted">Belum ada larangan diterbit.</li>'; return; }
-      list.forEach(r=>{
-        const li = document.createElement('li'); li.textContent = r.text||''; ul.appendChild(li);
-      });
-    }catch(e){}
-  }
-
-  // CALC
+  // ====== CALCULATOR ======
   document.getElementById('btnCalc').addEventListener('click', ()=>{
     const spend = Math.max(0, Number(document.getElementById('spend').value||0));
     const rmMin = (spend * (RATE_MIN/100)).toFixed(2);
@@ -427,44 +389,29 @@
     document.getElementById('rmMax').value = spend ? rmMax : '';
   });
 
-  // NOTIFY (UPGRADE INTENT)
-  document.getElementById('btnNotify').addEventListener('click', async ()=>{
-    const user_name = document.getElementById('uName').value.trim();
-    const user_phone= document.getElementById('uPhone').value.trim();
-    const target    = document.getElementById('uTarget').value.trim();
-    const partner_name = document.getElementById('uPartner').value.trim();
-    const leader_id = qs('leader') || ''; // boleh letak leader_id di URL jika ada
-    const note      = document.getElementById('uNote').value.trim();
-    if (!user_name || !user_phone || !target) return toast('Lengkapkan nama, telefon & peringkat.');
-
-    try{
-      const out = await api('upgrade_intent', { user_name, user_phone, partner_name, leader_id, target, note });
-      if (out.success){ toast('Niat upgrade dihantar ✔️'); }
-    }catch(e){ toast('Gagal menghantar niat.'); }
+  // ====== LOGOUT ======
+  document.getElementById('btnLogout').addEventListener('click', ()=>{
+    localStorage.removeItem('mova_session');
+    localStorage.removeItem('mova_leader');
+    location.href = './index.html';
   });
 
-  // WhatsApp helper
-  function waUrl(num, txt){
-    const p = String(num||'').replace(/\D/g,'');
-    return p ? `https://wa.me/${p}?text=${encodeURIComponent(txt||'')}` : '';
+  // ====== HELPERS ======
+  function escapeHTML(str){
+    return String(str||'').replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]));
   }
-  document.getElementById('btnWAPar').addEventListener('click', ()=>{
-    const partner = partners.find(p=> (p.name||'') === document.getElementById('uPartner').value);
-    if (!partner || !partner.phone) return toast('Sila pilih partner yang ada nombor.');
-    const msg = `Hai, saya mahu naik taraf ke ${document.getElementById('uTarget').value||'-'}. Nama: ${document.getElementById('uName').value||'-'}, Telefon: ${document.getElementById('uPhone').value||'-'}.`;
-    const url = waUrl(partner.phone, msg); if (url) window.open(url,'_blank');
-  });
-  document.getElementById('btnWALeader').addEventListener('click', async ()=>{
-    // cuba ambil no leader dari settings (key: leader_phone)
-    let leaderPhone = '';
-    try{
-      const s = (await api('settings_get',{})).settings||{};
-      leaderPhone = s.leader_phone || '';
-    }catch(e){}
-    if (!leaderPhone){ toast('Nombor leader belum ditetapkan.'); return; }
-    const msg = `Hai, saya mahu naik taraf ke ${document.getElementById('uTarget').value||'-'}. Nama: ${document.getElementById('uName').value||'-'}, Telefon: ${document.getElementById('uPhone').value||'-'}.`;
-    const url = waUrl(leaderPhone, msg); if (url) window.open(url,'_blank');
-  });
+  function renderMarkdownish(text){
+    // sokong **bold**, *italic*, baris baru → <br>, bullet ringkas (• atau -)
+    let t = String(text||'');
+    t = t.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    t = t.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    t = t.split('\n').map(l=>{
+      const li = l.trim();
+      if (/^(•|-)\s+/.test(li)) return `<div>• ${escapeHTML(li.replace(/^(•|-)\s+/,''))}</div>`;
+      return `<p>${li}</p>`;
+    }).join('');
+    return t;
+  }
 </script>
 </body>
 </html>
