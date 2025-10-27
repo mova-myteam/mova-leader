@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MOVA Partner — Panel</title>
+
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root { --brand:#ef4444; }
+    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial;background:#fafafa}
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:700; border:1px solid #e5e7eb; white-space:nowrap;}
+    .pill-active{ background:#111; color:#fff; border-color:#111; }
+    .pill-idle{ background:#fff; color:#374151; }
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.6rem .95rem;font-weight:700}
+    .btn-primary{background:var(--brand);color:#fff}
+    .btn-ghost{background:#fff;border:1px solid #e5e7eb}
+    .btn[disabled]{opacity:.6;cursor:not-allowed}
+    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem .9rem;background:#fff}
+    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
+    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.2rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
+    .table{ width:100%; border-collapse:separate; border-spacing:0; }
+    .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
+    .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
+    .muted{color:#6b7280}
+  </style>
+</head>
+<body>
+
+<!-- ====== HEADER ====== -->
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
+        <i data-lucide="rocket" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="text-lg font-extrabold">MOVA Partner</div>
+        <div class="text-xs text-gray-500">Hai, <span id="partnerNameLabel">partner</span></div>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="btnWALeaderTop" class="btn btn-ghost"><i data-lucide="messages-square" class="w-4 h-4"></i> WhatsApp Leader</button>
+      <button id="btnLogout" class="btn btn-primary"><i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar</button>
+    </div>
+  </div>
+</header>
+
+<!-- ====== MAIN ====== -->
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- KPI -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statUsers">—</div>
+      <div class="text-sm text-gray-600">Users Di Bawah Anda</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPending">—</div>
+      <div class="text-sm text-gray-600">Pending Approvals</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statApproved">—</div>
+      <div class="text-sm text-gray-600">Approved (Baru)</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statLeader">—</div>
+      <div class="text-sm text-gray-600">Leader Aktif</div>
+    </div>
+  </section>
+
+  <!-- TABS -->
+  <section class="card p-3">
+    <div class="flex gap-2 overflow-x-auto">
+      <button data-tab="users" class="pill pill-active"><i data-lucide="users" class="w-4 h-4"></i> Users</button>
+      <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
+      <button data-tab="add" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah User</button>
+      <button data-tab="tools" class="pill pill-idle"><i data-lucide="wrench" class="w-4 h-4"></i> Alat</button>
+    </div>
+  </section>
+
+  <!-- PANELS -->
+  <section class="space-y-6">
+
+    <!-- ===== Users ===== -->
+    <div id="tab-users" class="card p-6">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
+          <h2 class="text-lg font-semibold">Users Di Bawah <span id="partnerNameSmall" class="font-extrabold text-gray-900">Partner</span></h2>
+        </div>
+        <div class="flex gap-2">
+          <button id="btnReloadUsers" class="btn btn-ghost"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Segar Semula</button>
+          <button id="btnExportUsers" class="btn btn-ghost"><i data-lucide="download" class="w-4 h-4"></i> Eksport CSV</button>
+        </div>
+      </div>
+      <div class="overflow-auto">
+        <table class="table">
+          <thead>
+          <tr>
+            <th>#</th><th>Nama</th><th>Telefon</th><th>Sumber</th>
+          </tr>
+          </thead>
+          <tbody id="usersTableBody">
+          </tbody>
+        </table>
+      </div>
+      <div class="text-xs text-gray-500 mt-2">* Telefon dipadankan daripada rekod pendaftaran (jika wujud); jika kosong, mohon kemas kini dengan pengguna anda.</div>
+    </div>
+
+    <!-- ===== Approvals ===== -->
+    <div id="tab-approve" class="card p-6 hidden">
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
+          <h2 class="text-lg font-semibold">Kelulusan Pendaftaran (Bawah Anda)</h2>
+        </div>
+        <button id="btnReloadApprove" class="btn btn-ghost"><i data-lucide="refresh-cw" class="w-4 h-4"></i> Segar Semula</button>
+      </div>
+      <div class="overflow-auto">
+        <table class="table">
+          <thead>
+          <tr>
+            <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
+          </tr>
+          </thead>
+          <tbody id="approveTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== Add User ===== -->
+    <div id="tab-add" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah User (di bawah anda)</h2>
+      </div>
+      <div class="grid gap-3 md:grid-cols-3">
+        <input id="addName" class="input" placeholder="Nama penuh">
+        <input id="addPhone" class="input" placeholder="+60XXXXXXXXX">
+        <button id="btnAddUser" class="btn btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Tambah</button>
+      </div>
+      <div class="text-xs text-gray-500 mt-2">* Ini akan menambah user terus ke senarai pelanggan di bawah anda.</div>
+    </div>
+
+    <!-- ===== Tools ===== -->
+    <div id="tab-tools" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2">
+        <i data-lucide="wrench" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Alat & Pantas</h2>
+      </div>
+      <div class="grid sm:grid-cols-2 gap-4">
+        <div class="p-4 border border-gray-200 rounded-xl">
+          <div class="font-semibold mb-2">Hubungi Leader</div>
+          <div class="grid grid-cols-[1fr_auto] gap-2">
+            <input id="leaderPhone" class="input" placeholder="Nombor Leader (auto)">
+            <button id="btnWALeader" class="btn btn-ghost"><i data-lucide="messages-square" class="w-4 h-4"></i> WhatsApp</button>
+          </div>
+          <div class="text-xs text-gray-500 mt-2">* Ditarik dari Settings. Pastikan Leader menetapkan nombor dalam dashboard.</div>
+        </div>
+        <div class="p-4 border border-gray-200 rounded-xl">
+          <div class="font-semibold mb-2">Pautan Share (User Jadi Bawah Anda)</div>
+          <div class="text-sm text-gray-700">Kongsi pautan ini; nama partner anda akan diprefill di user.html</div>
+          <input id="shareLink" class="input mt-2" readonly>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script>
+  // ===== KONFIG =====
+  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+
+  // ===== STATE =====
+  const store = {
+    partner: (() => { try { return JSON.parse(localStorage.getItem('mova_partner') || '{}'); } catch(e){ return {}; } })(),
+    leaderPhone: '',
+    users: [],         // {name, phone?, source:'org'|'reg'}
+    regsPending: [],   // registrations pending for partner
+    regsApproved: []   // recent approved (for KPI)
+  };
+
+  // Guard: mesti login sebagai partner via index.html (resolve_access)
+  if (!store.partner || !store.partner.partner_name || !store.partner.leader_id) {
+    location.href = "./index.html";
+  }
+
+  // Branding awal
+  document.documentElement.style.setProperty('--brand', '#ef4444');
+
+  // ===== ICONS =====
+  lucide.createIcons();
+
+  // ===== UTIL =====
+  const toastEl = document.getElementById('toast');
+  function toast(msg, ms=2200){
+    toastEl.textContent = msg;
+    toastEl.classList.remove('hidden');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
+  }
+  async function callApi(path, payload) {
+    const res = await fetch(EXEC_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
+    });
+    const text = await res.text();
+    let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
+    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+    return json;
+  }
+  function makeCSV(headers, rows){ const esc=s=>`"${String(s??'').replace(/"/g,'""')}"`; const head=headers.map(esc).join(','); const body=rows.map(r=>headers.map(h=>esc(r[h])).join(',')).join('\n'); return head+'\n'+body; }
+  function downloadText(text, filename, mime){ const blob=new Blob([text],{type:mime||'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+  function waUrl(num, txt){ const p = String(num||'').replace(/\D/g,''); return p ? `https://wa.me/${p}?text=${encodeURIComponent(txt||'')}` : ''; }
+
+  // ===== HEADER =====
+  document.getElementById('partnerNameLabel').textContent = store.partner.partner_name || 'partner';
+  document.getElementById('partnerNameSmall').textContent = store.partner.partner_name || 'Partner';
+  document.getElementById('btnLogout').addEventListener('click', ()=>{ localStorage.removeItem('mova_partner'); location.href="./index.html"; });
+
+  // WhatsApp Leader (header & tools)
+  document.getElementById('btnWALeaderTop').addEventListener('click', ()=> {
+    const url = waUrl(store.leaderPhone, `Hai Leader, ini ${store.partner.partner_name}.`); if (url) window.open(url,'_blank'); else toast('Nombor leader belum ditetapkan.');
+  });
+  document.getElementById('btnWALeader').addEventListener('click', ()=> {
+    const num = document.getElementById('leaderPhone').value || store.leaderPhone;
+    const url = waUrl(num, `Hai Leader, ini ${store.partner.partner_name}.`); if (url) window.open(url,'_blank'); else toast('Nombor leader tidak sah.');
+  });
+
+  // ===== TABS =====
+  function setActiveTab(name){
+    document.querySelectorAll('[data-tab]').forEach(btn=>{
+      if (btn.dataset.tab === name) { btn.classList.remove('pill-idle'); btn.classList.add('pill-active'); }
+      else { btn.classList.add('pill-idle'); btn.classList.remove('pill-active'); }
+    });
+    document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
+    const tab = document.getElementById('tab-'+name);
+    if (tab) tab.classList.remove('hidden');
+  }
+  document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab)));
+  setActiveTab('users');
+
+  // ===== INIT =====
+  (async function init(){
+    try { await callApi('setup', {}); } catch(e){}
+    await loadSettings();     // theme + leader phone + share link
+    await reloadUsers();      // users table (org tree + phone match)
+    await reloadApprovals();  // approvals table
+    await reloadKPI();
+  })();
+
+  async function loadSettings(){
+    try{
+      const s = (await callApi('settings_get', { leader_id: store.partner.leader_id })).settings || {};
+      // Theme
+      document.documentElement.style.setProperty('--brand', s.theme_color || s.theme_primary || '#ef4444');
+      // Leader phone
+      store.leaderPhone = s.leader_phone || s.whatsapp || '';
+      document.getElementById('leaderPhone').value = store.leaderPhone || '';
+      // Share link
+      const url = new URL(location.href);
+      url.pathname = url.pathname.replace(/partner\.html$/,'user.html');
+      url.search = `?partner=${encodeURIComponent(store.partner.partner_name)}&leader=${encodeURIComponent(store.partner.leader_id)}`;
+      document.getElementById('shareLink').value = url.toString();
+      // KPI leader
+      document.getElementById('statLeader').textContent = s.leader_name ? (s.leader_name) : (store.partner.leader_id || '—');
+    }catch(e){}
+  }
+
+  // ===== USERS =====
+  document.getElementById('btnReloadUsers').addEventListener('click', reloadUsers);
+  document.getElementById('btnExportUsers').addEventListener('click', ()=> {
+    if (!store.users.length) return toast('Tiada data untuk dieksport');
+    const csv = makeCSV(['name','phone','source'], store.users.map(u=>({name:u.name||'', phone:u.phone||'', source:u.source||''})));
+    downloadText(csv, `users_${(store.partner.partner_name||'partner').replace(/\s+/g,'_')}.csv`, 'text/csv');
+  });
+
+  async function reloadUsers(){
+    // Kosongkan
+    store.users = [];
+    const tbody = document.getElementById('usersTableBody'); tbody.innerHTML = '<tr><td colspan="4" class="text-sm text-gray-500">Memuat data…</td></tr>';
+
+    try{
+      // 1) Ambil Org Tree dan cari node partner
+      const org = await callApi('org_tree', { leader_id: store.partner.leader_id, leader_name: 'Leader' });
+      const tree = org.tree || { children:[] };
+      const node = (tree.children||[]).find(n => String(n.name||'').toLowerCase() === String(store.partner.partner_name||'').toLowerCase());
+      const names = (node && Array.isArray(node.children)) ? node.children.map(c=> String(c.name||'')) : [];
+
+      // 2) Cuba padan telefon dari registrations (lulus)
+      let phoneByName = new Map();
+      try{
+        const regsOut = await callApi('registration_list', {});
+        const regs = regsOut.items || [];
+        regs.filter(r => String(r.status||'').toLowerCase() === 'lulus')
+            .forEach(r => { phoneByName.set(String(r.name||'').trim().toLowerCase(), String(r.phone||'')); });
+      }catch(e){}
+
+      // 3) Bentuk rekod users
+      const rows = names.map((nm, idx)=>({
+        name: nm, phone: phoneByName.get(String(nm||'').trim().toLowerCase()) || '', source:'org'
+      }));
+      store.users = rows;
+
+      // Render
+      tbody.innerHTML = '';
+      if (!store.users.length){
+        tbody.innerHTML = '<tr><td colspan="4" class="text-sm text-gray-500">Tiada user di bawah anda buat masa ini.</td></tr>';
+      } else {
+        store.users.forEach((u, i)=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="text-xs text-gray-500">${i+1}</td>
+            <td>${u.name||'-'}</td>
+            <td>${u.phone||'<span class="text-gray-400">—</span>'}</td>
+            <td><span class="badge">${u.source||'-'}</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }catch(e){
+      tbody.innerHTML = '<tr><td colspan="4" class="text-sm text-red-600">Gagal memuat data.</td></tr>';
+    }
+  }
+
+  // ===== APPROVALS =====
+  document.getElementById('btnReloadApprove').addEventListener('click', reloadApprovals);
+
+  async function reloadApprovals(){
+    const tbody = document.getElementById('approveTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Memuat data…</td></tr>';
+    store.regsPending = [];
+    store.regsApproved = [];
+
+    try{
+      const out = await callApi('registration_list', {});
+      const items = out.items || [];
+
+      const mine = items.filter(r =>
+        String(r.partner_id||'').trim().toLowerCase() === String(store.partner.partner_name||'').toLowerCase()
+      );
+
+      const pending = mine.filter(r => String(r.status||'').toLowerCase() !== 'lulus');
+      const approvedRecent = mine.filter(r => String(r.status||'').toLowerCase() === 'lulus').slice(-10);
+
+      store.regsPending = pending;
+      store.regsApproved = approvedRecent;
+
+      // KPI
+      document.getElementById('statPending').textContent = pending.length.toString();
+      document.getElementById('statApproved').textContent = approvedRecent.length.toString();
+
+      // Render
+      tbody.innerHTML = '';
+      if (!pending.length){
+        tbody.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Tiada pendaftaran menunggu kelulusan.</td></tr>';
+      } else {
+        pending.forEach(reg=>{
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td class="text-xs">${reg.id||''}</td>
+            <td>${reg.name||''}</td>
+            <td>${reg.phone||''}</td>
+            <td><span class="badge">${reg.status||''}</span></td>
+            <td><button class="btn btn-ghost btn-approve" data-id="${reg.id||''}"><i data-lucide="check" class="w-4 h-4"></i> Luluskan</button></td>
+          `;
+          tbody.appendChild(tr);
+        });
+        // bind approve
+        tbody.querySelectorAll('.btn-approve').forEach(btn=>{
+          btn.addEventListener('click', async ()=>{
+            const id = btn.getAttribute('data-id');
+            try{
+              const res = await callApi('registration_approve_by_partner', { id, partner_name: store.partner.partner_name });
+              if (res.success){ toast('Diluluskan ✔️'); await reloadApprovals(); await reloadUsers(); }
+              else toast(res.error||'Gagal meluluskan');
+            }catch(e){ toast('Ralat meluluskan'); }
+          });
+        });
+        lucide.createIcons();
+      }
+    }catch(e){
+      tbody.innerHTML = '<tr><td colspan="5" class="text-sm text-red-600">Gagal memuat pendaftaran.</td></tr>';
+    }
+  }
+
+  // ===== KPI =====
+  async function reloadKPI(){
+    // Users = jumlah di tab Users (org)
+    document.getElementById('statUsers').textContent = store.users.length ? String(store.users.length) : '—';
+    // Pending & Approved di-set ketika reloadApprovals()
+  }
+
+  // ===== ADD USER =====
+  document.getElementById('btnAddUser').addEventListener('click', async ()=>{
+    const name = document.getElementById('addName').value.trim();
+    const phone = document.getElementById('addPhone').value.trim();
+    if (!name || !phone) return toast('Nama & telefon diperlukan');
+    try{
+      const out = await callApi('customer_add', {
+        leader_id: store.partner.leader_id,
+        name, phone, partner: store.partner.partner_name
+      });
+      if (out.success){
+        toast('User ditambah ✔️');
+        document.getElementById('addName').value='';
+        document.getElementById('addPhone').value='';
+        await reloadUsers();
+        await reloadKPI();
+      } else { toast(out.error||'Gagal tambah user'); }
+    }catch(e){ toast('Ralat tambah user'); }
+  });
+
+  // ===== TAB SHARE TOOL: sudah set pada loadSettings() =====
+
+  // ===== TAB SWITCH INIT =====
+  document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', async ()=>{
+    if (btn.dataset.tab === 'users'){ await reloadUsers(); await reloadKPI(); }
+    if (btn.dataset.tab === 'approve'){ await reloadApprovals(); }
+  }));
+</script>
+</body>
+</html>
