@@ -228,6 +228,42 @@
 <div id="toast" class="toast hidden"></div>
 
 <script>
+  /* ===== GATE AKSES: Leader / Partner / User(lulus) sahaja =====
+     - Jika ada sesi Leader/Partner/User → benarkan.
+     - Jika tiada sesi, cuba auto-sahkan guna ?name=&phone=
+       (jika lulus, simpan mova_user; jika tidak, kembali ke index). */
+  (function gate(){
+    function norm(p){ return String(p||'').replace(/\D/g,''); }
+    function qs(k){ return new URLSearchParams(location.search).get(k)||''; }
+
+    // 1) Leader?
+    try{
+      const L = JSON.parse(localStorage.getItem('mova_leader')||'{}');
+      if (L && L.leader_id) return; // benarkan
+    }catch(_){}
+    // 2) Partner?
+    try{
+      const P = JSON.parse(localStorage.getItem('mova_partner')||'{}');
+      if (P && (P.partner_name||P.partner_id)) return; // benarkan
+    }catch(_){}
+    // 3) User lulus?
+    try{
+      const U = JSON.parse(localStorage.getItem('mova_user')||'{}');
+      if (U && (U.name||U.phone)) return; // benarkan
+    }catch(_){}
+
+    // 4) Tiada sesi — cuba auto-sahkan melalui URL param
+    const name = qs('name'), phone = norm(qs('phone'));
+    if (name && phone){
+      // simpan niat untuk diverifikasi selepas EXEC_URL & api() wujud
+      window.__mova_gate__ = { name, phone };
+      return;
+    }
+
+    // 5) Tiada sesi & tiada param → kembali ke login
+    location.href = "./index.html?next=user.html";
+  })();
+
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
   lucide.createIcons();
   document.getElementById('year').textContent = new Date().getFullYear();
@@ -249,6 +285,29 @@
 
   let RATE_MIN = 5, RATE_MAX = 10;
   let partners = [];
+
+  // —— AUTO-SAHKAN USER GUNA ?name=&phone= (jika diperlukan)
+  (async function maybeResolveUser(){
+    if (!window.__mova_gate__) return;
+    try{
+      const { name, phone } = window.__mova_gate__;
+      const out = await api('registration_list', {});
+      const items = (out.items||[]);
+      const hit = items.find(r => (String(r.name||'').trim().toLowerCase() === String(name||'').trim().toLowerCase())
+                                   && (String(r.phone||'').replace(/\D/g,'') === phone));
+      if (hit && String(hit.status||'').toLowerCase()==='lulus') {
+        localStorage.setItem('mova_user', JSON.stringify({
+          name: hit.name, phone: hit.phone, leader_id: hit.leader_id||'', partner_name: hit.partner_id||''
+        }));
+        // dibenarkan kekal di user.html
+        return;
+      }
+      alert('Akaun anda belum diluluskan. Sila hubungi Admin/Partner/Leader.');
+      location.href = "./index.html?next=user.html";
+    }catch(e){
+      location.href = "./index.html?next=user.html";
+    }
+  })();
 
   // INIT
   (async function init(){
@@ -385,8 +444,8 @@
   });
 
   // WhatsApp helper
-  function waUrl(num, txt){ 
-    const p = String(num||'').replace(/\D/g,''); 
+  function waUrl(num, txt){
+    const p = String(num||'').replace(/\D/g,'');
     return p ? `https://wa.me/${p}?text=${encodeURIComponent(txt||'')}` : '';
   }
   document.getElementById('btnWAPar').addEventListener('click', ()=>{
