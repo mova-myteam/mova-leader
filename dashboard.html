@@ -1,29 +1,27 @@
+
 <!doctype html>
 <html lang="ms">
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Dashboard</title>
+  <title>MOVA Leader — Dashboard (Penuh)</title>
 
-  <!-- Inter font -->
+  <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root { --brand:#ef4444; }
-    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
-    .scroll-bar::-webkit-scrollbar{height:8px}
-    .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
-    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; white-space:nowrap;}
+    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial;background:#f8fafc}
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 8px 28px rgba(15,23,42,.06); }
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.55rem 1rem; font-weight:700; border:1px solid #e5e7eb; white-space:nowrap; }
     .pill-active{ background:#111; color:#fff; border-color:#111; }
     .pill-idle{ background:#fff; color:#374151; }
-    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
-    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.5rem 1rem; font-weight:700; }
-    .btn-primary:hover{ filter:brightness(0.95); }
-    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.5rem 1rem; }
+    .btn{ display:inline-flex; align-items:center; gap:.5rem; border-radius:.75rem; padding:.6rem 1rem; font-weight:700; }
+    .btn-primary{ background:var(--brand); color:#fff; }
+    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; color:#111; }
+    .btn-danger{ background:#ef4444; color:#fff; }
     .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem .9rem; background:#fff; }
     .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
     .textarea{ width:100%; min-height:140px; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; background:#fff; }
@@ -35,22 +33,20 @@
     .table{ width:100%; border-collapse:separate; border-spacing:0; }
     .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
     .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
-    .chip{display:inline-flex;align-items:center;gap:.4rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.8rem}
-    .chip button{background:transparent;border:none;cursor:pointer}
-    .recip-row{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-bottom:1px dashed #f1f5f9}
+    .scroll-bar::-webkit-scrollbar{height:8px}
+    .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
+    .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
     .switch{position:relative;width:44px;height:26px;border-radius:9999px;background:#e5e7eb;display:inline-block;vertical-align:middle;cursor:pointer}
     .switch input{display:none}
     .switch span{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:9999px;transition:.2s}
     .switch input:checked + span{left:21px;background:#111}
-    .row-rep{border:1px solid #e5e7eb;border-radius:.75rem;padding:.75rem}
-    .row-rep + .row-rep{margin-top:.75rem}
-    .help{font-size:.75rem;color:#6b7280}
     .block-row{border:1px dashed #e5e7eb;border-radius:.6rem;padding:.6rem}
     .block-row + .block-row{margin-top:.5rem}
-    .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
+    .toolbar button{border:1px solid #e5e7eb;background:#fff;border-radius:.5rem;padding:.35rem .6rem;font-size:.85rem}
+    .layout-badge{display:inline-flex;align-items:center;gap:.35rem;border:1px solid #e5e7eb;border-radius:9999px;padding:.2rem .6rem;font-size:.75rem;background:#fff}
   </style>
 </head>
-<body class="bg-gray-50">
+<body>
 
 <!-- ====== HEADER ====== -->
 <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
@@ -66,13 +62,7 @@
     </div>
 
     <div class="flex items-center gap-2">
-      <!-- Cadangan: pintasan ke laman User -->
-      <button id="btnOpenUser" class="btn-ghost flex items-center gap-2" title="Buka laman pengguna">
-        <i data-lucide="external-link" class="w-4 h-4"></i> Buka Laman User
-      </button>
-      <button id="btnLogout" class="btn-primary flex items-center gap-2">
-        <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar
-      </button>
+      <button id="btnLogout" class="btn btn-primary"><i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar</button>
     </div>
   </div>
 </header>
@@ -118,44 +108,43 @@
   <!-- PANELS -->
   <section class="space-y-6">
 
-    <!-- ===== Tab: User Sections (Section Builder) ===== -->
+    <!-- ===== Tab: User Sections ===== -->
     <div id="tab-user" class="card p-6 space-y-6">
       <div class="flex items-center gap-2">
         <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">User Sections — Susun, Tambah, Padam & Edit</h2>
+        <h2 class="text-lg font-semibold">User Sections — Editor Tanpa Kod</h2>
       </div>
 
-      <!-- Composer Controls -->
+      <!-- Editor Header -->
       <div class="grid gap-3 md:grid-cols-[1fr_auto]">
         <div class="text-sm text-gray-600">
-          Gunakan “Tambah Seksyen” untuk buat seksyen baharu. Anda boleh isi:
-          <b>Text</b>, <b>Gambar (URL)</b>, <b>Video (URL)</b>, atau <b>Link</b>.  
-          Urutan seksyen di sini = urutan paparan dalam <b>user.html</b>. Klik <b>Preview Mini</b> untuk prarupa.
-        </div>
+          Susun, tambah, padam & ubah semua paparan <b>user.html</b> di sini. Sokongan:
+          <b>teks</b> (warna/saiz/bold per-kata), <b>gambar (URL)</b>, <b>video (URL/YouTube)</b>, <b>butang/link</b>, <b>ikon sosial</b>,
+          dan <b>layout prarupa</b> (Hero, Kad, Senarai, Grid).</div>
         <div class="flex items-center gap-2">
-          <button id="btnAddSection" class="btn-ghost"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Seksyen</button>
-          <button id="btnPreviewUser" class="btn-ghost">Preview Laman User</button>
+          <button id="btnAddSection" class="btn btn-ghost"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Seksyen</button>
+          <button id="btnPreviewUser" class="btn btn-ghost">Preview Laman User</button>
         </div>
       </div>
 
-      <div id="sectionsWrap" class="space-y-4">
-        <!-- Section cards will render here -->
-      </div>
+      <div id="sectionsWrap" class="space-y-4"></div>
 
       <div class="flex gap-2">
-        <button id="btnSaveSections" class="btn-primary">Simpan User Sections</button>
-        <button id="btnReloadSections" class="btn-ghost">Muat Semula</button>
+        <button id="btnSaveSections" class="btn btn-primary">Simpan User Sections</button>
+        <button id="btnReloadSections" class="btn btn-ghost">Muat Semula</button>
       </div>
 
       <hr class="my-2">
-      <div class="help">Tip: Jika anda sebelum ini menggunakan medan lama (Hero, Pengenalan, Kebaikan, dll), sistem akan automasi “migrasi” sekali ke struktur baharu <b>sections_json</b> agar user.html kekal stabil.</div>
+      <div class="text-xs text-gray-500">
+        Tip: Gunakan toolbar untuk sorot perkataan & ubah <b>warna/saiz/bold</b> tanpa perlu HTML.
+      </div>
     </div>
 
-    <!-- ===== Tab: Kandungan (Pengumuman umum) ===== -->
+    <!-- ===== Tab: Kandungan ===== -->
     <div id="tab-content" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Kandungan Umum (Paparan untuk Pelanggan)</h2>
+        <h2 class="text-lg font-semibold">Kandungan Umum</h2>
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
@@ -174,7 +163,15 @@
 
       <div>
         <label class="text-sm font-medium text-gray-700">Isi Kandungan</label>
-        <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi."></textarea>
+        <div class="toolbar flex flex-wrap gap-2 my-2">
+          <button data-cmd="bold">Bold</button>
+          <button data-cmd="h2">H2</button>
+          <button data-cmd="color" data-color="#ef4444">Merah</button>
+          <button data-cmd="color" data-color="#0ea5e9">Biru</button>
+          <button data-cmd="color" data-color="#f59e0b">Kuning</button>
+          <button data-cmd="clear">Buang Gaya</button>
+        </div>
+        <div id="bodyEditor" class="textarea" contenteditable="true" placeholder="Tulis pengumuman / panduan / promosi."></div>
       </div>
 
       <!-- Lampiran URL -->
@@ -187,7 +184,7 @@
           <div class="grid gap-2">
             <div class="flex items-center gap-2">
               <input id="urlInput" class="input" placeholder="https://contoh.com/media.jpg atau https://youtube.com/...">
-              <button id="btnAddUrl" class="btn-ghost">Tambah</button>
+              <button id="btnAddUrl" class="btn btn-ghost">Tambah</button>
             </div>
             <div id="urlList" class="grid gap-2"></div>
           </div>
@@ -204,9 +201,9 @@
       </div>
 
       <div class="flex items-center gap-3">
-        <button id="btnSaveContent" class="btn-primary">Simpan / Kemas Kini</button>
-        <button id="btnRefreshContent" class="btn-ghost">Segar Semula</button>
-        <button id="btnLoadLatestContent" class="btn-ghost">Muat Terbaru</button>
+        <button id="btnSaveContent" class="btn btn-primary">Simpan / Kemas Kini</button>
+        <button id="btnRefreshContent" class="btn btn-ghost">Segar Semula</button>
+        <button id="btnLoadLatestContent" class="btn btn-ghost">Muat Terbaru</button>
       </div>
 
       <div id="contentListWrap" class="hidden">
@@ -225,9 +222,9 @@
       <div class="grid gap-3 md:grid-cols-[1fr_auto]">
         <input id="fileInput" type="file" accept="image/*,video/*" class="input"/>
         <div class="flex items-center gap-2">
-          <button id="btnUpload" class="btn-primary">Muat Naik</button>
-          <button id="btnInsertToContent" class="btn-ghost">Tandakan sebagai Lampiran</button>
-          <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
+          <button id="btnUpload" class="btn btn-primary">Muat Naik</button>
+          <button id="btnInsertToContent" class="btn btn-ghost">Tandakan sebagai Lampiran</button>
+          <button id="btnReloadMedia" class="btn btn-ghost">Segar Semula</button>
         </div>
       </div>
 
@@ -252,7 +249,7 @@
         </select>
       </div>
       <div class="flex items-center gap-2">
-        <button id="btnCreatePartner" class="btn-primary">Cipta Partner</button>
+        <button id="btnCreatePartner" class="btn btn-primary">Cipta Partner</button>
         <span class="text-xs text-gray-500">* partner akan dipaparkan dalam Carta Organisasi selepas ditambah.</span>
       </div>
     </div>
@@ -269,7 +266,7 @@
         <select id="customerPartner" class="input"><option value="">Pilih Partner</option></select>
       </div>
       <div>
-        <button id="btnAddCustomer" class="btn-primary">Tambah Customer</button>
+        <button id="btnAddCustomer" class="btn btn-primary">Tambah Customer</button>
       </div>
     </div>
 
@@ -290,7 +287,7 @@
         </table>
       </div>
       <div class="flex gap-2">
-        <button id="btnReloadReg" class="btn-ghost">Segar Semula</button>
+        <button id="btnReloadReg" class="btn btn-ghost">Segar Semula</button>
       </div>
     </div>
 
@@ -308,8 +305,8 @@
         <div class="grid md:grid-cols-[1fr_auto] gap-3">
           <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
           <div class="flex items-center gap-2">
-            <button id="btnAttachUpload" class="btn-ghost"><i data-lucide="paperclip" class="w-4 h-4"></i> Upload & Lampirkan</button>
-            <button id="btnClearAttach" class="btn-ghost">Kosongkan Lampiran</button>
+            <button id="btnAttachUpload" class="btn btn-ghost"><i data-lucide="paperclip" class="w-4 h-4"></i> Upload & Lampirkan</button>
+            <button id="btnClearAttach" class="btn btn-ghost">Kosongkan Lampiran</button>
           </div>
         </div>
       </div>
@@ -319,8 +316,8 @@
           <div class="flex items-center justify-between">
             <div class="font-semibold">Penerima (ikut partner)</div>
             <div class="flex gap-2">
-              <button id="btnSelectAll" class="btn-ghost">Pilih Semua</button>
-              <button id="btnClearAll" class="btn-ghost">Kosongkan</button>
+              <button id="btnSelectAll" class="btn btn-ghost">Pilih Semua</button>
+              <button id="btnClearAll" class="btn btn-ghost">Kosongkan</button>
             </div>
           </div>
           <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
@@ -329,9 +326,9 @@
         <div class="p-4 border border-gray-200 rounded-xl">
           <div class="font-semibold mb-2">Tindakan</div>
           <div class="grid gap-2">
-            <button id="btnBroadcast" class="btn-primary">Log Broadcast (server)</button>
-            <button id="btnOpenWA" class="btn-ghost">Buka WhatsApp Tabs</button>
-            <button id="btnExportCSV" class="btn-ghost">Muat Turun CSV (Fonnte)</button>
+            <button id="btnBroadcast" class="btn btn-primary">Log Broadcast (server)</button>
+            <button id="btnOpenWA" class="btn btn-ghost">Buka WhatsApp Tabs</button>
+            <button id="btnExportCSV" class="btn btn-ghost">Muat Turun CSV (Fonnte)</button>
           </div>
         </div>
       </div>
@@ -348,7 +345,7 @@
         <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
       </div>
       <div class="mt-4 flex gap-2">
-        <button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button>
+        <button id="btnReloadOrg" class="btn btn-ghost">Segar Semula Carta</button>
       </div>
     </div>
 
@@ -356,7 +353,7 @@
     <div id="tab-settings" class="card p-6 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="settings" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Settings — Laman User, Fonnte & Typography</h2>
+        <h2 class="text-lg font-semibold">Settings — Tema, Typography & Global</h2>
       </div>
 
       <div class="grid md:grid-cols-3 gap-4 mt-2">
@@ -430,9 +427,9 @@
       </div>
 
       <div class="flex gap-2 mt-4">
-        <button id="btnSaveSettings" class="btn-primary">Simpan</button>
-        <button id="btnReloadSettings" class="btn-ghost">Muat Semula</button>
-        <button id="btnPreviewUser2" class="btn-ghost">Preview Laman User</button>
+        <button id="btnSaveSettings" class="btn btn-primary">Simpan</button>
+        <button id="btnReloadSettings" class="btn btn-ghost">Muat Semula</button>
+        <button id="btnPreviewUser2" class="btn btn-ghost">Preview Laman User</button>
       </div>
     </div>
 
@@ -449,30 +446,23 @@
   // ====== STATE LOGIN ======
   const store = {
     leader: (() => { try { return JSON.parse(localStorage.getItem('mova_leader') || '{}'); } catch(e){ return {}; } })(),
-    selectedMedia: new Set(),   // URL dari Media Library (untuk Content)
-    linkUrls: [],               // URL luaran untuk Content
+    selectedMedia: new Set(),
+    linkUrls: [],
     partners: [],
-    attachments: [],            // untuk Broadcast
-    sections: [],               // Section Builder
-    settings: {}                // Settings terkini untuk preview mini
+    attachments: [],
+    sections: [],
+    settings: {}
   };
 
   if (!store.leader || !store.leader.leader_id) {
     location.href = "./index.html";
   }
   document.getElementById('leaderName').textContent = store.leader?.profile?.name || 'leader';
-
-  // pintasan buka laman user
-  document.getElementById('btnOpenUser').addEventListener('click', () => {
-    window.open('./user.html','_blank');
-  });
-
   document.getElementById('btnLogout').addEventListener('click', () => {
     localStorage.removeItem('mova_leader');
     location.href = "./index.html";
   });
 
-  // icons
   lucide.createIcons();
 
   // ====== UTIL ======
@@ -519,8 +509,8 @@
     await reloadMedia();
     await reloadRegs();
     await renderOrg();
-    await refreshSettings();     // untuk theme/typography dll + preview mini
-    await loadSections();        // untuk Section Builder
+    await refreshSettings();
+    await loadSections();
   })();
 
   // ====== STATS ======
@@ -540,7 +530,19 @@
   // ====== KANDUNGAN (pengumuman) ======
   const elTitle   = document.getElementById('title');
   const elPublished = document.getElementById('published');
-  const elBody    = document.getElementById('body');
+  const bodyEditor = document.getElementById('bodyEditor');
+
+  // simple toolbar for content tab
+  document.querySelectorAll('#tab-content .toolbar [data-cmd]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const cmd = btn.dataset.cmd;
+      if (cmd === 'bold') document.execCommand('bold');
+      else if (cmd === 'h2') document.execCommand('formatBlock', false, 'h2');
+      else if (cmd === 'color') document.execCommand('foreColor', false, btn.dataset.color);
+      else if (cmd === 'clear') document.execCommand('removeFormat');
+      bodyEditor.focus();
+    });
+  });
 
   const urlInput = document.getElementById('urlInput');
   const urlList  = document.getElementById('urlList');
@@ -560,9 +562,9 @@
       row.className='block-row';
       row.innerHTML = `
         <div class="flex items-center gap-2">
-          <i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)?'video':'link'}" class="w-4 h-4 text-gray-600"></i>
+          <i data-lucide="${/\\.(mp4|webm|mov|m4v)(\\?|$)/i.test(u)?'video':'link'}" class="w-4 h-4 text-gray-600"></i>
           <input class="input !py-1 !px-2 !text-xs flex-1" value="${u}">
-          <button class="btn-ghost !py-1">Padam</button>
+          <button class="btn btn-ghost !py-1">Padam</button>
         </div>
       `;
       const input = row.querySelector('input');
@@ -585,7 +587,7 @@
     const payload = {
       leader_id: store.leader.leader_id,
       title: elTitle.value || '',
-      body: elBody.value || '',
+      body: bodyEditor.innerHTML || '',
       media_urls: allAttachments.join(','),
       published: (elPublished.value === 'yes')
     };
@@ -596,7 +598,7 @@
     }catch(err){ toast('Ralat rangkaian: '+err.message); }
   });
   document.getElementById('btnRefreshContent').addEventListener('click', ()=>{
-    elTitle.value = ''; elBody.value = ''; elPublished.value = 'yes';
+    elTitle.value = ''; bodyEditor.innerHTML = ''; elPublished.value = 'yes';
     store.selectedMedia.clear(); store.linkUrls = [];
     document.querySelectorAll('.media-tile').forEach(x=>x.classList.remove('selected'));
     renderUrlList(); updateChosenMediaHint(); toast('Dikemas kini semula');
@@ -616,7 +618,7 @@
         d.innerHTML = `
           <div class="font-semibold">${row.title||'-'}</div>
           <div class="text-xs text-gray-500 mt-1">Terbit: ${(String(row.published||'').toUpperCase()==='YES'?'Ya':'Tidak')} • Kemas kini: ${row.updated_at || '-'}</div>
-          <div class="text-sm text-gray-700 mt-2 line-clamp-2">${(row.body||'').slice(0,160)}</div>
+          <div class="text-sm text-gray-700 mt-2 line-clamp-2">${String(row.body||'').replace(/<[^>]+>/g,'').slice(0,160)}</div>
         `;
         wrap.appendChild(d);
       });
@@ -647,8 +649,8 @@
     attachChips.innerHTML = '';
     store.attachments.forEach((url, idx)=>{
       const chip = document.createElement('span');
-      chip.className='chip';
-      chip.innerHTML = `<i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)?'video':'image'}" class="w-3.5 h-3.5"></i><span>Media ${idx+1}</span><button title="Buang">&times;</button>`;
+      chip.className='badge';
+      chip.innerHTML = `<i data-lucide="${/\\.(mp4|webm|mov|m4v)(\\?|$)/i.test(url)?'video':'image'}" class="w-3.5 h-3.5"></i><span class="ml-1">Media ${idx+1}</span> <button title="Buang" class="ml-2 text-xs">&times;</button>`;
       chip.querySelector('button').addEventListener('click', ()=>{ store.attachments.splice(idx,1); renderAttachChips(); });
       attachChips.appendChild(chip);
     });
@@ -680,7 +682,7 @@
   }
   function recipientRow(rec){
     const row = document.createElement('div');
-    row.className='recip-row text-sm';
+    row.className='recip-row text-sm flex items-center gap-.5 border-b border-dashed border-slate-100 py-1.5';
     row.innerHTML = `
       <input type="checkbox" class="recip-check">
       <span class="min-w-[90px] inline-block ${rec.type==='partner'?'text-emerald-700':'text-rose-700'}">${rec.type==='partner'?'Partner':'Customer'}</span>
@@ -705,14 +707,14 @@
     const selected = getSelectedRecipients(); if (!selected.length) return toast('Pilih penerima dahulu');
     let opened = 0;
     selected.forEach((r, idx)=>{
-      const phone = (r.phone||'').replace(/\D/g,''); if (!phone) return;
+      const phone = (r.phone||'').replace(/\\D/g,''); if (!phone) return;
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
       setTimeout(()=> window.open(url, '_blank'), 200*idx); opened++;
     });
     toast(`Membuka ${opened} tab WhatsApp`);
   });
   document.getElementById('btnExportCSV')?.addEventListener('click', ()=>{
-    const rows = getSelectedRecipients().map(r=>({ phone: (r.phone||'').replace(/\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone);
+    const rows = getSelectedRecipients().map(r=>({ phone: (r.phone||'').replace(/\\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone);
     if (!rows.length) return toast('Tiada penerima sah untuk dieksport');
     const csv = makeCSV(['phone','message','media_urls','fonnte_api'], rows);
     downloadText(csv, `broadcast_${Date.now()}.csv`, 'text/csv'); toast('CSV dijana');
@@ -720,12 +722,12 @@
   function buildMessageWithAttachments(){
     const base = (document.getElementById('broadcastMsg').value||'').trim();
     const medias = (store.attachments||[]); if (!medias.length) return base;
-    return `${base}\n\nLampiran:\n${medias.map((u,i)=>`${i+1}. ${u}`).join('\n')}`.trim();
+    return `${base}\\n\\nLampiran:\\n${medias.map((u,i)=>`${i+1}. ${u}`).join('\\n')}`.trim();
   }
   function getSelectedRecipients(){
     return Array.from(document.querySelectorAll('#recipientsWrap .recip-row')).filter(r=> r.querySelector('.recip-check').checked).map(r=>({ type:r.dataset.type, name:r.dataset.name, partner:r.dataset.partner, phone:r.querySelector('.recip-phone').value.trim() }));
   }
-  function makeCSV(headers, rows){ const esc=s=>`"${String(s??'').replace(/"/g,'""')}"`; const head=headers.map(esc).join(','); const body=rows.map(r=>headers.map(h=>esc(r[h])).join(',')).join('\n'); return head+'\n'+body; }
+  function makeCSV(headers, rows){ const esc=s=>`"${String(s??'').replace(/"/g,'""')}"`; const head=headers.map(esc).join(','); const body=rows.map(r=>headers.map(h=>esc(r[h])).join(',')).join('\\n'); return head+'\\n'+body; }
   function downloadText(text, filename, mime){ const blob=new Blob([text],{type:mime||'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
 
   // ====== MEDIA ======
@@ -750,7 +752,7 @@
       const list = out.items || [];
       mediaGrid.innerHTML = ''; store.selectedMedia.clear();
       list.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
-      list.forEach(row => addMediaTile(row.public_url, /^video\//i.test(row.file_type||'')));
+      list.forEach(row => addMediaTile(row.public_url, /^video\\//i.test(row.file_type||'')));
       updateChosenMediaHint();
     }catch(e){ mediaGrid.innerHTML=''; updateChosenMediaHint(); }
   }
@@ -826,7 +828,7 @@
           <td>${row.name||''}</td>
           <td>${row.phone||''}</td>
           <td><span class="badge">${row.status||''}</span></td>
-          <td>${String(row.status||'').toLowerCase()==='lulus' ? '<span class="text-green-700 text-sm">Diluluskan</span>' : '<button class="btn-ghost text-sm">Luluskan</button>'}</td>
+          <td>${String(row.status||'').toLowerCase()==='lulus' ? '<span class="text-green-700 text-sm">Diluluskan</span>' : '<button class="btn btn-ghost text-sm">Luluskan</button>'}</td>
         `;
         const btn = tr.querySelector('button');
         if (btn) btn.addEventListener('click', async ()=>{
@@ -892,15 +894,12 @@
       const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
       const s = out.settings||{};
       store.settings = s || {};
-      // global
       setMin.value = s.cashback_min || 5; setMax.value = s.cashback_max || 10; setLeaderPhone.value = s.whatsapp || '';
       setFonnteApi.value = s.fonnte_api || ''; setThemeColor.value = s.theme_color || '#ef4444'; setContentWidth.value = s.content_width || '';
-      // typography
       setHeadingSize.value  = s.heading_size || ''; setHeadingColor.value = s.heading_color || '#111111'; setHeadingBold.checked = String(s.heading_bold||'false')==='true';
       setBodySize.value  = s.body_size || ''; setBodyColor.value = s.body_color || '#374151'; setBodyBold.checked = String(s.body_bold||'false')==='true';
-      // kemas kini CSS root untuk brand color mini preview
       document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
-    }catch(e){ /* biarkan */ }
+    }catch(e){ /* biar */ }
   }
   document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
   document.getElementById('btnSaveSettings').addEventListener('click', async ()=>{
@@ -916,7 +915,7 @@
     try{ await callApi('settings_set', payload); toast('Settings disimpan ✔️'); store.settings = payload; }catch(e){ toast('Gagal simpan settings'); }
   });
 
-  // ====== SECTION BUILDER ======
+  // ====== SECTION BUILDER (tanpa kod) ======
   const sectionsWrap = document.getElementById('sectionsWrap');
   document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
   document.getElementById('btnPreviewUser2')?.addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
@@ -934,8 +933,8 @@
   });
 
   function defaultSection(){
-    return { id: uid(), title:'Seksyen Baharu', type:'custom', featured:false, hidden:false, blocks:[
-      { kind:'text', value:'Teks contoh — ubah ikut keperluan.' }
+    return { id: uid(), title:'Seksyen Baharu', type:'custom', featured:false, hidden:false, layout:'hero', theme:'default', blocks:[
+      { kind:'text', value:'<h2>Selamat Datang ke <span style="color: var(--brand); font-weight: 800;">MOVA</span></h2><p class="mt-2">Teks contoh — ubah ikut keperluan.</p>' }
     ]};
   }
 
@@ -945,72 +944,13 @@
       const s = out.settings||{};
       store.settings = s || store.settings;
       let sections = safeJSON(s.sections_json, null);
-      if (!Array.isArray(sections)){
-        sections = migrateLegacyToSections(s);
-      }
+      if (!Array.isArray(sections)){ sections = []; }
       store.sections = sections || [];
       renderSections();
     }catch(e){
       store.sections = [];
       renderSections();
     }
-  }
-
-  function migrateLegacyToSections(s){
-    const arr = [];
-    if (s.hero_title || s.hero_media){
-      const blocks = [];
-      if (s.hero_title) blocks.push({kind:'text', value:`<h1>${s.hero_title}</h1>`});
-      if (s.hero_media){
-        if (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(s.hero_media)) blocks.push({kind:'video', value:s.hero_media});
-        else blocks.push({kind:'image', value:s.hero_media});
-      }
-      arr.push({ id:uid(), title:'Hero', type:'hero', featured:true, hidden:false, blocks });
-    }
-    if (s.intro_html){
-      arr.push({ id:uid(), title:'Pengenalan', type:'rich', featured:false, hidden:false, blocks:[{kind:'text', value:s.intro_html}] });
-    }
-    const benefits = safeJSON(s.benefits_json, []);
-    if (benefits.length){
-      const blocks = benefits.map(b=> ({kind:'text', value:`<strong>${b.title||''}</strong> — ${b.desc||''}`}));
-      arr.push({ id:uid(), title:'Kebaikan', type:'list', featured:false, hidden:false, blocks });
-    }
-    const steps = safeJSON(s.steps_json, []);
-    if (steps.length){
-      const blocks = steps.map(b=> ({kind:'text', value:`${b.title||''}: ${b.desc||''}`}));
-      arr.push({ id:uid(), title:'Cara Guna', type:'list', featured:false, hidden:false, blocks });
-    }
-    const faqs = safeJSON(s.faqs_json, []);
-    if (faqs.length){
-      const blocks = faqs.map(b=> ({kind:'text', value:`<b>Q:</b> ${b.q||''}<br><b>A:</b> ${b.a||''}`}));
-      arr.push({ id:uid(), title:'FAQ', type:'faq', featured:false, hidden:false, blocks });
-    }
-    const testi = safeJSON(s.testimonials_json, []);
-    if (testi.length){
-      const blocks = testi.map(t=> ({kind: t.media ? (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(t.media)?'video':'image') : 'text', value: t.media || (`“${t.text||''}” — ${t.name||''}`)}));
-      arr.push({ id:uid(), title:'Testimoni', type:'testimonials', featured:false, hidden:false, blocks });
-    }
-    const updates = safeJSON(s.updates_json, []);
-    if (updates.length){
-      const blocks = updates.map(u=>{
-        let v = `<strong>${u.title||''}</strong> — ${u.body||''}`;
-        if (u.media) v += `\n${u.media}`;
-        return {kind: u.media ? (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u.media)?'video':'image') : 'text', value: u.media || v, featured: !!u.featured};
-      });
-      arr.push({ id:uid(), title:'Terkini dari Leader', type:'updates', featured:true, hidden:false, blocks });
-    }
-    const guides = safeJSON(s.guidelines_json, []);
-    if (guides.length){
-      const blocks = guides.map(g=> ({kind:'text', value:`<strong>${g.title||''}</strong> — ${g.desc||''}`}));
-      arr.push({ id:uid(), title:'Garis Panduan', type:'list', featured:false, hidden:false, blocks });
-    }
-    const bans = safeJSON(s.bans_json, []);
-    if (bans.length){
-      const blocks = bans.map(b=> ({kind:'text', value:`<strong>${b.title||''}</strong> — ${b.desc||''}`}));
-      arr.push({ id:uid(), title:'Larangan', type:'list', featured:false, hidden:false, blocks });
-    }
-    if (!arr.length){ arr.push(defaultSection()); }
-    return arr;
   }
 
   function renderSections(){
@@ -1029,11 +969,11 @@
     const card = document.createElement('div');
     card.className = 'border border-gray-200 rounded-xl p-4';
     card.innerHTML = `
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <i data-lucide="panels-top-left" class="w-4 h-4"></i>
           <input class="input !py-1 !px-2 !h-9 !text-sm w-[240px]" value="${sec.title||''}" placeholder="Tajuk seksyen">
-          <select class="input !py-1 !px-2 !h-9 !text-sm w-[160px]">
+          <select class="input !py-1 !px-2 !h-9 !text-sm w-[150px]">
             <option value="custom"${sec.type==='custom'?' selected':''}>Custom</option>
             <option value="hero"${sec.type==='hero'?' selected':''}>Hero</option>
             <option value="rich"${sec.type==='rich'?' selected':''}>Rich Text</option>
@@ -1042,7 +982,29 @@
             <option value="testimonials"${sec.type==='testimonials'?' selected':''}>Testimoni</option>
             <option value="updates"${sec.type==='updates'?' selected':''}>Berita/Update</option>
           </select>
-          <label class="text-xs flex items-center gap-2">
+
+          <!-- Layout & Theme -->
+          <span class="layout-badge">
+            <i data-lucide="layout-panel-top" class="w-3.5 h-3.5"></i>
+            <select class="input !py-1 !px-2 !h-8 !text-xs w-[140px] sel-layout">
+              <option value="hero"${(sec.layout||'hero')==='hero'?' selected':''}>Hero</option>
+              <option value="cards"${sec.layout==='cards'?' selected':''}>Cards</option>
+              <option value="grid"${sec.layout==='grid'?' selected':''}>Grid</option>
+              <option value="list"${sec.layout==='list'?' selected':''}>List</option>
+            </select>
+          </span>
+
+          <span class="layout-badge">
+            <i data-lucide="palette" class="w-3.5 h-3.5"></i>
+            <select class="input !py-1 !px-2 !h-8 !text-xs w-[140px] sel-theme">
+              <option value="default"${(sec.theme||'default')==='default'?' selected':''}>Default</option>
+              <option value="soft"${sec.theme==='soft'?' selected':''}>Soft</option>
+              <option value="contrast"${sec.theme==='contrast'?' selected':''}>High Contrast</option>
+              <option value="glass"${sec.theme==='glass'?' selected':''}>Glass</option>
+            </select>
+          </span>
+
+          <label class="text-xs flex items-center gap-2 ml-2">
             <span class="switch"><input type="checkbox" ${sec.featured?'checked':''}><span></span></span> Featured
           </label>
           <label class="text-xs flex items-center gap-2">
@@ -1050,10 +1012,10 @@
           </label>
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-ghost btn-prev-mini" title="Preview Mini"><i data-lucide="eye" class="w-4 h-4"></i></button>
-          <button class="btn-ghost btn-up" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-          <button class="btn-ghost btn-down" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-          <button class="btn-ghost btn-del" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          <button class="btn btn-ghost btn-prev-mini" title="Preview Mini"><i data-lucide="eye" class="w-4 h-4"></i></button>
+          <button class="btn btn-ghost btn-up" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+          <button class="btn btn-ghost btn-down" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+          <button class="btn btn-danger btn-del" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
         </div>
       </div>
 
@@ -1062,23 +1024,30 @@
         <div class="grid md:grid-cols-[1fr_auto] gap-2">
           <div id="blk-${sec.id}"></div>
           <div class="flex md:flex-col gap-2">
-            <button class="btn-ghost btn-add-text"><i data-lucide="type" class="w-4 h-4"></i> Text</button>
-            <button class="btn-ghost btn-add-image"><i data-lucide="image" class="w-4 h-4"></i> Gambar URL</button>
-            <button class="btn-ghost btn-add-video"><i data-lucide="video" class="w-4 h-4"></i> Video URL</button>
-            <button class="btn-ghost btn-add-link"><i data-lucide="link" class="w-4 h-4"></i> Link</button>
+            <button class="btn btn-ghost btn-add-text"><i data-lucide="type" class="w-4 h-4"></i> Text</button>
+            <button class="btn btn-ghost btn-add-image"><i data-lucide="image" class="w-4 h-4"></i> Gambar URL</button>
+            <button class="btn btn-ghost btn-add-video"><i data-lucide="video" class="w-4 h-4"></i> Video URL</button>
+            <button class="btn btn-ghost btn-add-link"><i data-lucide="link" class="w-4 h-4"></i> Link / Button</button>
+            <button class="btn btn-ghost btn-add-social"><i data-lucide="share-2" class="w-4 h-4"></i> Ikon Sosial</button>
           </div>
         </div>
       </div>
 
-      <div class="mt-3 hidden mini-prev" id="prev-${sec.id}">
-        <!-- mini preview render here -->
-      </div>
+      <div class="mt-3 hidden mini-prev" id="prev-${sec.id}"></div>
     `;
 
     // wiring header fields
-    const [titleInput, typeSelect, featuredToggle, hiddenToggle] = card.querySelectorAll('input,select');
+    const titleInput   = card.querySelector('input');
+    const typeSelect   = card.querySelectorAll('select')[0];
+    const layoutSelect = card.querySelector('.sel-layout');
+    const themeSelect  = card.querySelector('.sel-theme');
+    const featuredToggle = card.querySelectorAll('.switch input')[0];
+    const hiddenToggle   = card.querySelectorAll('.switch input')[1];
+
     titleInput.addEventListener('input', e=>{ sec.title = e.target.value; rerenderMini(); });
     typeSelect.addEventListener('change', e=>{ sec.type = e.target.value; rerenderMini(); });
+    layoutSelect.addEventListener('change', e=>{ sec.layout = e.target.value; rerenderMini(); });
+    themeSelect.addEventListener('change', e=>{ sec.theme = e.target.value; rerenderMini(); });
     featuredToggle.addEventListener('change', e=>{ sec.featured = e.target.checked; rerenderMini(); });
     hiddenToggle.addEventListener('change', e=>{ sec.hidden = e.target.checked; rerenderMini(); });
 
@@ -1108,7 +1077,6 @@
     });
 
     function rerenderMini(){
-      // Render HTML kecil berdasarkan blocks + settings
       const html = sectionPreviewHTML(sec, store.settings);
       prevBox.innerHTML = html;
     }
@@ -1126,30 +1094,56 @@
         row.className = 'block-row';
         if (blk.kind === 'text'){
           row.innerHTML = `
-            <div class="flex items-center justify-between mb-1">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="type" class="w-3.5 h-3.5"></i> Text</div>
-              <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="type" class="w-3.5 h-3.5"></i> Text (editor)</div>
+              <div class="toolbar flex flex-wrap gap-1">
+                <button data-cmd="bold">Bold</button>
+                <button data-cmd="h1">H1</button>
+                <button data-cmd="h2">H2</button>
+                <button data-cmd="p">P</button>
+                <button data-cmd="color" data-color="#111111">Hitam</button>
+                <button data-cmd="color" data-color="#ef4444">Merah</button>
+                <button data-cmd="color" data-color="#0ea5e9">Biru</button>
+                <button data-cmd="color" data-color="#f59e0b">Kuning</button>
+                <button data-cmd="clear">Buang Gaya</button>
               </div>
             </div>
-            <textarea class="textarea">${blk.value||''}</textarea>
-            <div class="help mt-1">Boleh guna HTML ringkas (cth &lt;h2&gt;, &lt;strong&gt;, &lt;em&gt;, &lt;br&gt;).</div>
+            <div class="textarea" contenteditable="true">${blk.value||''}</div>
+            <div class="help text-xs text-gray-500 mt-1">Sorot perkataan dan guna toolbar untuk ubah warna/saiz/bold (per-kata dibenarkan).</div>
+            <div class="flex gap-1 mt-2">
+              <button class="btn btn-ghost btn-upb !py-1" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+              <button class="btn btn-ghost btn-downb !py-1" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+              <button class="btn btn-danger btn-delb !py-1" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+            </div>
           `;
-          row.querySelector('textarea').addEventListener('input', e=>{ blk.value = e.target.value; });
+          const editor = row.querySelector('[contenteditable]');
+          // toolbar actions
+          row.querySelectorAll('.toolbar [data-cmd]').forEach(btn=>{
+            btn.addEventListener('click', ()=>{
+              const cmd = btn.dataset.cmd;
+              editor.focus();
+              if (cmd==='bold') document.execCommand('bold');
+              else if (cmd==='h1') document.execCommand('formatBlock',false,'h1');
+              else if (cmd==='h2') document.execCommand('formatBlock',false,'h2');
+              else if (cmd==='p') document.execCommand('formatBlock',false,'p');
+              else if (cmd==='color') document.execCommand('foreColor', false, btn.dataset.color);
+              else if (cmd==='clear') document.execCommand('removeFormat');
+            });
+          });
+          const sync = ()=>{ blk.value = editor.innerHTML; };
+          ['input','blur','keyup','paste'].forEach(ev=> editor.addEventListener(ev, sync));
         } else if (blk.kind === 'image'){
           row.innerHTML = `
             <div class="flex items-center justify-between mb-1">
               <div class="text-xs font-semibold text-gray-600"><i data-lucide="image" class="w-3.5 h-3.5"></i> Gambar URL</div>
               <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <button class="btn btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn btn-danger btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
               </div>
             </div>
             <input class="input" placeholder="https://..." value="${blk.value||''}">
-            <div class="help mt-1">Letak pautan gambar (Google Drive “Anyone with link” / CDN / hosting sendiri).</div>
+            <div class="help mt-1 text-xs text-gray-500">Letak pautan gambar (Drive “Anyone with link” / CDN / hosting sendiri).</div>
           `;
           row.querySelector('input').addEventListener('input', e=> blk.value = e.target.value);
         } else if (blk.kind === 'video'){
@@ -1157,33 +1151,83 @@
             <div class="flex items-center justify-between mb-1">
               <div class="text-xs font-semibold text-gray-600"><i data-lucide="video" class="w-3.5 h-3.5"></i> Video URL</div>
               <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <button class="btn btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn btn-danger btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
               </div>
             </div>
             <input class="input" placeholder="https://... (mp4/webm atau YouTube)" value="${blk.value||''}">
-            <div class="help mt-1">Fail .mp4/.webm atau link YouTube — user.html akan cuba embed.</div>
+            <div class="help mt-1 text-xs text-gray-500">Fail .mp4/.webm atau link YouTube — user.html akan cuba embed.</div>
           `;
           row.querySelector('input').addEventListener('input', e=> blk.value = e.target.value);
         } else if (blk.kind === 'link'){
           row.innerHTML = `
             <div class="flex items-center justify-between mb-1">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="link" class="w-3.5 h-3.5"></i> Pautan</div>
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="link" class="w-3.5 h-3.5"></i> Pautan / Butang</div>
               <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                <button class="btn btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn btn-danger btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
               </div>
             </div>
-            <div class="grid md:grid-cols-2 gap-2">
-              <input class="input" placeholder="Teks link (cth: Lihat panduan)" value="${blk.text||''}">
+            <div class="grid md:grid-cols-3 gap-2">
+              <input class="input" placeholder="Teks (cth: Mula Sekarang)" value="${blk.text||''}">
               <input class="input" placeholder="https://..." value="${blk.value||''}">
+              <select class="input">
+                <option value="primary"${(blk.variant||'primary')==='primary'?' selected':''}>Primary</option>
+                <option value="ghost"${blk.variant==='ghost'?' selected':''}>Ghost</option>
+                <option value="link"${blk.variant==='link'?' selected':''}>Link</option>
+              </select>
             </div>
           `;
-          const [txt, url] = row.querySelectorAll('input');
+          const [txt, url, sel] = row.querySelectorAll('input,select');
           txt.addEventListener('input', e=> blk.text = e.target.value);
           url.addEventListener('input', e=> blk.value = e.target.value);
+          sel.addEventListener('change', e=> blk.variant = e.target.value);
+        } else if (blk.kind === 'social'){
+          blk.items = Array.isArray(blk.items)? blk.items : [];
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Ikon Sosial</div>
+              <div class="flex gap-1">
+                <button class="btn btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn btn-danger btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="space-y-2 items-wrap"></div>
+            <div class="flex gap-2 mt-2">
+              <input class="input inp-icon w-40" placeholder="ikon lucide (cth: send)">
+              <input class="input inp-url" placeholder="https://telegram.me/...">
+              <button class="btn btn-ghost btn-add-itm"><i data-lucide="plus" class="w-4 h-4"></i> Tambah</button>
+            </div>
+            <div class="help mt-1 text-xs text-gray-500">Rujuk nama ikon lucide (cth: <code>send</code>, <code>youtube</code>, <code>tiktok</code>, <code>telegram</code>).</div>
+          `;
+          const wrap = row.querySelector('.items-wrap');
+          const renderItems = ()=>{
+            wrap.innerHTML='';
+            blk.items.forEach((it, i)=>{
+              const line = document.createElement('div');
+              line.className = 'flex items-center gap-2';
+              line.innerHTML = `
+                <span class="badge"><i data-lucide="${it.icon||'send'}" class="w-3.5 h-3.5"></i> ${it.icon||'icon'}</span>
+                <input class="input !py-1 !px-2 !text-xs flex-1 itm-url" value="${it.url||''}">
+                <button class="btn btn-danger !py-1 btn-del-itm">Padam</button>
+              `;
+              line.querySelector('.itm-url').addEventListener('input', e=> blk.items[i].url = e.target.value);
+              line.querySelector('.btn-del-itm').addEventListener('click', ()=>{ blk.items.splice(i,1); renderItems(); });
+              wrap.appendChild(line);
+            });
+            lucide.createIcons();
+          };
+          renderItems();
+          row.querySelector('.btn-add-itm').addEventListener('click', ()=>{
+            const icon = row.querySelector('.inp-icon').value.trim() || 'send';
+            const url  = row.querySelector('.inp-url').value.trim() || '#';
+            blk.items.push({ icon, url });
+            row.querySelector('.inp-icon').value=''; row.querySelector('.inp-url').value='';
+            renderItems();
+          });
         }
         // move/del block
         row.querySelector('.btn-upb').addEventListener('click', ()=>{
@@ -1214,7 +1258,10 @@
       sec.blocks = sec.blocks || []; sec.blocks.push({kind:'video', value:''}); renderBlocks();
     });
     card.querySelector('.btn-add-link').addEventListener('click', ()=>{
-      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'link', text:'', value:''}); renderBlocks();
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'link', text:'', value:'', variant:'primary'}); renderBlocks();
+    });
+    card.querySelector('.btn-add-social').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'social', items:[]}); renderBlocks();
     });
 
     return card;
@@ -1222,7 +1269,6 @@
 
   // ==== MINI PREVIEW RENDERER ====
   function sectionPreviewHTML(sec, s){
-    // s = settings (typography/theme)
     const hSize = Number(s?.heading_size||0) || 28;
     const bSize = Number(s?.body_size||0) || 16;
     const hColor = s?.heading_color || '#111111';
@@ -1240,9 +1286,9 @@
       "
     `;
     const esc = (t)=> String(t||'');
-    const blocks = (sec.blocks||[]).map(b=>{
+
+    function renderBlock(b){
       if (b.kind==='text'){
-        // render as is (allow simple HTML)
         return `<div style="font-size:var(--bSize);color:var(--bColor);font-weight:var(--bWeight);line-height:1.6;margin:.4rem 0">${esc(b.value)}</div>`;
       } else if (b.kind==='image'){
         const u = esc(b.value);
@@ -1250,25 +1296,58 @@
       } else if (b.kind==='video'){
         const u = esc(b.value);
         if (!u) return '';
-        // youtube embed?
         const yt = parseYouTube(u);
         if (yt) return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid #eee;margin:.4rem 0"><iframe src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe></div>`;
         return `<video src="${u}" controls playsinline style="width:100%;border-radius:12px;border:1px solid #eee;margin:.4rem 0"></video>`;
       } else if (b.kind==='link'){
         const text = esc(b.text||'Pautan');
         const u = esc(b.value||'#');
-        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--theme);color:#fff;padding:.5rem .8rem;border-radius:.6rem;text-decoration:none;margin:.4rem 0">${text}</a>`;
+        const variant = b.variant||'primary';
+        let clazz = 'background:var(--theme);color:#fff;';
+        if (variant==='ghost') clazz = 'background:#fff;border:1px solid #e5e7eb;color:#111;';
+        if (variant==='link')  clazz = 'background:transparent;color:var(--theme);padding:0;border:none;';
+        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;${clazz}padding:.5rem .8rem;border-radius:.6rem;text-decoration:none;margin:.4rem 0">${text}</a>`;
+      } else if (b.kind==='social'){
+        const items = (b.items||[]).map(it=> `<a href="${esc(it.url||'#')}" target="_blank" style="display:inline-flex;align-items:center;gap:.35rem;background:#fff;border:1px solid #e5e7eb;border-radius:9999px;padding:.3rem .6rem;margin:.2rem  .25rem;text-decoration:none;color:#111"><i data-lucide="${esc(it.icon||'send')}" class="w-3.5 h-3.5"></i> <span style="font-size:12px">${esc(it.icon||'')}</span></a>`).join('');
+        return `<div style="display:flex;flex-wrap:wrap;align-items:center">${items}</div>`;
       }
       return '';
-    }).join('');
+    }
 
-    const title = sec.title ? `<div style="font-size:var(--hSize);color:var(--hColor);font-weight:var(--hWeight);margin-bottom:.4rem">${esc(sec.title)}</div>` : '';
+    // section skin per layout/theme
+    const wrapStyles = (()=>{
+      let base = 'padding:12px;border-radius:12px;border:1px dashed #e5e7eb;';
+      if (sec.theme==='soft') base = 'padding:12px;border-radius:12px;background:#f8fafc;border:1px solid #e5e7eb;';
+      if (sec.theme==='contrast') base = 'padding:16px;border-radius:14px;background:#111;color:#fff;border:1px solid #0f172a;';
+      if (sec.theme==='glass') base = 'padding:16px;border-radius:16px;background:rgba(255,255,255,.5);backdrop-filter: blur(6px);border:1px solid rgba(0,0,0,.08);';
+      return base;
+    })();
+
+    // layout rendering
+    let blocksHTML = '';
+    if (sec.layout==='cards'){
+      blocksHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px">
+        ${(sec.blocks||[]).map(b=>`<div style="border:1px solid #e5e7eb;border-radius:12px;padding:12px">${renderBlock(b)}</div>`).join('')}
+      </div>`;
+    } else if (sec.layout==='grid'){
+      blocksHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px">
+        ${(sec.blocks||[]).map(b=>renderBlock(b)).join('')}
+      </div>`;
+    } else if (sec.layout==='list'){
+      blocksHTML = `<div style="display:flex;flex-direction:column;gap:10px">
+        ${(sec.blocks||[]).map(b=>`<div style="display:flex;align-items:flex-start;gap:10px"><div>${renderBlock(b)}</div></div>`).join('')}
+      </div>`;
+    } else {
+      blocksHTML = (sec.blocks||[]).map(b=>renderBlock(b)).join('');
+    }
+
+    const title = sec.title ? `<div style="font-size:var(--hSize);color:${sec.theme==='contrast'?'#fff':'var(--hColor)'};font-weight:var(--hWeight);margin-bottom:.4rem">${esc(sec.title)}</div>` : '';
     const tag = sec.featured ? `<span style="display:inline-block;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:9999px;font-size:12px;padding:2px 8px;margin-bottom:6px">Featured</span>` : '';
 
-    return `<div ${style}>
+    return `<div ${style} style="${wrapStyles}">
       ${tag}
       ${title}
-      ${blocks || '<div style="color:#6b7280;font-size:14px">Tiada kandungan.</div>'}
+      ${blocksHTML || '<div style="color:#6b7280;font-size:14px">Tiada kandungan.</div>'}
       ${sec.hidden ? '<div style="margin-top:6px;color:#9ca3af;font-size:12px">* Seksyen ini ditanda Sembunyi</div>' : ''}
     </div>`;
   }
@@ -1283,7 +1362,6 @@
   }
 
   function safeJSON(s, def){ try{ const x = JSON.parse(s||''); return x; }catch(_){ return def; } }
-
 </script>
 </body>
 </html>
