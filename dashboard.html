@@ -17,9 +17,10 @@
     html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
     .scroll-bar::-webkit-scrollbar{height:8px}
     .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
-    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; white-space:nowrap;}
-    .pill-active{ background:#111; color:#fff; border-color:#111; }
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; white-space:nowrap; transition: all 0.3s ease; cursor: pointer;}
+    .pill-active{ background:#111; color:#fff; border-color:#111; box-shadow:0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
     .pill-idle{ background:#fff; color:#374151; }
+    .pill-idle:hover{ background:#f9fafb; border-color:#d1d5db; }
     .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
     .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.55rem 1rem; font-weight:700; }
     .btn-primary:hover{ filter:brightness(0.95); }
@@ -49,7 +50,11 @@
     .block-row + .block-row{margin-top:.5rem}
     .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
     /* Rich editor */
-    .toolbar button{border:1px solid #e5e7eb;border-radius:.5rem;padding:.25rem .5rem;background:#fff}
+    .toolbar button{border:1px solid #e5e7eb;border-radius:.5rem;padding:.25rem .5rem;background:#fff; transition: all 0.2s ease;}
+    .toolbar button:hover{background:#f3f4f6;}
+    .toolbar button.active{background:#111;color:#fff;border-color:#111;}
+    .toolbar select{transition: all 0.2s ease;}
+    .toolbar select:focus{background:#f9fafb;}
     .rtbox{min-height:120px;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem;background:#fff}
   </style>
 </head>
@@ -130,7 +135,7 @@
 
       <div class="grid gap-3 md:grid-cols-[1fr_auto]">
         <div class="text-sm text-gray-600">
-          Gunakan “Tambah Seksyen” untuk buat seksyen baharu. Setiap seksyen menyokong blok
+          Gunakan "Tambah Seksyen" untuk buat seksyen baharu. Setiap seksyen menyokong blok
           <b>Text (Rich)</b>, <b>Gambar (URL)</b>, <b>Video (URL)</b>, <b>Link</b>, <b>Ikon Sosial</b> dan <b>Butang</b>.
           Urutan seksyen di sini = urutan paparan dalam <b>user.html</b>. Klik <b>Preview Mini</b> untuk prarupa.
         </div>
@@ -480,8 +485,14 @@
 
   function setActiveTab(name){
     document.querySelectorAll('[data-tab]').forEach(btn=>{
-      if (btn.dataset.tab === name) { btn.classList.remove('pill-idle'); btn.classList.add('pill-active'); }
-      else { btn.classList.add('pill-idle'); btn.classList.remove('pill-active'); }
+      if (btn.dataset.tab === name) { 
+        btn.classList.remove('pill-idle'); 
+        btn.classList.add('pill-active'); 
+      }
+      else { 
+        btn.classList.add('pill-idle'); 
+        btn.classList.remove('pill-active'); 
+      }
     });
     document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
     const tab = document.getElementById('tab-'+name);
@@ -940,7 +951,7 @@
   function renderSections(){
     sectionsWrap.innerHTML = '';
     if (!store.sections.length){
-      sectionsWrap.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Klik “Tambah Seksyen”.</div>';
+      sectionsWrap.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Klik "Tambah Seksyen".</div>';
       return;
     }
     store.sections.forEach((sec, idx)=>{
@@ -970,17 +981,62 @@
       <button type="button" data-cmd="insertOrderedList">1. Number</button>
       <button type="button" data-cmd="removeFormat">Clear</button>
     `;
+    
+    // Add event listeners for toolbar buttons
     bar.querySelectorAll('button[data-cmd]').forEach(btn=>{
-      btn.addEventListener('click',()=> exec(btn.dataset.cmd));
+      btn.addEventListener('click', (e)=> {
+        exec(btn.dataset.cmd);
+        updateToolbarState(bar, box);
+      });
     });
+    
+    // Color picker
     const color = bar.querySelector('[data-role="color"]');
-    color.addEventListener('input', ()=> exec('foreColor', color.value));
+    color.addEventListener('input', ()=> {
+      exec('foreColor', color.value);
+      updateToolbarState(bar, box);
+    });
+    
+    // Size selector
     const sizeSel = bar.querySelector('[data-role="size"]');
     sizeSel.addEventListener('change', ()=>{
       const tag = sizeSel.value || 'p';
       document.execCommand('formatBlock', false, tag);
+      updateToolbarState(bar, box);
     });
+    
+    // Update toolbar state when selection changes
+    box.addEventListener('mouseup', () => updateToolbarState(bar, box));
+    box.addEventListener('keyup', () => updateToolbarState(bar, box));
+    
     container.prepend(bar);
+    
+    // Initial state update
+    setTimeout(() => updateToolbarState(bar, box), 100);
+  }
+  
+  function updateToolbarState(toolbar, editor) {
+    // Update button states
+    toolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
+      const cmd = btn.dataset.cmd;
+      try {
+        const isActive = document.queryCommandState(cmd);
+        btn.classList.toggle('active', isActive);
+      } catch(e) {
+        btn.classList.remove('active');
+      }
+    });
+    
+    // Update size selector
+    const sizeSel = toolbar.querySelector('[data-role="size"]');
+    if (sizeSel) {
+      try {
+        const formatBlock = document.queryCommandValue('formatBlock');
+        sizeSel.value = formatBlock.toLowerCase() || '';
+      } catch(e) {
+        sizeSel.value = '';
+      }
+    }
   }
 
   function sectionCard(sec, idx){
@@ -1110,7 +1166,7 @@
               </div>
             </div>
             <input class="input" placeholder="https://..." value="${blk.src||blk.value||''}">
-            <div class="help mt-1">Letak pautan gambar (Google Drive “Anyone with link” / CDN / hosting sendiri).</div>
+            <div class="help mt-1">Letak pautan gambar (Google Drive "Anyone with link" / CDN / hosting sendiri).</div>
           `;
           row.querySelector('input').addEventListener('input', e=> { blk.src = e.target.value; blk.value = e.target.value; });
         } else if (blk.kind === 'video'){
