@@ -1065,8 +1065,8 @@
     
     // Advanced
     const advancedGroup = createToolbarGroup('Advanced');
-    const advancedButtons = createAdvancedButtons();
-    advancedButtons.forEach(btn => advancedGroup.appendChild(btn));
+    const advancedContainer = createAdvancedButtons();
+    advancedGroup.appendChild(advancedContainer);
     toolbar.appendChild(advancedGroup);
     
     // Insert
