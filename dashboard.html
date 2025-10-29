@@ -982,10 +982,24 @@
       <button type="button" data-cmd="removeFormat">Clear</button>
     `;
     
-    // Add event listeners for toolbar buttons
+    // Add event listeners for toolbar buttons with toggle behavior
     bar.querySelectorAll('button[data-cmd]').forEach(btn=>{
       btn.addEventListener('click', (e)=> {
-        exec(btn.dataset.cmd);
+        const cmd = btn.dataset.cmd;
+        
+        // Check if command is already active
+        const isActive = document.queryCommandState(cmd);
+        
+        // Toggle the command
+        if (isActive) {
+          // Command is active, so remove it
+          document.execCommand(cmd, false, null);
+        } else {
+          // Command is not active, so apply it
+          document.execCommand(cmd, false, null);
+        }
+        
+        // Update button states
         updateToolbarState(bar, box);
       });
     });
