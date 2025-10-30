@@ -6,7 +6,7 @@
   <title>MOVA Leader — Dashboard</title>
 
   <!-- Inter font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;700;900&family=Roboto+Slab:wght@400;700&family=Merriweather:wght@400;700;900&family=Montserrat:wght@400;700;900&family=Open+Sans:wght@400;700;800&family=Lato:wght@400;700;900&family=Poppins:wght@400;700;900&family=Raleway:wght@400;700;900&family=Oswald:wght@400;700&family=Source+Sans+Pro:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind (CDN for simplicity; use CLI for production) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide icons -->
@@ -49,61 +49,13 @@
     .block-row{border:1px dashed #e5e7eb;border-radius:.6rem;padding:.6rem;background:#fff}
     .block-row + .block-row{margin-top:.5rem}
     .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
-    
-    /* Enhanced Rich Editor Toolbar - Canva Style */
-    .editor-container{position:relative;border:1px solid #d1d5db;border-radius:.75rem;background:#fff}
-    .editor-toolbar{background:#f8fafc;border-bottom:1px solid #e5e7eb;padding:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
-    .toolbar-group{display:flex;gap:2px;padding:0 4px;border-right:1px solid #e5e7eb}
-    .toolbar-group:last-child{border-right:none}
-    .toolbar-btn{width:32px;height:32px;border:1px solid transparent;background:transparent;border-radius:4px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s ease;position:relative}
-    .toolbar-btn:hover{background:#e2e8f0;border-color:#cbd5e1}
-    .toolbar-btn.active{background:#111;color:#fff;border-color:#111}
-    .toolbar-btn svg{width:16px;height:16px}
-    .toolbar-dropdown{position:relative}
-    .toolbar-dropdown-menu{position:absolute;top:100%;left:0;background:#fff;border:1px solid #d1d5db;border-radius:6px;box-shadow:0 10px 25px rgba(0,0,0,0.1);z-index:1000;min-width:180px;display:none}
-    .toolbar-dropdown-menu.show{display:block}
-    .dropdown-item{padding:8px 12px;cursor:pointer;transition:background 0.2s;display:flex;align-items:center;gap:8px;font-size:14px}
-    .dropdown-item:hover{background:#f1f5f9}
-    .dropdown-item.active{background:#111;color:#fff}
-    .color-picker-wrapper{position:relative}
-    .color-palette{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;padding:8px}
-    .color-option{width:24px;height:24px;border-radius:4px;cursor:pointer;border:2px solid transparent;transition:all 0.2s}
-    .color-option:hover{transform:scale(1.1)}
-    .color-option.active{border-color:#111;box-shadow:0 0 0 2px #fff,0 0 0 4px #111}
-    .custom-color-input{width:100%;height:40px;border:none;cursor:pointer}
-    .font-size-input{width:50px;text-align:center;border:1px solid #d1d5db;border-radius:4px;padding:4px;font-size:14px}
-    .rtbox{min-height:200px;padding:16px;outline:none;font-size:16px;line-height:1.6}
-    .rtbox:focus{background:#fafafa}
-    .floating-toolbar{position:absolute;background:#fff;border:1px solid #d1d5db;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,0.15);padding:4px;display:none;z-index:1001}
-    .floating-toolbar.show{display:flex}
-    .style-preview{padding:8px 12px;background:#f8fafc;border-radius:4px;margin:4px;font-size:14px}
-    
-    /* Text shadows and effects */
-    .text-shadow-none{text-shadow:none}
-    .text-shadow-sm{text-shadow:1px 1px 2px rgba(0,0,0,0.1)}
-    .text-shadow-md{text-shadow:2px 2px 4px rgba(0,0,0,0.2)}
-    .text-shadow-lg{text-shadow:3px 3px 6px rgba(0,0,0,0.3)}
-    .text-outline{-webkit-text-stroke:1px #000}
-    
-    /* Advanced text styles */
-    .text-uppercase{text-transform:uppercase}
-    .text-lowercase{text-transform:lowercase}
-    .text-capitalize{text-transform:capitalize}
-    
-    /* Line height options */
-    .leading-tight{line-height:1.25}
-    .leading-snug{line-height:1.375}
-    .leading-normal{line-height:1.5}
-    .leading-relaxed{line-height:1.625}
-    .leading-loose{line-height:2}
-    
-    /* Letter spacing */
-    .tracking-tighter{letter-spacing:-0.05em}
-    .tracking-tight{letter-spacing:-0.025em}
-    .tracking-normal{letter-spacing:0}
-    .tracking-wide{letter-spacing:0.025em}
-    .tracking-wider{letter-spacing:0.05em}
-    .tracking-widest{letter-spacing:0.1em}
+    /* Rich editor */
+    .toolbar button{border:1px solid #e5e7eb;border-radius:.5rem;padding:.25rem .5rem;background:#fff; transition: all 0.2s ease;}
+    .toolbar button:hover{background:#f3f4f6;}
+    .toolbar button.active{background:#111;color:#fff;border-color:#111;}
+    .toolbar select{transition: all 0.2s ease;}
+    .toolbar select:focus{background:#f9fafb;}
+    .rtbox{min-height:120px;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem;background:#fff}
   </style>
 </head>
 <body class="bg-gray-50">
@@ -194,7 +146,7 @@
         </div>
       </div>
 
-      <div class="help">Tip: Editor teks profesional kini dengan pilihan formatting tanpa had seperti Canva Pro!</div>
+      <div class="help">Tip: Anda boleh <b>highlight</b> mana-mana perkataan menggunakan pemilih warna tanpa had dalam editor Rich Text.</div>
 
       <div id="sectionsWrap" class="space-y-4"></div>
     </div>
@@ -1008,598 +960,95 @@
     lucide.createIcons();
   }
 
-  // ====== ENHANCED RICH TEXT EDITOR - CANVA STYLE ======
+  // --- Rich text helpers ---
+  function exec(cmd, val=null){ document.execCommand(cmd,false,val); }
   function makeToolbar(container, box){
-    const editorContainer = document.createElement('div');
-    editorContainer.className = 'editor-container';
-    
-    // Create toolbar
-    const toolbar = document.createElement('div');
-    toolbar.className = 'editor-toolbar';
-    
-    // Font Family
-    const fontGroup = createToolbarGroup('Font Family');
-    const fontSelect = createFontSelector();
-    fontGroup.appendChild(fontSelect);
-    toolbar.appendChild(fontGroup);
-    
-    // Font Size
-    const sizeGroup = createToolbarGroup('Size');
-    const sizeInput = createSizeInput();
-    const sizeButtons = createSizeButtons();
-    sizeGroup.appendChild(sizeInput);
-    sizeGroup.appendChild(sizeButtons);
-    toolbar.appendChild(sizeGroup);
-    
-    // Text Formatting
-    const formatGroup = createToolbarGroup('Format');
-    const formatButtons = createFormatButtons();
-    formatButtons.forEach(btn => formatGroup.appendChild(btn));
-    toolbar.appendChild(formatGroup);
-    
-    // Text Color
-    const colorGroup = createToolbarGroup('Color');
-    const textColorBtn = createColorButton('text', 'Text Color');
-    const bgColorBtn = createColorButton('background', 'Background Color');
-    colorGroup.appendChild(textColorBtn);
-    colorGroup.appendChild(bgColorBtn);
-    toolbar.appendChild(colorGroup);
-    
-    // Text Alignment
-    const alignGroup = createToolbarGroup('Align');
-    const alignButtons = createAlignButtons();
-    alignButtons.forEach(btn => alignGroup.appendChild(btn));
-    toolbar.appendChild(alignGroup);
-    
-    // Lists
-    const listGroup = createToolbarGroup('List');
-    const listButtons = createListButtons();
-    listButtons.forEach(btn => listGroup.appendChild(btn));
-    toolbar.appendChild(listGroup);
-    
-    // Indent
-    const indentGroup = createToolbarGroup('Indent');
-    const indentButtons = createIndentButtons();
-    indentButtons.forEach(btn => indentGroup.appendChild(btn));
-    toolbar.appendChild(indentGroup);
-    
-    // Advanced
-    const advancedGroup = createToolbarGroup('Advanced');
-    const advancedButtons = createAdvancedButtons();
-    advancedButtons.forEach(btn => advancedGroup.appendChild(btn));
-    toolbar.appendChild(advancedGroup);
-    
-    // Insert
-    const insertGroup = createToolbarGroup('Insert');
-    const insertButtons = createInsertButtons();
-    insertButtons.forEach(btn => insertGroup.appendChild(btn));
-    toolbar.appendChild(insertGroup);
-    
-    // Clear Formatting
-    const clearGroup = createToolbarGroup('Clear');
-    const clearBtn = createClearButton();
-    clearGroup.appendChild(clearBtn);
-    toolbar.appendChild(clearGroup);
-    
-    editorContainer.appendChild(toolbar);
-    
-    // Create editor box
-    const editorBox = document.createElement('div');
-    editorBox.className = 'rtbox';
-    editorBox.contentEditable = true;
-    editorBox.innerHTML = box.innerHTML || '<p>Mula menulis di sini...</p>';
-    
-    editorContainer.appendChild(editorBox);
-    
-    // Create floating toolbar
-    const floatingToolbar = createFloatingToolbar();
-    document.body.appendChild(floatingToolbar);
-    
-    // Event listeners
-    setupEditorEvents(editorBox, toolbar, floatingToolbar);
-    
-    // Replace original box
-    container.innerHTML = '';
-    container.appendChild(editorContainer);
-    
-    // Update initial state
-    setTimeout(() => updateToolbarState(toolbar, editorBox), 100);
-    
-    return editorBox;
-  }
-  
-  function createToolbarGroup(title) {
-    const group = document.createElement('div');
-    group.className = 'toolbar-group';
-    group.title = title;
-    return group;
-  }
-  
-  function createFontSelector() {
-    const select = document.createElement('select');
-    select.className = 'toolbar-btn';
-    select.innerHTML = `
-      <option value="">Font</option>
-      <option value="Inter">Inter</option>
-      <option value="Arial">Arial</option>
-      <option value="Helvetica">Helvetica</option>
-      <option value="Times New Roman">Times New Roman</option>
-      <option value="Georgia">Georgia</option>
-      <option value="Playfair Display">Playfair Display</option>
-      <option value="Roboto Slab">Roboto Slab</option>
-      <option value="Merriweather">Merriweather</option>
-      <option value="Montserrat">Montserrat</option>
-      <option value="Open Sans">Open Sans</option>
-      <option value="Lato">Lato</option>
-      <option value="Poppins">Poppins</option>
-      <option value="Raleway">Raleway</option>
-      <option value="Oswald">Oswald</option>
-      <option value="Source Sans Pro">Source Sans Pro</option>
+    const bar = document.createElement('div');
+    bar.className='toolbar flex flex-wrap gap-2 mb-2';
+    bar.innerHTML = `
+      <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+      <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+      <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+      <input type="color" title="Warna Teks" class="border border-gray-200 rounded w-8 h-8 p-0" data-role="color">
+      <select class="border border-gray-200 rounded px-2 py-1 text-sm" data-role="size">
+        <option value="">Saiz</option>
+        <option value="h1">H1</option>
+        <option value="h2">H2</option>
+        <option value="h3">H3</option>
+        <option value="p">Body</option>
+      </select>
+      <button type="button" data-cmd="insertUnorderedList">• Bullets</button>
+      <button type="button" data-cmd="insertOrderedList">1. Number</button>
+      <button type="button" data-cmd="removeFormat">Clear</button>
     `;
-    select.addEventListener('change', (e) => {
-      document.execCommand('fontName', false, e.target.value);
-      e.target.value = '';
-    });
-    return select;
-  }
-  
-  function createSizeInput() {
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.className = 'font-size-input';
-    input.min = '8';
-    input.max = '72';
-    input.placeholder = '16';
-    input.addEventListener('change', (e) => {
-      const size = e.target.value;
-      if (size) {
-        document.execCommand('fontSize', false, '7');
-        const fontElements = document.querySelectorAll('font[size="7"]');
-        fontElements.forEach(el => {
-          el.removeAttribute('size');
-          el.style.fontSize = size + 'px';
-        });
-      }
-    });
-    return input;
-  }
-  
-  function createSizeButtons() {
-    const container = document.createElement('div');
-    const sizes = [
-      { cmd: 'decreaseFontSize', icon: 'minus', title: 'Decrease' },
-      { cmd: 'increaseFontSize', icon: 'plus', title: 'Increase' }
-    ];
     
-    sizes.forEach(size => {
-      const btn = createToolbarButton(size.icon, size.title);
-      btn.addEventListener('click', () => {
-        const selection = window.getSelection();
-        if (selection.rangeCount > 0) {
-          const range = selection.getRangeAt(0);
-          const span = document.createElement('span');
-          
-          // Get current font size
-          const computedStyle = window.getComputedStyle(range.commonAncestorContainer);
-          const currentSize = parseInt(computedStyle.fontSize) || 16;
-          
-          if (size.cmd === 'decreaseFontSize') {
-            span.style.fontSize = Math.max(8, currentSize - 2) + 'px';
-          } else {
-            span.style.fontSize = Math.min(72, currentSize + 2) + 'px';
-          }
-          
-          try {
-            range.surroundContents(span);
-          } catch(e) {
-            // If range contains complex elements, apply to parent
-            if (range.commonAncestorContainer.nodeType === Node.TEXT_NODE) {
-              range.commonAncestorContainer.parentNode.style.fontSize = span.style.fontSize;
-            }
-          }
-        }
-      });
-      container.appendChild(btn);
-    });
-    
-    return container;
-  }
-  
-  function createFormatButtons() {
-    const buttons = [
-      { cmd: 'bold', icon: 'bold', title: 'Bold (Ctrl+B)' },
-      { cmd: 'italic', icon: 'italic', title: 'Italic (Ctrl+I)' },
-      { cmd: 'underline', icon: 'underline', title: 'Underline (Ctrl+U)' },
-      { cmd: 'strikeThrough', icon: 'strikethrough', title: 'Strikethrough' },
-      { cmd: 'subscript', icon: 'subscript', title: 'Subscript' },
-      { cmd: 'superscript', icon: 'superscript', title: 'Superscript' }
-    ];
-    
-    return buttons.map(btn => {
-      const button = createToolbarButton(btn.icon, btn.title);
-      button.addEventListener('click', () => {
-        const isActive = document.queryCommandState(btn.cmd);
-        document.execCommand(btn.cmd, false, null);
-        button.classList.toggle('active', !isActive);
-      });
-      return button;
-    });
-  }
-  
-  function createColorButton(type, title) {
-    const btn = createToolbarButton(type === 'text' ? 'type' : 'paint-bucket', title);
-    const dropdown = createColorDropdown(type);
-    
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      // Close other dropdowns
-      document.querySelectorAll('.toolbar-dropdown-menu').forEach(menu => {
-        if (menu !== dropdown) menu.classList.remove('show');
-      });
-      dropdown.classList.toggle('show');
-      
-      // Position dropdown
-      const rect = btn.getBoundingClientRect();
-      dropdown.style.top = (rect.bottom + 5) + 'px';
-      dropdown.style.left = rect.left + 'px';
-    });
-    
-    return btn;
-  }
-  
-  function createColorDropdown(type) {
-    const dropdown = document.createElement('div');
-    dropdown.className = 'toolbar-dropdown-menu';
-    
-    const palette = document.createElement('div');
-    palette.className = 'color-palette';
-    
-    const colors = [
-      '#000000', '#434343', '#666666', '#999999', '#b7b7b7', '#cccccc', '#d9d9d9', '#ffffff',
-      '#980000', '#ff0000', '#ff9900', '#ffff00', '#00ff00', '#00ffff', '#4a86e8', '#0000ff',
-      '#9900ff', '#ff00ff', '#e6b8af', '#f4cccc', '#fce5cd', '#fff2cc', '#d9ead3', '#d0e0e3', '#c9daf8', '#cfe2f3',
-      '#d9d2e9', '#ead1dc', '#dd7e6b', '#ea9999', '#f9cb9c', '#ffe599', '#b6d7a8', '#a2c4c9', '#a4c2f4', '#9fc5e8',
-      '#b4a7d6', '#d5a6bd', '#cc4125', '#e06666', '#f6b26b', '#ffd966', '#93c47d', '#76a5af', '#6d9eeb', '#6fa8dc',
-      '#8e7cc3', '#c27ba0', '#a61c00', '#cc0000', '#e69138', '#f1c232', '#6aa84f', '#45818e', '#3d85c6', '#3c78d8',
-      '#674ea7', '#a64d79', '#85200c', '#990000', '#b45f06', '#bf9000', '#38761d', '#134f5c', '#0b5394', '#073763',
-      '#20124d', '#4c1130'
-    ];
-    
-    colors.forEach(color => {
-      const colorOption = document.createElement('div');
-      colorOption.className = 'color-option';
-      colorOption.style.backgroundColor = color;
-      colorOption.addEventListener('click', () => {
-        if (type === 'text') {
-          document.execCommand('foreColor', false, color);
+    // Add event listeners for toolbar buttons with toggle behavior
+    bar.querySelectorAll('button[data-cmd]').forEach(btn=>{
+      btn.addEventListener('click', (e)=> {
+        const cmd = btn.dataset.cmd;
+        
+        // Check if command is already active
+        const isActive = document.queryCommandState(cmd);
+        
+        // Toggle the command
+        if (isActive) {
+          // Command is active, so remove it
+          document.execCommand(cmd, false, null);
         } else {
-          document.execCommand('hiliteColor', false, color);
-        }
-        dropdown.classList.remove('show');
-      });
-      palette.appendChild(colorOption);
-    });
-    
-    // Custom color picker
-    const customColor = document.createElement('input');
-    customColor.type = 'color';
-    customColor.className = 'custom-color-input';
-    customColor.addEventListener('change', (e) => {
-      if (type === 'text') {
-        document.execCommand('foreColor', false, e.target.value);
-      } else {
-        document.execCommand('hiliteColor', false, e.target.value);
-      }
-      dropdown.classList.remove('show');
-    });
-    
-    dropdown.appendChild(palette);
-    dropdown.appendChild(customColor);
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!dropdown.contains(e.target)) {
-        dropdown.classList.remove('show');
-      }
-    });
-    
-    return dropdown;
-  }
-  
-  function createAlignButtons() {
-    const buttons = [
-      { cmd: 'justifyLeft', icon: 'align-left', title: 'Align Left' },
-      { cmd: 'justifyCenter', icon: 'align-center', title: 'Align Center' },
-      { cmd: 'justifyRight', icon: 'align-right', title: 'Align Right' },
-      { cmd: 'justifyFull', icon: 'align-justify', title: 'Justify' }
-    ];
-    
-    return buttons.map(btn => {
-      const button = createToolbarButton(btn.icon, btn.title);
-      button.addEventListener('click', () => {
-        document.execCommand(btn.cmd, false, null);
-        updateToolbarState(null, document.querySelector('.rtbox'));
-      });
-      return button;
-    });
-  }
-  
-  function createListButtons() {
-    const buttons = [
-      { cmd: 'insertUnorderedList', icon: 'list', title: 'Bullet List' },
-      { cmd: 'insertOrderedList', icon: 'list-ordered', title: 'Numbered List' }
-    ];
-    
-    return buttons.map(btn => {
-      const button = createToolbarButton(btn.icon, btn.title);
-      button.addEventListener('click', () => {
-        document.execCommand(btn.cmd, false, null);
-        button.classList.toggle('active', document.queryCommandState(btn.cmd));
-      });
-      return button;
-    });
-  }
-  
-  function createIndentButtons() {
-    const buttons = [
-      { cmd: 'outdent', icon: 'indent-decrease', title: 'Decrease Indent' },
-      { cmd: 'indent', icon: 'indent-increase', title: 'Increase Indent' }
-    ];
-    
-    return buttons.map(btn => {
-      const button = createToolbarButton(btn.icon, btn.title);
-      button.addEventListener('click', () => {
-        document.execCommand(btn.cmd, false, null);
-      });
-      return button;
-    });
-  }
-  
-  function createAdvancedButtons() {
-    const container = document.createElement('div');
-    
-    // Text Transform Dropdown
-    const transformDropdown = createToolbarDropdown('Text Transform', [
-      { value: 'uppercase', label: 'UPPERCASE' },
-      { value: 'lowercase', label: 'lowercase' },
-      { value: 'capitalize', label: 'Capitalize' }
-    ]);
-    
-    // Line Height Dropdown
-    const lineHeightDropdown = createToolbarDropdown('Line Height', [
-      { value: 'leading-tight', label: 'Tight' },
-      { value: 'leading-snug', label: 'Snug' },
-      { value: 'leading-normal', label: 'Normal' },
-      { value: 'leading-relaxed', label: 'Relaxed' },
-      { value: 'leading-loose', label: 'Loose' }
-    ]);
-    
-    // Letter Spacing Dropdown
-    const letterSpacingDropdown = createToolbarDropdown('Letter Spacing', [
-      { value: 'tracking-tighter', label: 'Tighter' },
-      { value: 'tracking-tight', label: 'Tight' },
-      { value: 'tracking-normal', label: 'Normal' },
-      { value: 'tracking-wide', label: 'Wide' },
-      { value: 'tracking-wider', label: 'Wider' },
-      { value: 'tracking-widest', label: 'Widest' }
-    ]);
-    
-    // Text Shadow Dropdown
-    const shadowDropdown = createToolbarDropdown('Text Shadow', [
-      { value: 'text-shadow-none', label: 'None' },
-      { value: 'text-shadow-sm', label: 'Small' },
-      { value: 'text-shadow-md', label: 'Medium' },
-      { value: 'text-shadow-lg', label: 'Large' },
-      { value: 'text-outline', label: 'Outline' }
-    ]);
-    
-    container.appendChild(transformDropdown);
-    container.appendChild(lineHeightDropdown);
-    container.appendChild(letterSpacingDropdown);
-    container.appendChild(shadowDropdown);
-    
-    return container;
-  }
-  
-  function createToolbarDropdown(title, options) {
-    const container = document.createElement('div');
-    container.className = 'toolbar-dropdown';
-    
-    const btn = createToolbarButton('chevron-down', title);
-    const menu = document.createElement('div');
-    menu.className = 'toolbar-dropdown-menu';
-    
-    options.forEach(option => {
-      const item = document.createElement('div');
-      item.className = 'dropdown-item';
-      item.textContent = option.label;
-      item.addEventListener('click', () => {
-        applyStyleToSelection(option.value);
-        menu.classList.remove('show');
-      });
-      menu.appendChild(item);
-    });
-    
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.querySelectorAll('.toolbar-dropdown-menu').forEach(m => {
-        if (m !== menu) m.classList.remove('show');
-      });
-      menu.classList.toggle('show');
-      
-      const rect = btn.getBoundingClientRect();
-      menu.style.top = (rect.bottom + 5) + 'px';
-      menu.style.left = rect.left + 'px';
-    });
-    
-    document.addEventListener('click', (e) => {
-      if (!container.contains(e.target)) {
-        menu.classList.remove('show');
-      }
-    });
-    
-    container.appendChild(btn);
-    container.appendChild(menu);
-    
-    return container;
-  }
-  
-  function createInsertButtons() {
-    const buttons = [
-      { cmd: 'createLink', icon: 'link', title: 'Insert Link' },
-      { cmd: 'insertHorizontalRule', icon: 'minus', title: 'Horizontal Line' },
-      { cmd: 'formatBlock', value: 'blockquote', icon: 'quote', title: 'Blockquote' },
-      { cmd: 'formatBlock', value: 'pre', icon: 'code', title: 'Code Block' }
-    ];
-    
-    return buttons.map(btn => {
-      const button = createToolbarButton(btn.icon, btn.title);
-      button.addEventListener('click', () => {
-        if (btn.cmd === 'createLink') {
-          const url = prompt('Enter URL:');
-          if (url) document.execCommand(btn.cmd, false, url);
-        } else if (btn.value) {
-          document.execCommand(btn.cmd, false, `<${btn.value}>`);
-        } else {
-          document.execCommand(btn.cmd, false, null);
-        }
-      });
-      return button;
-    });
-  }
-  
-  function createClearButton() {
-    const btn = createToolbarButton('eraser', 'Clear Formatting');
-    btn.addEventListener('click', () => {
-      document.execCommand('removeFormat', false, null);
-      document.execCommand('unlink', false, null);
-    });
-    return btn;
-  }
-  
-  function createToolbarButton(icon, title) {
-    const btn = document.createElement('button');
-    btn.className = 'toolbar-btn';
-    btn.title = title;
-    btn.innerHTML = `<i data-lucide="${icon}"></i>`;
-    return btn;
-  }
-  
-  function createFloatingToolbar() {
-    const toolbar = document.createElement('div');
-    toolbar.className = 'floating-toolbar';
-    
-    const buttons = ['bold', 'italic', 'underline', 'createLink'];
-    buttons.forEach(cmd => {
-      const btn = createToolbarButton(cmd, cmd);
-      btn.addEventListener('click', () => {
-        if (cmd === 'createLink') {
-          const url = prompt('Enter URL:');
-          if (url) document.execCommand(cmd, false, url);
-        } else {
+          // Command is not active, so apply it
           document.execCommand(cmd, false, null);
         }
+        
+        // Update button states
+        updateToolbarState(bar, box);
       });
-      toolbar.appendChild(btn);
     });
     
-    return toolbar;
+    // Color picker
+    const color = bar.querySelector('[data-role="color"]');
+    color.addEventListener('input', ()=> {
+      exec('foreColor', color.value);
+      updateToolbarState(bar, box);
+    });
+    
+    // Size selector
+    const sizeSel = bar.querySelector('[data-role="size"]');
+    sizeSel.addEventListener('change', ()=>{
+      const tag = sizeSel.value || 'p';
+      document.execCommand('formatBlock', false, tag);
+      updateToolbarState(bar, box);
+    });
+    
+    // Update toolbar state when selection changes
+    box.addEventListener('mouseup', () => updateToolbarState(bar, box));
+    box.addEventListener('keyup', () => updateToolbarState(bar, box));
+    
+    container.prepend(bar);
+    
+    // Initial state update
+    setTimeout(() => updateToolbarState(bar, box), 100);
   }
   
-  function setupEditorEvents(editorBox, toolbar, floatingToolbar) {
-    // Update toolbar state on selection change
-    editorBox.addEventListener('mouseup', () => updateToolbarState(toolbar, editorBox));
-    editorBox.addEventListener('keyup', () => updateToolbarState(toolbar, editorBox));
-    
-    // Show/hide floating toolbar
-    editorBox.addEventListener('mouseup', (e) => {
-      const selection = window.getSelection();
-      if (selection.toString().trim()) {
-        const range = selection.getRangeAt(0);
-        const rect = range.getBoundingClientRect();
-        
-        floatingToolbar.style.top = (rect.top - 50) + 'px';
-        floatingToolbar.style.left = rect.left + 'px';
-        floatingToolbar.classList.add('show');
-        
-        setTimeout(() => {
-          floatingToolbar.classList.remove('show');
-        }, 3000);
-      }
-    });
-    
-    // Keyboard shortcuts
-    editorBox.addEventListener('keydown', (e) => {
-      if (e.ctrlKey || e.metaKey) {
-        switch(e.key) {
-          case 'b':
-            e.preventDefault();
-            document.execCommand('bold', false, null);
-            break;
-          case 'i':
-            e.preventDefault();
-            document.execCommand('italic', false, null);
-            break;
-          case 'u':
-            e.preventDefault();
-            document.execCommand('underline', false, null);
-            break;
-          case 'z':
-            e.preventDefault();
-            document.execCommand('undo', false, null);
-            break;
-          case 'y':
-            e.preventDefault();
-            document.execCommand('redo', false, null);
-            break;
-        }
-      }
-    });
-  }
-  
-  function updateToolbarState(toolbar, editorBox) {
-    if (!toolbar) return;
-    
-    // Update format buttons
-    const formatCommands = ['bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript'];
-    formatCommands.forEach(cmd => {
-      const btn = toolbar.querySelector(`[data-cmd="${cmd}"]`);
-      if (btn) {
-        btn.classList.toggle('active', document.queryCommandState(cmd));
-      }
-    });
-    
-    // Update list buttons
-    ['insertUnorderedList', 'insertOrderedList'].forEach(cmd => {
-      const btn = toolbar.querySelector(`[data-cmd="${cmd}"]`);
-      if (btn) {
-        btn.classList.toggle('active', document.queryCommandState(cmd));
-      }
-    });
-    
-    // Update alignment buttons
-    ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].forEach(cmd => {
-      const btn = toolbar.querySelector(`[data-cmd="${cmd}"]`);
-      if (btn) {
-        btn.classList.toggle('active', document.queryCommandState(cmd));
-      }
-    });
-  }
-  
-  function applyStyleToSelection(className) {
-    const selection = window.getSelection();
-    if (selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0);
-      const span = document.createElement('span');
-      span.className = className;
-      
+  function updateToolbarState(toolbar, editor) {
+    // Update button states
+    toolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
+      const cmd = btn.dataset.cmd;
       try {
-        range.surroundContents(span);
+        const isActive = document.queryCommandState(cmd);
+        btn.classList.toggle('active', isActive);
       } catch(e) {
-        // Handle complex selections
-        const contents = range.extractContents();
-        span.appendChild(contents);
-        range.insertNode(span);
+        btn.classList.remove('active');
+      }
+    });
+    
+    // Update size selector
+    const sizeSel = toolbar.querySelector('[data-role="size"]');
+    if (sizeSel) {
+      try {
+        const formatBlock = document.queryCommandValue('formatBlock');
+        sizeSel.value = formatBlock.toLowerCase() || '';
+      } catch(e) {
+        sizeSel.value = '';
       }
     }
   }
@@ -1706,7 +1155,7 @@
           const html = (blk.html || blk.value || '');
           row.innerHTML = `
             <div class="flex items-center justify-between mb-2">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="type" class="w-3.5 h-3.5"></i> Text (Rich) - Editor Profesional</div>
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="type" class="w-3.5 h-3.5"></i> Text (Rich)</div>
               <div class="flex gap-1">
                 <button class="btn-ghost btn-upb !py-1" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
                 <button class="btn-ghost btn-downb !py-1" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
@@ -1714,7 +1163,7 @@
               </div>
             </div>
             <div class="rtbox" contenteditable="true"></div>
-            <div class="help mt-2">Editor profesional dengan pilihan formatting tanpa had. Pilih teks untuk toolbar terapung.</div>
+            <div class="help mt-2">Pilih teks kemudian tukar warna, saiz (H1/H2/H3/Body), bold/italic/underline menggunakan toolbar di atas.</div>
           `;
           const box = row.querySelector('.rtbox');
           box.innerHTML = html;
@@ -1835,7 +1284,7 @@
 
     // add block buttons
     card.querySelector('.btn-add-rich').addEventListener('click', ()=>{
-      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'rich', html:'<p>Teks baharu dengan editor profesional</p>'}); renderBlocks();
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'rich', html:'<p>Teks baharu</p>'}); renderBlocks();
     });
     card.querySelector('.btn-add-image').addEventListener('click', ()=>{
       sec.blocks = sec.blocks || []; sec.blocks.push({kind:'image', src:''}); renderBlocks();
