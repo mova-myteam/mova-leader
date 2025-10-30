@@ -3,88 +3,101 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA — Login (Leader / Partner / User)</title>
+  <title>MOVA — Log Masuk</title>
 
-  <!-- Inter font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide icons -->
+  <!-- Lucide -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root { --brand:#ef4444; }
-    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial;background:#fafafa}
-    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 10px 30px rgba(0,0,0,.06); }
-    .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.65rem .9rem; background:#fff; }
-    .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
-    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.7rem 1rem; font-weight:700; width:100%; }
-    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.6rem 1rem; font-weight:700; }
-    .btn-primary[disabled]{ opacity:.7; cursor:not-allowed; }
-    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
-    .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
-    .muted{ color:#6b7280; }
+    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa}
+    .container{max-width:1100px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.65rem 1rem;font-weight:800}
+    .btn-primary{background:var(--brand);color:#fff}
+    .btn-ghost{background:#fff;border:1px solid #e5e7eb}
+    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.65rem .9rem;background:#fff}
+    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
+    .muted{color:#6b7280}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
+    .spinner{width:18px;height:18px;border:3px solid #fff;border-right-color:transparent;border-radius:9999px;animation:spin 0.7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .pill{display:inline-flex;align-items:center;gap:.4rem;border-radius:9999px;font-size:.75rem;padding:.2rem .55rem;border:1px solid #e5e7eb;background:#f8fafc}
   </style>
 </head>
 <body>
 
-<!-- Wrapper -->
-<div class="min-h-screen grid place-items-center px-4">
-  <div class="w-full max-w-md card p-6 sm:p-8">
-    <!-- Logo/brand -->
-    <div class="flex items-center gap-3 mb-6">
-      <div class="h-10 w-10 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
+<!-- NAV -->
+<nav class="bg-white border-b border-gray-200">
+  <div class="mx-auto container px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
         <i data-lucide="rocket" class="w-5 h-5"></i>
       </div>
-      <div>
-        <div class="text-xl font-extrabold tracking-tight">MOVA</div>
-        <div class="text-xs text-gray-500">Panel log masuk — Leader / Partner / User</div>
-      </div>
+      <div class="font-extrabold">MOVA</div>
     </div>
-
-    <!-- Info -->
-    <div class="mb-6 text-sm text-gray-600 leading-relaxed">
-      Masukkan <b>Nama</b> dan <b>No. Telefon</b> anda. Sistem akan tentukan akses:
-      <div class="mt-2 grid gap-2">
-        <div class="text-xs"><span class="badge">Leader</span> → <code>dashboard.html</code></div>
-        <div class="text-xs"><span class="badge">Partner</span> → <code>partner.html</code></div>
-        <div class="text-xs"><span class="badge">User</span> (lulus) → <code>user.html</code></div>
-      </div>
-    </div>
-
-    <!-- Form -->
-    <form id="loginForm" class="space-y-4" autocomplete="on">
-      <div>
-        <label class="text-sm font-medium text-gray-700">Nama</label>
-        <input id="fullName" class="input mt-1" placeholder="cth: ahmad rahman" required />
-      </div>
-      <div>
-        <label class="text-sm font-medium text-gray-700">No. Telefon</label>
-        <input id="phone" class="input mt-1" placeholder="cth: 0123456789 atau +60123456789" required />
-        <div class="mt-1 text-xs text-gray-500">Tanpa jarak atau tanda sempang.</div>
-      </div>
-
-      <button id="btnLogin" type="submit" class="btn-primary mt-2 flex items-center justify-center gap-2">
-        <i data-lucide="log-in" class="w-4 h-4"></i>
-        Log Masuk
-      </button>
-
-      <div class="flex items-center justify-between mt-3">
-        <span class="text-xs text-gray-500">Sistem akan membuat <em>setup</em> helaian jika perlu.</span>
-        <button id="btnSetup" type="button" class="text-xs text-gray-600 underline hover:text-gray-900">Jalankan Setup</button>
-      </div>
-    </form>
-
-    <!-- Divider -->
-    <div class="my-6 h-px bg-gray-200"></div>
-
-    <!-- Bantuan -->
-    <div class="text-xs text-gray-500 space-y-2">
-      <div>Jika anda belum didaftar / belum diluluskan, hubungi Leader/Partner untuk kelulusan.</div>
-      <div class="muted">Web App perlu <b>Deploy as Web App</b> dan akses <b>Anyone</b>.</div>
+    <div class="hidden sm:flex items-center gap-2">
+      <a href="./user.html" class="btn-ghost text-sm"><i data-lucide="external-link" class="w-4 h-4"></i> Laman Pengguna</a>
     </div>
   </div>
-</div>
+</nav>
+
+<!-- HERO -->
+<header class="bg-white">
+  <div class="mx-auto container px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-2 gap-10 items-center">
+    <div>
+      <div class="pill mb-3"><i data-lucide="lock-keyhole" class="w-4 h-4"></i> Akses Terpandu</div>
+      <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight">
+        Log masuk untuk akses <span class="text-[color:var(--brand)]">automatik</span> ke panel yang betul
+      </h1>
+      <p class="mt-3 text-gray-600">
+        Masukkan <b>nama</b> dan <b>telefon</b> — sistem akan semak peranan anda melalui <code>resolve_access</code> dan hantar anda ke
+        <b>Dashboard Leader</b>, <b>Panel Partner</b> atau <b>Laman User</b> secara automatik.
+      </p>
+      <ul class="mt-4 text-sm text-gray-600 list-disc ml-5 space-y-1">
+        <li>Leader → <code>dashboard.html</code></li>
+        <li>Partner → <code>partner.html</code></li>
+        <li>User → <code>user.html</code></li>
+      </ul>
+    </div>
+
+    <div class="card p-6">
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="log-in" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-xl font-extrabold">Log Masuk / Semak Akses</h2>
+      </div>
+      <div class="grid gap-3">
+        <div>
+          <label class="text-sm font-medium">Nama penuh</label>
+          <input id="inpName" class="input mt-1" placeholder="cth: amirul">
+        </div>
+        <div>
+          <label class="text-sm font-medium">No. telefon</label>
+          <input id="inpPhone" class="input mt-1" placeholder="cth: 0109074190">
+        </div>
+        <button id="btnGo" class="btn btn-primary mt-2">
+          <span>Teruskan</span>
+        </button>
+        <button id="btnUserOnly" class="btn btn-ghost">
+          <i data-lucide="user" class="w-4 h-4"></i>
+          Buka Laman User sahaja
+        </button>
+      </div>
+      <div class="mt-4 text-xs text-gray-500">
+        Dengan menekan Teruskan, sesi akan disimpan ke <code>localStorage</code> sebagai <code>mova_session</code>.
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- FOOT -->
+<footer class="mt-10 py-10 text-center text-sm text-gray-500">
+  © <span id="year"></span> MOVA. Hak cipta terpelihara.
+</footer>
 
 <!-- Toast -->
 <div id="toast" class="toast hidden"></div>
@@ -93,7 +106,8 @@
   // ===== KONFIG =====
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-  // ===== ICONS =====
+  // ===== INIT =====
+  document.getElementById('year').textContent = new Date().getFullYear();
   lucide.createIcons();
 
   // ===== UTIL =====
@@ -102,169 +116,118 @@
     toastEl.textContent = msg;
     toastEl.classList.remove('hidden');
     clearTimeout(toastEl._t);
-    toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
+    toastEl._t = setTimeout(()=> toastEl.classList.add('hidden'), ms);
   }
-  function qs(key){ return new URLSearchParams(location.search).get(key) || ''; }
-  function normPhone(p){ return String(p||'').replace(/\D/g,''); }
-  function same(strA,strB){ return String(strA||'').trim().toLowerCase() === String(strB||'').trim().toLowerCase(); }
+  function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
 
-  async function callApi(path, payload){
+  async function api(path, payload){
     const res = await fetch(EXEC_URL, {
       method:'POST',
       headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
       body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
     });
     const text = await res.text();
-    let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
-    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+    let json; try{ json = JSON.parse(text) }catch(e){ throw new Error(text) }
+    if (json && json.success===false) throw new Error(json.error || 'Ralat tidak diketahui');
     return json;
   }
 
-  // ===== AUTO-SETUP (selamat untuk diulang) =====
-  (async ()=>{ try { await callApi('setup', {}); } catch(e){} })();
-
-  // ===== LOGIN SERAGAM =====
-  const form = document.getElementById('loginForm');
-  const btnLogin = document.getElementById('btnLogin');
-
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const name = String(document.getElementById('fullName').value||'').trim();
-    const phoneRaw = String(document.getElementById('phone').value||'').trim();
-    if (!name || !phoneRaw){ toast('Sila isi semua medan'); return; }
-    const phone = normPhone(phoneRaw);
-
-    btnLogin.disabled = true; btnLogin.style.opacity = .8;
-
-    try{
-      // 1) Cuba endpoint baharu (jika ada)
-      try{
-        const out = await callApi('resolve_access', { name, phone });
-        if (out && out.success) {
-          await handleAccessResolution(out, {name, phone});
-          return;
-        }
-      }catch(e){
-        // jatuh ke fallback lama
-      }
-
-      // 2) Fallback lama:
-      // 2a) Cuba login sebagai LEADER (endpoint asal)
-      try{
-        const outL = await callApi('login', { leader_name: name, phone: phoneRaw });
-        if (outL && outL.success){
-          localStorage.setItem('mova_leader', JSON.stringify({ leader_id: outL.leader_id, profile: outL.profile }));
-          toast('Log masuk Leader ✔️', 1200);
-          setTimeout(()=> goNext('./dashboard.html'), 700);
-          return;
-        }
-      }catch(_){ /* ignore */ }
-
-      // 2b) Semak PARTNER dalam sheet 'partners'
-      let partnerHit = null, leaderIdFromPartner = '';
-      try{
-        const pl = await callApi('partner_list', {});
-        const items = pl.items || [];
-        partnerHit = items.find(p => same(p.name, name) && (!p.phone || normPhone(p.phone)===phone));
-        if (partnerHit){ leaderIdFromPartner = String(partnerHit.leader_id||''); }
-      }catch(_){}
-      if (partnerHit){
-        localStorage.setItem('mova_partner', JSON.stringify({
-          partner_name: partnerHit.name, leader_id: leaderIdFromPartner || 'LEAD-0001'
-        }));
-        toast('Log masuk Partner ✔️', 1200);
-        setTimeout(()=> goNext('./partner.html'), 700);
-        return;
-      }
-
-      // 2c) Semak USER di 'registrations' (perlu status = lulus)
-      try{
-        const rl = await callApi('registration_list', {});
-        const items = rl.items || [];
-        const match = items.find(r => same(r.name, name) && normPhone(r.phone)===phone);
-        if (match){
-          if (String(match.status||'').toLowerCase()==='lulus'){
-            // simpan sesi user (opsyenal — untuk masa depan)
-            localStorage.setItem('mova_user', JSON.stringify({
-              name: match.name, phone: match.phone, leader_id: match.leader_id||'', partner_name: match.partner_id||''
-            }));
-            toast('Akses User ✔️', 1200);
-            setTimeout(()=> goNext('./user.html'), 700);
-            return;
-          } else {
-            toast('Akaun anda belum diluluskan. Sila hubungi Admin/Partner/Leader anda.');
-            return;
-          }
-        }
-      }catch(_){}
-
-      // 2d) Jika sampai sini — tiada padanan
-      toast('Rekod tidak ditemui. Sila hubungi Admin/Partner/Leader untuk daftar/semakan.');
-    }catch(err){
-      toast(err.message || 'Ralat rangkaian');
-    }finally{
-      btnLogin.disabled = false; btnLogin.style.opacity = 1;
-    }
-  });
-
-  // ===== MANUAL SETUP BUTTON (opsyen) =====
-  document.getElementById('btnSetup').addEventListener('click', async ()=>{
-    try{
-      const out = await callApi('setup', {});
-      toast(out?.message || 'Setup selesai');
-    }catch(e){ toast('Gagal setup'); }
-  });
-
-  // ===== HELPER: tangani output resolve_access (moden) =====
-  async function handleAccessResolution(out, cred){
-    const role = String(out.role||'').toLowerCase();
-    if (role === 'leader'){
-      localStorage.setItem('mova_leader', JSON.stringify({ leader_id: out.leader_id, profile: out.profile||{} }));
-      toast('Log masuk Leader ✔️', 1200);
-      setTimeout(()=> goNext('./dashboard.html'), 700);
-      return;
-    }
-    if (role === 'partner'){
-      localStorage.setItem('mova_partner', JSON.stringify({
-        partner_name: out.partner_name || cred.name,
-        leader_id: out.leader_id || 'LEAD-0001',
-        partner_id: out.partner_id || ''
-      }));
-      toast('Log masuk Partner ✔️', 1200);
-      setTimeout(()=> goNext('./partner.html'), 700);
-      return;
-    }
-    if (role === 'user'){
-      const approved = !!out.approved;
-      if (!approved){
-        toast('Akaun anda belum diluluskan. Sila hubungi Admin/Partner/Leader.');
-        return;
-      }
-      localStorage.setItem('mova_user', JSON.stringify({
-        name: out.user_name || cred.name,
-        phone: out.phone || cred.phone,
-        leader_id: out.leader_id || '',
-        partner_name: out.partner_name || ''
-      }));
-      toast('Akses User ✔️', 1200);
-      setTimeout(()=> goNext('./user.html'), 700);
-      return;
-    }
-    // fallback jika role tak dikenali
-    toast('Peranan tidak dikenali. Sila hubungi Admin.');
+  function saveSession(obj){
+    try { localStorage.setItem('mova_session', JSON.stringify(obj)); }
+    catch(_){}
   }
 
-  // ===== Redirect helper (sokong ?next=/something.html) =====
-  function goNext(defaultPath){
-    const next = qs('next');
-    if (next){
-      try{
-        const u = new URL(next, location.href);
-        location.href = u.toString();
-        return;
-      }catch(_){}
+  function setLoading(btn, is){
+    if (!btn) return;
+    if (is){
+      btn.disabled = true;
+      btn._orig = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner"></span><span> Memproses...</span>';
+    } else {
+      btn.disabled = false;
+      if (btn._orig) btn.innerHTML = btn._orig;
     }
-    location.href = defaultPath;
+  }
+
+  // ===== PRE-SETUP (idempotent) =====
+  (async function init(){
+    try { await api('setup', {}); } catch(_){}
+    // auto-fill dari memori jika ada
+    try{
+      const s = localStorage.getItem('mova_session');
+      if (s){
+        const o = JSON.parse(s);
+        if (o?.name) document.getElementById('inpName').value = o.name;
+        if (o?.phone) document.getElementById('inpPhone').value = o.phone;
+      }
+    }catch(_){}
+  })();
+
+  // ===== HANDLERS =====
+  document.getElementById('btnGo').addEventListener('click', onContinue);
+  document.getElementById('btnUserOnly').addEventListener('click', ()=>{
+    // laluan ringkas ke user page tanpa resolve_access
+    location.href = './user.html';
+  });
+
+  async function onContinue(){
+    const btn = document.getElementById('btnGo');
+    const name  = (document.getElementById('inpName').value||'').trim();
+    const phone = onlyDigits(document.getElementById('inpPhone').value||'');
+    if (!name || !phone) return toast('Isi nama & telefon.');
+
+    setLoading(btn, true);
+    try{
+      const out = await api('resolve_access', { name, phone });
+      // Bentuk respons jangkaan:
+      // { success, role:'leader'|'partner'|'user'|'none', leader_id, partner_name, access:[...], message }
+      const role = String(out.role||'none').toLowerCase();
+      const leader_id = out.leader_id || 'LEAD-0001';
+      const partner_name = out.partner_name || '';
+
+      if (role === 'leader'){
+        saveSession({
+          role:'leader',
+          id: leader_id,
+          leader_id: leader_id,
+          name, phone,
+          profile:{ role:'leader', name, phone }
+        });
+        toast('Akses leader disahkan. Membuka Dashboard…');
+        return setTimeout(()=> location.href='./dashboard.html', 600);
+      }
+
+      if (role === 'partner'){
+        saveSession({
+          role:'partner',
+          leader_id: leader_id,
+          name, phone,
+          partner_name,
+          profile:{ role:'partner', name, phone }
+        });
+        toast('Akses partner disahkan. Membuka Panel Partner…');
+        return setTimeout(()=> location.href='./partner.html', 600);
+      }
+
+      if (role === 'user'){
+        saveSession({
+          role:'user',
+          leader_id: leader_id,
+          name, phone,
+          partner_name
+        });
+        toast('Akses user disahkan. Membuka Laman User…');
+        // optional: pass leader id utk hook dalam user.html
+        return setTimeout(()=> location.href=`./user.html?leader=${encodeURIComponent(leader_id)}`, 600);
+      }
+
+      // role none / gagal
+      toast(out.message || 'Akses tidak ditemui. Hubungi admin/partner.');
+    }catch(e){
+      toast(e.message || 'Ralat sambungan.');
+    }finally{
+      setLoading(btn, false);
+    }
   }
 </script>
 </body>
