@@ -3,759 +3,714 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Dashboard</title>
+  <title>MOVA Leader — Dashboard (No‑Code Edition)</title>
 
   <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind (CDN for simplicity; use CLI for production) -->
+  <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root { --brand:#ef4444; }
-    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial; background:#fafafa}
-    .scroll-bar::-webkit-scrollbar{height:8px}
-    .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
+    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial;background:#fafafa}
+    .container{max-width:1180px}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
     .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:700; border:1px solid #e5e7eb; white-space:nowrap; }
     .pill-active{ background:#111; color:#fff; border-color:#111; }
     .pill-idle{ background:#fff; color:#374151; }
     .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.6rem .95rem;font-weight:800}
     .btn-primary{background:var(--brand);color:#fff}
     .btn-ghost{background:#fff;border:1px solid #e5e7eb}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
     .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem .9rem;background:#fff}
     .input:focus{outline:none;box-shadow:0 0 0 2px #111}
     .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
-    .table{width:100%;border-collapse:separate;border-spacing:0}
-    .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
-    .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
-    .mini-preview h1,.mini-preview h2,.mini-preview h3{font-weight:800}
     .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
+    .dragging{opacity:.5}
+    .ghost{border:2px dashed #cbd5e1}
+    .mini-preview{position:sticky; top:1rem;}
+    .scroll-bar::-webkit-scrollbar{height:8px}
+    .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
   </style>
 </head>
 <body>
 
-<!-- ===== HEADER ===== -->
+<!-- ====== HEADER ====== -->
 <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
   <div class="mx-auto container px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
       <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
-        <i data-lucide="gauge" class="w-5 h-5"></i>
+        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
       </div>
       <div>
-        <div class="text-lg font-semibold">MOVA Leader</div>
-        <div class="text-xs text-gray-500">Dashboard</div>
+        <div class="text-lg font-extrabold">MOVA Leader — Dashboard</div>
+        <div class="text-xs text-gray-500">No‑Code Edition · Leader sahaja</div>
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
-      <a href="./user.html" target="_blank" class="btn btn-ghost"><i data-lucide="external-link" class="w-4 h-4"></i> Laman User</a>
-      <a href="./partner.html" target="_blank" class="btn btn-ghost"><i data-lucide="users" class="w-4 h-4"></i> Portal Partner</a>
-    </div>
+    <nav class="hidden md:flex items-center gap-2 text-sm">
+      <a class="btn-ghost" href="./user.html" target="_blank"><i data-lucide="external-link" class="w-4 h-4"></i> Laman User</a>
+    </nav>
   </div>
 </header>
 
 <main class="mx-auto container px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-
-  <!-- TOP ROW: KPI + QUICK SAVE -->
-  <section class="grid grid-cols-1 md:grid-cols-4 gap-4">
-    <div class="card p-5">
-      <div class="text-3xl font-extrabold" id="kpiPartners">—</div>
-      <div class="text-sm text-gray-600">Jumlah Partner</div>
-    </div>
-    <div class="card p-5">
-      <div class="text-3xl font-extrabold" id="kpiCustomers">—</div>
-      <div class="text-sm text-gray-600">Jumlah Customer</div>
-    </div>
-    <div class="card p-5">
-      <div class="text-3xl font-extrabold" id="kpiPending">—</div>
-      <div class="text-sm text-gray-600">Pendaftaran Pending</div>
-    </div>
-    <div class="card p-5">
-      <div class="text-3xl font-extrabold" id="kpiPublished">—</div>
-      <div class="text-sm text-gray-600">Kandungan Diterbit</div>
-    </div>
-  </section>
-
-  <!-- TABS -->
+  <!-- ===== TABS BAR (Tidak diubah: kekal struktur asal) ===== -->
   <section class="card p-3">
     <div class="flex gap-2 overflow-x-auto scroll-bar">
-      <button data-tab="sections" class="pill pill-active"><i data-lucide="layout-grid" class="w-4 h-4"></i> User Sections</button>
-      <button data-tab="content" class="pill pill-idle"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
-      <button data-tab="media" class="pill pill-idle"><i data-lucide="images" class="w-4 h-4"></i> Media</button>
-      <button data-tab="partner" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Partner</button>
-      <button data-tab="customer" class="pill pill-idle"><i data-lucide="user" class="w-4 h-4"></i> Customer</button>
-      <button data-tab="approvals" class="pill pill-idle"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Approvals</button>
-      <button data-tab="broadcast" class="pill pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast (Log)</button>
-      <button data-tab="chart" class="pill pill-idle"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Carta</button>
-      <button data-tab="settings" class="pill pill-idle"><i data-lucide="sliders" class="w-4 h-4"></i> Settings</button>
+      <button data-tab="sections" class="pill pill-active"><i data-lucide="panels-top-left" class="w-4 h-4"></i> User Sections</button>
+      <button data-tab="content"  class="pill pill-idle"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
+      <button data-tab="media"    class="pill pill-idle"><i data-lucide="images" class="w-4 h-4"></i> Media</button>
+      <button data-tab="partner"  class="pill pill-idle"><i data-lucide="handshake" class="w-4 h-4"></i> Partner</button>
+      <button data-tab="customer" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Customer</button>
+      <button data-tab="approvals"class="pill pill-idle"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Approvals</button>
+      <button data-tab="broadcast"class="pill pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
+      <button data-tab="charts"   class="pill pill-idle"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Carta</button>
+      <button data-tab="settings" class="pill pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
     </div>
   </section>
 
-  <!-- PANELS WRAP -->
+  <!-- ===== PANELS ===== -->
   <section class="space-y-6">
 
-    <!-- ===== USER SECTIONS (Section Builder + Mini Preview) ===== -->
-    <div id="tab-sections" class="card p-6 space-y-5">
-      <div class="flex items-center gap-2">
-        <i data-lucide="layout-grid" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">User Sections</h2>
-        <span class="badge">Paparan laman user.html</span>
-      </div>
-
-      <div class="grid lg:grid-cols-2 gap-5">
-        <!-- Builder -->
-        <div>
-          <div class="flex flex-wrap gap-2 mb-3">
-            <button id="btnAddSection" class="btn btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Seksyen</button>
-            <button id="btnSaveSections" class="btn btn-ghost"><i data-lucide="save" class="w-4 h-4"></i> Simpan</button>
-            <button id="btnReloadSections" class="btn btn-ghost"><i data-lucide="refresh-ccw" class="w-4 h-4"></i> Segar Semula</button>
+    <!-- === User Sections: No‑Code Builder + Mini Preview (kanan) === -->
+    <div id="tab-sections" class="grid lg:grid-cols-[1fr_380px] gap-4">
+      <!-- Builder -->
+      <div class="card p-4 space-y-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="panels-top-left" class="w-5 h-5 text-gray-700"></i>
+            <h2 class="text-lg font-semibold">Pembina Seksyen (Drag & Drop)</h2>
           </div>
-          <div id="sectionsList" class="space-y-4"></div>
-        </div>
-
-        <!-- Mini Preview -->
-        <div>
-          <div class="p-3 flex items-center justify-between">
-            <div class="font-semibold">Preview Mini</div>
-            <div class="text-xs text-gray-500">Gaya ikut Settings (warna, tipografi, lebar)</div>
-          </div>
-          <div class="border rounded-xl overflow-hidden">
-            <div class="mini-preview" id="miniPreview" style="--brand:#ef4444"></div>
+          <div class="flex gap-2">
+            <button id="btnImport" class="btn-ghost text-sm"><i data-lucide="upload" class="w-4 h-4"></i> Import</button>
+            <button id="btnExport" class="btn-ghost text-sm"><i data-lucide="download" class="w-4 h-4"></i> Export</button>
+            <button id="btnSaveSections" class="btn-primary text-sm"><i data-lucide="save" class="w-4 h-4"></i> Simpan</button>
           </div>
         </div>
+
+        <!-- Theme quick controls (no‑code) -->
+        <div class="grid md:grid-cols-4 gap-3">
+          <div>
+            <label class="text-xs text-gray-600">Warna Tema (Primary)</label>
+            <input id="themePrimary" type="color" class="input"/>
+          </div>
+          <div>
+            <label class="text-xs text-gray-600">Cashback Min (%)</label>
+            <input id="rateMin" type="number" class="input" min="0" max="100">
+          </div>
+          <div>
+            <label class="text-xs text-gray-600">Cashback Max (%)</label>
+            <input id="rateMax" type="number" class="input" min="0" max="100">
+          </div>
+          <div>
+            <label class="text-xs text-gray-600">Lebar Kandungan (px)</label>
+            <input id="contentWidth" type="number" class="input" min="720" step="10">
+          </div>
+        </div>
+
+        <!-- Add section -->
+        <div class="card p-4">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">Tambah Seksyen</div>
+            <div class="flex gap-2">
+              <button class="btn-ghost text-sm" data-add-section="hero"><i data-lucide="sparkles" class="w-4 h-4"></i> Hero</button>
+              <button class="btn-ghost text-sm" data-add-section="rich"><i data-lucide="text" class="w-4 h-4"></i> Teks</button>
+              <button class="btn-ghost text-sm" data-add-section="updates"><i data-lucide="badge-info" class="w-4 h-4"></i> Promosi</button>
+              <button class="btn-ghost text-sm" data-add-section="list"><i data-lucide="list" class="w-4 h-4"></i> Senarai</button>
+              <button class="btn-ghost text-sm" data-add-section="faq"><i data-lucide="help-circle" class="w-4 h-4"></i> FAQ</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sections list (draggable) -->
+        <div id="sectionsList" class="space-y-3"></div>
       </div>
+
+      <!-- Mini Preview (kanan) -->
+      <aside class="mini-preview card p-0 overflow-hidden">
+        <div class="px-4 pt-4 pb-2 border-b text-sm text-gray-700 flex items-center gap-2">
+          <i data-lucide="eye" class="w-4 h-4"></i>
+          Pratonton Mini (ikut user.html)
+        </div>
+        <div id="miniPreview" class="p-4 space-y-4 max-h-[70vh] overflow-auto">
+          <div class="text-xs text-gray-500">Perubahan anda akan dipratonton di sini secara langsung.</div>
+        </div>
+        <div class="p-3 border-t bg-gray-50 text-[11px] text-gray-500">
+          Petua: Guna butang <b>Simpan</b> untuk menolak ke laman user.
+        </div>
+      </aside>
     </div>
 
-    <!-- ===== KANDUNGAN ===== -->
-    <div id="tab-content" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2">
+    <!-- === Kandungan === -->
+    <div id="tab-content" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2">
         <i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Kandungan</h2>
+        <h2 class="text-lg font-semibold">Kandungan Diterbitkan</h2>
       </div>
-      <div class="grid md:grid-cols-2 gap-3">
-        <input id="cTitle" class="input" placeholder="Tajuk"/>
-        <input id="cMedia" class="input" placeholder="Media URLs (koma)"/>
-        <textarea id="cBody" class="input" rows="5" placeholder="Isi kandungan"></textarea>
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="text-sm"><input type="checkbox" id="cPublished" class="mr-2"> Terbitkan</label>
-        <button id="btnSaveContent" class="btn btn-primary">Simpan</button>
-        <button id="btnReloadContent" class="btn btn-ghost">Segar Semula</button>
-      </div>
-      <div class="overflow-auto">
-        <table class="table">
-          <thead><tr><th>Tajuk</th><th>Tarikh</th><th>Status</th></tr></thead>
-          <tbody id="tblContent"></tbody>
-        </table>
-      </div>
+      <div id="contentList" class="grid md:grid-cols-2 gap-3"></div>
     </div>
 
-    <!-- ===== MEDIA ===== -->
-    <div id="tab-media" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2">
+    <!-- === Media === -->
+    <div id="tab-media" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2">
         <i data-lucide="images" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Media</h2>
+        <h2 class="text-lg font-semibold">Media Library</h2>
       </div>
+      <div class="grid md:grid-cols-3 gap-3 items-start">
+        <div class="md:col-span-2">
+          <div id="mediaGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
+        </div>
+        <div class="card p-4">
+          <div class="font-semibold mb-2">Muat Naik</div>
+          <input id="filePick" type="file" accept="image/*,video/*" class="input">
+          <button id="btnUpload" class="btn-primary w-full mt-3"><i data-lucide="upload" class="w-4 h-4"></i> Upload</button>
+          <div class="text-xs text-gray-500 mt-2">Video akan dijadikan pautan tontonan awam (Drive).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- === Partner === -->
+    <div id="tab-partner" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2"><i data-lucide="handshake" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Partner</h2></div>
       <div class="grid md:grid-cols-3 gap-3">
-        <input id="mFile" type="file" class="input" accept="image/*,video/*"/>
-        <input id="mName" class="input" placeholder="Nama fail (opsyen)"/>
-        <button id="btnUpload" class="btn btn-primary">Muat Naik</button>
+        <input id="parName" class="input" placeholder="Nama partner">
+        <input id="parPhone" class="input" placeholder="Telefon">
+        <input id="parEmail" class="input" placeholder="Email (opsyen)">
       </div>
-      <div id="mediaGrid" class="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3"></div>
+      <div class="mt-2"><button id="btnAddPartner" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Partner</button></div>
+      <div id="partnerList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4"></div>
     </div>
 
-    <!-- ===== PARTNER ===== -->
-    <div id="tab-partner" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2">
-        <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Partner</h2>
-      </div>
-      <div class="grid md:grid-cols-5 gap-3">
-        <input id="pName" class="input" placeholder="Nama"/>
-        <input id="pEmail" class="input" placeholder="Email (opsyen)"/>
-        <input id="pPhone" class="input" placeholder="Telefon"/>
-        <select id="pPkg" class="input">
-          <option>Silver</option><option>Gold</option><option>Diamond</option>
-        </select>
-        <button id="btnAddPartner" class="btn btn-primary">Tambah</button>
-      </div>
-      <div class="overflow-auto">
-        <table class="table"><thead><tr><th>Nama</th><th>Telefon</th><th>Pakej</th><th>Tarikh</th></tr></thead><tbody id="tblPartners"></tbody></table>
-      </div>
-    </div>
-
-    <!-- ===== CUSTOMER ===== -->
-    <div id="tab-customer" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2">
-        <i data-lucide="user" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Customer</h2>
-      </div>
+    <!-- === Customer === -->
+    <div id="tab-customer" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2"><i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Customer</h2></div>
       <div class="grid md:grid-cols-4 gap-3">
-        <input id="cuName" class="input" placeholder="Nama"/>
-        <input id="cuPhone" class="input" placeholder="Telefon"/>
-        <input id="cuPartner" class="input" placeholder="Partner (opsyen)"/>
-        <button id="btnAddCustomer" class="btn btn-primary">Tambah</button>
+        <input id="cusName" class="input" placeholder="Nama penuh">
+        <input id="cusPhone" class="input" placeholder="No. telefon">
+        <input id="cusPartner" class="input" placeholder="Partner (opsyen)">
+        <button id="btnAddCustomer" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Tambah</button>
       </div>
-      <div id="customersList" class="text-sm text-gray-500">* Senarai ringkas akan dipaparkan di Carta melalui org_tree.</div>
+      <div id="customerHint" class="text-xs text-gray-500 mt-2">Customer akan muncul dalam Carta/Org Chart.</div>
     </div>
 
-    <!-- ===== APPROVALS (LEADER) ===== -->
-    <div id="tab-approvals" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2">
-        <i data-lucide="check-circle-2" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Approvals</h2>
-      </div>
+    <!-- === Approvals === -->
+    <div id="tab-approvals" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Approvals</h2></div>
       <div class="overflow-auto">
-        <table class="table">
-          <thead><tr><th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th></tr></thead>
+        <table class="w-full border-collapse">
+          <thead>
+            <tr class="text-left text-xs text-gray-600 border-b">
+              <th class="py-2 pr-3">ID</th>
+              <th class="py-2 pr-3">Nama</th>
+              <th class="py-2 pr-3">Telefon</th>
+              <th class="py-2 pr-3">Status</th>
+              <th class="py-2">Tindakan</th>
+            </tr>
+          </thead>
           <tbody id="tblApprovals"></tbody>
         </table>
       </div>
-      <div class="flex gap-2"><button id="btnReloadApprove" class="btn btn-ghost">Segar Semula</button></div>
+      <div class="mt-2"><button id="btnReloadApprove" class="btn-ghost"><i data-lucide="refresh-ccw" class="w-4 h-4"></i> Segar Semula</button></div>
     </div>
 
-    <!-- ===== BROADCAST (LOG ONLY) ===== -->
-    <div id="tab-broadcast" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2">
-        <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Broadcast (Log Sahaja)</h2>
-      </div>
-      <textarea id="bcMsg" class="input" rows="4" placeholder="Tulis mesej untuk log..."></textarea>
-      <div class="flex items-center gap-2">
-        <button id="btnBroadcast" class="btn btn-primary">Hantar ke Log</button>
-        <span class="text-xs text-gray-500">* Ini sekadar menyimpan ke <b>broadcast_log</b>. Tiada penghantaran automatik.</span>
+    <!-- === Broadcast (log sahaja) === -->
+    <div id="tab-broadcast" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2"><i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Broadcast</h2></div>
+      <textarea id="bMsg" class="input" rows="4" placeholder="Mesej untuk log siaran…"></textarea>
+      <div class="mt-2 flex items-center gap-2">
+        <button id="btnBroadcast" class="btn-primary"><i data-lucide="send" class="w-4 h-4"></i> Log Broadcast</button>
+        <div class="text-xs text-gray-500">* Disimpan ke <code>broadcast_log</code> sahaja.</div>
       </div>
     </div>
 
-    <!-- ===== CHART (ringkas) ===== -->
-    <div id="tab-chart" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2">
-        <i data-lucide="bar-chart-3" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Carta Ringkas</h2>
-      </div>
-      <div class="grid md:grid-cols-2 gap-4">
-        <div class="p-4 border rounded-xl">
-          <div class="text-sm text-gray-500 mb-2">Stat Semasa</div>
-          <ul class="text-sm leading-7">
-            <li>Partner: <b id="statPartners">—</b></li>
-            <li>Customers: <b id="statCustomers">—</b></li>
-            <li>Pending: <b id="statPending">—</b></li>
-            <li>Published: <b id="statPublished">—</b></li>
-          </ul>
-        </div>
-        <div class="p-4 border rounded-xl text-sm text-gray-500">
-          * Anda boleh eksport data dan bina carta tersuai di luar. (Ringkas buat masa ini.)
-        </div>
-      </div>
+    <!-- === Carta (ringkas) === -->
+    <div id="tab-charts" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2"><i data-lucide="bar-chart-3" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Carta & Ringkasan</h2></div>
+      <div id="statsWrap" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+      <div class="text-xs text-gray-500 mt-2">Data diambil dari <code>partners</code>, <code>customers</code>, <code>registrations</code>, <code>site_content</code>.</div>
     </div>
 
-    <!-- ===== SETTINGS ===== -->
-    <div id="tab-settings" class="card p-6 space-y-5 hidden">
-      <div class="flex items-center gap-2">
-        <i data-lucide="sliders" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Settings</h2>
-      </div>
-
-      <div class="grid md:grid-cols-2 gap-5">
-        <!-- Theme & Cashback -->
-        <div class="space-y-3">
-          <div class="font-semibold">Tema & Cashback</div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="text-sm">Warna Utama</label>
-              <input id="setTheme" class="input" placeholder="#ef4444"/>
-            </div>
-            <div>
-              <label class="text-sm">WhatsApp (pemilik)</label>
-              <input id="setWA" class="input" placeholder="01xxxxxxxx"/>
-            </div>
-            <div>
-              <label class="text-sm">Cashback Min (%)</label>
-              <input id="setMin" class="input" type="number" min="0" max="100" placeholder="5"/>
-            </div>
-            <div>
-              <label class="text-sm">Cashback Max (%)</label>
-              <input id="setMax" class="input" type="number" min="0" max="100" placeholder="10"/>
-            </div>
-          </div>
+    <!-- === Settings === -->
+    <div id="tab-settings" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-2"><i data-lucide="settings" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Settings</h2></div>
+      <div class="grid md:grid-cols-3 gap-3">
+        <div>
+          <label class="text-xs text-gray-600">Nama Leader</label>
+          <input id="setLeaderName" class="input" placeholder="nama leader">
         </div>
-
-        <!-- Typography & Width -->
-        <div class="space-y-3">
-          <div class="font-semibold">Tipografi & Lebar Kandungan</div>
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="text-sm">Content Width (px)</label>
-              <input id="setWidth" class="input" type="number" placeholder="980"/>
-            </div>
-            <div>
-              <label class="text-sm">Heading Size (px)</label>
-              <input id="setHSize" class="input" type="number" placeholder="28"/>
-            </div>
-            <div>
-              <label class="text-sm">Heading Color</label>
-              <input id="setHColor" class="input" placeholder="#111111"/>
-            </div>
-            <div>
-              <label class="text-sm">Heading Bold</label>
-              <select id="setHBold" class="input"><option>true</option><option>false</option></select>
-            </div>
-            <div>
-              <label class="text-sm">Body Size (px)</label>
-              <input id="setBSize" class="input" type="number" placeholder="16"/>
-            </div>
-            <div>
-              <label class="text-sm">Body Color</label>
-              <input id="setBColor" class="input" placeholder="#374151"/>
-            </div>
-            <div>
-              <label class="text-sm">Body Bold</label>
-              <select id="setBBold" class="input"><option>false</option><option>true</option></select>
-            </div>
-          </div>
+        <div>
+          <label class="text-xs text-gray-600">WhatsApp (opsyen)</label>
+          <input id="setWhatsApp" class="input" placeholder="contoh: 60123456789">
+        </div>
+        <div>
+          <label class="text-xs text-gray-600">Fonnte API (opsyen)</label>
+          <input id="setFonnte" class="input" placeholder="kunci API">
         </div>
       </div>
-
-      <div class="flex flex-wrap gap-2">
-        <button id="btnSaveSettings" class="btn btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan Settings</button>
-        <button id="btnReloadSettings" class="btn btn-ghost"><i data-lucide="refresh-ccw" class="w-4 h-4"></i> Segar Semula</button>
+      <div class="grid md:grid-cols-3 gap-3 mt-3">
+        <div>
+          <label class="text-xs text-gray-600">Heading Size (px)</label>
+          <input id="headingSize" type="number" class="input">
+        </div>
+        <div>
+          <label class="text-xs text-gray-600">Heading Color</label>
+          <input id="headingColor" type="color" class="input">
+        </div>
+        <div class="flex items-end">
+          <label class="inline-flex items-center gap-2 text-sm"><input id="headingBold" type="checkbox"> <span>Heading Bold</span></label>
+        </div>
       </div>
+      <div class="grid md:grid-cols-3 gap-3 mt-3">
+        <div>
+          <label class="text-xs text-gray-600">Body Size (px)</label>
+          <input id="bodySize" type="number" class="input">
+        </div>
+        <div>
+          <label class="text-xs text-gray-600">Body Color</label>
+          <input id="bodyColor" type="color" class="input">
+        </div>
+        <div class="flex items-end">
+          <label class="inline-flex items-center gap-2 text-sm"><input id="bodyBold" type="checkbox"> <span>Body Bold</span></label>
+        </div>
+      </div>
+      <div class="mt-3"><button id="btnSaveSettings" class="btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan Settings</button></div>
     </div>
 
   </section>
 </main>
 
-<!-- Toast -->
+<footer class="mt-6 py-10 text-center text-xs text-gray-500">© <span id="year"></span> MOVA</footer>
 <div id="toast" class="toast hidden"></div>
 
 <script>
-  // ===== CONFIG =====
-  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec"; // kekal selari
-  const LEADER_ID = 'LEAD-0001'; // boleh gantikan selepas login sebenar
+// ===== CONFIG =====
+const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-  // ===== ICONS =====
-  lucide.createIcons();
+// ===== GLOBAL STATE =====
+let SETTINGS = {};        // settings_get payload normalized
+let SECTIONS = [];        // array of {id,title,type,featured,hidden,blocks:[{kind,value,text?}]}
+let LEADER_ID = 'LEAD-0001';
 
-  // ===== STATE =====
-  let SETTINGS = {};
-  let SECTIONS = [];
+// ===== HELPERS =====
+const $ = (s,root=document)=>root.querySelector(s);
+const $$ = (s,root=document)=>Array.from(root.querySelectorAll(s));
+const toastEl = $('#toast');
+function toast(msg, ms=2200){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms); }
+async function api(path, payload){
+  const res = await fetch(EXEC_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })});
+  const text = await res.text(); let json; try{ json = JSON.parse(text) }catch(e){ throw new Error(text) }
+  if (json && json.success===false) throw new Error(json.error||'Ralat tidak diketahui');
+  return json;
+}
+function uid(){ return 's'+Math.random().toString(36).slice(2,9) }
+function clone(x){ return JSON.parse(JSON.stringify(x||{})) }
+function createIcon(name, cls='w-4 h-4'){ const i = document.createElement('i'); i.setAttribute('data-lucide',name); i.className=cls; return i }
+function reIcon(){ try{ lucide.createIcons() }catch(_){} }
+function esc(s){ return String(s==null?'':s) }
 
-  // ===== UTIL =====
-  const toastEl = document.getElementById('toast');
-  function toast(msg, ms=2200){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms); }
-  async function api(path, payload){
-    const res = await fetch(EXEC_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) }) });
-    const text = await res.text(); let json; try{ json=JSON.parse(text) }catch(e){ throw new Error(text) }
-    if (json && json.success===false) throw new Error(json.error||'Ralat tidak diketahui');
-    return json;
-  }
-  function esc(s){ return String(s==null?'':s); }
-  function uid(){ return 's' + Math.random().toString(36).slice(2,9); }
+// ===== INIT =====
+$('#year').textContent = new Date().getFullYear();
+lucide.createIcons();
 
-  // ===== INIT =====
-  (async function init(){
-    try{ await api('setup',{}); }catch(_){ }
-    await loadSettings();
-    await loadStats();
-    await renderSectionsBuilder();
-    await loadContentList();
-    await loadMedia();
-    await loadPartners();
-    await loadApprovals();
-    lucide.createIcons();
-  })();
+// Tabs
+function setActiveTab(name){
+  $$('[data-tab]').forEach(b=>{ if(b.dataset.tab===name){ b.classList.add('pill-active'); b.classList.remove('pill-idle') } else { b.classList.remove('pill-active'); b.classList.add('pill-idle') } });
+  $$('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
+  $('#tab-'+name)?.classList.remove('hidden');
+}
+$$('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab)));
+setActiveTab('sections');
 
-  // ===== SETTINGS LOAD/SAVE =====
-  async function loadSettings(){
-    const out = await api('settings_get', { leader_id: LEADER_ID });
-    SETTINGS = out.settings || {};
-    document.documentElement.style.setProperty('--brand', SETTINGS.theme_primary || '#ef4444');
+// Boot
+(async function init(){
+  try{ await api('setup',{}) }catch(_){ }
+  await loadSettings();
+  await loadContent();
+  await loadMedia();
+  await loadPartners();
+  await loadApprovals();
+  await loadStats();
+  reIcon();
+})();
 
-    // Fill settings inputs
-    setValue('setTheme', SETTINGS.theme_color || SETTINGS.theme_primary || '#ef4444');
-    setValue('setWA', SETTINGS.whatsapp || SETTINGS.leader_phone || '');
-    setValue('setMin', SETTINGS.cashback_min || SETTINGS.default_cashback_min || 5);
-    setValue('setMax', SETTINGS.cashback_max || SETTINGS.default_cashback_max || 10);
-    setValue('setWidth', SETTINGS.content_width || 980);
-    setValue('setHSize', SETTINGS.heading_size || 28);
-    setValue('setHColor', SETTINGS.heading_color || '#111111');
-    setValue('setHBold', String(SETTINGS.heading_bold||'true'));
-    setValue('setBSize', SETTINGS.body_size || 16);
-    setValue('setBColor', SETTINGS.body_color || '#374151');
-    setValue('setBBold', String(SETTINGS.body_bold||'false'));
+// ===== LOADERS =====
+async function loadSettings(){
+  const out = await api('settings_get',{});
+  SETTINGS = out.settings || {};
+  document.documentElement.style.setProperty('--brand', SETTINGS.theme_primary || SETTINGS.theme_color || '#ef4444');
+  LEADER_ID = SETTINGS.leader_id || 'LEAD-0001';
+  // Sections
+  SECTIONS = Array.isArray(SETTINGS.sections) ? clone(SETTINGS.sections) : [];
+  if (!SECTIONS.length){ try{ SECTIONS = JSON.parse(SETTINGS.sections_json||'[]') }catch(_){ SECTIONS=[] } }
+  // Quick controls
+  $('#themePrimary').value = (SETTINGS.theme_primary || '#ef4444');
+  $('#rateMin').value = Number(SETTINGS.cashback_min||SETTINGS.default_cashback_min||5);
+  $('#rateMax').value = Number(SETTINGS.cashback_max||SETTINGS.default_cashback_max||10);
+  $('#contentWidth').value = Number(SETTINGS.content_width||980);
+  // Typography
+  $('#setLeaderName').value = esc(SETTINGS.leader_name||'');
+  $('#setWhatsApp').value   = esc(SETTINGS.whatsapp||SETTINGS.leader_phone||'');
+  $('#setFonnte').value     = esc(SETTINGS.fonnte_api||SETTINGS.fonnte_api_key||'');
+  $('#headingSize').value   = Number(SETTINGS.heading_size||28);
+  $('#headingColor').value  = esc(SETTINGS.heading_color||'#111111');
+  $('#headingBold').checked = String(SETTINGS.heading_bold||'false')==='true';
+  $('#bodySize').value      = Number(SETTINGS.body_size||16);
+  $('#bodyColor').value     = esc(SETTINGS.body_color||'#374151');
+  $('#bodyBold').checked    = String(SETTINGS.body_bold||'false')==='true';
+  renderSectionsList();
+  renderMiniPreview();
+}
 
-    // Sections
-    SECTIONS = Array.isArray(SETTINGS.sections) ? SETTINGS.sections : (safeParse(SETTINGS.sections_json)||[]);
-    if (!Array.isArray(SECTIONS)) SECTIONS = [];
+async function loadContent(){
+  const out = await api('content_list',{ leader_id: LEADER_ID });
+  const list = out.items||[]; const host = $('#contentList'); host.innerHTML='';
+  list.forEach(c=>{
+    const d = document.createElement('div'); d.className='p-4 border rounded-xl bg-white';
+    d.innerHTML = `<div class="font-semibold">${esc(c.title||'-')}</div><div class="text-xs text-gray-500 mt-1">${esc(c.updated_at||'')}</div><div class="text-sm text-gray-700 mt-2 line-clamp-3">${esc(c.body||'')}</div>`;
+    host.appendChild(d);
+  });
+}
 
-    // Preview theme
-    updateMiniTheme();
-  }
+async function loadMedia(){
+  const out = await api('media_list',{}); const grid=$('#mediaGrid'); grid.innerHTML='';
+  (out.items||[]).forEach(m=>{
+    const card = document.createElement('div'); card.className='p-2 border rounded-xl bg-white';
+    const isVideo = /^video\//i.test(m.file_type||'');
+    card.innerHTML = isVideo
+      ? `<video src="${m.public_url}" class="w-full rounded-lg" controls></video>`
+      : `<img src="${m.public_url}" class="w-full rounded-lg"/>`;
+    grid.appendChild(card);
+  });
+}
 
-  function safeParse(j){ try{ return JSON.parse(j||'[]') }catch(_){ return [] } }
-  function v(id){ return document.getElementById(id).value }
-  function setValue(id, val){ const el=document.getElementById(id); if(el) el.value=val }
+async function loadPartners(){
+  const out = await api('partner_list',{ leader_id: LEADER_ID });
+  const host = $('#partnerList'); host.innerHTML='';
+  (out.items||[]).forEach(p=>{
+    const card = document.createElement('div'); card.className='p-4 border rounded-xl bg-white';
+    card.innerHTML = `<div class="font-semibold">${esc(p.name||'-')}</div><div class="text-xs text-gray-500">${esc(p.phone||'')}</div>`;
+    host.appendChild(card);
+  });
+}
 
-  document.getElementById('btnSaveSettings').addEventListener('click', async()=>{
+async function loadApprovals(){
+  const out = await api('registration_list',{}); const tb=$('#tblApprovals'); tb.innerHTML='';
+  const items = out.items||[];
+  if (!items.length){ tb.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Tiada pendaftaran.</td></tr>'; return }
+  items.forEach(r=>{
+    const isApproved = String(r.status||'').toLowerCase()==='lulus';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="py-2 pr-3 text-xs">${esc(r.id||'')}</td>
+      <td class="py-2 pr-3">${esc(r.name||'')}</td>
+      <td class="py-2 pr-3">${esc(r.phone||'')}</td>
+      <td class="py-2 pr-3">${isApproved?'<span class="badge">lulus</span>':'<span class="badge">menunggu</span>'}</td>
+      <td class="py-2">${isApproved?'<span class="text-green-700 text-sm">Diluluskan</span>':`<button class="btn-ghost text-sm" data-approve="${esc(r.id)}">Luluskan</button>`}</td>`;
+    tb.appendChild(tr);
+  });
+  $$('button[data-approve]').forEach(b=> b.addEventListener('click', async ()=>{
+    try{ const res = await api('registration_approve',{ id: b.dataset.approve }); if(res.success){ toast('Diluluskan ✔️'); await loadApprovals(); } }catch(e){ toast('Gagal meluluskan'); }
+  }));
+}
+
+async function loadStats(){
+  const out = await api('stats',{ leader_id: LEADER_ID });
+  const s = out.totals||{}; const wrap=$('#statsWrap'); wrap.innerHTML='';
+  const items = [
+    { label:'Partners', val:s.partners||0, icon:'handshake' },
+    { label:'Customers', val:s.customers||0, icon:'users' },
+    { label:'Pending', val:s.pending||0, icon:'clock' },
+    { label:'Published', val:s.published||0, icon:'file-text' },
+  ];
+  items.forEach(it=>{
+    const c = document.createElement('div'); c.className='p-5 border rounded-xl bg-white flex items-center gap-3';
+    c.innerHTML = `<i data-lucide="${it.icon}" class="w-5 h-5"></i><div><div class="text-2xl font-extrabold">${it.val}</div><div class="text-sm text-gray-600">${it.label}</div></div>`;
+    wrap.appendChild(c);
+  });
+  reIcon();
+}
+
+// ===== EVENTS: Media Upload =====
+$('#btnUpload').addEventListener('click', async ()=>{
+  const f = $('#filePick').files[0]; if(!f) return toast('Pilih fail dahulu');
+  const reader = new FileReader(); reader.onload = async (e)=>{
+    const base64 = e.target.result.split(',')[1];
     try{
-      const payload = {
-        leader_id: LEADER_ID,
-        theme_color: v('setTheme'), // alias → theme_primary
-        whatsapp: v('setWA'),
-        cashback_min: Number(v('setMin')||5),
-        cashback_max: Number(v('setMax')||10),
-        content_width: v('setWidth'),
-        heading_size: v('setHSize'), heading_color: v('setHColor'), heading_bold: v('setHBold'),
-        body_size: v('setBSize'), body_color: v('setBColor'), body_bold: v('setBBold'),
-        sections: SECTIONS
-      };
-      await api('settings_set', payload); // ✅ guna alias selari Code.gs
-      toast('Settings disimpan ✔️');
-      await loadSettings();
-      renderMiniPreview();
-    }catch(e){ toast(e.message||'Gagal simpan settings'); }
-  });
-  document.getElementById('btnReloadSettings').addEventListener('click', loadSettings);
+      await api('upload_media',{ leader_id: LEADER_ID, file_name:f.name, file_type:f.type, file_base64: base64 });
+      toast('Naik naik media ✔️'); await loadMedia();
+    }catch(err){ toast('Gagal upload'); }
+  }; reader.readAsDataURL(f);
+});
 
-  function updateMiniTheme(){
-    const brand = v('setTheme') || SETTINGS.theme_primary || '#ef4444';
-    document.getElementById('miniPreview').style.setProperty('--brand', brand);
-  }
+// ===== EVENTS: Partner & Customer =====
+$('#btnAddPartner').addEventListener('click', async ()=>{
+  const name=$('#parName').value.trim(); const phone=$('#parPhone').value.trim(); const email=$('#parEmail').value.trim();
+  if(!name) return toast('Isi nama partner');
+  try{ await api('partner_create',{ leader_id: LEADER_ID, name, phone, email, package:'' }); toast('Partner ditambah ✔️'); $('#parName').value=$('#parPhone').value=$('#parEmail').value=''; await loadPartners(); }catch(e){ toast('Gagal tambah partner'); }
+});
 
-  // ===== STATS =====
-  async function loadStats(){
-    const out = await api('stats', { leader_id: LEADER_ID });
-    const t = out.totals || {};
-    setText('kpiPartners', t.partners||0);
-    setText('kpiCustomers', t.customers||0);
-    setText('kpiPending', t.pending||0);
-    setText('kpiPublished', t.published||0);
+$('#btnAddCustomer').addEventListener('click', async ()=>{
+  const name=$('#cusName').value.trim(); const phone=$('#cusPhone').value.trim(); const partner=$('#cusPartner').value.trim();
+  if(!name||!phone) return toast('Isi nama & telefon');
+  try{ await api('customer_add',{ leader_id: LEADER_ID, name, phone, partner }); toast('Customer ditambah ✔️'); $('#cusName').value=$('#cusPhone').value=$('#cusPartner').value=''; }catch(e){ toast('Gagal tambah customer'); }
+});
 
-    setText('statPartners', t.partners||0);
-    setText('statCustomers', t.customers||0);
-    setText('statPending', t.pending||0);
-    setText('statPublished', t.published||0);
-  }
-  function setText(id, txt){ const el=document.getElementById(id); if(el) el.textContent=txt }
+$('#btnReloadApprove').addEventListener('click', loadApprovals);
+$('#btnBroadcast').addEventListener('click', async ()=>{
+  const message = $('#bMsg').value.trim(); if(!message) return toast('Tulis mesej');
+  try{ await api('broadcast',{ leader_id: LEADER_ID, message }); toast('Broadcast direkod ✔️'); $('#bMsg').value=''; }catch(e){ toast('Gagal log broadcast'); }
+});
 
-  // ===== TABS =====
-  function setActiveTab(name){
-    document.querySelectorAll('[data-tab]').forEach(btn=>{
-      if (btn.dataset.tab === name) { btn.classList.remove('pill-idle'); btn.classList.add('pill-active'); }
-      else { btn.classList.add('pill-idle'); btn.classList.remove('pill-active'); }
-    });
-    document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
-    const tab = document.getElementById('tab-'+name); if (tab) tab.classList.remove('hidden');
-  }
-  document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab)));
-  setActiveTab('sections');
+// ===== NO‑CODE BUILDER =====
+const KIND_LABEL = { text:'Teks', image:'Gambar', video:'Video', link:'Pautan', social:'Sosial', button:'Butang' };
 
-  // ===== SECTION BUILDER =====
-  const listEl = document.getElementById('sectionsList');
-  document.getElementById('btnAddSection').addEventListener('click', ()=>{
-    const s = { id: uid(), title:'Seksyen Baharu', type:'rich', featured:false, hidden:false, blocks:[] };
-    SECTIONS.push(s); renderSectionsBuilder();
-  });
-  document.getElementById('btnSaveSections').addEventListener('click', saveSections);
-  document.getElementById('btnReloadSections').addEventListener('click', async()=>{ await loadSettings(); renderSectionsBuilder(); });
+function blankSection(type){
+  return { id: uid(), title: (type==='hero'?'Hero — Tajuk & Media':'Seksyen Baharu'), type, featured: type==='hero', hidden:false, blocks: type==='hero' ? [ {kind:'text', value:'**Selamat Datang ke MOVA**'}, {kind:'video', value:''} ] : [ {kind:'text', value:'Teks ringkas di sini…'} ] };
+}
 
-  function renderSectionsBuilder(){
-    listEl.innerHTML = '';
-    if (!SECTIONS.length){ listEl.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Tekan “Tambah Seksyen”.</div>'; }
-    SECTIONS.forEach((sec, idx)=> listEl.appendChild(renderSectionItem(sec, idx)));
-    renderMiniPreview();
-  }
-
-  function renderSectionItem(sec, idx){
-    const wrap = document.createElement('div');
-    wrap.className = 'p-4 border rounded-xl bg-white';
-    wrap.innerHTML = `
-      <div class="flex items-center gap-2">
-        <i data-lucide="panels-top-left" class="w-4 h-4 text-gray-700"></i>
-        <input class="input" value="${esc(sec.title||'Seksyen')}"/>
-        <select class="input">
-          <option ${sec.type==='hero'?'selected':''}>hero</option>
-          <option ${sec.type==='rich'?'selected':''}>rich</option>
-          <option ${sec.type==='list'?'selected':''}>list</option>
-          <option ${sec.type==='updates'?'selected':''}>updates</option>
-          <option ${sec.type==='faq'?'selected':''}>faq</option>
-        </select>
-        <label class="text-xs ml-auto"><input type="checkbox" ${sec.featured?'checked':''}/> featured</label>
-        <label class="text-xs"><input type="checkbox" ${sec.hidden?'checked':''}/> hidden</label>
-        <button class="btn btn-ghost" data-act="del"><i data-lucide="trash" class="w-4 h-4"></i></button>
-      </div>
-      <div class="mt-3 space-y-2" data-role="blocks"></div>
-      <div class="mt-2 flex flex-wrap gap-2">
-        <button class="btn btn-ghost" data-add="text"><i data-lucide="pilcrow" class="w-4 h-4"></i> Teks</button>
-        <button class="btn btn-ghost" data-add="image"><i data-lucide="image" class="w-4 h-4"></i> Gambar URL</button>
-        <button class="btn btn-ghost" data-add="video"><i data-lucide="video" class="w-4 h-4"></i> Video URL</button>
-        <button class="btn btn-ghost" data-add="link"><i data-lucide="link" class="w-4 h-4"></i> Pautan</button>
-      </div>
-    `;
-    const [inpTitle, selType] = wrap.querySelectorAll('input.input, select.input');
-    const chkBoxes = wrap.querySelectorAll('label input[type="checkbox"]');
-    inpTitle.addEventListener('input', e=>{ sec.title = e.target.value; renderMiniPreview(); });
-    selType.addEventListener('change', e=>{ sec.type = e.target.value; renderMiniPreview(); });
-    chkBoxes[0].addEventListener('change', e=>{ sec.featured = e.target.checked; });
-    chkBoxes[1].addEventListener('change', e=>{ sec.hidden = e.target.checked; });
-    wrap.querySelector('[data-act="del"]').addEventListener('click', ()=>{ SECTIONS.splice(idx,1); renderSectionsBuilder(); });
-
-    const blocksHost = wrap.querySelector('[data-role="blocks"]');
-    function renderBlocks(){
-      blocksHost.innerHTML = '';
-      (sec.blocks||[]).forEach((b, bi)=>{
-        const row = document.createElement('div'); row.className = 'p-3 rounded-lg border bg-gray-50';
-        if (b.kind==='text'){
-          row.innerHTML = `
-            <div class="text-xs text-gray-500 mb-1">Teks (sokong **bold** dan [warna]{#hex})</div>
-            <textarea class="input" rows="3">${esc(b.value||'')}</textarea>
-            <div class="mt-2 flex gap-2"><button data-up class="btn btn-ghost">▲</button><button data-down class="btn btn-ghost">▼</button><button data-del class="btn btn-ghost">Buang</button></div>
-          `;
-          row.querySelector('textarea').addEventListener('input', e=>{ b.value = e.target.value; renderMiniPreview(); });
-        } else if (b.kind==='image'){
-          row.innerHTML = `
-            <div class="text-xs text-gray-500 mb-1">Imej URL</div>
-            <input class="input" value="${esc(b.value||'')}" placeholder="https://..."/>
-            <div class="mt-2 flex gap-2"><button data-up class="btn btn-ghost">▲</button><button data-down class="btn btn-ghost">▼</button><button data-del class="btn btn-ghost">Buang</button></div>
-          `;
-          row.querySelector('input').addEventListener('input', e=>{ b.value = e.target.value; renderMiniPreview(); });
-        } else if (b.kind==='video'){
-          row.innerHTML = `
-            <div class="text-xs text-gray-500 mb-1">Video URL (YouTube atau .mp4)</div>
-            <input class="input" value="${esc(b.value||'')}" placeholder="https://youtu.be/... atau https://...mp4"/>
-            <div class="mt-2 flex gap-2"><button data-up class="btn btn-ghost">▲</button><button data-down class="btn btn-ghost">▼</button><button data-del class="btn btn-ghost">Buang</button></div>
-          `;
-          row.querySelector('input').addEventListener('input', e=>{ b.value = e.target.value; renderMiniPreview(); });
-        } else if (b.kind==='link'){
-          row.innerHTML = `
-            <div class="grid md:grid-cols-2 gap-2">
-              <div>
-                <div class="text-xs text-gray-500 mb-1">Teks Butang</div>
-                <input class="input" value="${esc(b.text||'Pautan')}"/>
-              </div>
-              <div>
-                <div class="text-xs text-gray-500 mb-1">URL</div>
-                <input class="input" value="${esc(b.value||'https://')}"/>
-              </div>
-            </div>
-            <div class="mt-2 flex gap-2"><button data-up class="btn btn-ghost">▲</button><button data-down class="btn btn-ghost">▼</button><button data-del class="btn btn-ghost">Buang</button></div>
-          `;
-          const [t, u] = row.querySelectorAll('input');
-          t.addEventListener('input', e=>{ b.text = e.target.value; renderMiniPreview(); });
-          u.addEventListener('input', e=>{ b.value = e.target.value; renderMiniPreview(); });
-        }
-        row.querySelector('[data-del]').addEventListener('click', ()=>{ sec.blocks.splice(bi,1); renderBlocks(); renderMiniPreview(); });
-        row.querySelector('[data-up]').addEventListener('click', ()=>{ if(bi>0){ const tmp=sec.blocks[bi-1]; sec.blocks[bi-1]=sec.blocks[bi]; sec.blocks[bi]=tmp; renderBlocks(); renderMiniPreview(); } });
-        row.querySelector('[data-down]').addEventListener('click', ()=>{ if(bi<sec.blocks.length-1){ const tmp=sec.blocks[bi+1]; sec.blocks[bi+1]=sec.blocks[bi]; sec.blocks[bi]=tmp; renderBlocks(); renderMiniPreview(); } });
-        blocksHost.appendChild(row);
-      });
-    }
-    renderBlocks();
-
-    wrap.querySelectorAll('[data-add]').forEach(btn=> btn.addEventListener('click', ()=>{
-      const kind = btn.getAttribute('data-add');
-      const blk = (kind==='link')? {kind, text:'Pautan', value:'https://'} : {kind, value:''};
-      sec.blocks = sec.blocks||[]; sec.blocks.push(blk); renderBlocks(); renderMiniPreview();
-    }));
-
-    lucide.createIcons();
-    return wrap;
-  }
-
-  function saveSections(){
-    (async()=>{
-      try{
-        await api('settings_set', {
-          leader_id: LEADER_ID,
-          theme_color: v('setTheme') || SETTINGS.theme_primary || '#ef4444',
-          cashback_min: Number(v('setMin')||SETTINGS.cashback_min||5),
-          cashback_max: Number(v('setMax')||SETTINGS.cashback_max||10),
-          content_width: v('setWidth')||SETTINGS.content_width||'980',
-          heading_size: v('setHSize')||SETTINGS.heading_size||'28',
-          heading_color: v('setHColor')||SETTINGS.heading_color||'#111111',
-          heading_bold: v('setHBold')||String(SETTINGS.heading_bold||'true'),
-          body_size: v('setBSize')||SETTINGS.body_size||'16',
-          body_color: v('setBColor')||SETTINGS.body_color||'#374151',
-          body_bold: v('setBBold')||String(SETTINGS.body_bold||'false'),
-          whatsapp: v('setWA')||SETTINGS.whatsapp||'',
-          sections: SECTIONS
-        });
-        toast('User Sections disimpan ✔️');
-        await loadSettings(); // refresh local
-        renderSectionsBuilder();
-      }catch(e){ toast(e.message||'Gagal simpan seksyen'); }
-    })();
-  }
-
-  // ===== MINI PREVIEW =====
-  function formatInline(str){
-    if (!str) return '';
-    let html = esc(str);
-    html = html.replace(/\n/g,'<br>');
-    html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-    html = html.replace(/\[([^\]]+)\]\{(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)\}/g, '<span style="color:$2">$1</span>');
-    return html;
-  }
-  function parseYouTube(url){
-    try{ const u=new URL(url); if(u.hostname.includes('youtube.com')) return u.searchParams.get('v'); if(u.hostname.includes('youtu.be')) return u.pathname.slice(1); }catch(_){ } return null;
-  }
-  function iconFor(url){
-    const u = String(url||'').toLowerCase();
-    const map = [['t.me','send'],['telegram','send'],['tiktok','music-2'],['youtube','youtube'],['youtu.be','youtube'],['facebook','facebook'],['instagram','instagram'],['twitter','twitter'],['x.com','twitter']];
-    const hit = map.find(([k])=>u.includes(k)); return hit? hit[1] : 'link';
-  }
-  function renderMiniPreview(){
-    const host = document.getElementById('miniPreview');
-    const width = Number(v('setWidth')||980);
-    const hSize = Number(v('setHSize')||28), bSize=Number(v('setBSize')||16);
-    const hBold = String(v('setHBold')||'true')==='true', bBold = String(v('setBBold')||'false')==='true';
-    const hColor = v('setHColor')||'#111', bColor=v('setBColor')||'#374151';
-
-    host.innerHTML = `<div class="p-5" style="max-width:${width}px;margin:auto">
-      ${SECTIONS.map(sec=>`
-        <section class="p-4 border-b">
-          <div class="flex items-center gap-2 mb-2"><i data-lucide="panels-top-left" class="w-4 h-4"></i><h3 style="font-size:${hSize}px;color:${hColor};font-weight:${hBold?800:600}">${esc(sec.title||'Seksyen')}</h3></div>
-          <div class="content" style="font-size:${bSize}px;color:${bColor};font-weight:${bBold?700:400}">
-            ${(sec.blocks||[]).map(b=>{
-              if(b.kind==='text') return `<div class="leading-relaxed">${formatInline(b.value||'')}</div>`;
-              if(b.kind==='image' && b.value) return `<img src="${b.value}" class="w-full rounded-xl border mt-2">`;
-              if(b.kind==='video' && b.value){
-                const yt=parseYouTube(b.value); return yt
-                  ? `<div class="relative pb-[56.25%] h-0 overflow-hidden rounded-xl border mt-2"><iframe src="https://www.youtube.com/embed/${yt}" class="absolute top-0 left-0 w-full h-full" frameborder="0" allowfullscreen></iframe></div>`
-                  : `<video src="${b.value}" controls playsinline class="w-full rounded-xl border mt-2"></video>`;
-              }
-              if(b.kind==='link'){
-                const icon = iconFor(b.value);
-                return `<a href="#" class="inline-flex items-center gap-2 mt-2 px-3 py-2 rounded-lg border"><i data-lucide="${icon}" class="w-4 h-4"></i><span>${esc(b.text||'Pautan')}</span></a>`;
-              }
-              return '';
-            }).join('')}
-          </div>
-        </section>
-      `).join('')}
+function blockToolbarHTML(){
+  return `
+    <div class="flex flex-wrap gap-1">
+      <button class="btn-ghost text-xs" data-add-block="text"><i data-lucide="text" class="w-3 h-3"></i> Teks</button>
+      <button class="btn-ghost text-xs" data-add-block="image"><i data-lucide="image" class="w-3 h-3"></i> Gambar</button>
+      <button class="btn-ghost text-xs" data-add-block="video"><i data-lucide="video" class="w-3 h-3"></i> Video</button>
+      <button class="btn-ghost text-xs" data-add-block="link"><i data-lucide="link" class="w-3 h-3"></i> Pautan</button>
+      <button class="btn-ghost text-xs" data-add-block="social"><i data-lucide="share-2" class="w-3 h-3"></i> Sosial</button>
+      <button class="btn-ghost text-xs" data-add-block="button"><i data-lucide="mouse-pointer-click" class="w-3 h-3"></i> Butang</button>
     </div>`;
-    lucide.createIcons();
-  }
+}
 
-  // ===== CONTENT =====
-  document.getElementById('btnSaveContent').addEventListener('click', async()=>{
-    try{
-      const payload = {
-        leader_id: LEADER_ID,
-        title: v('cTitle'),
-        body: v('cBody'),
-        media_urls: v('cMedia'),
-        published: document.getElementById('cPublished').checked
-      };
-      await api('content_save', payload);
-      toast('Kandungan disimpan ✔️');
-      document.getElementById('cTitle').value=''; document.getElementById('cBody').value=''; document.getElementById('cMedia').value=''; document.getElementById('cPublished').checked=false;
-      await loadContentList(); await loadStats();
-    }catch(e){ toast(e.message||'Gagal simpan kandungan'); }
-  });
-  document.getElementById('btnReloadContent').addEventListener('click', loadContentList);
+function renderSectionsList(){
+  const host = $('#sectionsList'); host.innerHTML='';
+  if (!SECTIONS.length){ const info = document.createElement('div'); info.className='text-sm text-gray-500'; info.textContent='Tiada seksyen lagi. Tekan butang "Tambah Seksyen".'; host.appendChild(info); }
+  SECTIONS.forEach((sec, idx)=> host.appendChild(sectionCard(sec, idx)) );
+  reIcon();
+}
 
-  async function loadContentList(){
-    try{
-      const out = await api('content_list', { leader_id: LEADER_ID });
-      const items = out.items||[];
-      const tb = document.getElementById('tblContent'); tb.innerHTML='';
-      if (!items.length){ tb.innerHTML = '<tr><td colspan="3" class="text-sm text-gray-500">Tiada kandungan.</td></tr>'; return; }
-      items.forEach(it=>{
-        const tr = document.createElement('tr');
-        const dt = it.updated_at? new Date(it.updated_at).toLocaleString(): '-';
-        const st = String(it.published||'no').toLowerCase()==='yes'? 'Terbit' : 'Draf';
-        tr.innerHTML = `<td>${esc(it.title||'-')}</td><td>${dt}</td><td>${st}</td>`;
-        tb.appendChild(tr);
-      });
-    }catch(e){ document.getElementById('tblContent').innerHTML = '<tr><td colspan="3" class="text-sm text-red-600">Gagal memuat senarai.</td></tr>'; }
-  }
+function sectionCard(sec, idx){
+  const card = document.createElement('div'); card.className='p-4 border rounded-xl bg-white'; card.draggable=true; card.dataset.idx = idx;
+  card.innerHTML = `
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-400"></i>
+        <input class="input" data-field="title" value="${esc(sec.title||'')}">
+        <span class="badge">${esc(sec.type||'')}</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <label class="text-xs inline-flex items-center gap-1"><input type="checkbox" data-field="featured" ${sec.featured?'checked':''}> <span>Featured</span></label>
+        <label class="text-xs inline-flex items-center gap-1"><input type="checkbox" data-field="hidden" ${sec.hidden?'checked':''}> <span>Hidden</span></label>
+        <button class="btn-ghost text-xs" data-dup><i data-lucide="copy" class="w-3 h-3"></i> Gandakan</button>
+        <button class="btn-ghost text-xs" data-del><i data-lucide="trash-2" class="w-3 h-3"></i> Padam</button>
+      </div>
+    </div>
+    <div class="mt-3">${blockToolbarHTML()}</div>
+    <div class="mt-3 space-y-2" data-blocks></div>
+  `;
 
-  // ===== MEDIA =====
-  document.getElementById('btnUpload').addEventListener('click', async()=>{
-    const fi = document.getElementById('mFile'); const f=fi.files&&fi.files[0]; if(!f) return toast('Pilih fail dahulu');
-    const name = v('mName')||f.name; const type=f.type||'application/octet-stream';
-    const b64 = await fileToBase64(f);
-    try{
-      await api('upload_media', { leader_id: LEADER_ID, file_name:name, file_type:type, file_base64:b64.split(',')[1] });
-      toast('Media dimuat naik ✔️'); document.getElementById('mName').value=''; fi.value='';
-      await loadMedia();
-    }catch(e){ toast(e.message||'Gagal muat naik'); }
-  });
-  async function fileToBase64(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=rej; r.readAsDataURL(file); }); }
+  // Blocks
+  const blocksHost = $('[data-blocks]', card);
+  (sec.blocks||[]).forEach((b,bi)=> blocksHost.appendChild(blockRow(sec,b,bi)));
 
-  async function loadMedia(){
-    try{
-      const out = await api('media_list', { leader_id: LEADER_ID });
-      const items = out.items||[]; const grid = document.getElementById('mediaGrid'); grid.innerHTML='';
-      if(!items.length){ grid.innerHTML = '<div class="text-sm text-gray-500">Tiada media.</div>'; return; }
-      items.forEach(m=>{
-        const isVid = /^video\//i.test(m.file_type||'');
-        const card = document.createElement('div'); card.className='p-2 border rounded-xl bg-white';
-        card.innerHTML = isVid
-          ? `<video src="${m.public_url}" class="w-full rounded-lg" controls playsinline></video>`
-          : `<img src="${m.public_url}" class="w-full rounded-lg"/>`;
-        grid.appendChild(card);
-      });
-    }catch(e){ document.getElementById('mediaGrid').innerHTML='<div class="text-sm text-red-600">Gagal memuat media.</div>'; }
-  }
+  // Listeners
+  $$('input[data-field]', card).forEach(inp=> inp.addEventListener('input', ()=>{
+    const f = inp.dataset.field; if(f==='featured'||f==='hidden'){ sec[f] = inp.checked } else { sec[f] = inp.value }
+    renderMiniPreview();
+  }));
+  $('[data-del]',card).addEventListener('click', ()=>{ SECTIONS.splice(idx,1); renderSectionsList(); renderMiniPreview(); });
+  $('[data-dup]',card).addEventListener('click', ()=>{ SECTIONS.splice(idx+1,0, clone(sec)); renderSectionsList(); renderMiniPreview(); });
+  $$('[data-add-block]',card).forEach(btn=> btn.addEventListener('click', ()=>{
+    const kind = btn.dataset.addBlock;
+    const block = kind==='text'?{kind:'text',value:'Tajuk atau perenggan…'}:
+                 kind==='image'?{kind:'image',value:''}:
+                 kind==='video'?{kind:'video',value:''}:
+                 kind==='link'? {kind:'link', value:'https://', text:'Pautan'}:
+                 kind==='social'?{kind:'link', value:'https://instagram.com/username', text:'Instagram'}:
+                 {kind:'button', value:'#', text:'Tindakan'};
+    sec.blocks = sec.blocks||[]; sec.blocks.push(block); renderSectionsList(); renderMiniPreview();
+  }));
 
-  // ===== PARTNER =====
-  document.getElementById('btnAddPartner').addEventListener('click', async()=>{
-    const name=v('pName').trim(); const email=v('pEmail').trim(); const phone=v('pPhone').trim(); const pkg=v('pPkg');
-    if(!name||!phone) return toast('Isi nama & telefon');
-    try{ await api('partner_create', { leader_id: LEADER_ID, name, email, phone, package: pkg }); toast('Partner ditambah ✔️'); setValue('pName',''); setValue('pEmail',''); setValue('pPhone',''); await loadPartners(); await loadStats(); }catch(e){ toast(e.message||'Gagal tambah partner'); }
-  });
-  async function loadPartners(){
-    try{
-      const out = await api('partner_list', { leader_id: LEADER_ID });
-      const items = out.items||[]; const tb=document.getElementById('tblPartners'); tb.innerHTML='';
-      if(!items.length){ tb.innerHTML = '<tr><td colspan="4" class="text-sm text-gray-500">Tiada partner.</td></tr>'; return; }
-      items.forEach(p=>{
-        const tr=document.createElement('tr'); tr.innerHTML = `<td>${esc(p.name||'')}</td><td>${esc(p.phone||'')}</td><td>${esc(p.package||'')}</td><td>${p.created_at? new Date(p.created_at).toLocaleString(): '-'}</td>`; tb.appendChild(tr);
-      });
-    }catch(e){ document.getElementById('tblPartners').innerHTML='<tr><td colspan="4" class="text-sm text-red-600">Gagal memuat senarai.</td></tr>'; }
-  }
-
-  // ===== CUSTOMER =====
-  document.getElementById('btnAddCustomer').addEventListener('click', async()=>{
-    const name=v('cuName').trim(); const phone=v('cuPhone').trim(); const partner=v('cuPartner').trim();
-    if(!name||!phone) return toast('Isi nama & telefon');
-    try{ await api('customer_add', { leader_id: LEADER_ID, name, phone, partner }); toast('Customer ditambah ✔️'); setValue('cuName',''); setValue('cuPhone',''); setValue('cuPartner',''); await loadStats(); }catch(e){ toast(e.message||'Gagal tambah customer'); }
+  // Drag & Drop sections
+  card.addEventListener('dragstart', e=>{ card.classList.add('dragging'); e.dataTransfer.setData('text/plain', idx) });
+  card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
+  card.addEventListener('dragover', e=>{ e.preventDefault(); card.classList.add('ghost') });
+  card.addEventListener('dragleave', ()=> card.classList.remove('ghost'));
+  card.addEventListener('drop', e=>{
+    e.preventDefault(); card.classList.remove('ghost');
+    const from = Number(e.dataTransfer.getData('text/plain')); const to = Number(card.dataset.idx);
+    if (!Number.isNaN(from) && !Number.isNaN(to) && from!==to){ const [m]=SECTIONS.splice(from,1); SECTIONS.splice(to,0,m); renderSectionsList(); renderMiniPreview(); }
   });
 
-  // ===== APPROVALS =====
-  const tblApprovals = document.getElementById('tblApprovals');
-  document.getElementById('btnReloadApprove').addEventListener('click', loadApprovals);
-  async function loadApprovals(){
-    try{
-      const out = await api('registration_list', {});
-      const items = out.items||[]; tblApprovals.innerHTML='';
-      if(!items.length){ tblApprovals.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Tiada pendaftaran.</td></tr>'; return; }
-      items.forEach(row=>{
-        const isApproved = String(row.status||'').toLowerCase()==='lulus';
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="text-xs">${esc(row.id||'')}</td>
-          <td>${esc(row.name||'')}</td>
-          <td>${esc(row.phone||'')}</td>
-          <td>${isApproved? '<span class="badge">lulus</span>' : '<span class="badge">menunggu</span>'}</td>
-          <td>${isApproved ? '<span class="text-green-700 text-sm">Diluluskan</span>' : '<button class="btn btn-ghost text-sm">Luluskan</button>'}</td>
-        `;
-        const btn = tr.querySelector('button');
-        if(btn){ btn.addEventListener('click', async()=>{ try{ const res=await api('registration_approve', { id: row.id }); if(res.success){ toast('Diluluskan ✔️'); await loadApprovals(); await loadStats(); } else { toast(res.error||'Gagal meluluskan'); } }catch(e){ toast('Ralat meluluskan'); } }); }
-        tblApprovals.appendChild(tr);
-      });
-    }catch(e){ tblApprovals.innerHTML = '<tr><td colspan="5" class="text-sm text-red-600">Gagal memuat senarai.</td></tr>'; }
+  return card;
+}
+
+function blockRow(sec, block, bi){
+  const row = document.createElement('div'); row.className='p-3 border rounded-lg bg-gray-50';
+  const kind = block.kind||'text';
+  row.innerHTML = `
+    <div class="flex items-center justify-between">
+      <div class="font-semibold text-sm">Blok: ${KIND_LABEL[kind]||kind}</div>
+      <div class="flex items-center gap-2">
+        <button class="btn-ghost text-xs" data-move="up">▲</button>
+        <button class="btn-ghost text-xs" data-move="down">▼</button>
+        <button class="btn-ghost text-xs" data-del>Padam</button>
+      </div>
+    </div>
+    <div class="mt-2 grid md:grid-cols-2 gap-2" data-editor></div>
+  `;
+  const ed = $('[data-editor]',row);
+  if (kind==='text'){
+    ed.innerHTML = `
+      <textarea class="input" rows="3" data-k="value" placeholder="Teks… (sokong **bold** & [warna]{#hex})">${esc(block.value||'')}</textarea>
+      <div class="grid grid-cols-3 gap-2">
+        <label class="text-xs flex items-center gap-2"><span>Saiz</span><input data-k="size" type="number" class="input" value="${Number(block.size||0)||0}" placeholder="0=ikut default"></label>
+        <label class="text-xs flex items-center gap-2"><span>Warna</span><input data-k="color" type="color" class="input" value="${esc(block.color||'')}"></label>
+        <label class="text-xs inline-flex items-center gap-2"><input data-k="bold" type="checkbox" ${block.bold?'checked':''}> <span>Bold</span></label>
+      </div>`;
+  } else if (kind==='image'){
+    ed.innerHTML = `
+      <input class="input" data-k="value" placeholder="URL gambar" value="${esc(block.value||'')}">
+      <div class="grid grid-cols-2 gap-2">
+        <label class="text-xs flex items-center gap-2"><span>Alt</span><input data-k="alt" class="input" value="${esc(block.alt||'')}"></label>
+        <label class="text-xs flex items-center gap-2"><span>Rounded</span><input data-k="rounded" type="checkbox" ${block.rounded?'checked':''}></label>
+      </div>`;
+  } else if (kind==='video'){
+    ed.innerHTML = `
+      <input class="input" data-k="value" placeholder="URL YouTube / video" value="${esc(block.value||'')}">
+      <div class="grid grid-cols-2 gap-2">
+        <label class="text-xs flex items-center gap-2"><span>Embed</span><input data-k="embed" type="checkbox" ${block.embed?'checked':''}></label>
+        <label class="text-xs flex items-center gap-2"><span>Autoplay</span><input data-k="autoplay" type="checkbox" ${block.autoplay?'checked':''}></label>
+      </div>`;
+  } else if (kind==='link' || kind==='button'){
+    ed.innerHTML = `
+      <input class="input" data-k="text"  placeholder="Teks" value="${esc(block.text||'Pautan')}">
+      <input class="input" data-k="value" placeholder="https://" value="${esc(block.value||'https://')}">
+      <div class="grid grid-cols-3 gap-2">
+        <label class="text-xs flex items-center gap-2"><span>Saiz</span><input data-k="size" type="number" class="input" value="${Number(block.size||0)||0}"></label>
+        <label class="text-xs flex items-center gap-2"><span>Warna</span><input data-k="color" type="color" class="input" value="${esc(block.color||'')}"></label>
+        <label class="text-xs inline-flex items-center gap-2"><input data-k="ghost" type="checkbox" ${block.ghost?'checked':''}> <span>Gaya Ghost</span></label>
+      </div>`;
   }
 
-  // ===== BROADCAST =====
-  document.getElementById('btnBroadcast').addEventListener('click', async()=>{
-    const msg = document.getElementById('bcMsg').value.trim(); if(!msg) return toast('Tulis mesej dahulu');
-    try{ await api('broadcast', { leader_id: LEADER_ID, message: msg }); toast('Mesej dilog ✔️'); document.getElementById('bcMsg').value=''; }catch(e){ toast(e.message||'Gagal log'); }
+  // listeners
+  $$('[data-k]',row).forEach(el=> el.addEventListener('input', ()=>{ block[el.dataset.k] = (el.type==='checkbox') ? el.checked : el.value; renderMiniPreview(); }));
+  $('[data-del]',row).addEventListener('click', ()=>{ const i = (sec.blocks||[]).indexOf(block); if(i>-1){ sec.blocks.splice(i,1); renderSectionsList(); renderMiniPreview(); } });
+  $$('[data-move]',row).forEach(btn=> btn.addEventListener('click', ()=>{
+    const dir = btn.dataset.move==='up'?-1:1; const i = (sec.blocks||[]).indexOf(block); const j=i+dir; if(j<0||j>=sec.blocks.length)return; const [m]=sec.blocks.splice(i,1); sec.blocks.splice(j,0,m); renderSectionsList(); renderMiniPreview();
+  }));
+  return row;
+}
+
+// Add section buttons
+$$('[data-add-section]').forEach(b=> b.addEventListener('click', ()=>{ SECTIONS.push(blankSection(b.dataset.addSection)); renderSectionsList(); renderMiniPreview(); }));
+
+// Export/Import
+$('#btnExport').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(SECTIONS,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='mova_sections.json'; a.click(); URL.revokeObjectURL(url);
+});
+$('#btnImport').addEventListener('click', ()=>{
+  const inp = document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=()=>{
+    const f = inp.files[0]; if(!f) return; const r = new FileReader(); r.onload=()=>{
+      try{ const arr = JSON.parse(String(r.result||'[]')); if(Array.isArray(arr)){ SECTIONS = arr; renderSectionsList(); renderMiniPreview(); toast('Import berjaya ✔️'); } else toast('Fail tidak sah'); }catch(e){ toast('JSON rosak') }
+    }; r.readAsText(f);
+  }; inp.click();
+});
+
+// Save Sections & Theme
+$('#btnSaveSections').addEventListener('click', async ()=>{
+  try{
+    const payload = {
+      leader_id: LEADER_ID,
+      theme_color: $('#themePrimary').value || '#ef4444',
+      cashback_min: Number($('#rateMin').value||5),
+      cashback_max: Number($('#rateMax').value||10),
+      content_width: Number($('#contentWidth').value||980),
+      sections: SECTIONS
+    };
+    await api('settings_set', payload);
+    toast('Disimpan ✔️');
+  }catch(e){ toast('Gagal simpan'); }
+});
+
+// Save Settings (typography + misc)
+$('#btnSaveSettings').addEventListener('click', async ()=>{
+  try{
+    const payload = {
+      leader_id: LEADER_ID,
+      leader_name: $('#setLeaderName').value.trim(),
+      whatsapp: $('#setWhatsApp').value.trim(),
+      fonnte_api: $('#setFonnte').value.trim(),
+      heading_size: Number($('#headingSize').value||28),
+      heading_color: $('#headingColor').value||'#111111',
+      heading_bold: $('#headingBold').checked,
+      body_size: Number($('#bodySize').value||16),
+      body_color: $('#bodyColor').value||'#374151',
+      body_bold: $('#bodyBold').checked
+    };
+    await api('settings_set', payload);
+    toast('Settings disimpan ✔️');
+  }catch(e){ toast('Gagal simpan settings'); }
+});
+
+// ===== MINI PREVIEW RENDER (mengikut user.html logik) =====
+function formatInline(str){
+  if (!str) return '';
+  let html = esc(str);
+  html = html.replace(/\n/g,'<br>');
+  html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  html = html.replace(/\[([^\]]+)\]\{(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)\}/g, '<span style="color:$2">$1</span>');
+  return html;
+}
+function parseYouTube(url){ try{ const u = new URL(url); if(u.hostname.includes('youtube.com')) return u.searchParams.get('v'); if(u.hostname.includes('youtu.be')) return u.pathname.slice(1); }catch(_){} return null }
+
+function renderMiniPreview(){
+  const host = $('#miniPreview'); host.innerHTML = '';
+  const wrap = document.createElement('div'); wrap.style.maxWidth = (Number($('#contentWidth').value||980))+'px'; wrap.className='mx-auto space-y-4';
+  // Hero fallback
+  const hero = SECTIONS.find(s=> (s.type||'')==='hero') || SECTIONS[0];
+  if (hero){
+    const h = document.createElement('div'); h.className='p-4 border rounded-xl bg-white';
+    const titleBlock = (hero.blocks||[]).find(b=>b.kind==='text');
+    const mediaBlock = (hero.blocks||[]).find(b=>b.kind==='image'||b.kind==='video');
+    const h1 = document.createElement('div'); h1.className='text-xl font-extrabold'; h1.innerHTML = formatInline(hero.title || (titleBlock?.value||'MOVA'));
+    h.appendChild(h1);
+    const subt = document.createElement('div'); subt.className='text-sm text-gray-600 mt-1'; subt.innerHTML = formatInline(hero.subtitle||'Belanja, kumpul cashback, bina masa depan.'); h.appendChild(subt);
+    if (mediaBlock && mediaBlock.value){
+      const box = document.createElement('div'); box.className='mt-3';
+      if (mediaBlock.kind==='image') box.innerHTML = `<img src="${esc(mediaBlock.value)}" class="w-full rounded-lg border">`;
+      else { const yt = parseYouTube(mediaBlock.value); box.innerHTML = yt? `<div class='relative pb-[56.25%] h-0 overflow-hidden rounded-lg border'><iframe src='https://www.youtube.com/embed/${yt}' class='absolute top-0 left-0 w-full h-full' frameborder='0' allowfullscreen></iframe></div>` : `<video src='${esc(mediaBlock.value)}' controls playsinline class='w-full rounded-lg border'></video>`; }
+      h.appendChild(box);
+    }
+    wrap.appendChild(h);
+  }
+  // Other sections
+  SECTIONS.filter(s=>s!==hero && !s.hidden).forEach(sec=>{
+    const box = document.createElement('div'); box.className='p-4 border rounded-xl bg-white';
+    const h2 = document.createElement('div'); h2.className='text-base font-extrabold'; h2.textContent = sec.title||'Seksyen'; box.appendChild(h2);
+    const inner = document.createElement('div'); inner.className='mt-2 space-y-2';
+    (sec.blocks||[]).forEach(b=>{
+      if (b.kind==='text'){
+        const d = document.createElement('div');
+        const size = Number(b.size||0); const color=b.color||$('#bodyColor').value; const bold=b.bold||$('#bodyBold').checked;
+        d.style.fontSize = (size>0? size : Number($('#bodySize').value||16))+'px';
+        d.style.color = color; d.style.fontWeight = bold?'700':'400';
+        d.className='leading-relaxed'; d.innerHTML = formatInline(b.value||''); inner.appendChild(d);
+      } else if (b.kind==='image'){
+        if (!b.value) return; const img=document.createElement('img'); img.src=b.value; img.className = 'w-full border mt-1 '+(b.rounded?'rounded-xl':'rounded'); inner.appendChild(img);
+      } else if (b.kind==='video'){
+        if (!b.value) return; const yt=parseYouTube(b.value); const wrapV=document.createElement('div'); wrapV.className='mt-1';
+        wrapV.innerHTML = yt? `<div class='relative pb-[56.25%] h-0 overflow-hidden rounded-xl border'><iframe src='https://www.youtube.com/embed/${yt}' class='absolute top-0 left-0 w-full h-full' frameborder='0' allowfullscreen></iframe></div>` : `<video src='${esc(b.value)}' controls playsinline class='w-full rounded-xl border'></video>`; inner.appendChild(wrapV);
+      } else if (b.kind==='link' || b.kind==='button'){
+        const a = document.createElement('a'); a.href=b.value||'#'; a.target='_blank'; a.className = (b.kind==='button' && !b.ghost) ? 'btn btn-primary' : 'btn btn-ghost'; a.textContent = b.text||'Pautan'; inner.appendChild(a);
+      }
+    });
+    box.appendChild(inner); wrap.appendChild(box);
   });
+  host.appendChild(wrap);
+}
+
 </script>
 </body>
 </html>
