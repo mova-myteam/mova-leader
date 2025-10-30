@@ -50,7 +50,7 @@
     .block-row + .block-row{margin-top:.5rem}
     .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
     
-    /* Enhanced Rich Editor Toolbar - Canva Style */
+    /* Enhanced Rich Editor Toolbar - Canva Pro Style */
     .editor-container{position:relative;border:1px solid #d1d5db;border-radius:.75rem;background:#fff}
     .editor-toolbar{background:#f8fafc;border-bottom:1px solid #e5e7eb;padding:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center}
     .toolbar-group{display:flex;gap:2px;padding:0 4px;border-right:1px solid #e5e7eb}
@@ -104,6 +104,22 @@
     .tracking-wide{letter-spacing:0.025em}
     .tracking-wider{letter-spacing:0.05em}
     .tracking-widest{letter-spacing:0.1em}
+    
+    /* Canva Pro Style Toolbar Enhancements */
+    .toolbar-advanced{background:#f1f5f9;border-radius:6px;padding:4px;margin:4px 0}
+    .toolbar-subgroup{display:flex;gap:2px;padding:2px 4px}
+    .toolbar-separator{width:1px;background:#cbd5e1;margin:0 4px}
+    .toolbar-label{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;padding:0 4px;display:flex;align-items:center}
+    .toolbar-slider{width:80px;height:4px;background:#e2e8f0;border-radius:2px;position:relative;cursor:pointer}
+    .slider-thumb{position:absolute;width:12px;height:12px;background:#111;border-radius:50%;top:-4px;left:0;cursor:grab}
+    .slider-thumb:active{cursor:grabbing}
+    .font-preview{padding:4px 8px;background:#fff;border:1px solid #e2e8f0;border-radius:4px;font-size:14px;min-width:100px;text-align:center}
+    .gradient-text{background:linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4, #feca57);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:bold}
+    .toolbar-tabs{display:flex;border-bottom:1px solid #e2e8f0;margin-bottom:4px}
+    .toolbar-tab{padding:4px 8px;font-size:12px;color:#64748b;cursor:pointer;border-bottom:2px solid transparent}
+    .toolbar-tab.active{color:#111;border-bottom-color:#111}
+    .toolbar-panel{display:none}
+    .toolbar-panel.active{display:block}
   </style>
 </head>
 <body class="bg-gray-50">
@@ -1008,20 +1024,56 @@
     lucide.createIcons();
   }
 
-  // ====== ENHANCED RICH TEXT EDITOR - CANVA STYLE ======
+  // ====== ENHANCED RICH TEXT EDITOR - CANVA PRO STYLE ======
   function makeToolbar(container, box){
     const editorContainer = document.createElement('div');
     editorContainer.className = 'editor-container';
     
-    // Create toolbar
+    // Create toolbar with tabs
     const toolbar = document.createElement('div');
     toolbar.className = 'editor-toolbar';
+    
+    // Create tabs for different tool groups
+    const tabsContainer = document.createElement('div');
+    tabsContainer.className = 'toolbar-tabs';
+    
+    const tabs = [
+      { id: 'basic', label: 'Basic', active: true },
+      { id: 'text', label: 'Text', active: false },
+      { id: 'style', label: 'Style', active: false },
+      { id: 'advanced', label: 'Advanced', active: false }
+    ];
+    
+    tabs.forEach(tab => {
+      const tabEl = document.createElement('div');
+      tabEl.className = `toolbar-tab ${tab.active ? 'active' : ''}`;
+      tabEl.textContent = tab.label;
+      tabEl.dataset.tab = tab.id;
+      tabEl.addEventListener('click', () => {
+        document.querySelectorAll('.toolbar-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.toolbar-panel').forEach(p => p.classList.remove('active'));
+        tabEl.classList.add('active');
+        document.getElementById(`panel-${tab.id}`).classList.add('active');
+      });
+      tabsContainer.appendChild(tabEl);
+    });
+    
+    toolbar.appendChild(tabsContainer);
+    
+    // Create panels for each tab
+    const panelsContainer = document.createElement('div');
+    panelsContainer.className = 'toolbar-panels';
+    
+    // Basic Panel
+    const basicPanel = document.createElement('div');
+    basicPanel.id = 'panel-basic';
+    basicPanel.className = 'toolbar-panel active';
     
     // Font Family
     const fontGroup = createToolbarGroup('Font Family');
     const fontSelect = createFontSelector();
     fontGroup.appendChild(fontSelect);
-    toolbar.appendChild(fontGroup);
+    basicPanel.appendChild(fontGroup);
     
     // Font Size
     const sizeGroup = createToolbarGroup('Size');
@@ -1029,13 +1081,13 @@
     const sizeButtons = createSizeButtons();
     sizeGroup.appendChild(sizeInput);
     sizeGroup.appendChild(sizeButtons);
-    toolbar.appendChild(sizeGroup);
+    basicPanel.appendChild(sizeGroup);
     
     // Text Formatting
     const formatGroup = createToolbarGroup('Format');
     const formatButtons = createFormatButtons();
     formatButtons.forEach(btn => formatGroup.appendChild(btn));
-    toolbar.appendChild(formatGroup);
+    basicPanel.appendChild(formatGroup);
     
     // Text Color
     const colorGroup = createToolbarGroup('Color');
@@ -1043,43 +1095,86 @@
     const bgColorBtn = createColorButton('background', 'Background Color');
     colorGroup.appendChild(textColorBtn);
     colorGroup.appendChild(bgColorBtn);
-    toolbar.appendChild(colorGroup);
+    basicPanel.appendChild(colorGroup);
+    
+    panelsContainer.appendChild(basicPanel);
+    
+    // Text Panel
+    const textPanel = document.createElement('div');
+    textPanel.id = 'panel-text';
+    textPanel.className = 'toolbar-panel';
     
     // Text Alignment
     const alignGroup = createToolbarGroup('Align');
     const alignButtons = createAlignButtons();
     alignButtons.forEach(btn => alignGroup.appendChild(btn));
-    toolbar.appendChild(alignGroup);
+    textPanel.appendChild(alignGroup);
     
     // Lists
     const listGroup = createToolbarGroup('List');
     const listButtons = createListButtons();
     listButtons.forEach(btn => listGroup.appendChild(btn));
-    toolbar.appendChild(listGroup);
+    textPanel.appendChild(listGroup);
     
     // Indent
     const indentGroup = createToolbarGroup('Indent');
     const indentButtons = createIndentButtons();
     indentButtons.forEach(btn => indentGroup.appendChild(btn));
-    toolbar.appendChild(indentGroup);
+    textPanel.appendChild(indentGroup);
     
-    // Advanced
-    const advancedGroup = createToolbarGroup('Advanced');
-    const advancedContainer = createAdvancedButtons();
-    advancedGroup.appendChild(advancedContainer);
-    toolbar.appendChild(advancedGroup);
+    panelsContainer.appendChild(textPanel);
+    
+    // Style Panel
+    const stylePanel = document.createElement('div');
+    stylePanel.id = 'panel-style';
+    stylePanel.className = 'toolbar-panel';
+    
+    // Text Transform
+    const transformGroup = createToolbarGroup('Transform');
+    const transformButtons = createTransformButtons();
+    transformButtons.forEach(btn => transformGroup.appendChild(btn));
+    stylePanel.appendChild(transformGroup);
+    
+    // Line Height
+    const lineHeightGroup = createToolbarGroup('Line Height');
+    const lineHeightButtons = createLineHeightButtons();
+    lineHeightButtons.forEach(btn => lineHeightGroup.appendChild(btn));
+    stylePanel.appendChild(lineHeightGroup);
+    
+    // Letter Spacing
+    const letterSpacingGroup = createToolbarGroup('Letter Spacing');
+    const letterSpacingButtons = createLetterSpacingButtons();
+    letterSpacingButtons.forEach(btn => letterSpacingGroup.appendChild(btn));
+    stylePanel.appendChild(letterSpacingGroup);
+    
+    // Text Shadow
+    const shadowGroup = createToolbarGroup('Text Shadow');
+    const shadowButtons = createShadowButtons();
+    shadowButtons.forEach(btn => shadowGroup.appendChild(btn));
+    stylePanel.appendChild(shadowGroup);
+    
+    panelsContainer.appendChild(stylePanel);
+    
+    // Advanced Panel
+    const advancedPanel = document.createElement('div');
+    advancedPanel.id = 'panel-advanced';
+    advancedPanel.className = 'toolbar-panel';
     
     // Insert
     const insertGroup = createToolbarGroup('Insert');
     const insertButtons = createInsertButtons();
     insertButtons.forEach(btn => insertGroup.appendChild(btn));
-    toolbar.appendChild(insertGroup);
+    advancedPanel.appendChild(insertGroup);
     
     // Clear Formatting
     const clearGroup = createToolbarGroup('Clear');
     const clearBtn = createClearButton();
     clearGroup.appendChild(clearBtn);
-    toolbar.appendChild(clearGroup);
+    advancedPanel.appendChild(clearGroup);
+    
+    panelsContainer.appendChild(advancedPanel);
+    
+    toolbar.appendChild(panelsContainer);
     
     editorContainer.appendChild(toolbar);
     
@@ -1260,8 +1355,7 @@
       '#9900ff', '#ff00ff', '#e6b8af', '#f4cccc', '#fce5cd', '#fff2cc', '#d9ead3', '#d0e0e3', '#c9daf8', '#cfe2f3',
       '#d9d2e9', '#ead1dc', '#dd7e6b', '#ea9999', '#f9cb9c', '#ffe599', '#b6d7a8', '#a2c4c9', '#a4c2f4', '#9fc5e8',
       '#b4a7d6', '#d5a6bd', '#cc4125', '#e06666', '#f6b26b', '#ffd966', '#93c47d', '#76a5af', '#6d9eeb', '#6fa8dc',
-      '#8e7cc3', '#c27ba0', '#a61c00', '#cc0000', '#e69138', '#f1c232', '#6aa84f', '#45818e', '#3d85c6', '#3c78d8',
-      '#674ea7', '#a64d79', '#85200c', '#990000', '#b45f06', '#bf9000', '#38761d', '#134f5c', '#0b5394', '#073763',
+      '#8e7cc3', '#c27ba0', '#a61c00', '#cc0000', '#e69138', '#f1c232', '#38761d', '#134f5c', '#0b5394', '#073763',
       '#20124d', '#4c1130'
     ];
     
@@ -1355,93 +1449,75 @@
     });
   }
   
-  function createAdvancedButtons() {
-    const container = document.createElement('div');
+  function createTransformButtons() {
+    const buttons = [
+      { cmd: 'text-uppercase', icon: 'arrow-up', title: 'Uppercase' },
+      { cmd: 'text-lowercase', icon: 'arrow-down', title: 'Lowercase' },
+      { cmd: 'text-capitalize', icon: 'type', title: 'Capitalize' }
+    ];
     
-    // Text Transform Dropdown
-    const transformDropdown = createToolbarDropdown('Text Transform', [
-      { value: 'uppercase', label: 'UPPERCASE' },
-      { value: 'lowercase', label: 'lowercase' },
-      { value: 'capitalize', label: 'Capitalize' }
-    ]);
-    
-    // Line Height Dropdown
-    const lineHeightDropdown = createToolbarDropdown('Line Height', [
-      { value: 'leading-tight', label: 'Tight' },
-      { value: 'leading-snug', label: 'Snug' },
-      { value: 'leading-normal', label: 'Normal' },
-      { value: 'leading-relaxed', label: 'Relaxed' },
-      { value: 'leading-loose', label: 'Loose' }
-    ]);
-    
-    // Letter Spacing Dropdown
-    const letterSpacingDropdown = createToolbarDropdown('Letter Spacing', [
-      { value: 'tracking-tighter', label: 'Tighter' },
-      { value: 'tracking-tight', label: 'Tight' },
-      { value: 'tracking-normal', label: 'Normal' },
-      { value: 'tracking-wide', label: 'Wide' },
-      { value: 'tracking-wider', label: 'Wider' },
-      { value: 'tracking-widest', label: 'Widest' }
-    ]);
-    
-    // Text Shadow Dropdown
-    const shadowDropdown = createToolbarDropdown('Text Shadow', [
-      { value: 'text-shadow-none', label: 'None' },
-      { value: 'text-shadow-sm', label: 'Small' },
-      { value: 'text-shadow-md', label: 'Medium' },
-      { value: 'text-shadow-lg', label: 'Large' },
-      { value: 'text-outline', label: 'Outline' }
-    ]);
-    
-    container.appendChild(transformDropdown);
-    container.appendChild(lineHeightDropdown);
-    container.appendChild(letterSpacingDropdown);
-    container.appendChild(shadowDropdown);
-    
-    return container;
+    return buttons.map(btn => {
+      const button = createToolbarButton(btn.icon, btn.title);
+      button.addEventListener('click', () => {
+        applyStyleToSelection(btn.cmd);
+      });
+      return button;
+    });
   }
   
-  function createToolbarDropdown(title, options) {
-    const container = document.createElement('div');
-    container.className = 'toolbar-dropdown';
+  function createLineHeightButtons() {
+    const buttons = [
+      { cmd: 'leading-tight', icon: 'minimize-2', title: 'Tight' },
+      { cmd: 'leading-snug', icon: 'align-vertical-space-around', title: 'Snug' },
+      { cmd: 'leading-normal', icon: 'align-vertical-space-center', title: 'Normal' },
+      { cmd: 'leading-relaxed', icon: 'align-vertical-space-end', title: 'Relaxed' },
+      { cmd: 'leading-loose', icon: 'maximize-2', title: 'Loose' }
+    ];
     
-    const btn = createToolbarButton('chevron-down', title);
-    const menu = document.createElement('div');
-    menu.className = 'toolbar-dropdown-menu';
-    
-    options.forEach(option => {
-      const item = document.createElement('div');
-      item.className = 'dropdown-item';
-      item.textContent = option.label;
-      item.addEventListener('click', () => {
-        applyStyleToSelection(option.value);
-        menu.classList.remove('show');
+    return buttons.map(btn => {
+      const button = createToolbarButton(btn.icon, btn.title);
+      button.addEventListener('click', () => {
+        applyStyleToSelection(btn.cmd);
       });
-      menu.appendChild(item);
+      return button;
     });
+  }
+  
+  function createLetterSpacingButtons() {
+    const buttons = [
+      { cmd: 'tracking-tighter', icon: 'minimize-2', title: 'Tighter' },
+      { cmd: 'tracking-tight', icon: 'chevrons-left', title: 'Tight' },
+      { cmd: 'tracking-normal', icon: 'minus', title: 'Normal' },
+      { cmd: 'tracking-wide', icon: 'chevrons-right', title: 'Wide' },
+      { cmd: 'tracking-wider', icon: 'maximize-2', title: 'Wider' },
+      { cmd: 'tracking-widest', icon: 'expand', title: 'Widest' }
+    ];
     
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      document.querySelectorAll('.toolbar-dropdown-menu').forEach(m => {
-        if (m !== menu) m.classList.remove('show');
+    return buttons.map(btn => {
+      const button = createToolbarButton(btn.icon, btn.title);
+      button.addEventListener('click', () => {
+        applyStyleToSelection(btn.cmd);
       });
-      menu.classList.toggle('show');
-      
-      const rect = btn.getBoundingClientRect();
-      menu.style.top = (rect.bottom + 5) + 'px';
-      menu.style.left = rect.left + 'px';
+      return button;
     });
+  }
+  
+  function createShadowButtons() {
+    const buttons = [
+      { cmd: 'text-shadow-none', icon: 'x', title: 'None' },
+      { cmd: 'text-shadow-sm', icon: 'sun', title: 'Small' },
+      { cmd: 'text-shadow-md', icon: 'cloud', title: 'Medium' },
+      { cmd: 'text-shadow-lg', icon: 'cloud-rain', title: 'Large' },
+      { cmd: 'text-outline', icon: 'square', title: 'Outline' }
+    ];
     
-    document.addEventListener('click', (e) => {
-      if (!container.contains(e.target)) {
-        menu.classList.remove('show');
-      }
+    return buttons.map(btn => {
+      const button = createToolbarButton(btn.icon, btn.title);
+      button.addEventListener('click', () => {
+        applyStyleToSelection(btn.cmd);
+      });
+      return button;
     });
-    
-    container.appendChild(btn);
-    container.appendChild(menu);
-    
-    return container;
   }
   
   function createInsertButtons() {
@@ -1449,7 +1525,9 @@
       { cmd: 'createLink', icon: 'link', title: 'Insert Link' },
       { cmd: 'insertHorizontalRule', icon: 'minus', title: 'Horizontal Line' },
       { cmd: 'formatBlock', value: 'blockquote', icon: 'quote', title: 'Blockquote' },
-      { cmd: 'formatBlock', value: 'pre', icon: 'code', title: 'Code Block' }
+      { cmd: 'formatBlock', value: 'pre', icon: 'code', title: 'Code Block' },
+      { cmd: 'insertTable', icon: 'grid-3x3', title: 'Insert Table' },
+      { cmd: 'insertImage', icon: 'image', title: 'Insert Image' }
     ];
     
     return buttons.map(btn => {
@@ -1458,6 +1536,18 @@
         if (btn.cmd === 'createLink') {
           const url = prompt('Enter URL:');
           if (url) document.execCommand(btn.cmd, false, url);
+        } else if (btn.cmd === 'insertTable') {
+          const rows = prompt('Number of rows:', '3');
+          const cols = prompt('Number of columns:', '3');
+          if (rows && cols) {
+            const table = `<table border="1"><tbody>${Array(parseInt(rows)).fill().map(() => 
+              `<tr>${Array(parseInt(cols)).fill().map(() => '<td>&nbsp;</td>').join('')}</tr>`
+            ).join('')}</tbody></table>`;
+            document.execCommand('insertHTML', false, table);
+          }
+        } else if (btn.cmd === 'insertImage') {
+          const url = prompt('Enter image URL:');
+          if (url) document.execCommand('insertImage', false, url);
         } else if (btn.value) {
           document.execCommand(btn.cmd, false, `<${btn.value}>`);
         } else {
@@ -1563,7 +1653,7 @@
     // Update format buttons
     const formatCommands = ['bold', 'italic', 'underline', 'strikeThrough', 'subscript', 'superscript'];
     formatCommands.forEach(cmd => {
-      const btn = toolbar.querySelector(`[data-cmd="${cmd}"]`);
+      const btn = toolbar.querySelector(`[title*="${cmd}"]`);
       if (btn) {
         btn.classList.toggle('active', document.queryCommandState(cmd));
       }
@@ -1571,7 +1661,7 @@
     
     // Update list buttons
     ['insertUnorderedList', 'insertOrderedList'].forEach(cmd => {
-      const btn = toolbar.querySelector(`[data-cmd="${cmd}"]`);
+      const btn = toolbar.querySelector(`[title*="${cmd}"]`);
       if (btn) {
         btn.classList.toggle('active', document.queryCommandState(cmd));
       }
@@ -1579,7 +1669,7 @@
     
     // Update alignment buttons
     ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'].forEach(cmd => {
-      const btn = toolbar.querySelector(`[data-cmd="${cmd}"]`);
+      const btn = toolbar.querySelector(`[title*="${cmd}"]`);
       if (btn) {
         btn.classList.toggle('active', document.queryCommandState(cmd));
       }
