@@ -3,714 +3,1903 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Dashboard (No‑Code Edition)</title>
+  <title>MOVA Leader — Dashboard</title>
 
   <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind (CDN) -->
+  <!-- Tailwind (CDN for simplicity; use CLI for production) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- SortableJS for drag and drop -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
   <style>
     :root { --brand:#ef4444; }
-    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial;background:#fafafa}
-    .container{max-width:1180px}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
-    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:700; border:1px solid #e5e7eb; white-space:nowrap; }
-    .pill-active{ background:#111; color:#fff; border-color:#111; }
-    .pill-idle{ background:#fff; color:#374151; }
-    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.6rem .95rem;font-weight:800}
-    .btn-primary{background:var(--brand);color:#fff}
-    .btn-ghost{background:#fff;border:1px solid #e5e7eb}
-    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem .9rem;background:#fff}
-    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
-    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
-    .dragging{opacity:.5}
-    .ghost{border:2px dashed #cbd5e1}
-    .mini-preview{position:sticky; top:1rem;}
+    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
     .scroll-bar::-webkit-scrollbar{height:8px}
     .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; white-space:nowrap; transition: all 0.3s ease; cursor: pointer;}
+    .pill-active{ background:#111; color:#fff; border-color:#111; box-shadow:0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
+    .pill-idle{ background:#fff; color:#374151; }
+    .pill-idle:hover{ background:#f9fafb; border-color:#d1d5db; }
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
+    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.55rem 1rem; font-weight:700; }
+    .btn-primary:hover{ filter:brightness(0.95); }
+    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.5rem 1rem; }
+    .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem .9rem; background:#fff; }
+    .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .textarea{ width:100%; min-height:140px; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; background:#fff; }
+    .textarea:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
+    .media-tile{ position:relative; overflow:hidden; border:1px solid #e5e7eb; border-radius:.75rem; cursor:pointer; }
+    .media-tile.selected{ outline:2px solid #111; }
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
+    .table{ width:100%; border-collapse:separate; border-spacing:0; }
+    .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
+    .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
+    .chip{display:inline-flex;align-items:center;gap:.4rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.8rem}
+    .chip button{background:transparent;border:none;cursor:pointer}
+    .recip-row{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-bottom:1px dashed #f1f5f9}
+    .switch{position:relative;width:44px;height:26px;border-radius:9999px;background:#e5e7eb;display:inline-block;vertical-align:middle;cursor:pointer}
+    .switch input{display:none}
+    .switch span{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:9999px;transition:.2s}
+    .switch input:checked + span{left:21px;background:#111}
+    .row-rep{border:1px solid #e5e7eb;border-radius:.75rem;padding:.75rem}
+    .row-rep + .row-rep{margin-top:.75rem}
+    .help{font-size:.75rem;color:#6b7280}
+    .block-row{border:1px dashed #e5e7eb;border-radius:.6rem;padding:.6rem;background:#fff}
+    .block-row + .block-row{margin-top:.5rem}
+    .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
+    /* Rich editor */
+    .toolbar button{border:1px solid #e5e7eb;border-radius:.5rem;padding:.25rem .5rem;background:#fff; transition: all 0.2s ease;}
+    .toolbar button:hover{background:#f3f4f6;}
+    .toolbar button.active{background:#111;color:#fff;border-color:#111;}
+    .toolbar select{transition: all 0.2s ease;}
+    .toolbar select:focus{background:#f9fafb;}
+    .rtbox{min-height:120px;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem;background:#fff}
+    /* Canvas preview styles */
+    .canvas-container {
+      position: relative;
+      overflow: hidden;
+      background-color: #f9fafb;
+      background-image: 
+        linear-gradient(rgba(229, 231, 235, 0.5) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
+      background-size: 20px 20px;
+      border-radius: 0.75rem;
+      min-height: 560px;
+    }
+    .canvas-block {
+      position: absolute;
+      cursor: move;
+      user-select: none;
+      border: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .canvas-block:hover {
+      border-color: #d1d5db;
+    }
+    .canvas-block.selected {
+      border-color: #111;
+      box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.2);
+    }
+    .canvas-block.text {
+      padding: 8px;
+      background-color: white;
+      border-radius: 0.5rem;
+      min-width: 100px;
+      min-height: 40px;
+      overflow: hidden;
+    }
+    .canvas-block.image, .canvas-block.video {
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
+    .canvas-block.image img, .canvas-block.video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .canvas-block.video iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .canvas-block.link, .canvas-block.social, .canvas-block.button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 0.5rem;
+      white-space: nowrap;
+    }
+    .canvas-block.link {
+      background-color: #f3f4f6;
+      color: #374151;
+      text-decoration: none;
+    }
+    .canvas-block.social {
+      background-color: #f3f4f6;
+      color: #374151;
+      text-decoration: none;
+    }
+    .canvas-block.button {
+      background-color: var(--brand);
+      color: white;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .resize-handle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      background-color: #111;
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .canvas-block:hover .resize-handle,
+    .canvas-block.selected .resize-handle {
+      opacity: 0.7;
+    }
+    .resize-handle.se {
+      bottom: -5px;
+      right: -5px;
+      cursor: se-resize;
+    }
+    .canvas-mode-toggle {
+      display: flex;
+      background-color: #f3f4f6;
+      border-radius: 0.5rem;
+      padding: 4px;
+      margin-bottom: 12px;
+    }
+    .canvas-mode-toggle button {
+      padding: 6px 12px;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .canvas-mode-toggle button.active {
+      background-color: white;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
   </style>
 </head>
-<body>
+<body class="bg-gray-50">
 
 <!-- ====== HEADER ====== -->
 <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
-  <div class="mx-auto container px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
       <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
-        <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+        <i data-lucide="rocket" class="w-5 h-5"></i>
       </div>
       <div>
-        <div class="text-lg font-extrabold">MOVA Leader — Dashboard</div>
-        <div class="text-xs text-gray-500">No‑Code Edition · Leader sahaja</div>
+        <div class="text-lg font-semibold">MOVA Leader</div>
+        <div class="text-xs text-gray-500">Hai, <span id="leaderName">leader</span></div>
       </div>
     </div>
 
-    <nav class="hidden md:flex items-center gap-2 text-sm">
-      <a class="btn-ghost" href="./user.html" target="_blank"><i data-lucide="external-link" class="w-4 h-4"></i> Laman User</a>
-    </nav>
+    <div class="flex items-center gap-2">
+      <button id="btnOpenUser" class="btn-ghost">Lihat Laman User</button>
+      <button id="btnLogout" class="btn-primary flex items-center gap-2">
+        <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar
+      </button>
+    </div>
   </div>
 </header>
 
-<main class="mx-auto container px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-  <!-- ===== TABS BAR (Tidak diubah: kekal struktur asal) ===== -->
+<!-- ====== CONTENT ====== -->
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- KPI -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPartners">—</div>
+      <div class="text-sm text-gray-600">Total Partners</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statCustomers">—</div>
+      <div class="text-sm text-gray-600">Total Customers</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPending">—</div>
+      <div class="text-sm text-gray-600">Pending Approvals</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPublished">—</div>
+      <div class="text-sm text-gray-600">Published Content</div>
+    </div>
+  </section>
+
+  <!-- TABS -->
   <section class="card p-3">
     <div class="flex gap-2 overflow-x-auto scroll-bar">
-      <button data-tab="sections" class="pill pill-active"><i data-lucide="panels-top-left" class="w-4 h-4"></i> User Sections</button>
-      <button data-tab="content"  class="pill pill-idle"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
-      <button data-tab="media"    class="pill pill-idle"><i data-lucide="images" class="w-4 h-4"></i> Media</button>
-      <button data-tab="partner"  class="pill pill-idle"><i data-lucide="handshake" class="w-4 h-4"></i> Partner</button>
-      <button data-tab="customer" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Customer</button>
-      <button data-tab="approvals"class="pill pill-idle"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Approvals</button>
-      <button data-tab="broadcast"class="pill pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
-      <button data-tab="charts"   class="pill pill-idle"><i data-lucide="bar-chart-3" class="w-4 h-4"></i> Carta</button>
+      <button data-tab="user" class="pill pill-active"><i data-lucide="layout-template" class="w-4 h-4"></i> User Sections</button>
+      <button data-tab="content" class="pill pill-idle"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
+      <button data-tab="media" class="pill pill-idle"><i data-lucide="image" class="w-4 h-4"></i> Media</button>
+      <button data-tab="partner" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Partner</button>
+      <button data-tab="customer" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Customer</button>
+      <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
+      <button data-tab="broadcast" class="pill pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
+      <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta</button>
       <button data-tab="settings" class="pill pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
     </div>
   </section>
 
-  <!-- ===== PANELS ===== -->
+  <!-- PANELS -->
   <section class="space-y-6">
 
-    <!-- === User Sections: No‑Code Builder + Mini Preview (kanan) === -->
-    <div id="tab-sections" class="grid lg:grid-cols-[1fr_380px] gap-4">
-      <!-- Builder -->
-      <div class="card p-4 space-y-4">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <i data-lucide="panels-top-left" class="w-5 h-5 text-gray-700"></i>
-            <h2 class="text-lg font-semibold">Pembina Seksyen (Drag & Drop)</h2>
-          </div>
-          <div class="flex gap-2">
-            <button id="btnImport" class="btn-ghost text-sm"><i data-lucide="upload" class="w-4 h-4"></i> Import</button>
-            <button id="btnExport" class="btn-ghost text-sm"><i data-lucide="download" class="w-4 h-4"></i> Export</button>
-            <button id="btnSaveSections" class="btn-primary text-sm"><i data-lucide="save" class="w-4 h-4"></i> Simpan</button>
-          </div>
+    <!-- ===== Tab: User Sections ===== -->
+    <div id="tab-user" class="card p-6 space-y-6">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
+          <h2 class="text-lg font-semibold">User Sections — Susun, Tambah, Padam & Edit</h2>
         </div>
+        <button id="btnPreviewUser" class="btn-ghost">Lihat Laman User</button>
+      </div>
 
-        <!-- Theme quick controls (no‑code) -->
-        <div class="grid md:grid-cols-4 gap-3">
-          <div>
-            <label class="text-xs text-gray-600">Warna Tema (Primary)</label>
-            <input id="themePrimary" type="color" class="input"/>
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Cashback Min (%)</label>
-            <input id="rateMin" type="number" class="input" min="0" max="100">
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Cashback Max (%)</label>
-            <input id="rateMax" type="number" class="input" min="0" max="100">
-          </div>
-          <div>
-            <label class="text-xs text-gray-600">Lebar Kandungan (px)</label>
-            <input id="contentWidth" type="number" class="input" min="720" step="10">
-          </div>
+      <div class="grid gap-3 md:grid-cols-[1fr_auto]">
+        <div class="text-sm text-gray-600">
+          Gunakan "Tambah Seksyen" untuk buat seksyen baharu. Setiap seksyen menyokong blok
+          <b>Text (Rich)</b>, <b>Gambar (URL)</b>, <b>Video (URL)</b>, <b>Link</b>, <b>Ikon Sosial</b> dan <b>Butang</b>.
+          Urutan seksyen di sini = urutan paparan dalam <b>user.html</b>. Klik <b>Preview Mini</b> untuk prarupa.
         </div>
+        <div class="flex items-center gap-2">
+          <button id="btnAddSection" class="btn-ghost"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Seksyen</button>
+          <button id="btnSaveSections" class="btn-primary">Simpan User Sections</button>
+          <button id="btnReloadSections" class="btn-ghost">Muat Semula</button>
+        </div>
+      </div>
 
-        <!-- Add section -->
-        <div class="card p-4">
-          <div class="flex items-center justify-between">
-            <div class="font-semibold">Tambah Seksyen</div>
-            <div class="flex gap-2">
-              <button class="btn-ghost text-sm" data-add-section="hero"><i data-lucide="sparkles" class="w-4 h-4"></i> Hero</button>
-              <button class="btn-ghost text-sm" data-add-section="rich"><i data-lucide="text" class="w-4 h-4"></i> Teks</button>
-              <button class="btn-ghost text-sm" data-add-section="updates"><i data-lucide="badge-info" class="w-4 h-4"></i> Promosi</button>
-              <button class="btn-ghost text-sm" data-add-section="list"><i data-lucide="list" class="w-4 h-4"></i> Senarai</button>
-              <button class="btn-ghost text-sm" data-add-section="faq"><i data-lucide="help-circle" class="w-4 h-4"></i> FAQ</button>
+      <div class="help">Tip: Anda boleh <b>highlight</b> mana-mana perkataan menggunakan pemilih warna tanpa had dalam editor Rich Text.</div>
+
+      <!-- Two column layout for sections and canvas preview -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Left column: Section Builder -->
+        <div id="sectionsWrap" class="space-y-4"></div>
+        
+        <!-- Right column: Canvas Preview -->
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-semibold">Mini Preview — Pro Canvas Mode</h3>
+            <div class="canvas-mode-toggle">
+              <button id="canvasModeBtn" class="active">Canvas</button>
+              <button id="htmlModeBtn">HTML</button>
             </div>
           </div>
+          <div id="canvasPreview" class="canvas-container"></div>
+          <div id="htmlPreview" class="mini-prev hidden"></div>
         </div>
-
-        <!-- Sections list (draggable) -->
-        <div id="sectionsList" class="space-y-3"></div>
       </div>
-
-      <!-- Mini Preview (kanan) -->
-      <aside class="mini-preview card p-0 overflow-hidden">
-        <div class="px-4 pt-4 pb-2 border-b text-sm text-gray-700 flex items-center gap-2">
-          <i data-lucide="eye" class="w-4 h-4"></i>
-          Pratonton Mini (ikut user.html)
-        </div>
-        <div id="miniPreview" class="p-4 space-y-4 max-h-[70vh] overflow-auto">
-          <div class="text-xs text-gray-500">Perubahan anda akan dipratonton di sini secara langsung.</div>
-        </div>
-        <div class="p-3 border-t bg-gray-50 text-[11px] text-gray-500">
-          Petua: Guna butang <b>Simpan</b> untuk menolak ke laman user.
-        </div>
-      </aside>
     </div>
 
-    <!-- === Kandungan === -->
-    <div id="tab-content" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2">
+    <!-- ===== Tab: Kandungan ===== -->
+    <div id="tab-content" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
         <i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-lg font-semibold">Kandungan Diterbitkan</h2>
+        <h2 class="text-lg font-semibold">Kandungan Umum</h2>
       </div>
-      <div id="contentList" class="grid md:grid-cols-2 gap-3"></div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="text-sm font-medium text-gray-700">Tajuk</label>
+          <input id="title" class="input mt-1" placeholder="Contoh: Promosi MOVA" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">Terbit?</label>
+          <select id="published" class="input mt-1">
+            <option value="yes">Ya</option>
+            <option value="no">Tidak</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700">Isi Kandungan</label>
+        <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi."></textarea>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="link" class="w-4 h-4 text-gray-700"></i>
+            <div class="font-semibold">Lampiran URL (gambar / video / pautan)</div>
+          </div>
+          <div class="grid gap-2">
+            <div class="flex items-center gap-2">
+              <input id="urlInput" class="input" placeholder="https://contoh.com/media.jpg atau https://youtube.com/...">
+              <button id="btnAddUrl" class="btn-ghost">Tambah</button>
+            </div>
+            <div id="urlList" class="grid gap-2"></div>
+          </div>
+        </div>
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="images" class="w-4 h-4 text-gray-700"></i>
+            <div class="font-semibold">Media Terpilih (dari Media Library)</div>
+          </div>
+          <div id="chosenMedia" class="text-sm text-gray-600">Tiada media dipilih. Pergi ke tab <b>Media</b> dan klik untuk memilih.</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="btnSaveContent" class="btn-primary">Simpan / Kemas Kini</button>
+        <button id="btnRefreshContent" class="btn-ghost">Segar Semula</button>
+        <button id="btnLoadLatestContent" class="btn-ghost">Muat Terbaru</button>
+      </div>
+      <div id="contentListWrap" class="hidden">
+        <div class="mt-4 text-sm font-semibold">Kandungan Terkini</div>
+        <div id="contentList" class="mt-2 grid gap-3"></div>
+      </div>
     </div>
 
-    <!-- === Media === -->
-    <div id="tab-media" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2">
-        <i data-lucide="images" class="w-5 h-5 text-gray-700"></i>
+    <!-- ===== Tab: Media ===== -->
+    <div id="tab-media" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="image" class="w-5 h-5 text-gray-700"></i>
         <h2 class="text-lg font-semibold">Media Library</h2>
       </div>
-      <div class="grid md:grid-cols-3 gap-3 items-start">
-        <div class="md:col-span-2">
-          <div id="mediaGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"></div>
-        </div>
-        <div class="card p-4">
-          <div class="font-semibold mb-2">Muat Naik</div>
-          <input id="filePick" type="file" accept="image/*,video/*" class="input">
-          <button id="btnUpload" class="btn-primary w-full mt-3"><i data-lucide="upload" class="w-4 h-4"></i> Upload</button>
-          <div class="text-xs text-gray-500 mt-2">Video akan dijadikan pautan tontonan awam (Drive).</div>
+      <div class="grid gap-3 md:grid-cols-[1fr_auto]">
+        <input id="fileInput" type="file" accept="image/*,video/*" class="input"/>
+        <div class="flex items-center gap-2">
+          <button id="btnUpload" class="btn-primary">Muat Naik</button>
+          <button id="btnInsertToContent" class="btn-ghost">Tandakan sebagai Lampiran</button>
+          <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
         </div>
       </div>
+      <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
     </div>
 
-    <!-- === Partner === -->
-    <div id="tab-partner" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2"><i data-lucide="handshake" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Partner</h2></div>
-      <div class="grid md:grid-cols-3 gap-3">
-        <input id="parName" class="input" placeholder="Nama partner">
-        <input id="parPhone" class="input" placeholder="Telefon">
-        <input id="parEmail" class="input" placeholder="Email (opsyen)">
+    <!-- ===== Tab: Partner ===== -->
+    <div id="tab-partner" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah Partner</h2>
       </div>
-      <div class="mt-2"><button id="btnAddPartner" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Partner</button></div>
-      <div id="partnerList" class="grid md:grid-cols-2 lg:grid-cols-3 gap-3 mt-4"></div>
-    </div>
-
-    <!-- === Customer === -->
-    <div id="tab-customer" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2"><i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Customer</h2></div>
-      <div class="grid md:grid-cols-4 gap-3">
-        <input id="cusName" class="input" placeholder="Nama penuh">
-        <input id="cusPhone" class="input" placeholder="No. telefon">
-        <input id="cusPartner" class="input" placeholder="Partner (opsyen)">
-        <button id="btnAddCustomer" class="btn-primary"><i data-lucide="plus" class="w-4 h-4"></i> Tambah</button>
+      <div class="grid gap-3 md:grid-cols-4">
+        <input id="partnerName" class="input" placeholder="Nama penuh">
+        <input id="partnerEmail" class="input" placeholder="Email">
+        <input id="partnerPhone" class="input" placeholder="No. Telefon">
+        <select id="partnerPackage" class="input">
+          <option value="">Pakej</option>
+          <option>Silver</option>
+          <option>Gold</option>
+          <option>Diamond</option>
+        </select>
       </div>
-      <div id="customerHint" class="text-xs text-gray-500 mt-2">Customer akan muncul dalam Carta/Org Chart.</div>
+      <div class="flex items-center gap-2">
+        <button id="btnCreatePartner" class="btn-primary">Cipta Partner</button>
+        <span class="text-xs text-gray-500">* partner akan dipaparkan dalam Carta Organisasi selepas ditambah.</span>
+      </div>
     </div>
 
-    <!-- === Approvals === -->
-    <div id="tab-approvals" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2"><i data-lucide="check-circle-2" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Approvals</h2></div>
+    <!-- ===== Tab: Customer ===== -->
+    <div id="tab-customer" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah Customer</h2>
+      </div>
+      <div class="grid gap-3 md:grid-cols-3">
+        <input id="customerName" class="input" placeholder="Nama customer">
+        <input id="customerPhone" class="input" placeholder="+60XXXXXXXXX">
+        <select id="customerPartner" class="input"><option value="">Pilih Partner</option></select>
+      </div>
+      <div>
+        <button id="btnAddCustomer" class="btn-primary">Tambah Customer</button>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Approvals ====== -->
+    <div id="tab-approve" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Approve Pendaftaran</h2>
+      </div>
       <div class="overflow-auto">
-        <table class="w-full border-collapse">
+        <table class="table">
           <thead>
-            <tr class="text-left text-xs text-gray-600 border-b">
-              <th class="py-2 pr-3">ID</th>
-              <th class="py-2 pr-3">Nama</th>
-              <th class="py-2 pr-3">Telefon</th>
-              <th class="py-2 pr-3">Status</th>
-              <th class="py-2">Tindakan</th>
+            <tr>
+              <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
             </tr>
           </thead>
-          <tbody id="tblApprovals"></tbody>
+          <tbody id="regTableBody"></tbody>
         </table>
       </div>
-      <div class="mt-2"><button id="btnReloadApprove" class="btn-ghost"><i data-lucide="refresh-ccw" class="w-4 h-4"></i> Segar Semula</button></div>
-    </div>
-
-    <!-- === Broadcast (log sahaja) === -->
-    <div id="tab-broadcast" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2"><i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Broadcast</h2></div>
-      <textarea id="bMsg" class="input" rows="4" placeholder="Mesej untuk log siaran…"></textarea>
-      <div class="mt-2 flex items-center gap-2">
-        <button id="btnBroadcast" class="btn-primary"><i data-lucide="send" class="w-4 h-4"></i> Log Broadcast</button>
-        <div class="text-xs text-gray-500">* Disimpan ke <code>broadcast_log</code> sahaja.</div>
+      <div class="flex gap-2">
+        <button id="btnReloadReg" class="btn-ghost">Segar Semula</button>
       </div>
     </div>
 
-    <!-- === Carta (ringkas) === -->
-    <div id="tab-charts" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2"><i data-lucide="bar-chart-3" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Carta & Ringkasan</h2></div>
-      <div id="statsWrap" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
-      <div class="text-xs text-gray-500 mt-2">Data diambil dari <code>partners</code>, <code>customers</code>, <code>registrations</code>, <code>site_content</code>.</div>
+    <!-- ===== Tab: Broadcast (WA) ===== -->
+    <div id="tab-broadcast" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Broadcast WhatsApp</h2>
+        <span class="badge">log only</span>
+      </div>
+
+      <div class="grid gap-3">
+        <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
+        <div id="attachChips" class="flex flex-wrap gap-2"></div>
+        <div class="grid md:grid-cols-[1fr_auto] gap-3">
+          <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
+          <div class="flex items-center gap-2">
+            <button id="btnAttachUpload" class="btn-ghost"><i data-lucide="paperclip" class="w-4 h-4"></i> Upload & Lampirkan</button>
+            <button id="btnClearAttach" class="btn-ghost">Kosongkan Lampiran</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6 mt-2">
+        <div class="p-4 border border-gray-200 rounded-xl">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">Penerima (ikut partner)</div>
+            <div class="flex gap-2">
+              <button id="btnSelectAll" class="btn-ghost">Pilih Semua</button>
+              <button id="btnClearAll" class="btn-ghost">Kosongkan</button>
+            </div>
+          </div>
+          <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
+        </div>
+
+        <div class="p-4 border border-gray-200 rounded-xl">
+          <div class="font-semibold mb-2">Tindakan</div>
+          <div class="grid gap-2">
+            <button id="btnBroadcast" class="btn-primary">Log Broadcast (server)</button>
+            <button id="btnOpenWA" class="btn-ghost">Buka WhatsApp Tabs</button>
+            <button id="btnExportCSV" class="btn-ghost">Muat Turun CSV (Fonnte)</button>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- === Settings === -->
+    <!-- ===== Tab: Carta Organisasi ===== -->
+    <div id="tab-org" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="network" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Carta Organisasi</h2>
+      </div>
+      <div id="orgWrap" class="relative overflow-x-auto">
+        <svg id="orgSvg" class="absolute inset-0 pointer-events-none"></svg>
+        <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Settings ===== -->
     <div id="tab-settings" class="card p-6 hidden">
-      <div class="flex items-center gap-2 mb-2"><i data-lucide="settings" class="w-5 h-5 text-gray-700"></i><h2 class="text-lg font-semibold">Settings</h2></div>
-      <div class="grid md:grid-cols-3 gap-3">
+      <div class="flex items-center gap-2">
+        <i data-lucide="settings" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Settings — Laman User, Fonnte & Typography</h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4 mt-2">
         <div>
-          <label class="text-xs text-gray-600">Nama Leader</label>
-          <input id="setLeaderName" class="input" placeholder="nama leader">
+          <label class="text-sm font-medium">Cashback Min (%)</label>
+          <input id="setMin" class="input mt-1" placeholder="cth: 5">
         </div>
         <div>
-          <label class="text-xs text-gray-600">WhatsApp (opsyen)</label>
-          <input id="setWhatsApp" class="input" placeholder="contoh: 60123456789">
+          <label class="text-sm font-medium">Cashback Max (%)</label>
+          <input id="setMax" class="input mt-1" placeholder="cth: 10">
         </div>
         <div>
-          <label class="text-xs text-gray-600">Fonnte API (opsyen)</label>
-          <input id="setFonnte" class="input" placeholder="kunci API">
+          <label class="text-sm font-medium">WhatsApp Leader</label>
+          <input id="setLeaderPhone" class="input mt-1" placeholder="60123456789">
         </div>
       </div>
-      <div class="grid md:grid-cols-3 gap-3 mt-3">
+
+      <div class="grid md:grid-cols-3 gap-4 mt-2">
         <div>
-          <label class="text-xs text-gray-600">Heading Size (px)</label>
-          <input id="headingSize" type="number" class="input">
+          <label class="text-sm font-medium">Fonnte API Key</label>
+          <input id="setFonnteApi" type="password" class="input mt-1" placeholder="API Key Fonnte anda">
         </div>
         <div>
-          <label class="text-xs text-gray-600">Heading Color</label>
-          <input id="headingColor" type="color" class="input">
+          <label class="text-sm font-medium">Warna Tema (Brand)</label>
+          <input id="setThemeColor" type="color" class="input mt-1 p-1" value="#ef4444">
         </div>
-        <div class="flex items-end">
-          <label class="inline-flex items-center gap-2 text-sm"><input id="headingBold" type="checkbox"> <span>Heading Bold</span></label>
+        <div>
+          <label class="text-sm font-medium">Lebar Kandungan (px)</label>
+          <input id="setContentWidth" class="input mt-1" placeholder="cth: 980">
         </div>
       </div>
-      <div class="grid md:grid-cols-3 gap-3 mt-3">
-        <div>
-          <label class="text-xs text-gray-600">Body Size (px)</label>
-          <input id="bodySize" type="number" class="input">
+
+      <!-- Typography -->
+      <div class="border border-gray-200 rounded-xl p-4 mt-4">
+        <div class="flex items-center gap-2 mb-2">
+          <i data-lucide="type" class="w-4 h-4 text-gray-700"></i>
+          <div class="font-semibold">Typography (Global)</div>
         </div>
-        <div>
-          <label class="text-xs text-gray-600">Body Color</label>
-          <input id="bodyColor" type="color" class="input">
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium">Heading Size (px)</label>
+              <input id="setHeadingSize" class="input mt-1" placeholder="cth: 28">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Heading Color</label>
+              <input id="setHeadingColor" type="color" class="input mt-1 p-1" value="#111111">
+            </div>
+            <label class="text-sm font-medium flex items-center gap-2 mt-2">
+              <span class="switch"><input id="setHeadingBold" type="checkbox"><span></span></span>
+              <span>Heading Bold</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium">Body Size (px)</label>
+              <input id="setBodySize" class="input mt-1" placeholder="cth: 16">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Body Color</label>
+              <input id="setBodyColor" type="color" class="input mt-1 p-1" value="#374151">
+            </div>
+            <label class="text-sm font-medium flex items-center gap-2 mt-2">
+              <span class="switch"><input id="setBodyBold" type="checkbox"><span></span></span>
+              <span>Body Bold</span>
+            </label>
+          </div>
         </div>
-        <div class="flex items-end">
-          <label class="inline-flex items-center gap-2 text-sm"><input id="bodyBold" type="checkbox"> <span>Body Bold</span></label>
-        </div>
+        <div class="text-xs text-gray-500 mt-2">user.html akan mematuhi tetapan ini setiap kali halaman dimuatkan.</div>
       </div>
-      <div class="mt-3"><button id="btnSaveSettings" class="btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan Settings</button></div>
+
+      <div class="flex gap-2 mt-4">
+        <button id="btnSaveSettings" class="btn-primary">Simpan</button>
+        <button id="btnReloadSettings" class="btn-ghost">Muat Semula</button>
+        <button id="btnPreviewUser2" class="btn-ghost">Preview Laman User</button>
+      </div>
     </div>
 
   </section>
 </main>
 
-<footer class="mt-6 py-10 text-center text-xs text-gray-500">© <span id="year"></span> MOVA</footer>
+<!-- Toast -->
 <div id="toast" class="toast hidden"></div>
 
 <script>
-// ===== CONFIG =====
-const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+  // ====== KONFIG ======
+  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-// ===== GLOBAL STATE =====
-let SETTINGS = {};        // settings_get payload normalized
-let SECTIONS = [];        // array of {id,title,type,featured,hidden,blocks:[{kind,value,text?}]}
-let LEADER_ID = 'LEAD-0001';
+  // ====== STATE LOGIN ======
+  const store = {
+    leader: (() => { try { return JSON.parse(localStorage.getItem('mova_leader') || '{}'); } catch(e){ return {}; } })(),
+    selectedMedia: new Set(),   // URL dari Media Library (untuk Content)
+    linkUrls: [],               // URL luaran untuk Content
+    partners: [],
+    attachments: [],            // untuk Broadcast
+    sections: [],               // Section Builder
+    settings: {},                // Settings terkini untuk preview mini
+    activeSectionIndex: -1,     // Index of active section for canvas preview
+    canvasMode: 'canvas'        // 'canvas' or 'html'
+  };
 
-// ===== HELPERS =====
-const $ = (s,root=document)=>root.querySelector(s);
-const $$ = (s,root=document)=>Array.from(root.querySelectorAll(s));
-const toastEl = $('#toast');
-function toast(msg, ms=2200){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms); }
-async function api(path, payload){
-  const res = await fetch(EXEC_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })});
-  const text = await res.text(); let json; try{ json = JSON.parse(text) }catch(e){ throw new Error(text) }
-  if (json && json.success===false) throw new Error(json.error||'Ralat tidak diketahui');
-  return json;
-}
-function uid(){ return 's'+Math.random().toString(36).slice(2,9) }
-function clone(x){ return JSON.parse(JSON.stringify(x||{})) }
-function createIcon(name, cls='w-4 h-4'){ const i = document.createElement('i'); i.setAttribute('data-lucide',name); i.className=cls; return i }
-function reIcon(){ try{ lucide.createIcons() }catch(_){} }
-function esc(s){ return String(s==null?'':s) }
+  if (!store.leader || !store.leader.leader_id) {
+    location.href = "./index.html";
+  }
+  document.getElementById('leaderName').textContent = store.leader?.profile?.name || 'leader';
 
-// ===== INIT =====
-$('#year').textContent = new Date().getFullYear();
-lucide.createIcons();
-
-// Tabs
-function setActiveTab(name){
-  $$('[data-tab]').forEach(b=>{ if(b.dataset.tab===name){ b.classList.add('pill-active'); b.classList.remove('pill-idle') } else { b.classList.remove('pill-active'); b.classList.add('pill-idle') } });
-  $$('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
-  $('#tab-'+name)?.classList.remove('hidden');
-}
-$$('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab)));
-setActiveTab('sections');
-
-// Boot
-(async function init(){
-  try{ await api('setup',{}) }catch(_){ }
-  await loadSettings();
-  await loadContent();
-  await loadMedia();
-  await loadPartners();
-  await loadApprovals();
-  await loadStats();
-  reIcon();
-})();
-
-// ===== LOADERS =====
-async function loadSettings(){
-  const out = await api('settings_get',{});
-  SETTINGS = out.settings || {};
-  document.documentElement.style.setProperty('--brand', SETTINGS.theme_primary || SETTINGS.theme_color || '#ef4444');
-  LEADER_ID = SETTINGS.leader_id || 'LEAD-0001';
-  // Sections
-  SECTIONS = Array.isArray(SETTINGS.sections) ? clone(SETTINGS.sections) : [];
-  if (!SECTIONS.length){ try{ SECTIONS = JSON.parse(SETTINGS.sections_json||'[]') }catch(_){ SECTIONS=[] } }
-  // Quick controls
-  $('#themePrimary').value = (SETTINGS.theme_primary || '#ef4444');
-  $('#rateMin').value = Number(SETTINGS.cashback_min||SETTINGS.default_cashback_min||5);
-  $('#rateMax').value = Number(SETTINGS.cashback_max||SETTINGS.default_cashback_max||10);
-  $('#contentWidth').value = Number(SETTINGS.content_width||980);
-  // Typography
-  $('#setLeaderName').value = esc(SETTINGS.leader_name||'');
-  $('#setWhatsApp').value   = esc(SETTINGS.whatsapp||SETTINGS.leader_phone||'');
-  $('#setFonnte').value     = esc(SETTINGS.fonnte_api||SETTINGS.fonnte_api_key||'');
-  $('#headingSize').value   = Number(SETTINGS.heading_size||28);
-  $('#headingColor').value  = esc(SETTINGS.heading_color||'#111111');
-  $('#headingBold').checked = String(SETTINGS.heading_bold||'false')==='true';
-  $('#bodySize').value      = Number(SETTINGS.body_size||16);
-  $('#bodyColor').value     = esc(SETTINGS.body_color||'#374151');
-  $('#bodyBold').checked    = String(SETTINGS.body_bold||'false')==='true';
-  renderSectionsList();
-  renderMiniPreview();
-}
-
-async function loadContent(){
-  const out = await api('content_list',{ leader_id: LEADER_ID });
-  const list = out.items||[]; const host = $('#contentList'); host.innerHTML='';
-  list.forEach(c=>{
-    const d = document.createElement('div'); d.className='p-4 border rounded-xl bg-white';
-    d.innerHTML = `<div class="font-semibold">${esc(c.title||'-')}</div><div class="text-xs text-gray-500 mt-1">${esc(c.updated_at||'')}</div><div class="text-sm text-gray-700 mt-2 line-clamp-3">${esc(c.body||'')}</div>`;
-    host.appendChild(d);
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    localStorage.removeItem('mova_leader');
+    location.href = "./index.html";
   });
-}
+  document.getElementById('btnOpenUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
 
-async function loadMedia(){
-  const out = await api('media_list',{}); const grid=$('#mediaGrid'); grid.innerHTML='';
-  (out.items||[]).forEach(m=>{
-    const card = document.createElement('div'); card.className='p-2 border rounded-xl bg-white';
-    const isVideo = /^video\//i.test(m.file_type||'');
-    card.innerHTML = isVideo
-      ? `<video src="${m.public_url}" class="w-full rounded-lg" controls></video>`
-      : `<img src="${m.public_url}" class="w-full rounded-lg"/>`;
-    grid.appendChild(card);
-  });
-}
+  // icons
+  lucide.createIcons();
 
-async function loadPartners(){
-  const out = await api('partner_list',{ leader_id: LEADER_ID });
-  const host = $('#partnerList'); host.innerHTML='';
-  (out.items||[]).forEach(p=>{
-    const card = document.createElement('div'); card.className='p-4 border rounded-xl bg-white';
-    card.innerHTML = `<div class="font-semibold">${esc(p.name||'-')}</div><div class="text-xs text-gray-500">${esc(p.phone||'')}</div>`;
-    host.appendChild(card);
-  });
-}
+  // ====== UTIL ======
+  const toastEl = document.getElementById('toast');
+  function toast(msg, ms=2200){
+    toastEl.textContent = msg;
+    toastEl.classList.remove('hidden');
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
+  }
+  function uid(){ return 's' + Math.random().toString(36).slice(2,9); }
 
-async function loadApprovals(){
-  const out = await api('registration_list',{}); const tb=$('#tblApprovals'); tb.innerHTML='';
-  const items = out.items||[];
-  if (!items.length){ tb.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Tiada pendaftaran.</td></tr>'; return }
-  items.forEach(r=>{
-    const isApproved = String(r.status||'').toLowerCase()==='lulus';
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td class="py-2 pr-3 text-xs">${esc(r.id||'')}</td>
-      <td class="py-2 pr-3">${esc(r.name||'')}</td>
-      <td class="py-2 pr-3">${esc(r.phone||'')}</td>
-      <td class="py-2 pr-3">${isApproved?'<span class="badge">lulus</span>':'<span class="badge">menunggu</span>'}</td>
-      <td class="py-2">${isApproved?'<span class="text-green-700 text-sm">Diluluskan</span>':`<button class="btn-ghost text-sm" data-approve="${esc(r.id)}">Luluskan</button>`}</td>`;
-    tb.appendChild(tr);
-  });
-  $$('button[data-approve]').forEach(b=> b.addEventListener('click', async ()=>{
-    try{ const res = await api('registration_approve',{ id: b.dataset.approve }); if(res.success){ toast('Diluluskan ✔️'); await loadApprovals(); } }catch(e){ toast('Gagal meluluskan'); }
-  }));
-}
-
-async function loadStats(){
-  const out = await api('stats',{ leader_id: LEADER_ID });
-  const s = out.totals||{}; const wrap=$('#statsWrap'); wrap.innerHTML='';
-  const items = [
-    { label:'Partners', val:s.partners||0, icon:'handshake' },
-    { label:'Customers', val:s.customers||0, icon:'users' },
-    { label:'Pending', val:s.pending||0, icon:'clock' },
-    { label:'Published', val:s.published||0, icon:'file-text' },
-  ];
-  items.forEach(it=>{
-    const c = document.createElement('div'); c.className='p-5 border rounded-xl bg-white flex items-center gap-3';
-    c.innerHTML = `<i data-lucide="${it.icon}" class="w-5 h-5"></i><div><div class="text-2xl font-extrabold">${it.val}</div><div class="text-sm text-gray-600">${it.label}</div></div>`;
-    wrap.appendChild(c);
-  });
-  reIcon();
-}
-
-// ===== EVENTS: Media Upload =====
-$('#btnUpload').addEventListener('click', async ()=>{
-  const f = $('#filePick').files[0]; if(!f) return toast('Pilih fail dahulu');
-  const reader = new FileReader(); reader.onload = async (e)=>{
-    const base64 = e.target.result.split(',')[1];
-    try{
-      await api('upload_media',{ leader_id: LEADER_ID, file_name:f.name, file_type:f.type, file_base64: base64 });
-      toast('Naik naik media ✔️'); await loadMedia();
-    }catch(err){ toast('Gagal upload'); }
-  }; reader.readAsDataURL(f);
-});
-
-// ===== EVENTS: Partner & Customer =====
-$('#btnAddPartner').addEventListener('click', async ()=>{
-  const name=$('#parName').value.trim(); const phone=$('#parPhone').value.trim(); const email=$('#parEmail').value.trim();
-  if(!name) return toast('Isi nama partner');
-  try{ await api('partner_create',{ leader_id: LEADER_ID, name, phone, email, package:'' }); toast('Partner ditambah ✔️'); $('#parName').value=$('#parPhone').value=$('#parEmail').value=''; await loadPartners(); }catch(e){ toast('Gagal tambah partner'); }
-});
-
-$('#btnAddCustomer').addEventListener('click', async ()=>{
-  const name=$('#cusName').value.trim(); const phone=$('#cusPhone').value.trim(); const partner=$('#cusPartner').value.trim();
-  if(!name||!phone) return toast('Isi nama & telefon');
-  try{ await api('customer_add',{ leader_id: LEADER_ID, name, phone, partner }); toast('Customer ditambah ✔️'); $('#cusName').value=$('#cusPhone').value=$('#cusPartner').value=''; }catch(e){ toast('Gagal tambah customer'); }
-});
-
-$('#btnReloadApprove').addEventListener('click', loadApprovals);
-$('#btnBroadcast').addEventListener('click', async ()=>{
-  const message = $('#bMsg').value.trim(); if(!message) return toast('Tulis mesej');
-  try{ await api('broadcast',{ leader_id: LEADER_ID, message }); toast('Broadcast direkod ✔️'); $('#bMsg').value=''; }catch(e){ toast('Gagal log broadcast'); }
-});
-
-// ===== NO‑CODE BUILDER =====
-const KIND_LABEL = { text:'Teks', image:'Gambar', video:'Video', link:'Pautan', social:'Sosial', button:'Butang' };
-
-function blankSection(type){
-  return { id: uid(), title: (type==='hero'?'Hero — Tajuk & Media':'Seksyen Baharu'), type, featured: type==='hero', hidden:false, blocks: type==='hero' ? [ {kind:'text', value:'**Selamat Datang ke MOVA**'}, {kind:'video', value:''} ] : [ {kind:'text', value:'Teks ringkas di sini…'} ] };
-}
-
-function blockToolbarHTML(){
-  return `
-    <div class="flex flex-wrap gap-1">
-      <button class="btn-ghost text-xs" data-add-block="text"><i data-lucide="text" class="w-3 h-3"></i> Teks</button>
-      <button class="btn-ghost text-xs" data-add-block="image"><i data-lucide="image" class="w-3 h-3"></i> Gambar</button>
-      <button class="btn-ghost text-xs" data-add-block="video"><i data-lucide="video" class="w-3 h-3"></i> Video</button>
-      <button class="btn-ghost text-xs" data-add-block="link"><i data-lucide="link" class="w-3 h-3"></i> Pautan</button>
-      <button class="btn-ghost text-xs" data-add-block="social"><i data-lucide="share-2" class="w-3 h-3"></i> Sosial</button>
-      <button class="btn-ghost text-xs" data-add-block="button"><i data-lucide="mouse-pointer-click" class="w-3 h-3"></i> Butang</button>
-    </div>`;
-}
-
-function renderSectionsList(){
-  const host = $('#sectionsList'); host.innerHTML='';
-  if (!SECTIONS.length){ const info = document.createElement('div'); info.className='text-sm text-gray-500'; info.textContent='Tiada seksyen lagi. Tekan butang "Tambah Seksyen".'; host.appendChild(info); }
-  SECTIONS.forEach((sec, idx)=> host.appendChild(sectionCard(sec, idx)) );
-  reIcon();
-}
-
-function sectionCard(sec, idx){
-  const card = document.createElement('div'); card.className='p-4 border rounded-xl bg-white'; card.draggable=true; card.dataset.idx = idx;
-  card.innerHTML = `
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <i data-lucide="grip-vertical" class="w-4 h-4 text-gray-400"></i>
-        <input class="input" data-field="title" value="${esc(sec.title||'')}">
-        <span class="badge">${esc(sec.type||'')}</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <label class="text-xs inline-flex items-center gap-1"><input type="checkbox" data-field="featured" ${sec.featured?'checked':''}> <span>Featured</span></label>
-        <label class="text-xs inline-flex items-center gap-1"><input type="checkbox" data-field="hidden" ${sec.hidden?'checked':''}> <span>Hidden</span></label>
-        <button class="btn-ghost text-xs" data-dup><i data-lucide="copy" class="w-3 h-3"></i> Gandakan</button>
-        <button class="btn-ghost text-xs" data-del><i data-lucide="trash-2" class="w-3 h-3"></i> Padam</button>
-      </div>
-    </div>
-    <div class="mt-3">${blockToolbarHTML()}</div>
-    <div class="mt-3 space-y-2" data-blocks></div>
-  `;
-
-  // Blocks
-  const blocksHost = $('[data-blocks]', card);
-  (sec.blocks||[]).forEach((b,bi)=> blocksHost.appendChild(blockRow(sec,b,bi)));
-
-  // Listeners
-  $$('input[data-field]', card).forEach(inp=> inp.addEventListener('input', ()=>{
-    const f = inp.dataset.field; if(f==='featured'||f==='hidden'){ sec[f] = inp.checked } else { sec[f] = inp.value }
-    renderMiniPreview();
-  }));
-  $('[data-del]',card).addEventListener('click', ()=>{ SECTIONS.splice(idx,1); renderSectionsList(); renderMiniPreview(); });
-  $('[data-dup]',card).addEventListener('click', ()=>{ SECTIONS.splice(idx+1,0, clone(sec)); renderSectionsList(); renderMiniPreview(); });
-  $$('[data-add-block]',card).forEach(btn=> btn.addEventListener('click', ()=>{
-    const kind = btn.dataset.addBlock;
-    const block = kind==='text'?{kind:'text',value:'Tajuk atau perenggan…'}:
-                 kind==='image'?{kind:'image',value:''}:
-                 kind==='video'?{kind:'video',value:''}:
-                 kind==='link'? {kind:'link', value:'https://', text:'Pautan'}:
-                 kind==='social'?{kind:'link', value:'https://instagram.com/username', text:'Instagram'}:
-                 {kind:'button', value:'#', text:'Tindakan'};
-    sec.blocks = sec.blocks||[]; sec.blocks.push(block); renderSectionsList(); renderMiniPreview();
-  }));
-
-  // Drag & Drop sections
-  card.addEventListener('dragstart', e=>{ card.classList.add('dragging'); e.dataTransfer.setData('text/plain', idx) });
-  card.addEventListener('dragend', ()=> card.classList.remove('dragging'));
-  card.addEventListener('dragover', e=>{ e.preventDefault(); card.classList.add('ghost') });
-  card.addEventListener('dragleave', ()=> card.classList.remove('ghost'));
-  card.addEventListener('drop', e=>{
-    e.preventDefault(); card.classList.remove('ghost');
-    const from = Number(e.dataTransfer.getData('text/plain')); const to = Number(card.dataset.idx);
-    if (!Number.isNaN(from) && !Number.isNaN(to) && from!==to){ const [m]=SECTIONS.splice(from,1); SECTIONS.splice(to,0,m); renderSectionsList(); renderMiniPreview(); }
-  });
-
-  return card;
-}
-
-function blockRow(sec, block, bi){
-  const row = document.createElement('div'); row.className='p-3 border rounded-lg bg-gray-50';
-  const kind = block.kind||'text';
-  row.innerHTML = `
-    <div class="flex items-center justify-between">
-      <div class="font-semibold text-sm">Blok: ${KIND_LABEL[kind]||kind}</div>
-      <div class="flex items-center gap-2">
-        <button class="btn-ghost text-xs" data-move="up">▲</button>
-        <button class="btn-ghost text-xs" data-move="down">▼</button>
-        <button class="btn-ghost text-xs" data-del>Padam</button>
-      </div>
-    </div>
-    <div class="mt-2 grid md:grid-cols-2 gap-2" data-editor></div>
-  `;
-  const ed = $('[data-editor]',row);
-  if (kind==='text'){
-    ed.innerHTML = `
-      <textarea class="input" rows="3" data-k="value" placeholder="Teks… (sokong **bold** & [warna]{#hex})">${esc(block.value||'')}</textarea>
-      <div class="grid grid-cols-3 gap-2">
-        <label class="text-xs flex items-center gap-2"><span>Saiz</span><input data-k="size" type="number" class="input" value="${Number(block.size||0)||0}" placeholder="0=ikut default"></label>
-        <label class="text-xs flex items-center gap-2"><span>Warna</span><input data-k="color" type="color" class="input" value="${esc(block.color||'')}"></label>
-        <label class="text-xs inline-flex items-center gap-2"><input data-k="bold" type="checkbox" ${block.bold?'checked':''}> <span>Bold</span></label>
-      </div>`;
-  } else if (kind==='image'){
-    ed.innerHTML = `
-      <input class="input" data-k="value" placeholder="URL gambar" value="${esc(block.value||'')}">
-      <div class="grid grid-cols-2 gap-2">
-        <label class="text-xs flex items-center gap-2"><span>Alt</span><input data-k="alt" class="input" value="${esc(block.alt||'')}"></label>
-        <label class="text-xs flex items-center gap-2"><span>Rounded</span><input data-k="rounded" type="checkbox" ${block.rounded?'checked':''}></label>
-      </div>`;
-  } else if (kind==='video'){
-    ed.innerHTML = `
-      <input class="input" data-k="value" placeholder="URL YouTube / video" value="${esc(block.value||'')}">
-      <div class="grid grid-cols-2 gap-2">
-        <label class="text-xs flex items-center gap-2"><span>Embed</span><input data-k="embed" type="checkbox" ${block.embed?'checked':''}></label>
-        <label class="text-xs flex items-center gap-2"><span>Autoplay</span><input data-k="autoplay" type="checkbox" ${block.autoplay?'checked':''}></label>
-      </div>`;
-  } else if (kind==='link' || kind==='button'){
-    ed.innerHTML = `
-      <input class="input" data-k="text"  placeholder="Teks" value="${esc(block.text||'Pautan')}">
-      <input class="input" data-k="value" placeholder="https://" value="${esc(block.value||'https://')}">
-      <div class="grid grid-cols-3 gap-2">
-        <label class="text-xs flex items-center gap-2"><span>Saiz</span><input data-k="size" type="number" class="input" value="${Number(block.size||0)||0}"></label>
-        <label class="text-xs flex items-center gap-2"><span>Warna</span><input data-k="color" type="color" class="input" value="${esc(block.color||'')}"></label>
-        <label class="text-xs inline-flex items-center gap-2"><input data-k="ghost" type="checkbox" ${block.ghost?'checked':''}> <span>Gaya Ghost</span></label>
-      </div>`;
+  async function callApi(path, payload) {
+    const res = await fetch(EXEC_URL, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+      body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
+    });
+    const text = await res.text();
+    let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
+    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+    return json;
   }
 
-  // listeners
-  $$('[data-k]',row).forEach(el=> el.addEventListener('input', ()=>{ block[el.dataset.k] = (el.type==='checkbox') ? el.checked : el.value; renderMiniPreview(); }));
-  $('[data-del]',row).addEventListener('click', ()=>{ const i = (sec.blocks||[]).indexOf(block); if(i>-1){ sec.blocks.splice(i,1); renderSectionsList(); renderMiniPreview(); } });
-  $$('[data-move]',row).forEach(btn=> btn.addEventListener('click', ()=>{
-    const dir = btn.dataset.move==='up'?-1:1; const i = (sec.blocks||[]).indexOf(block); const j=i+dir; if(j<0||j>=sec.blocks.length)return; const [m]=sec.blocks.splice(i,1); sec.blocks.splice(j,0,m); renderSectionsList(); renderMiniPreview();
-  }));
-  return row;
-}
-
-// Add section buttons
-$$('[data-add-section]').forEach(b=> b.addEventListener('click', ()=>{ SECTIONS.push(blankSection(b.dataset.addSection)); renderSectionsList(); renderMiniPreview(); }));
-
-// Export/Import
-$('#btnExport').addEventListener('click', ()=>{
-  const blob = new Blob([JSON.stringify(SECTIONS,null,2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='mova_sections.json'; a.click(); URL.revokeObjectURL(url);
-});
-$('#btnImport').addEventListener('click', ()=>{
-  const inp = document.createElement('input'); inp.type='file'; inp.accept='application/json'; inp.onchange=()=>{
-    const f = inp.files[0]; if(!f) return; const r = new FileReader(); r.onload=()=>{
-      try{ const arr = JSON.parse(String(r.result||'[]')); if(Array.isArray(arr)){ SECTIONS = arr; renderSectionsList(); renderMiniPreview(); toast('Import berjaya ✔️'); } else toast('Fail tidak sah'); }catch(e){ toast('JSON rosak') }
-    }; r.readAsText(f);
-  }; inp.click();
-});
-
-// Save Sections & Theme
-$('#btnSaveSections').addEventListener('click', async ()=>{
-  try{
-    const payload = {
-      leader_id: LEADER_ID,
-      theme_color: $('#themePrimary').value || '#ef4444',
-      cashback_min: Number($('#rateMin').value||5),
-      cashback_max: Number($('#rateMax').value||10),
-      content_width: Number($('#contentWidth').value||980),
-      sections: SECTIONS
-    };
-    await api('settings_set', payload);
-    toast('Disimpan ✔️');
-  }catch(e){ toast('Gagal simpan'); }
-});
-
-// Save Settings (typography + misc)
-$('#btnSaveSettings').addEventListener('click', async ()=>{
-  try{
-    const payload = {
-      leader_id: LEADER_ID,
-      leader_name: $('#setLeaderName').value.trim(),
-      whatsapp: $('#setWhatsApp').value.trim(),
-      fonnte_api: $('#setFonnte').value.trim(),
-      heading_size: Number($('#headingSize').value||28),
-      heading_color: $('#headingColor').value||'#111111',
-      heading_bold: $('#headingBold').checked,
-      body_size: Number($('#bodySize').value||16),
-      body_color: $('#bodyColor').value||'#374151',
-      body_bold: $('#bodyBold').checked
-    };
-    await api('settings_set', payload);
-    toast('Settings disimpan ✔️');
-  }catch(e){ toast('Gagal simpan settings'); }
-});
-
-// ===== MINI PREVIEW RENDER (mengikut user.html logik) =====
-function formatInline(str){
-  if (!str) return '';
-  let html = esc(str);
-  html = html.replace(/\n/g,'<br>');
-  html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  html = html.replace(/\[([^\]]+)\]\{(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)\}/g, '<span style="color:$2">$1</span>');
-  return html;
-}
-function parseYouTube(url){ try{ const u = new URL(url); if(u.hostname.includes('youtube.com')) return u.searchParams.get('v'); if(u.hostname.includes('youtu.be')) return u.pathname.slice(1); }catch(_){} return null }
-
-function renderMiniPreview(){
-  const host = $('#miniPreview'); host.innerHTML = '';
-  const wrap = document.createElement('div'); wrap.style.maxWidth = (Number($('#contentWidth').value||980))+'px'; wrap.className='mx-auto space-y-4';
-  // Hero fallback
-  const hero = SECTIONS.find(s=> (s.type||'')==='hero') || SECTIONS[0];
-  if (hero){
-    const h = document.createElement('div'); h.className='p-4 border rounded-xl bg-white';
-    const titleBlock = (hero.blocks||[]).find(b=>b.kind==='text');
-    const mediaBlock = (hero.blocks||[]).find(b=>b.kind==='image'||b.kind==='video');
-    const h1 = document.createElement('div'); h1.className='text-xl font-extrabold'; h1.innerHTML = formatInline(hero.title || (titleBlock?.value||'MOVA'));
-    h.appendChild(h1);
-    const subt = document.createElement('div'); subt.className='text-sm text-gray-600 mt-1'; subt.innerHTML = formatInline(hero.subtitle||'Belanja, kumpul cashback, bina masa depan.'); h.appendChild(subt);
-    if (mediaBlock && mediaBlock.value){
-      const box = document.createElement('div'); box.className='mt-3';
-      if (mediaBlock.kind==='image') box.innerHTML = `<img src="${esc(mediaBlock.value)}" class="w-full rounded-lg border">`;
-      else { const yt = parseYouTube(mediaBlock.value); box.innerHTML = yt? `<div class='relative pb-[56.25%] h-0 overflow-hidden rounded-lg border'><iframe src='https://www.youtube.com/embed/${yt}' class='absolute top-0 left-0 w-full h-full' frameborder='0' allowfullscreen></iframe></div>` : `<video src='${esc(mediaBlock.value)}' controls playsinline class='w-full rounded-lg border'></video>`; }
-      h.appendChild(box);
-    }
-    wrap.appendChild(h);
-  }
-  // Other sections
-  SECTIONS.filter(s=>s!==hero && !s.hidden).forEach(sec=>{
-    const box = document.createElement('div'); box.className='p-4 border rounded-xl bg-white';
-    const h2 = document.createElement('div'); h2.className='text-base font-extrabold'; h2.textContent = sec.title||'Seksyen'; box.appendChild(h2);
-    const inner = document.createElement('div'); inner.className='mt-2 space-y-2';
-    (sec.blocks||[]).forEach(b=>{
-      if (b.kind==='text'){
-        const d = document.createElement('div');
-        const size = Number(b.size||0); const color=b.color||$('#bodyColor').value; const bold=b.bold||$('#bodyBold').checked;
-        d.style.fontSize = (size>0? size : Number($('#bodySize').value||16))+'px';
-        d.style.color = color; d.style.fontWeight = bold?'700':'400';
-        d.className='leading-relaxed'; d.innerHTML = formatInline(b.value||''); inner.appendChild(d);
-      } else if (b.kind==='image'){
-        if (!b.value) return; const img=document.createElement('img'); img.src=b.value; img.className = 'w-full border mt-1 '+(b.rounded?'rounded-xl':'rounded'); inner.appendChild(img);
-      } else if (b.kind==='video'){
-        if (!b.value) return; const yt=parseYouTube(b.value); const wrapV=document.createElement('div'); wrapV.className='mt-1';
-        wrapV.innerHTML = yt? `<div class='relative pb-[56.25%] h-0 overflow-hidden rounded-xl border'><iframe src='https://www.youtube.com/embed/${yt}' class='absolute top-0 left-0 w-full h-full' frameborder='0' allowfullscreen></iframe></div>` : `<video src='${esc(b.value)}' controls playsinline class='w-full rounded-xl border'></video>`; inner.appendChild(wrapV);
-      } else if (b.kind==='link' || b.kind==='button'){
-        const a = document.createElement('a'); a.href=b.value||'#'; a.target='_blank'; a.className = (b.kind==='button' && !b.ghost) ? 'btn btn-primary' : 'btn btn-ghost'; a.textContent = b.text||'Pautan'; inner.appendChild(a);
+  function setActiveTab(name){
+    document.querySelectorAll('[data-tab]').forEach(btn=>{
+      if (btn.dataset.tab === name) { 
+        btn.classList.remove('pill-idle'); 
+        btn.classList.add('pill-active'); 
+      }
+      else { 
+        btn.classList.add('pill-idle'); 
+        btn.classList.remove('pill-active'); 
       }
     });
-    box.appendChild(inner); wrap.appendChild(box);
-  });
-  host.appendChild(wrap);
-}
+    document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
+    const tab = document.getElementById('tab-'+name);
+    if (tab) tab.classList.remove('hidden');
+    if (name === 'org') renderOrg();
+    if (name === 'broadcast') buildRecipientTree();
+  }
+  document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab)));
+  setActiveTab('user');
 
+  // ====== INIT ======
+  (async function init(){
+    try { await callApi('setup', {}); } catch(e){}
+    await reloadStats();
+    await reloadPartners();
+    await reloadMedia();
+    await reloadRegs();
+    await renderOrg();
+    await refreshSettings();     // untuk theme/typography dll + preview mini
+    await loadSections();        // untuk Section Builder
+    initCanvasModeToggle();
+  })();
+
+  // ====== STATS ======
+  async function reloadStats(){
+    try{
+      const out = await callApi('stats', { leader_id: store.leader.leader_id });
+      const t = out.totals || {};
+      statPartners.textContent  = t.partners ?? '—';
+      statCustomers.textContent = t.customers ?? '—';
+      statPending.textContent   = t.pending ?? '—';
+      statPublished.textContent = t.published ?? '—';
+    }catch(e){
+      statPartners.textContent = statCustomers.textContent = statPending.textContent = statPublished.textContent = '—';
+    }
+  }
+
+  // ====== KANDUNGAN (pengumuman) ======
+  const elTitle   = document.getElementById('title');
+  const elPublished = document.getElementById('published');
+  const elBody    = document.getElementById('body');
+
+  const urlInput = document.getElementById('urlInput');
+  const urlList  = document.getElementById('urlList');
+  document.getElementById('btnAddUrl').addEventListener('click', ()=>{
+    const u = (urlInput.value||'').trim();
+    if (!u) return;
+    try { new URL(u); } catch(e){ return toast('URL tidak sah'); }
+    if (!store.linkUrls.includes(u)) store.linkUrls.push(u);
+    urlInput.value='';
+    renderUrlList();
+  });
+  function renderUrlList(){
+    urlList.innerHTML = '';
+    if (!store.linkUrls.length){ urlList.innerHTML='<div class="text-sm text-gray-500">Tiada URL.</div>'; return; }
+    store.linkUrls.forEach((u, idx)=>{
+      const row = document.createElement('div');
+      row.className='block-row';
+      row.innerHTML = `
+        <div class="flex items-center gap-2">
+          <i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)?'video':'link'}" class="w-4 h-4 text-gray-600"></i>
+          <input class="input !py-1 !px-2 !text-xs flex-1" value="${u}">
+          <button class="btn-ghost !py-1">Padam</button>
+        </div>
+      `;
+      const input = row.querySelector('input');
+      input.addEventListener('change', ()=>{
+        const v = (input.value||'').trim();
+        try { new URL(v); } catch(e){ toast('URL tidak sah'); input.value = u; return; }
+        store.linkUrls[idx] = v;
+      });
+      row.querySelector('button').addEventListener('click', ()=>{
+        store.linkUrls.splice(idx,1);
+        renderUrlList();
+      });
+      urlList.appendChild(row);
+    });
+    lucide.createIcons();
+  }
+
+  document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
+    const allAttachments = [...Array.from(store.selectedMedia), ...store.linkUrls];
+    const payload = {
+      leader_id: store.leader.leader_id,
+      title: elTitle.value || '',
+      body: elBody.value || '',
+      media_urls: allAttachments.join(','),
+      published: (elPublished.value === 'yes')
+    };
+    try{
+      const json = await callApi('content_save', payload);
+      if (json.success) { toast('Kandungan disimpan ✔️'); await reloadStats(); await loadLatestContent(); }
+      else { toast('Gagal simpan: '+(json.error||'')); }
+    }catch(err){ toast('Ralat rangkaian: '+err.message); }
+  });
+  document.getElementById('btnRefreshContent').addEventListener('click', ()=>{
+    elTitle.value = ''; elBody.value = ''; elPublished.value = 'yes';
+    store.selectedMedia.clear(); store.linkUrls = [];
+    document.querySelectorAll('.media-tile').forEach(x=>x.classList.remove('selected'));
+    renderUrlList(); updateChosenMediaHint(); toast('Dikemas kini semula');
+  });
+  document.getElementById('btnLoadLatestContent').addEventListener('click', loadLatestContent);
+
+  async function loadLatestContent(){
+    try{
+      const out = await callApi('content_list', { leader_id: store.leader.leader_id });
+      const items = (out.items||[]).sort((a,b)=> new Date(b.updated_at||0) - new Date(a.updated_at||0)).slice(0,6);
+      const wrap = document.getElementById('contentList');
+      const contWrap = document.getElementById('contentListWrap');
+      wrap.innerHTML = '';
+      items.forEach(row=>{
+        const d = document.createElement('div');
+        d.className = 'border border-gray-200 rounded-xl p-3';
+        d.innerHTML = `
+          <div class="font-semibold">${row.title||'-'}</div>
+          <div class="text-xs text-gray-500 mt-1">Terbit: ${(String(row.published||'').toUpperCase()==='YES'?'Ya':'Tidak')} • Kemas kini: ${row.updated_at || '-'}</div>
+          <div class="text-sm text-gray-700 mt-2 line-clamp-2">${(row.body||'').slice(0,160)}</div>
+        `;
+        wrap.appendChild(d);
+      });
+      contWrap.classList.toggle('hidden', items.length===0);
+      toast('Kandungan dimuat');
+    }catch(e){ toast('Gagal muat senarai'); }
+  }
+
+  // ====== BROADCAST ======
+  const attachInput = document.getElementById('attachFile');
+  const attachChips = document.getElementById('attachChips');
+  document.getElementById('btnAttachUpload').addEventListener('click', uploadAttachment);
+  document.getElementById('btnClearAttach').addEventListener('click', ()=>{ store.attachments = []; renderAttachChips(); });
+
+  async function uploadAttachment(){
+    const f = attachInput.files?.[0];
+    if (!f) return toast('Pilih satu fail');
+    try{
+      const b64 = await toBase64NoPrefix(f);
+      const out = await callApi('upload_media', {
+        leader_id: store.leader.leader_id, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64
+      });
+      if (out.success){ store.attachments.push(out.public_url); renderAttachChips(); attachInput.value = ''; toast('Lampiran dimuat naik ✔️'); }
+      else { toast(out.error||'Gagal upload'); }
+    }catch(e){ toast('Ralat muat naik'); }
+  }
+  function renderAttachChips(){
+    attachChips.innerHTML = '';
+    store.attachments.forEach((url, idx)=>{
+      const chip = document.createElement('span');
+      chip.className='chip';
+      chip.innerHTML = `<i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)?'video':'image'}" class="w-3.5 h-3.5"></i><span>Media ${idx+1}</span><button title="Buang">&times;</button>`;
+      chip.querySelector('button').addEventListener('click', ()=>{ store.attachments.splice(idx,1); renderAttachChips(); });
+      attachChips.appendChild(chip);
+    });
+    lucide.createIcons();
+  }
+
+  document.getElementById('btnSelectAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true); });
+  document.getElementById('btnClearAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false); });
+
+  async function buildRecipientTree(){
+    const wrap = document.getElementById('recipientsWrap');
+    if (!wrap) return;
+    wrap.innerHTML = '<div class="text-sm text-gray-500">Memuat senarai penerima…</div>';
+    try{
+      let partners = []; try{ const outP = await callApi('partner_list', { leader_id: store.leader.leader_id }); partners = outP.items || []; }catch(e){}
+      let tree = { children:[] }; try{ const outT = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') }); if (outT.success) tree = outT.tree || tree; }catch(e){}
+
+      const byPartner = new Map(); partners.forEach(p=> byPartner.set(p.name||'', p));
+      const frag = document.createDocumentFragment();
+      (tree.children||[]).forEach(node=>{
+        const pName = node.name || ''; const pPkg  = node.title || ''; const partnerPhone = (byPartner.get(pName)||{}).phone || '';
+        const head = document.createElement('div'); head.className='mt-3 mb-1 font-semibold'; head.textContent = `${pName || 'Partner'}${pPkg? ' ('+pPkg+')':''}`; frag.appendChild(head);
+        frag.appendChild(recipientRow({ type:'partner', name:pName, phone: partnerPhone, partnerName:pName }));
+        (node.children||[]).forEach(c=>{ frag.appendChild(recipientRow({ type:'customer', name:(c.name||''), phone:'', partnerName:pName })); });
+      });
+      wrap.innerHTML = '';
+      frag.childElementCount ? wrap.appendChild(frag) : wrap.innerHTML = '<div class="text-sm text-gray-500">Tiada data organisasi.</div>';
+    }catch(e){ wrap.innerHTML = '<div class="text-sm text-red-600">Gagal memuat penerima.</div>'; }
+  }
+  function recipientRow(rec){
+    const row = document.createElement('div');
+    row.className='recip-row text-sm';
+    row.innerHTML = `
+      <input type="checkbox" class="recip-check">
+      <span class="min-w-[90px] inline-block ${rec.type==='partner'?'text-emerald-700':'text-rose-700'}">${rec.type==='partner'?'Partner':'Customer'}</span>
+      <span class="flex-1">${rec.name||'-'} ${rec.partnerName? '<span class="text-xs text-gray-400">• '+rec.partnerName+'</span>':''}</span>
+      <input type="text" class="input !py-1 !px-2 !text-xs recip-phone" placeholder="Telefon" value="${(rec.phone||'')}">
+    `;
+    row.dataset.type = rec.type; row.dataset.name = rec.name||''; row.dataset.partner = rec.partnerName||'';
+    return row;
+  }
+
+  document.getElementById('btnBroadcast')?.addEventListener('click', async ()=>{
+    const message = buildMessageWithAttachments();
+    const selected = getSelectedRecipients();
+    if (!selected.length) return toast('Pilih sekurang-kurangnya seorang penerima');
+    try{
+      const out = await callApi('broadcast', { leader_id: store.leader.leader_id, message: `[Recipients:${selected.length}] ${message}` });
+      if (out.success){ toast('Broadcast direkod ✔️'); } else toast(out.error||'Gagal log broadcast');
+    }catch(e){ toast('Ralat log broadcast'); }
+  });
+  document.getElementById('btnOpenWA')?.addEventListener('click', ()=>{
+    const msg = buildMessageWithAttachments();
+    const selected = getSelectedRecipients(); if (!selected.length) return toast('Pilih penerima dahulu');
+    let opened = 0;
+    selected.forEach((r, idx)=>{
+      const phone = (r.phone||'').replace(/\D/g,''); if (!phone) return;
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      setTimeout(()=> window.open(url, '_blank'), 200*idx); opened++;
+    });
+    toast(`Membuka ${opened} tab WhatsApp`);
+  });
+  document.getElementById('btnExportCSV')?.addEventListener('click', ()=>{
+    const rows = getSelectedRecipients().map(r=>({ phone: (r.phone||'').replace(/\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone);
+    if (!rows.length) return toast('Tiada penerima sah untuk dieksport');
+    const csv = makeCSV(['phone','message','media_urls','fonnte_api'], rows);
+    downloadText(csv, `broadcast_${Date.now()}.csv`, 'text/csv'); toast('CSV dijana');
+  });
+  function buildMessageWithAttachments(){
+    const base = (document.getElementById('broadcastMsg').value||'').trim();
+    const medias = (store.attachments||[]); if (!medias.length) return base;
+    return `${base}\n\nLampiran:\n${medias.map((u,i)=>`${i+1}. ${u}`).join('\n')}`.trim();
+  }
+  function getSelectedRecipients(){
+    return Array.from(document.querySelectorAll('#recipientsWrap .recip-row')).filter(r=> r.querySelector('.recip-check').checked).map(r=>({ type:r.dataset.type, name:r.dataset.name, partner:r.dataset.partner, phone:r.querySelector('.recip-phone').value.trim() }));
+  }
+  function makeCSV(headers, rows){ const esc=s=>`"${String(s??'').replace(/"/g,'""')}"`; const head=headers.map(esc).join(','); const body=rows.map(r=>headers.map(h=>esc(r[h])).join(',')).join('\n'); return head+'\n'+body; }
+  function downloadText(text, filename, mime){ const blob=new Blob([text],{type:mime||'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
+
+  // ====== MEDIA ======
+  const fileInput = document.getElementById('fileInput');
+  const mediaGrid = document.getElementById('mediaGrid');
+  const chosenMediaHint = document.getElementById('chosenMedia');
+
+  document.getElementById('btnUpload').addEventListener('click', async ()=>{
+    const f = fileInput.files?.[0]; if (!f) return toast('Pilih satu fail');
+    try{
+      const b64 = await toBase64NoPrefix(f);
+      const json = await callApi('upload_media', { leader_id: store.leader.leader_id, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64 });
+      if (json.success){ addMediaTile(json.public_url, json.isVideo); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
+    }catch(err){ toast('Ralat muat naik'); }
+  });
+  document.getElementById('btnInsertToContent').addEventListener('click', ()=>{ const count = store.selectedMedia.size; toast(count ? `Ditandakan ${count} media` : 'Tiada media dipilih'); updateChosenMediaHint(); });
+  document.getElementById('btnReloadMedia').addEventListener('click', reloadMedia);
+
+  async function reloadMedia(){
+    try{
+      const out = await callApi('media_list', { leader_id: store.leader.leader_id });
+      const list = out.items || [];
+      mediaGrid.innerHTML = ''; store.selectedMedia.clear();
+      list.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
+      list.forEach(row => addMediaTile(row.public_url, /^video\//i.test(row.file_type||'')));
+      updateChosenMediaHint();
+    }catch(e){ mediaGrid.innerHTML=''; updateChosenMediaHint(); }
+  }
+  function addMediaTile(url, isVideo=false){
+    if (!url) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'media-tile aspect-square';
+    wrap.dataset.url = url;
+    wrap.addEventListener('click', ()=>{ if (wrap.classList.toggle('selected')) store.selectedMedia.add(url); else store.selectedMedia.delete(url); updateChosenMediaHint(); });
+    if (isVideo){ const v=document.createElement('video'); v.src=url; v.controls=false; v.muted=true; v.playsInline=true; v.className='w-full h-full object-cover'; wrap.appendChild(v); }
+    else { const img=document.createElement('img'); img.src=url; img.loading='lazy'; img.className='w-full h-full object-cover'; wrap.appendChild(img); }
+    mediaGrid.appendChild(wrap);
+  }
+  function updateChosenMediaHint(){ const n = store.selectedMedia.size; if (chosenMediaHint) chosenMediaHint.textContent = n ? `${n} media dipilih (akan dilampirkan semasa Simpan)` : 'Tiada media dipilih. Pergi ke tab Media dan klik untuk memilih.'; }
+  function toBase64NoPrefix(file){
+    return new Promise((resolve,reject)=>{
+      const fr = new FileReader();
+      fr.onload = () => { const s = String(fr.result||''); resolve(s.includes(',') ? s.split(',')[1] : s); };
+      fr.onerror = reject; fr.readAsDataURL(file);
+    });
+  }
+
+  // ====== PARTNER ======
+  const partnerSelect = document.getElementById('customerPartner');
+  document.getElementById('btnCreatePartner').addEventListener('click', async ()=>{
+    const name = document.getElementById('partnerName').value.trim();
+    const email = document.getElementById('partnerEmail').value.trim();
+    const phone = document.getElementById('partnerPhone').value.trim();
+    const pkg   = document.getElementById('partnerPackage').value.trim();
+    if (!name) return toast('Nama partner diperlukan');
+    try{
+      const out = await callApi('partner_create', { leader_id: store.leader.leader_id, name, email, phone, package: pkg });
+      if (out.success){ toast('Partner ditambah ✔️'); await reloadPartners(); await reloadStats(); await renderOrg(); await buildRecipientTree();
+        partnerName.value=partnerEmail.value=partnerPhone.value=''; partnerPackage.value=''; }
+      else { toast(out.error||'Gagal tambah partner'); }
+    }catch(e){ toast('Ralat tambah partner'); }
+  });
+  async function reloadPartners(){
+    try{
+      const out = await callApi('partner_list', { leader_id: store.leader.leader_id });
+      store.partners = out.items || [];
+      partnerSelect.innerHTML = '<option value="">Pilih Partner</option>';
+      store.partners.forEach(p=>{ const opt=document.createElement('option'); opt.value=p.name; opt.textContent=p.name; partnerSelect.appendChild(opt); });
+    }catch(e){ partnerSelect.innerHTML = '<option value="">Pilih Partner</option>'; }
+  }
+
+  // ====== CUSTOMER ======
+  document.getElementById('btnAddCustomer').addEventListener('click', async ()=>{
+    const name = document.getElementById('customerName').value.trim();
+    const phone = document.getElementById('customerPhone').value.trim();
+    const partner = document.getElementById('customerPartner').value.trim();
+    if (!name || !phone) return toast('Nama & telefon diperlukan');
+    try{
+      const out = await callApi('customer_add', { leader_id: store.leader.leader_id, name, phone, partner });
+      if (out.success){ toast('Customer ditambah ✔️'); customerName.value=''; customerPhone.value=''; customerPartner.value='';
+        await reloadStats(); await renderOrg(); await buildRecipientTree(); }
+      else { toast(out.error||'Gagal tambah customer'); }
+    }catch(e){ toast('Ralat tambah customer'); }
+  });
+
+  // ====== APPROVALS ======
+  const regTableBody = document.getElementById('regTableBody');
+  document.getElementById('btnReloadReg').addEventListener('click', reloadRegs);
+  async function reloadRegs(){
+    try{
+      const out = await callApi('registration_list', {});
+      const items = out.items || [];
+      regTableBody.innerHTML = '';
+      items.forEach(row=>{
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-xs">${row.id||''}</td>
+          <td>${row.name||''}</td>
+          <td>${row.phone||''}</td>
+          <td><span class="badge">${row.status||''}</span></td>
+          <td>${String(row.status||'').toLowerCase()==='lulus' ? '<span class="text-green-700 text-sm">Diluluskan</span>' : '<button class="btn-ghost text-sm">Luluskan</button>'}</td>
+        `;
+        const btn = tr.querySelector('button');
+        if (btn) btn.addEventListener('click', async ()=>{
+          try{ const res = await callApi('registration_approve', { id: row.id });
+            if (res.success){ toast('Diluluskan ✔️'); await reloadRegs(); await reloadStats(); } else toast(res.error||'Gagal meluluskan'); }
+          catch(e){ toast('Ralat meluluskan'); }
+        });
+        regTableBody.appendChild(tr);
+      });
+    }catch(e){
+      regTableBody.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Gagal memuat pendaftaran.</td></tr>';
+    }
+  }
+
+  // ====== ORG CHART ======
+  document.getElementById('btnReloadOrg').addEventListener('click', renderOrg);
+  async function renderOrg(){
+    const grid = document.getElementById('orgGrid'); const svg  = document.getElementById('orgSvg'); const wrap = document.getElementById('orgWrap');
+    grid.innerHTML = ''; svg.innerHTML = '';
+    let tree;
+    try{ const out = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
+      if (!out.success) throw new Error('Fail org_tree'); tree = out.tree;
+    }catch(e){ tree = { name:'LEADER', children:[] }; }
+
+    const root = document.createElement('div');
+    root.className = 'mx-auto px-4 py-2 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-200';
+    root.textContent = (tree.name || 'LEADER'); root.style.gridColumn = '1 / -1';
+    grid.style.gridTemplateColumns = `repeat(${Math.max(1,(tree.children||[]).length)}, minmax(180px,1fr))`; grid.appendChild(root);
+
+    const rowTop = document.createElement('div'); rowTop.className = 'grid gap-8 mt-6'; rowTop.style.gridColumn = '1 / -1'; rowTop.style.gridTemplateColumns = grid.style.gridTemplateColumns; grid.appendChild(rowTop);
+    const partnerNodes = [];
+    (tree.children||[]).forEach(p=>{
+      const n = document.createElement('div'); n.className = 'px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-center font-medium border border-emerald-200';
+      n.textContent = (p.name || 'PARTNER') + (p.title ? ` • ${p.title}` : ''); rowTop.appendChild(n);
+      partnerNodes.push({ el:n, children: p.children||[] });
+    });
+
+    const maxDepth = Math.max(0, ...partnerNodes.map(x=>x.children.length));
+    for (let r=0; r<maxDepth; r++){
+      const row = document.createElement('div'); row.className = 'grid gap-8 mt-6'; row.style.gridColumn = '1 / -1'; row.style.gridTemplateColumns = grid.style.gridTemplateColumns; grid.appendChild(row);
+      partnerNodes.forEach(col=>{
+        const cust = col.children[r]; const cell = document.createElement('div');
+        if (cust){ cell.className = 'px-4 py-2 rounded-full bg-rose-100 text-rose-900 text-center border border-rose-200'; cell.textContent = cust.name || 'Customer'; }
+        else { cell.innerHTML = '&nbsp;'; } row.appendChild(cell);
+      });
+    }
+
+    const rect = wrap.getBoundingClientRect(); svg.setAttribute('width', Math.ceil(rect.width)); svg.setAttribute('height', Math.ceil(wrap.scrollHeight));
+    const toSvg = (x,y)=> { const sb = svg.getBoundingClientRect(); return [x - sb.left + wrap.scrollLeft, y - sb.top + wrap.scrollTop]; };
+    const rb = root.getBoundingClientRect();
+    partnerNodes.forEach(p=>{ const pb = p.el.getBoundingClientRect(); drawLine(rb.left + rb.width/2, rb.bottom, pb.left + pb.width/2, pb.top); });
+    const rows = Array.from(grid.children).slice(2);
+    rows.forEach(row=>{
+      const cells = Array.from(row.children);
+      cells.forEach((cell, i)=>{ if (!cell.textContent.trim()) return; const pb = partnerNodes[i].el.getBoundingClientRect(); const cb = cell.getBoundingClientRect(); drawLine(pb.left + pb.width/2, pb.bottom, cb.left + cb.width/2, cb.top); });
+    });
+    function drawLine(x1,y1,x2,y2){ const [sx1,sy1] = toSvg(x1,y1); const [sx2,sy2] = toSvg(x2,y2); const ln = document.createElementNS('http://www.w3.org/2000/svg','line'); ln.setAttribute('x1', sx1); ln.setAttribute('y1', sy1); ln.setAttribute('x2', sx2); ln.setAttribute('y2', sy2); ln.setAttribute('stroke', '#e5e7eb'); ln.setAttribute('stroke-width', '2'); svg.appendChild(ln); }
+  }
+
+  // ====== SETTINGS (global + typography) ======
+  async function refreshSettings(){
+    try{
+      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
+      const s = out.settings||{};
+      store.settings = s || {};
+      // global
+      setMin.value = s.cashback_min || 5; setMax.value = s.cashback_max || 10; setLeaderPhone.value = s.whatsapp || '';
+      setFonnteApi.value = s.fonnte_api || ''; setThemeColor.value = s.theme_color || '#ef4444'; setContentWidth.value = s.content_width || '';
+      // typography
+      setHeadingSize.value  = s.heading_size || ''; setHeadingColor.value = s.heading_color || '#111111'; setHeadingBold.checked = String(s.heading_bold||'false')==='true';
+      setBodySize.value  = s.body_size || ''; setBodyColor.value = s.body_color || '#374151'; setBodyBold.checked = String(s.body_bold||'false')==='true';
+      // kemas kini CSS root untuk brand color mini preview
+      document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
+    }catch(e){ /* biarkan */ }
+  }
+  document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
+  document.getElementById('btnSaveSettings').addEventListener('click', async ()=>{
+    let min = Number(setMin.value||5), max = Number(setMax.value||10); if (min<0) min=0; if (max<min) max=min;
+    const payload = {
+      leader_id: store.leader.leader_id,
+      cashback_min: String(min), cashback_max: String(max), whatsapp: (setLeaderPhone.value||'').trim(),
+      fonnte_api: (setFonnteApi.value||'').trim(), theme_color: (setThemeColor.value||'#ef4444'),
+      content_width: (setContentWidth.value||'').trim(),
+      heading_size: (setHeadingSize.value||'').trim(), heading_color: (setHeadingColor.value||'#111111'), heading_bold: String(setHeadingBold.checked),
+      body_size: (setBodySize.value||'').trim(), body_color: (setBodyColor.value||'#374151'), body_bold: String(setBodyBold.checked)
+    };
+    try{ await callApi('settings_set', payload); toast('Settings disimpan ✔️'); store.settings = payload; }catch(e){ toast('Gagal simpan settings'); }
+  });
+
+  // ====== CANVAS PREVIEW FUNCTIONALITY ======
+  function initCanvasModeToggle() {
+    const canvasModeBtn = document.getElementById('canvasModeBtn');
+    const htmlModeBtn = document.getElementById('htmlModeBtn');
+    const canvasPreview = document.getElementById('canvasPreview');
+    const htmlPreview = document.getElementById('htmlPreview');
+    
+    canvasModeBtn.addEventListener('click', () => {
+      store.canvasMode = 'canvas';
+      canvasModeBtn.classList.add('active');
+      htmlModeBtn.classList.remove('active');
+      canvasPreview.classList.remove('hidden');
+      htmlPreview.classList.add('hidden');
+      if (store.activeSectionIndex >= 0) {
+        renderCanvasForSection(store.sections[store.activeSectionIndex]);
+      }
+    });
+    
+    htmlModeBtn.addEventListener('click', () => {
+      store.canvasMode = 'html';
+      htmlModeBtn.classList.add('active');
+      canvasModeBtn.classList.remove('active');
+      htmlPreview.classList.remove('hidden');
+      canvasPreview.classList.add('hidden');
+      if (store.activeSectionIndex >= 0) {
+        const sec = store.sections[store.activeSectionIndex];
+        const html = sectionPreviewHTML(sec, store.settings);
+        htmlPreview.innerHTML = html;
+      }
+    });
+  }
+
+  function renderCanvasForSection(sec) {
+    const canvas = document.getElementById('canvasPreview');
+    if (!canvas) return;
+    
+    canvas.innerHTML = '';
+    
+    if (!sec || !sec.blocks || sec.blocks.length === 0) {
+      canvas.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No blocks to display</div>';
+      return;
+    }
+    
+    // Apply typography settings from store.settings
+    const hSize = Number(store.settings?.heading_size || 28);
+    const bSize = Number(store.settings?.body_size || 16);
+    const hColor = store.settings?.heading_color || '#111111';
+    const bColor = store.settings?.body_color || '#374151';
+    const hBold = String(store.settings?.heading_bold || 'false') === 'true';
+    const bBold = String(store.settings?.body_bold || 'false') === 'true';
+    const theme = store.settings?.theme_color || '#ef4444';
+    
+    sec.blocks.forEach((block, index) => {
+      const blockEl = createCanvasBlock(block, index, sec, {
+        hSize, bSize, hColor, bColor, hBold, bBold, theme
+      });
+      canvas.appendChild(blockEl);
+    });
+    
+    // Initialize drag and drop for canvas blocks
+    initCanvasDragDrop();
+  }
+
+  function createCanvasBlock(block, index, section, typography) {
+    const blockEl = document.createElement('div');
+    blockEl.className = `canvas-block ${block.kind}`;
+    blockEl.dataset.blockIndex = index;
+    blockEl.dataset.sectionId = section.id;
+    
+    // Set default layout if not exists
+    if (!block.layout) {
+      block.layout = {
+        x: 20,
+        y: 20 + (index * 120),
+        width: 200,
+        height: 100
+      };
+    }
+    
+    // Apply layout
+    blockEl.style.left = `${block.layout.x}px`;
+    blockEl.style.top = `${block.layout.y}px`;
+    blockEl.style.width = `${block.layout.width}px`;
+    blockEl.style.height = `${block.layout.height}px`;
+    
+    // Create content based on block type
+    let content = '';
+    
+    switch (block.kind) {
+      case 'text':
+      case 'rich':
+        const textDiv = document.createElement('div');
+        textDiv.contentEditable = true;
+        textDiv.innerHTML = block.html || block.value || '<p>Text content</p>';
+        textDiv.style.fontSize = `${typography.bSize}px`;
+        textDiv.style.color = typography.bColor;
+        textDiv.style.fontWeight = typography.bBold ? '600' : '400';
+        textDiv.style.lineHeight = '1.5';
+        textDiv.style.overflow = 'auto';
+        textDiv.style.height = '100%';
+        
+        textDiv.addEventListener('input', () => {
+          block.html = textDiv.innerHTML;
+        });
+        
+        blockEl.appendChild(textDiv);
+        break;
+        
+      case 'image':
+        const img = document.createElement('img');
+        img.src = block.src || block.value || 'https://picsum.photos/seed/placeholder/300/200.jpg';
+        img.alt = '';
+        img.style.width = '100%';
+        img.style.height = '100%';
+        img.style.objectFit = 'cover';
+        blockEl.appendChild(img);
+        
+        // Add resize handle
+        addResizeHandle(blockEl, block, section);
+        break;
+        
+      case 'video':
+        const videoSrc = block.src || block.value;
+        if (videoSrc) {
+          const youtubeId = parseYouTube(videoSrc);
+          if (youtubeId) {
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube.com/embed/${youtubeId}`;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            blockEl.appendChild(iframe);
+          } else {
+            const video = document.createElement('video');
+            video.src = videoSrc;
+            video.controls = true;
+            video.style.width = '100%';
+            video.style.height = '100%';
+            blockEl.appendChild(video);
+          }
+        } else {
+          blockEl.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No video source</div>';
+        }
+        
+        // Add resize handle
+        addResizeHandle(blockEl, block, section);
+        break;
+        
+      case 'link':
+        const link = document.createElement('a');
+        link.href = block.href || '#';
+        link.textContent = block.text || 'Link';
+        link.target = '_blank';
+        link.style.display = 'flex';
+        link.style.alignItems = 'center';
+        link.style.justifyContent = 'center';
+        link.style.width = '100%';
+        link.style.height = '100%';
+        link.style.textDecoration = 'none';
+        link.style.color = typography.bColor;
+        link.style.backgroundColor = '#f3f4f6';
+        link.style.borderRadius = '0.5rem';
+        blockEl.appendChild(link);
+        break;
+        
+      case 'social':
+        const social = document.createElement('a');
+        social.href = block.href || '#';
+        social.textContent = (block.icon || 'social').toUpperCase();
+        social.target = '_blank';
+        social.style.display = 'flex';
+        social.style.alignItems = 'center';
+        social.style.justifyContent = 'center';
+        social.style.width = '100%';
+        social.style.height = '100%';
+        social.style.textDecoration = 'none';
+        social.style.color = block.color || typography.bColor;
+        social.style.backgroundColor = '#f3f4f6';
+        social.style.borderRadius = '0.5rem';
+        blockEl.appendChild(social);
+        break;
+        
+      case 'button':
+        const button = document.createElement('a');
+        button.href = block.href || '#';
+        button.textContent = block.text || 'Button';
+        button.target = '_blank';
+        button.style.display = 'flex';
+        button.style.alignItems = 'center';
+        button.style.justifyContent = 'center';
+        button.style.width = '100%';
+        button.style.height = '100%';
+        button.style.textDecoration = 'none';
+        button.style.color = 'white';
+        button.style.backgroundColor = block.color || typography.theme;
+        button.style.borderRadius = '0.5rem';
+        button.style.fontWeight = '600';
+        blockEl.appendChild(button);
+        break;
+    }
+    
+    return blockEl;
+  }
+
+  function addResizeHandle(blockEl, block, section) {
+    const handle = document.createElement('div');
+    handle.className = 'resize-handle se';
+    blockEl.appendChild(handle);
+    
+    let isResizing = false;
+    let startX, startY, startWidth, startHeight;
+    
+    handle.addEventListener('mousedown', (e) => {
+      isResizing = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      startWidth = parseInt(window.getComputedStyle(blockEl).width, 10);
+      startHeight = parseInt(window.getComputedStyle(blockEl).height, 10);
+      e.preventDefault();
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      
+      const newWidth = startWidth + e.clientX - startX;
+      const newHeight = startHeight + e.clientY - startY;
+      
+      // Minimum size constraints
+      if (newWidth > 100) {
+        blockEl.style.width = `${newWidth}px`;
+        block.layout.width = newWidth;
+      }
+      
+      if (newHeight > 60) {
+        blockEl.style.height = `${newHeight}px`;
+        block.layout.height = newHeight;
+      }
+    });
+    
+    document.addEventListener('mouseup', () => {
+      isResizing = false;
+    });
+  }
+
+  function initCanvasDragDrop() {
+    const canvas = document.getElementById('canvasPreview');
+    const blocks = canvas.querySelectorAll('.canvas-block');
+    
+    blocks.forEach(block => {
+      let isDragging = false;
+      let startX, startY, initialLeft, initialTop;
+      
+      block.addEventListener('mousedown', (e) => {
+        // Ignore if clicking on resize handle or text input
+        if (e.target.classList.contains('resize-handle') || 
+            e.target.contentEditable === 'true' ||
+            e.target.tagName === 'INPUT' ||
+            e.target.tagName === 'TEXTAREA') {
+          return;
+        }
+        
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        
+        const rect = block.getBoundingClientRect();
+        const canvasRect = canvas.getBoundingClientRect();
+        
+        initialLeft = rect.left - canvasRect.left;
+        initialTop = rect.top - canvasRect.top;
+        
+        // Add selected class
+        document.querySelectorAll('.canvas-block').forEach(b => b.classList.remove('selected'));
+        block.classList.add('selected');
+        
+        e.preventDefault();
+      });
+      
+      document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        const canvasRect = canvas.getBoundingClientRect();
+        const deltaX = e.clientX - startX;
+        const deltaY = e.clientY - startY;
+        
+        let newLeft = initialLeft + deltaX;
+        let newTop = initialTop + deltaY;
+        
+        // Apply grid snapping (8px)
+        newLeft = Math.round(newLeft / 8) * 8;
+        newTop = Math.round(newTop / 8) * 8;
+        
+        // Boundary constraints
+        newLeft = Math.max(0, Math.min(newLeft, canvasRect.width - block.offsetWidth));
+        newTop = Math.max(0, Math.min(newTop, canvasRect.height - block.offsetHeight));
+        
+        block.style.left = `${newLeft}px`;
+        block.style.top = `${newTop}px`;
+        
+        // Update block layout data
+        const blockIndex = parseInt(block.dataset.blockIndex);
+        const sectionId = block.dataset.sectionId;
+        const section = store.sections.find(s => s.id === sectionId);
+        
+        if (section && section.blocks[blockIndex]) {
+          section.blocks[blockIndex].layout = {
+            ...section.blocks[blockIndex].layout,
+            x: newLeft,
+            y: newTop
+          };
+        }
+      });
+      
+      document.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+    });
+  }
+
+  function parseYouTube(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    } catch (_) {}
+    return null;
+  }
+
+  // ====== SECTION BUILDER ======
+  const sectionsWrap = document.getElementById('sectionsWrap');
+  document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
+  document.getElementById('btnPreviewUser2')?.addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
+
+  document.getElementById('btnAddSection').addEventListener('click', ()=>{
+    store.sections.push(defaultSection());
+    renderSections();
+  });
+  document.getElementById('btnReloadSections').addEventListener('click', loadSections);
+  document.getElementById('btnSaveSections').addEventListener('click', async ()=>{
+    try{
+      await callApi('settings_set', { leader_id: store.leader.leader_id, sections_json: JSON.stringify(store.sections||[]) });
+      toast('User Sections disimpan ✔️');
+    }catch(e){ toast('Gagal simpan user sections'); }
+  });
+
+  function defaultSection(){
+    return { id: uid(), title:'Seksyen Baharu', type:'custom', featured:false, hidden:false, blocks:[
+      { kind:'text', html:'<h2>Judul Seksyen</h2><p>Teks contoh — ubah ikut keperluan.</p>' }
+    ]};
+  }
+
+  async function loadSections(){
+    try{
+      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
+      const s = out.settings||{};
+      store.settings = s || store.settings;
+      let sections = safeJSON(s.sections_json, null);
+      if (!Array.isArray(sections)){
+        sections = [];
+      }
+      store.sections = sections || [];
+      renderSections();
+    }catch(e){
+      store.sections = [];
+      renderSections();
+    }
+  }
+
+  function renderSections(){
+    sectionsWrap.innerHTML = '';
+    if (!store.sections.length){
+      sectionsWrap.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Klik "Tambah Seksyen".</div>';
+      return;
+    }
+    store.sections.forEach((sec, idx)=>{
+      sectionsWrap.appendChild(sectionCard(sec, idx));
+    });
+    lucide.createIcons();
+  }
+
+  // --- Rich text helpers ---
+  function exec(cmd, val=null){ document.execCommand(cmd,false,val); }
+  function makeToolbar(container, box){
+    const bar = document.createElement('div');
+    bar.className='toolbar flex flex-wrap gap-2 mb-2';
+    bar.innerHTML = `
+      <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
+      <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
+      <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
+      <input type="color" title="Warna Teks" class="border border-gray-200 rounded w-8 h-8 p-0" data-role="color">
+      <select class="border border-gray-200 rounded px-2 py-1 text-sm" data-role="size">
+        <option value="">Saiz</option>
+        <option value="h1">H1</option>
+        <option value="h2">H2</option>
+        <option value="h3">H3</option>
+        <option value="p">Body</option>
+      </select>
+      <button type="button" data-cmd="insertUnorderedList">• Bullets</button>
+      <button type="button" data-cmd="insertOrderedList">1. Number</button>
+      <button type="button" data-cmd="removeFormat">Clear</button>
+    `;
+    
+    // Add event listeners for toolbar buttons with toggle behavior
+    bar.querySelectorAll('button[data-cmd]').forEach(btn=>{
+      btn.addEventListener('click', (e)=> {
+        const cmd = btn.dataset.cmd;
+        
+        // Check if command is already active
+        const isActive = document.queryCommandState(cmd);
+        
+        // Toggle the command
+        if (isActive) {
+          // Command is active, so remove it
+          document.execCommand(cmd, false, null);
+        } else {
+          // Command is not active, so apply it
+          document.execCommand(cmd, false, null);
+        }
+        
+        // Update button states
+        updateToolbarState(bar, box);
+      });
+    });
+    
+    // Color picker
+    const color = bar.querySelector('[data-role="color"]');
+    color.addEventListener('input', ()=> {
+      exec('foreColor', color.value);
+      updateToolbarState(bar, box);
+    });
+    
+    // Size selector
+    const sizeSel = bar.querySelector('[data-role="size"]');
+    sizeSel.addEventListener('change', ()=>{
+      const tag = sizeSel.value || 'p';
+      document.execCommand('formatBlock', false, tag);
+      updateToolbarState(bar, box);
+    });
+    
+    // Update toolbar state when selection changes
+    box.addEventListener('mouseup', () => updateToolbarState(bar, box));
+    box.addEventListener('keyup', () => updateToolbarState(bar, box));
+    
+    container.prepend(bar);
+    
+    // Initial state update
+    setTimeout(() => updateToolbarState(bar, box), 100);
+  }
+  
+  function updateToolbarState(toolbar, editor) {
+    // Update button states
+    toolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
+      const cmd = btn.dataset.cmd;
+      try {
+        const isActive = document.queryCommandState(cmd);
+        btn.classList.toggle('active', isActive);
+      } catch(e) {
+        btn.classList.remove('active');
+      }
+    });
+    
+    // Update size selector
+    const sizeSel = toolbar.querySelector('[data-role="size"]');
+    if (sizeSel) {
+      try {
+        const formatBlock = document.queryCommandValue('formatBlock');
+        sizeSel.value = formatBlock.toLowerCase() || '';
+      } catch(e) {
+        sizeSel.value = '';
+      }
+    }
+  }
+
+  function sectionCard(sec, idx){
+    const card = document.createElement('div');
+    card.className = 'border border-gray-200 rounded-xl p-4';
+    card.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2 flex-wrap">
+          <i data-lucide="panels-top-left" class="w-4 h-4"></i>
+          <input class="input !py-1 !px-2 !h-9 !text-sm w-[240px]" value="${sec.title||''}" placeholder="Tajuk seksyen">
+          <select class="input !py-1 !px-2 !h-9 !text-sm w-[160px]">
+            <option value="custom"${sec.type==='custom'?' selected':''}>Custom</option>
+            <option value="hero"${sec.type==='hero'?' selected':''}>Hero</option>
+            <option value="rich"${sec.type==='rich'?' selected':''}>Rich Text</option>
+            <option value="list"${sec.type==='list'?' selected':''}>Senarai</option>
+            <option value="faq"${sec.type==='faq'?' selected':''}>FAQ</option>
+            <option value="testimonials"${sec.type==='testimonials'?' selected':''}>Testimoni</option>
+            <option value="updates"${sec.type==='updates'?' selected':''}>Berita/Update</option>
+          </select>
+          <label class="text-xs flex items-center gap-2">
+            <span class="switch"><input type="checkbox" ${sec.featured?'checked':''}><span></span></span> Featured
+          </label>
+          <label class="text-xs flex items-center gap-2">
+            <span class="switch"><input type="checkbox" ${sec.hidden?'checked':''}><span></span></span> Sembunyi
+          </label>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-ghost btn-prev-mini" title="Preview Mini"><i data-lucide="eye" class="w-4 h-4"></i></button>
+          <button class="btn-ghost btn-up" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+          <button class="btn-ghost btn-down" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+          <button class="btn-ghost btn-del" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+      </div>
+
+      <div class="mt-3">
+        <div class="text-sm font-semibold mb-1">Blok Kandungan</div>
+        <div class="grid md:grid-cols-[1fr_auto] gap-2">
+          <div id="blk-${sec.id}"></div>
+          <div class="flex md:flex-col gap-2">
+            <button class="btn-ghost btn-add-rich"><i data-lucide="type" class="w-4 h-4"></i> Text (Rich)</button>
+            <button class="btn-ghost btn-add-image"><i data-lucide="image" class="w-4 h-4"></i> Gambar URL</button>
+            <button class="btn-ghost btn-add-video"><i data-lucide="video" class="w-4 h-4"></i> Video URL</button>
+            <button class="btn-ghost btn-add-link"><i data-lucide="link" class="w-4 h-4"></i> Link</button>
+            <button class="btn-ghost btn-add-social"><i data-lucide="share-2" class="w-4 h-4"></i> Ikon Sosial</button>
+            <button class="btn-ghost btn-add-button"><i data-lucide="mouse-pointer-click" class="w-4 h-4"></i> Butang</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 hidden mini-prev" id="prev-${sec.id}"></div>
+    `;
+
+    // wiring header fields
+    const [titleInput, typeSelect, featuredToggle, hiddenToggle] = card.querySelectorAll('input,select');
+    titleInput.addEventListener('input', e=>{ sec.title = e.target.value; rerenderMini(); });
+    typeSelect.addEventListener('change', e=>{ sec.type = e.target.value; rerenderMini(); });
+    featuredToggle.addEventListener('change', e=>{ sec.featured = e.target.checked; rerenderMini(); });
+    hiddenToggle.addEventListener('change', e=>{ sec.hidden = e.target.checked; rerenderMini(); });
+
+    // move up/down/delete
+    card.querySelector('.btn-up').addEventListener('click', ()=>{
+      if (idx<=0) return;
+      const tmp = store.sections[idx-1]; store.sections[idx-1] = store.sections[idx]; store.sections[idx] = tmp;
+      renderSections();
+    });
+    card.querySelector('.btn-down').addEventListener('click', ()=>{
+      if (idx>=store.sections.length-1) return;
+      const tmp = store.sections[idx+1]; store.sections[idx+1] = store.sections[idx]; store.sections[idx] = tmp;
+      renderSections();
+    });
+    card.querySelector('.btn-del').addEventListener('click', ()=>{
+      if (!confirm('Padam seksyen ini?')) return;
+      store.sections.splice(idx,1);
+      renderSections();
+    });
+
+    // preview mini toggle
+    const btnPrev = card.querySelector('.btn-prev-mini');
+    const prevBox = card.querySelector('#prev-'+sec.id);
+    btnPrev.addEventListener('click', ()=>{
+      prevBox.classList.toggle('hidden');
+      if (!prevBox.classList.contains('hidden')) rerenderMini();
+      
+      // Set this section as active for canvas preview
+      store.activeSectionIndex = idx;
+      
+      // Update canvas preview based on current mode
+      if (store.canvasMode === 'canvas') {
+        renderCanvasForSection(sec);
+      } else {
+        const html = sectionPreviewHTML(sec, store.settings);
+        document.getElementById('htmlPreview').innerHTML = html;
+      }
+    });
+
+    function rerenderMini(){
+      const html = sectionPreviewHTML(sec, store.settings);
+      prevBox.innerHTML = html;
+    }
+
+    // render blocks
+    function renderBlocks(){
+      const host = card.querySelector(`#blk-${sec.id}`);
+      host.innerHTML = '';
+      if (!Array.isArray(sec.blocks) || !sec.blocks.length){
+        host.innerHTML = '<div class="text-sm text-gray-500">Tiada blok. Tambah blok di sebelah kanan.</div>';
+        return;
+      }
+      sec.blocks.forEach((blk, bIdx)=>{
+        const row = document.createElement('div');
+        row.className = 'block-row';
+        if (blk.kind === 'text' || blk.kind === 'rich'){
+          const html = (blk.html || blk.value || '');
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-2">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="type" class="w-3.5 h-3.5"></i> Text (Rich)</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="rtbox" contenteditable="true"></div>
+            <div class="help mt-2">Pilih teks kemudian tukar warna, saiz (H1/H2/H3/Body), bold/italic/underline menggunakan toolbar di atas.</div>
+          `;
+          const box = row.querySelector('.rtbox');
+          box.innerHTML = html;
+          makeToolbar(row, box);
+          box.addEventListener('input', ()=>{ 
+            blk.html = box.innerHTML; 
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+        } else if (blk.kind === 'image'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="image" class="w-3.5 h-3.5"></i> Gambar URL</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <input class="input" placeholder="https://..." value="${blk.src||blk.value||''}">
+            <div class="help mt-1">Letak pautan gambar (Google Drive "Anyone with link" / CDN / hosting sendiri).</div>
+          `;
+          row.querySelector('input').addEventListener('input', e=> { 
+            blk.src = e.target.value; 
+            blk.value = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+        } else if (blk.kind === 'video'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="video" class="w-3.5 h-3.5"></i> Video URL</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <input class="input" placeholder="https://... (mp4/webm atau YouTube)" value="${blk.src||blk.value||''}">
+            <div class="help mt-1">Fail .mp4/.webm atau link YouTube — user.html akan cuba embed.</div>
+          `;
+          row.querySelector('input').addEventListener('input', e=> { 
+            blk.src = e.target.value; 
+            blk.value = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+        } else if (blk.kind === 'link'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="link" class="w-3.5 h-3.5"></i> Pautan</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid md:grid-cols-2 gap-2">
+              <input class="input" placeholder="Teks link (cth: Lihat panduan)" value="${blk.text||''}">
+              <input class="input" placeholder="https://..." value="${blk.href||blk.value||''}">
+            </div>
+          `;
+          const [txt, url] = row.querySelectorAll('input');
+          txt.addEventListener('input', e=> {
+            blk.text = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+          url.addEventListener('input', e=> { 
+            blk.href = e.target.value; 
+            blk.value = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+        } else if (blk.kind === 'social'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Ikon Sosial</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-2">
+              <select class="input">
+                <option ${blk.icon==='facebook'?'selected':''} value="facebook">Facebook</option>
+                <option ${blk.icon==='instagram'?'selected':''} value="instagram">Instagram</option>
+                <option ${blk.icon==='tiktok'?'selected':''} value="tiktok">TikTok</option>
+                <option ${blk.icon==='youtube'?'selected':''} value="youtube">YouTube</option>
+                <option ${blk.icon==='telegram'?'selected':''} value="telegram">Telegram</option>
+                <option ${blk.icon==='x'?'selected':''} value="x">X / Twitter</option>
+              </select>
+              <input class="input" placeholder="https://profil..." value="${blk.href||''}">
+              <input class="input" type="color" value="${blk.color||'#111111'}" title="Warna ikon">
+            </div>
+          `;
+          const [sel, url, col] = row.querySelectorAll('select,input');
+          sel.addEventListener('change', e=> {
+            blk.icon = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+          url.addEventListener('input', e=> {
+            blk.href = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+          col.addEventListener('input', e=> {
+            blk.color = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+        } else if (blk.kind === 'button'){
+          row.innerHTML = `
+            <div class="flex items-center justify-between mb-1">
+              <div class="text-xs font-semibold text-gray-600"><i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> Butang</div>
+              <div class="flex gap-1">
+                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
+                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+              </div>
+            </div>
+            <div class="grid md:grid-cols-3 gap-2">
+              <input class="input" placeholder="Teks butang" value="${blk.text||'Butang'}">
+              <input class="input" placeholder="https://..." value="${blk.href||'#'}">
+              <input class="input" type="color" value="${blk.color||'#ef4444'}" title="Warna butang">
+            </div>
+          `;
+          const [t, h, c] = row.querySelectorAll('input');
+          t.addEventListener('input', e=> {
+            blk.text = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+          h.addEventListener('input', e=> {
+            blk.href = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+          c.addEventListener('input', e=> {
+            blk.color = e.target.value;
+            // Update canvas if this section is active
+            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+              renderCanvasForSection(sec);
+            }
+          });
+        }
+
+        // move/del block
+        row.querySelector('.btn-upb').addEventListener('click', ()=>{
+          if (bIdx<=0) return;
+          const t=sec.blocks[bIdx-1]; sec.blocks[bIdx-1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
+        });
+        row.querySelector('.btn-downb').addEventListener('click', ()=>{
+          if (bIdx>=sec.blocks.length-1) return;
+          const t=sec.blocks[bIdx+1]; sec.blocks[bIdx+1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
+        });
+        row.querySelector('.btn-delb').addEventListener('click', ()=>{
+          sec.blocks.splice(bIdx,1); renderBlocks();
+        });
+        host.appendChild(row);
+      });
+      lucide.createIcons();
+    }
+    renderBlocks();
+
+    // add block buttons
+    card.querySelector('.btn-add-rich').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'rich', html:'<p>Teks baharu</p>'}); renderBlocks();
+    });
+    card.querySelector('.btn-add-image').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'image', src:''}); renderBlocks();
+    });
+    card.querySelector('.btn-add-video').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'video', src:''}); renderBlocks();
+    });
+    card.querySelector('.btn-add-link').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'link', text:'Pautan', href:'#'}); renderBlocks();
+    });
+    card.querySelector('.btn-add-social').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'social', icon:'telegram', href:'', color:'#111111'}); renderBlocks();
+    });
+    card.querySelector('.btn-add-button').addEventListener('click', ()=>{
+      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'button', text:'Butang', href:'#', color:'#ef4444'}); renderBlocks();
+    });
+
+    return card;
+  }
+
+  // ==== MINI PREVIEW RENDERER ====
+  function sectionPreviewHTML(sec, s){
+    const hSize = Number(s?.heading_size||0) || 28;
+    const bSize = Number(s?.body_size||0) || 16;
+    const hColor = s?.heading_color || '#111111';
+    const bColor = s?.body_color || '#374151';
+    const hBold = String(s?.heading_bold||'false')==='true';
+    const bBold = String(s?.body_bold||'false')==='true';
+    const theme = s?.theme_color || '#ef4444';
+
+    const style = `
+      style="
+        --theme:${theme};
+        --hSize:${hSize}px; --bSize:${bSize}px;
+        --hColor:${hColor}; --bColor:${bColor};
+        --hWeight:${hBold?'800':'700'}; --bWeight:${bBold?'600':'400'};
+      "
+    `;
+    const esc = (t)=> String(t||'');
+    const blocks = (sec.blocks||[]).map(b=>{
+      if (b.kind==='text' || b.kind==='rich'){
+        return `<div style="font-size:var(--bSize);color:var(--bColor);font-weight:var(--bWeight);line-height:1.6;margin:.4rem 0">${esc(b.html||b.value||'')}</div>`;
+      } else if (b.kind==='image'){
+        const u = esc(b.src||b.value);
+        return u? `<img src="${u}" alt="" style="max-width:100%;border-radius:12px;border:1px solid #eee;margin:.4rem 0">` : '';
+      } else if (b.kind==='video'){
+        const u = esc(b.src||b.value);
+        if (!u) return '';
+        const yt = parseYouTube(u);
+        if (yt) return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid #eee;margin:.4rem 0"><iframe src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe></div>`;
+        return `<video src="${u}" controls playsinline style="width:100%;border-radius:12px;border:1px solid #eee;margin:.4rem 0"></video>`;
+      } else if (b.kind==='link'){
+        const text = esc(b.text||'Pautan'); const u = esc(b.href||'#');
+        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--theme);color:#fff;padding:.5rem .8rem;border-radius:.6rem;text-decoration:none;margin:.4rem 0">${text}</a>`;
+      } else if (b.kind==='social'){
+        const u = esc(b.href||'#'); const col = esc(b.color||'#111111');
+        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.4rem;color:${col};margin-right:.5rem;text-decoration:none;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem">${(b.icon||'social').toUpperCase()}</a>`;
+      } else if (b.kind==='button'){
+        const text = esc(b.text||'Butang'); const u = esc(b.href||'#'); const col = esc(b.color||'#ef4444');
+        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:${col};color:#fff;padding:.55rem .9rem;border-radius:.7rem;text-decoration:none;margin:.4rem 0">${text}</a>`;
+      }
+      return '';
+    }).join('');
+
+    const title = sec.title ? `<div style="font-size:var(--hSize);color:var(--hColor);font-weight:var(--hWeight);margin-bottom:.4rem">${esc(sec.title)}</div>` : '';
+    const tag = sec.featured ? `<span style="display:inline-block;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:9999px;font-size:12px;padding:2px 8px;margin-bottom:6px">Featured</span>` : '';
+
+    return `<div ${style}>
+      ${tag}
+      ${title}
+      ${blocks || '<div style="color:#6b7280;font-size:14px">Tiada kandungan.</div>'}
+      ${sec.hidden ? '<div style="margin-top:6px;color:#9ca3af;font-size:12px">* Seksyen ini ditanda Sembunyi</div>' : ''}
+    </div>`;
+  }
+
+  function safeJSON(s, def){ try{ const x = JSON.parse(s||''); return x; }catch(_){ return def; } }
 </script>
 </body>
 </html>
