@@ -1815,18 +1815,31 @@
           c.addEventListener('input', e=> blk.color = e.target.value);
         }
 
-        // move/del block
-        row.querySelector('.btn-upb').addEventListener('click', ()=>{
-          if (bIdx<=0) return;
-          const t=sec.blocks[bIdx-1]; sec.blocks[bIdx-1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
-        });
-        row.querySelector('.btn-downb').addEventListener('click', ()=>{
-          if (bIdx>=sec.blocks.length-1) return;
-          const t=sec.blocks[bIdx+1]; sec.blocks[bIdx+1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
-        });
-        row.querySelector('.btn-delb').addEventListener('click', ()=>{
-          sec.blocks.splice(bIdx,1); renderBlocks();
-        });
+        // move/del block - Add null checks
+        const upBtn = row.querySelector('.btn-upb');
+        const downBtn = row.querySelector('.btn-downb');
+        const delBtn = row.querySelector('.btn-delb');
+        
+        if (upBtn) {
+          upBtn.addEventListener('click', ()=>{
+            if (bIdx<=0) return;
+            const t=sec.blocks[bIdx-1]; sec.blocks[bIdx-1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
+          });
+        }
+        
+        if (downBtn) {
+          downBtn.addEventListener('click', ()=>{
+            if (bIdx>=sec.blocks.length-1) return;
+            const t=sec.blocks[bIdx+1]; sec.blocks[bIdx+1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
+          });
+        }
+        
+        if (delBtn) {
+          delBtn.addEventListener('click', ()=>{
+            sec.blocks.splice(bIdx,1); renderBlocks();
+          });
+        }
+        
         host.appendChild(row);
       });
       lucide.createIcons();
