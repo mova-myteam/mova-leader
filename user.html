@@ -106,11 +106,8 @@ function qs(key){ return new URLSearchParams(location.search).get(key) || ''; }
 function formatInline(str){
   if (!str) return '';
   let html = esc(str);
-  // convert newlines to <br>
   html = html.replace(/\n/g,'<br>');
-  // bold
   html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  // [Text]{#hex}
   html = html.replace(/\[([^\]]+)\]\{(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)\}/g, '<span style="color:$2">$1</span>');
   return html;
 }
@@ -135,26 +132,27 @@ async function loadSettings(){
   try{
     const out = await api('settings_get', {});
     SETTINGS = out.settings || {};
-    document.documentElement.style.setProperty('--brand', SETTINGS.theme_primary || '#ef4444');
-    RATE_MIN = Number(SETTINGS.cashback_min||5);
-    RATE_MAX = Number(SETTINGS.cashback_max||10);
+    // primary color
+    document.documentElement.style.setProperty('--brand', SETTINGS.theme_primary || SETTINGS.theme_color || '#ef4444');
 
-    // hero title/subtitle fallback from sections if present
+    // rates with alias fallback
+    const minA = Number(SETTINGS.cashback_min ?? SETTINGS.default_cashback_min ?? 5);
+    const maxA = Number(SETTINGS.cashback_max ?? SETTINGS.default_cashback_max ?? 10);
+    RATE_MIN = isFinite(minA) ? minA : 5;
+    RATE_MAX = isFinite(maxA) ? maxA : 10;
+
+    // hero from sections if present
     const sec = (SETTINGS.sections||[]);
     let heroSec = sec.find(s=> (s.type||'')==='hero') || sec[0] || {};
     const titleBlock = (heroSec.blocks||[]).find(b=> b.kind==='text') || {};
     const mediaBlock = (heroSec.blocks||[]).find(b=> b.kind==='image' || b.kind==='video');
 
-    // Title: allow [word]{#hex}
     const h1 = document.getElementById('heroTitle');
     const h2 = document.getElementById('heroSubtitle');
     h1.innerHTML = formatInline(heroSec.title || (titleBlock.value||'Selamat Datang ke [MOVA]{#ef4444}'));
     h2.innerHTML = formatInline(heroSec.subtitle || 'Belanja, kumpul cashback, dan bina masa depan — dimulakan di sini.');
 
-    // If hero has media link, render it (fallback to media_list later)
-    if (mediaBlock && mediaBlock.value){
-      renderMediaInto('heroMedia', mediaBlock.value);
-    }
+    if (mediaBlock && mediaBlock.value){ renderMediaInto('heroMedia', mediaBlock.value); }
   }catch(e){
     document.getElementById('heroTitle').textContent = 'MOVA';
   }
@@ -338,7 +336,7 @@ function buildUpgradeForm(){
       <button id="btnWAPar" class="btn btn-ghost"><i data-lucide="messages-square" class="w-4 h-4"></i> WhatsApp Partner</button>
     </div>
     <div class="mt-2 text-xs text-gray-500">
-      * Jika endpoint <code>upgrade_intent</code> belum disediakan di server, mesej ralat akan dipaparkan (frontend ini tidak akan rosakkan halaman).
+      * Jika endpoint <code>upgrade_intent</code> belum disediakan, sistem akan cuba <code>partner_upgrade</code>.
     </div>
   `;
 
@@ -354,15 +352,24 @@ function buildUpgradeForm(){
     const user_phone= div.querySelector('#uPhone').value.trim();
     const target    = div.querySelector('#uTarget').value.trim();
     const partner_name = div.querySelector('#uPartner').value.trim();
-    const leader_id = qs('leader') || ''; // opsyen: boleh pass melalui URL
+    const leader_id = qs('leader') || 'LEAD-0001';
     const note      = div.querySelector('#uNote').value.trim();
     if (!user_name || !user_phone || !target) return toast('Lengkapkan nama, telefon & peringkat.');
 
+    // 1) Cuba upgrade_intent jika anda sediakan kemudian
     try{
       const out = await api('upgrade_intent', { user_name, user_phone, partner_name, leader_id, target, note });
-      if (out.success){ toast('Niat upgrade dihantar ✔️'); }
-      else toast(out.error||'Gagal hantar.');
-    }catch(e){ toast('Server belum sedia untuk upgrade_intent.'); }
+      if (out.success){ toast('Niat upgrade dihantar ✔️'); return; }
+    }catch(_){ /* teruskan fallback */ }
+
+    // 2) Fallback: partner_upgrade (mengikut Code.gs semasa)
+    try{
+      const out2 = await api('partner_upgrade', {
+        leader_id, name: user_name, phone: user_phone, email: '', package: target
+      });
+      if (out2.success){ toast('Permohonan upgrade dihantar ✔️'); }
+      else toast(out2.error||'Gagal hantar.');
+    }catch(e){ toast('Server belum sedia untuk upgrade.'); }
   });
 
   function waUrl(num, txt){ const p=String(num||'').replace(/\D/g,''); return p?`https://wa.me/${p}?text=${encodeURIComponent(txt||'')}`:''; }
@@ -429,7 +436,6 @@ async function renderSections(){
     renderBlocksInto(box, sec);
     wrap.appendChild(box);
 
-    // seksyen "Promosi & Update Terkini" shortcut
     if ((sec.type||'').toLowerCase()==='updates' || /promosi|update/i.test(sec.title||'')){
       box.id='updates';
     }
