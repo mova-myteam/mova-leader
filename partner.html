@@ -165,23 +165,21 @@
 
   // ===== STATE / SESSION =====
   const store = {
-    session: getSession(),     // cuba mova_session; fallback mova_leader
+    session: getSession(),     // hanya partner dibenarkan
     leader_id: null,
     partner_id: null,
     partner_name: null
   };
 
-  // Semak akses
+  // ===== AKSES: PARTNER SAHAJA =====
   (function guard(){
     if (!store.session) return redirectLogin('Sesi tiada. Sila log masuk.');
     const role = (store.session.role || store.session.profile?.role || '').toLowerCase();
-    const isLeader = role === 'leader';
-    const isPartner = role === 'partner';
-    if (!isLeader && !isPartner) {
-      redirectLogin('Akses terhad kepada Partner/Leader.');
+    if (role !== 'partner') {
+      // Leader tidak dibenarkan gunakan partner panel
+      redirectLogin('Akses terhad: Portal ini untuk PARTNER sahaja.');
       return;
     }
-    // Papar nama
     document.getElementById('whoName').textContent = store.session.name || store.session.profile?.name || 'partner';
   })();
 
@@ -207,15 +205,8 @@
   }
   function redirectLogin(msg){ toast(msg || 'Sila log masuk'); setTimeout(()=> location.href='./index.html', 900); }
   function getSession(){
-    // format cadangan B
     const s = localStorage.getItem('mova_session');
     if (s) { try{ return JSON.parse(s); }catch(_){ } }
-    // fallback lama (leader sahaja)
-    const l = localStorage.getItem('mova_leader');
-    if (l) { try{
-      const o = JSON.parse(l);
-      return { role:'leader', id:o.leader_id, name:o.profile?.name, profile:o.profile };
-    }catch(_){ } }
     return null;
   }
   function setActiveTab(name){
@@ -245,44 +236,32 @@
 
   // Dapatkan leader_id & partner_id untuk sesi partner
   async function resolvePartnerContext(){
-    const role = (store.session.role || store.session.profile?.role || '').toLowerCase();
-    if (role === 'leader') {
-      // Leader boleh akses portal ini; fungsinya fokus kepada partner.
-      const out = await api('partner_list', { leader_id: store.session.id || store.session.leader_id });
-      const list = out.items || [];
-      store.leader_id = store.session.id || store.session.leader_id || 'LEAD-0001';
-      store.partner_id = null;
-      store.partner_name = null;
-      return;
-    }
-
-    if (role === 'partner') {
-      // Cari diri dalam sheet partners (ikut phone atau name), untuk tahu leader_id + partner_id
-      const out = await api('partner_list', {}); // ambil semua, tapis di klien
-      const list = out.items || [];
-      const myName  = (store.session.name || store.session.profile?.name || '').trim().toLowerCase();
-      const myPhone = String(store.session.phone || store.session.profile?.phone || '').replace(/\D/g,'');
-      let me = list.find(p => String(p.phone||'').replace(/\D/g,'') === myPhone);
-      if (!me) me = list.find(p => String(p.name||'').trim().toLowerCase() === myName);
-      if (!me) throw new Error('Rekod partner anda tidak ditemui dalam helaian. Hubungi Leader.');
-      store.leader_id = me.leader_id;
-      store.partner_id = me.id;
-      store.partner_name = me.name;
-      return;
-    }
+    // Cari diri dalam sheet partners (ikut phone atau name), untuk tahu leader_id + partner_id
+    const out = await api('partner_list', {}); // ambil semua, tapis di klien
+    const list = out.items || [];
+    const myName  = (store.session.name || store.session.profile?.name || '').trim().toLowerCase();
+    const myPhone = String(store.session.phone || store.session.profile?.phone || '').replace(/\D/g,'');
+    // cuba padan ikut telefon dahulu, kemudian nama
+    let me = list.find(p => String(p.phone||'').replace(/\D/g,'') === myPhone);
+    if (!me) me = list.find(p => String(p.name||'').trim().toLowerCase() === myName);
+    if (!me) throw new Error('Rekod partner anda tidak ditemui dalam helaian. Hubungi Leader.');
+    store.leader_id = me.leader_id;
+    store.partner_id = me.id;
+    store.partner_name = me.name;
   }
 
   // ===== KPI ringkas =====
   async function reloadKPIs(){
-    // Pending approvals (untuk partner ini sahaja)
     const regs = await api('registration_list', {});
     const items = regs.items || [];
-    const pendingMine = items.filter(r => (String(r.status||'').toLowerCase() !== 'lulus') && (matchPartner(r)));
+
+    // Pending approvals (untuk partner ini sahaja — mesti ada partner_id padanan)
+    const pendingMine = items.filter(r => isMine(r) && (String(r.status||'').toLowerCase() !== 'lulus'));
     document.getElementById('statPending').textContent = pendingMine.length;
 
     // Approved last 30 days (untuk partner ini)
     const days30 = Date.now() - (30*24*3600*1000);
-    const approvedMine = items.filter(r => (String(r.status||'').toLowerCase() === 'lulus') && matchPartner(r) && (new Date(r.created_at||0).getTime() >= days30));
+    const approvedMine = items.filter(r => isMine(r) && (String(r.status||'').toLowerCase() === 'lulus') && (new Date(r.created_at||0).getTime() >= days30));
     document.getElementById('statApproved').textContent = approvedMine.length;
 
     // My users count (daripada org_tree)
@@ -297,9 +276,9 @@
     if (!name || !phone) return toast('Isi nama & telefon.');
     try{
       const payload = {
-        leader_id: store.leader_id || store.session.id || store.session.leader_id || 'LEAD-0001',
+        leader_id: store.leader_id || 'LEAD-0001',
         name, phone,
-        partner: store.partner_name || (store.session.role==='leader' ? '' : '')
+        partner: store.partner_name || '' // disimpan sebagai teks di sheet customers
       };
       const out = await api('customer_add', payload);
       if (out.success){
@@ -319,7 +298,7 @@
   async function loadApprovals(){
     try{
       const out = await api('registration_list', {});
-      const items = (out.items||[]).filter(r => matchPartner(r));
+      const items = (out.items||[]).filter(r => isMine(r)); // hanya rekod milik partner ini
       tblApprovals.innerHTML = '';
       if (!items.length){
         tblApprovals.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Tiada pendaftaran untuk anda.</td></tr>';
@@ -339,18 +318,10 @@
         if (btn){
           btn.addEventListener('click', async ()=>{
             try{
-              const role = (store.session.role || store.session.profile?.role || '').toLowerCase();
-              // Jika partner & ada partner_id → guna endpoint terhad partner
-              if (role === 'partner' && store.partner_id){
-                const res = await api('registration_approve_by_partner', { id: row.id, partner_id: store.partner_id });
-                if (res.success){ toast('Diluluskan ✔️'); await loadApprovals(); await reloadKPIs(); }
-                else { toast(res.error||'Gagal meluluskan'); }
-              } else {
-                // Leader fallback (admin)
-                const res = await api('registration_approve', { id: row.id });
-                if (res.success){ toast('Diluluskan ✔️'); await loadApprovals(); await reloadKPIs(); }
-                else { toast(res.error||'Gagal meluluskan'); }
-              }
+              // Gunakan endpoint kawalan partner (padankan partner_id di helaian dengan nilai yang dihantar)
+              const res = await api('registration_approve_by_partner', { id: row.id, partner_name: store.partner_id });
+              if (res.success){ toast('Diluluskan ✔️'); await loadApprovals(); await reloadKPIs(); }
+              else { toast(res.error||'Gagal meluluskan'); }
             }catch(e){ toast('Ralat meluluskan'); }
           });
         }
@@ -366,7 +337,7 @@
 
   async function loadMyUsers(silent){
     try{
-      const leader_id = store.leader_id || store.session.id || store.session.leader_id || 'LEAD-0001';
+      const leader_id = store.leader_id || 'LEAD-0001';
       const out = await api('org_tree', { leader_id, leader_name: (store.session.profile?.name || store.session.name || 'LEADER') });
       const tree = out.tree || { children:[] };
       const meName = (store.partner_name || '').trim();
@@ -374,7 +345,7 @@
 
       // Cari node partner saya
       (tree.children||[]).forEach(p=>{
-        if (!meName) return; // jika leader gunakan portal ini, biar kosong
+        if (!meName) return;
         if (String(p.name||'').trim() === meName) {
           (p.children||[]).forEach(c=> myCustomers.push(c));
         }
@@ -406,20 +377,14 @@
     }
   }
 
-  // Padanan “hak milik partner” pada rekod pendaftaran
-  function matchPartner(rec){
-    // Rekod mungkin ada partner_id (disyorkan) atau sekadar nama partner
+  // Padanan “hak milik partner” pada rekod pendaftaran (ikut partner_id)
+  function isMine(rec){
     if (!rec) return false;
     const myId = store.partner_id || '';
-    const myName = (store.partner_name || '').trim();
-    if (myId && String(rec.partner_id||'').trim() === myId) return true;
-    if (myName && String(rec.partner_name||'').trim() === myName) return true;
-    // fallback: tiada maklumat partner di rekod → jangan paparkan
-    return false;
+    if (!myId) return false;
+    return String(rec.partner_id||'').trim() === String(myId).trim();
   }
 
-  // ===== Tabs init & helper =====
-  // (sudah dipanggil di atas)
 </script>
 </body>
 </html>
