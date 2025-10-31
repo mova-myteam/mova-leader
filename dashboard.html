@@ -69,6 +69,7 @@
       background-size: 20px 20px;
       border-radius: 0.75rem;
       min-height: 560px;
+      width: 100%;
     }
     .canvas-block {
       position: absolute;
@@ -76,13 +77,16 @@
       user-select: none;
       border: 1px solid transparent;
       transition: border-color 0.2s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     .canvas-block:hover {
       border-color: #d1d5db;
+      z-index: 10;
     }
     .canvas-block.selected {
       border-color: #111;
       box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.2);
+      z-index: 20;
     }
     .canvas-block.text {
       padding: 8px;
@@ -133,20 +137,21 @@
     }
     .resize-handle {
       position: absolute;
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       background-color: #111;
       border-radius: 50%;
       opacity: 0;
       transition: opacity 0.2s;
+      z-index: 30;
     }
     .canvas-block:hover .resize-handle,
     .canvas-block.selected .resize-handle {
       opacity: 0.7;
     }
     .resize-handle.se {
-      bottom: -5px;
-      right: -5px;
+      bottom: -6px;
+      right: -6px;
       cursor: se-resize;
     }
     .canvas-mode-toggle {
@@ -166,6 +171,38 @@
     .canvas-mode-toggle button.active {
       background-color: white;
       box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .canvas-boundary {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px dashed #d1d5db;
+      border-radius: 0.75rem;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .canvas-container.dragging .canvas-boundary {
+      opacity: 1;
+    }
+    .canvas-grid-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: 
+        linear-gradient(rgba(209, 213, 219, 0.3) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(209, 213, 219, 0.3) 1px, transparent 1px);
+      background-size: 8px 8px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .canvas-container.dragging .canvas-grid-overlay {
+      opacity: 1;
     }
   </style>
 </head>
@@ -273,7 +310,10 @@
               <button id="htmlModeBtn">HTML</button>
             </div>
           </div>
-          <div id="canvasPreview" class="canvas-container"></div>
+          <div id="canvasPreview" class="canvas-container">
+            <div class="canvas-boundary"></div>
+            <div class="canvas-grid-overlay"></div>
+          </div>
           <div id="htmlPreview" class="mini-prev hidden"></div>
         </div>
       </div>
@@ -1075,7 +1115,12 @@
     const canvas = document.getElementById('canvasPreview');
     if (!canvas) return;
     
+    // Clear canvas but keep boundary and grid overlay
+    const boundary = canvas.querySelector('.canvas-boundary');
+    const gridOverlay = canvas.querySelector('.canvas-grid-overlay');
     canvas.innerHTML = '';
+    canvas.appendChild(boundary);
+    canvas.appendChild(gridOverlay);
     
     if (!sec || !sec.blocks || sec.blocks.length === 0) {
       canvas.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No blocks to display</div>';
@@ -1111,8 +1156,8 @@
     // Set default layout if not exists
     if (!block.layout) {
       block.layout = {
-        x: 20,
-        y: 20 + (index * 120),
+        x: 20 + (index % 3) * 220,  // Arrange in 3 columns initially
+        y: 20 + Math.floor(index / 3) * 150,
         width: 200,
         height: 100
       };
@@ -1314,6 +1359,9 @@
         document.querySelectorAll('.canvas-block').forEach(b => b.classList.remove('selected'));
         block.classList.add('selected');
         
+        // Add dragging class to canvas for visual feedback
+        canvas.classList.add('dragging');
+        
         e.preventDefault();
       });
       
@@ -1354,6 +1402,7 @@
       
       document.addEventListener('mouseup', () => {
         isDragging = false;
+        canvas.classList.remove('dragging');
       });
     });
   }
