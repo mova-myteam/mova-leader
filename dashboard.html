@@ -370,7 +370,7 @@
         <!-- Right column: Preview -->
         <div class="lg:col-span-3">
           <div class="preview-container">
-            <iframe id="userPreview" class="preview-iframe" src="./user.html"></iframe>
+            <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
             <div class="preview-controls">
               <button id="btnUndo" class="btn-ghost" title="Undo">
                 <i data-lucide="undo-2" class="w-4 h-4"></i>
@@ -1384,6 +1384,10 @@
     // 修复部分：添加iframe加载事件监听器，确保预览区域正常工作
     if (userPreview) {
       userPreview.addEventListener('load', () => {
+        // 发送编辑模式激活指令
+        sendToUser({ type: 'toggle-edit', data: { on: true } });
+        
+        // 加载现有元素
         sendToIframe('load-elements', { elements: store.elements || [] });
       });
     }
@@ -2490,10 +2494,57 @@
     const userPreview = document.getElementById('userPreview');
     if (userPreview) {
       userPreview.addEventListener('load', () => {
+        sendToUser({ type: 'toggle-edit', data: { on: true } });
         sendToIframe('load-elements', { elements: store.elements || [] });
       });
     }
   });
+  
+  // ====== IFRAME 通信功能 ======
+  // 发送消息到user.html
+  function sendToUser(payload) {
+    const userIframe = document.getElementById('userPreview');
+    if (!userIframe?.contentWindow) return;
+    userIframe.contentWindow.postMessage(payload, '*');
+  }
+  
+  // 监听来自user.html的消息
+  window.addEventListener('message', (event) => {
+    // 验证消息来源
+    if (event.origin !== window.location.origin && 
+        !event.origin.includes('localhost') && 
+        !event.origin.includes('github.io')) {
+      return;
+    }
+    
+    const { type, data } = event.data;
+    
+    switch (type) {
+      case 'element-selected':
+        selectElement(data.id);
+        break;
+      case 'element-updated':
+        updateElement(data.id, data.properties);
+        break;
+      case 'element-deleted':
+        deleteElement(data.id);
+        break;
+      case 'elements-loaded':
+        store.elements = data.elements || [];
+        break;
+      case 'element-added':
+        // 当user.html添加新元素时，同步到dashboard
+        if (data.element) {
+          store.elements.push(data.element);
+          saveToHistory();
+          startAutoSave();
+        }
+        break;
+    }
+  });
+  
+  // 导出函数到全局，使onclick可以调用
+  window.sendToUser = sendToUser;
 </script>
 </body>
 </html>
