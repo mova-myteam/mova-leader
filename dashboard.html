@@ -7,10 +7,14 @@
 
   <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
   <!-- Tailwind (CDN for simplicity; use CLI for production) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Interact.js for drag and drop -->
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
   <style>
     :root { --brand:#ef4444; }
@@ -57,134 +61,174 @@
     .toolbar select:focus{background:#f9fafb;}
     .rtbox{min-height:120px;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem;background:#fff}
     
-    /* CANVAS MODE STYLES */
-    .canvas-area {
-      position: relative;
-      background-color: #f9fafb;
-      background-image: 
-        linear-gradient(rgba(229, 231, 235, 0.5) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
-      background-size: 20px 20px;
-      border: 1px dashed #d1d5db;
-      border-radius: 0.75rem;
-      min-height: 560px;
-      overflow: hidden;
+    /* Canva Pro Editor Styles */
+    .editor-toolbar {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 12px;
+      z-index: 1000;
+      display: none;
+      min-width: 280px;
     }
-    
-    .canvas-block {
-      position: absolute;
-      cursor: move;
-      user-select: none;
-      border: 1px solid transparent;
-      transition: border-color 0.2s;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-    
-    .canvas-block:hover {
-      border-color: #d1d5db;
-      z-index: 10;
-    }
-    
-    .canvas-block.selected {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-      z-index: 20;
-    }
-    
-    .canvas-block.text {
-      padding: 8px;
-      background-color: white;
-      border-radius: 0.5rem;
-      min-width: 100px;
-      min-height: 40px;
-      overflow: hidden;
-    }
-    
-    .canvas-block.image, .canvas-block.video {
-      border-radius: 0.5rem;
-      overflow: hidden;
-    }
-    
-    .canvas-block.image img, .canvas-block.video video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    .editor-toolbar.active {
       display: block;
     }
-    
-    .canvas-block.video iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
+    .editor-toolbar h3 {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #e5e7eb;
     }
-    
-    .canvas-block.link, .canvas-block.social, .canvas-block.button {
-      display: inline-flex;
+    .editor-toolbar .control-group {
+      margin-bottom: 12px;
+    }
+    .editor-toolbar .control-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 4px;
+      color: #6b7280;
+    }
+    .editor-toolbar .control-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .editor-toolbar button {
+      padding: 6px 10px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+    .editor-toolbar input[type="color"] {
+      width: 40px;
+      height: 32px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      cursor: pointer;
+    }
+    .editor-toolbar select, .editor-toolbar input[type="number"] {
+      padding: 6px 8px;
+      font-size: 12px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+    }
+    .element-panel {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    .element-panel h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+    .element-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .element-btn {
+      display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 8px 16px;
-      border-radius: 0.5rem;
-      white-space: nowrap;
+      padding: 16px 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.2s;
     }
-    
-    .canvas-block.link {
-      background-color: #f3f4f6;
-      color: #374151;
-      text-decoration: none;
+    .element-btn:hover {
+      background: #f9fafb;
+      border-color: #d1d5db;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
     }
-    
-    .canvas-block.social {
-      background-color: #f3f4f6;
-      color: #374151;
-      text-decoration: none;
+    .element-btn i {
+      margin-bottom: 8px;
     }
-    
-    .canvas-block.button {
-      background-color: var(--brand);
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
+    .element-btn span {
+      font-size: 12px;
+      font-weight: 500;
     }
-    
-    .resize-handle {
+    .preview-container {
+      position: relative;
+      background: #f9fafb;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+    .preview-iframe {
+      width: 100%;
+      height: 90vh;
+      border: none;
+    }
+    .preview-controls {
       position: absolute;
-      width: 12px;
-      height: 12px;
-      background-color: var(--brand);
-      border-radius: 50%;
-      opacity: 0;
-      transition: opacity 0.2s;
-      z-index: 30;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 8px;
     }
-    
-    .canvas-block:hover .resize-handle,
-    .canvas-block.selected .resize-handle {
-      opacity: 0.7;
+    .preview-controls button {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    
-    .resize-handle.se {
-      bottom: -6px;
-      right: -6px;
-      cursor: se-resize;
+    .preview-controls button:hover {
+      background: #f3f4f6;
     }
-    
-    .canvas-grid-overlay {
-      position: absolute;
+    .z-index-overlay {
+      position: fixed;
       top: 0;
       left: 0;
       right: 0;
       bottom: 0;
-      background-image: 
-        linear-gradient(rgba(209, 213, 219, 0.3) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(209, 213, 219, 0.3) 1px, transparent 1px);
-      background-size: 8px 8px;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      display: none;
     }
-    
-    .canvas-area.dragging .canvas-grid-overlay {
-      opacity: 1;
+    .z-index-overlay.active {
+      display: block;
+    }
+    .shape-options {
+      display: none;
+      margin-top: 10px;
+    }
+    .shape-options.active {
+      display: block;
+    }
+    .shape-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .shape-btn {
+      aspect-ratio: 1;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .shape-btn:hover {
+      background: #f3f4f6;
+    }
+    .shape-btn.selected {
+      border-color: var(--brand);
+      background: rgba(239, 68, 68, 0.1);
     }
   </style>
 </head>
@@ -258,35 +302,92 @@
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2">
           <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
-          <h2 class="text-lg font-semibold">User Sections — Susun, Tambah, Padam & Edit</h2>
+          <h2 class="text-lg font-semibold">User Sections — Canva Pro Editor</h2>
         </div>
-        <button id="btnPreviewUser" class="btn-ghost">Lihat Laman User</button>
+        <div class="flex items-center gap-2">
+          <button id="btnSaveDesign" class="btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan Reka Bentuk</button>
+          <button id="btnPreviewUser" class="btn-ghost">Lihat Laman User</button>
+        </div>
       </div>
 
       <div class="grid gap-3 md:grid-cols-[1fr_auto]">
         <div class="text-sm text-gray-600">
-          Gunakan "Tambah Seksyen" untuk buat seksyen baharu. Setiap seksyen menyokong blok
-          <b>Text (Rich)</b>, <b>Gambar (URL)</b>, <b>Video (URL)</b>, <b>Link</b>, <b>Ikon Sosial</b> dan <b>Butang</b>.
-          Urutan seksyen di sini = urutan paparan dalam <b>user.html</b>. Klik <b>Preview Mini</b> untuk prarupa.
-        </div>
-        <div class="flex items-center gap-2">
-          <button id="btnAddSection" class="btn-ghost"><i data-lucide="plus" class="w-4 h-4"></i> Tambah Seksyen</button>
-          <button id="btnSaveSections" class="btn-primary">Simpan User Sections</button>
-          <button id="btnReloadSections" class="btn-ghost">Muat Semula</button>
+          Gunakan editor Canva Pro untuk mereka bentuk halaman user anda. Seret, saiz, dan edit elemen secara langsung.
+          Semua perubahan akan disimpan secara automatik.
         </div>
       </div>
 
-      <div class="help">Tip: Anda boleh <b>highlight</b> mana-mana perkataan menggunakan pemilih warna tanpa had dalam editor Rich Text.</div>
-
-      <!-- Two column layout for sections and canvas preview -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Left column: Section Builder -->
-        <div id="builderArea" class="space-y-4"></div>
+      <!-- Two column layout for editor and preview -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Left column: Element Panel -->
+        <div class="lg:col-span-1">
+          <div class="element-panel">
+            <h3>Tambah Elemen</h3>
+            <div class="element-grid">
+              <button class="element-btn" onclick="addElement('text')">
+                <i data-lucide="type" class="w-6 h-6"></i>
+                <span>Teks</span>
+              </button>
+              <button class="element-btn" onclick="addElement('image')">
+                <i data-lucide="image" class="w-6 h-6"></i>
+                <span>Imej</span>
+              </button>
+              <button class="element-btn" onclick="addElement('video')">
+                <i data-lucide="video" class="w-6 h-6"></i>
+                <span>Video</span>
+              </button>
+              <button class="element-btn" onclick="addElement('button')">
+                <i data-lucide="mouse-pointer-click" class="w-6 h-6"></i>
+                <span>Butang</span>
+              </button>
+              <button class="element-btn" onclick="toggleShapeOptions()">
+                <i data-lucide="shapes" class="w-6 h-6"></i>
+                <span>Bentuk</span>
+              </button>
+              <button class="element-btn" onclick="addElement('icon')">
+                <i data-lucide="smile" class="w-6 h-6"></i>
+                <span>Ikon</span>
+              </button>
+            </div>
+            
+            <div id="shapeOptions" class="shape-options">
+              <h4 class="text-sm font-medium mb-2">Pilih Bentuk</h4>
+              <div class="shape-grid">
+                <button class="shape-btn" onclick="addShape('rectangle')">
+                  <div style="width: 30px; height: 20px; background: #e5e7eb;"></div>
+                </button>
+                <button class="shape-btn" onclick="addShape('circle')">
+                  <div style="width: 24px; height: 24px; background: #e5e7eb; border-radius: 50%;"></div>
+                </button>
+                <button class="shape-btn" onclick="addShape('triangle')">
+                  <div style="width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-bottom: 20px solid #e5e7eb;"></div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         
-        <!-- Right column: Canvas Preview -->
-        <div id="canvasWrap" class="relative">
-          <div id="canvasArea" class="canvas-area">
-            <div class="canvas-grid-overlay"></div>
+        <!-- Right column: Preview -->
+        <div class="lg:col-span-3">
+          <div class="preview-container">
+            <iframe id="userPreview" class="preview-iframe" src="./user.html"></iframe>
+            <div class="preview-controls">
+              <button id="btnUndo" class="btn-ghost" title="Undo">
+                <i data-lucide="undo-2" class="w-4 h-4"></i>
+              </button>
+              <button id="btnRedo" class="btn-ghost" title="Redo">
+                <i data-lucide="redo-2" class="w-4 h-4"></i>
+              </button>
+              <button id="btnZoomIn" class="btn-ghost" title="Zoom In">
+                <i data-lucide="zoom-in" class="w-4 h-4"></i>
+              </button>
+              <button id="btnZoomOut" class="btn-ghost" title="Zoom Out">
+                <i data-lucide="zoom-out" class="w-4 h-4"></i>
+              </button>
+              <button id="btnResetZoom" class="btn-ghost" title="Reset Zoom">
+                <i data-lucide="maximize-2" class="w-4 h-4"></i>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -570,6 +671,118 @@
   </section>
 </main>
 
+<!-- Editor Toolbar -->
+<div id="editorToolbar" class="editor-toolbar">
+  <h3>Editor Properties</h3>
+  
+  <div class="control-group">
+    <label>Text Content</label>
+    <textarea id="textContent" class="input" rows="3" placeholder="Enter text content"></textarea>
+  </div>
+  
+  <div class="control-group">
+    <label>Font</label>
+    <div class="control-row">
+      <select id="fontFamily" class="input">
+        <option value="Inter">Inter</option>
+        <option value="Poppins">Poppins</option>
+        <option value="Playfair Display">Playfair Display</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Font Size</label>
+    <div class="control-row">
+      <input id="fontSize" type="number" min="10" max="120" value="24" class="input">
+      </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Text Color</label>
+    <div class="control-row">
+      <input id="textColor" type="color" value="#000000">
+      <input id="textColorHex" type="text" value="#000000" class="input">
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Background Color</label>
+    <div class="control-row">
+      <input id="bgColor" type="color" value="#ffffff">
+      <input id="bgColorHex" type="text" value="#ffffff" class="input">
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Text Style</label>
+    <div class="control-row">
+      <button id="boldBtn" class="btn-ghost"><i data-lucide="bold" class="w-4 h-4"></i></button>
+      <button id="italicBtn" class="btn-ghost"><i data-lucide="italic" class="w-4 h-4"></i></button>
+      <button id="underlineBtn" class="btn-ghost"><i data-lucide="underline" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Text Alignment</label>
+    <div class="control-row">
+      <button id="alignLeftBtn" class="btn-ghost"><i data-lucide="align-left" class="w-4 h-4"></i></button>
+      <button id="alignCenterBtn" class="btn-ghost"><i data-lucide="align-center" class="w-4 h-4"></i></button>
+      <button id="alignRightBtn" class="btn-ghost"><i data-lucide="align-right" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Border</label>
+    <div class="control-row">
+      <input id="borderWidth" type="number" min="0" max="10" value="0" class="input">
+      <input id="borderColor" type="color" value="#000000">
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Border Radius</label>
+    <div class="control-row">
+      <input id="borderRadius" type="number" min="0" max="50" value="0" class="input">
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Opacity</label>
+    <div class="control-row">
+      <input id="opacity" type="range" min="0" max="100" value="100" class="input">
+      <span id="opacityValue">100%</span>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Position</label>
+    <div class="control-row">
+      <input id="posX" type="number" placeholder="X" class="input">
+      <input id="posY" type="number" placeholder="Y" class="input">
+    </div>
+    <div class="control-row">
+      <input id="posWidth" type="number" placeholder="Width" class="input">
+      <input id="posHeight" type="number" placeholder="Height" class="input">
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <label>Z-Index</label>
+    <div class="control-row">
+      <button id="bringToFrontBtn" class="btn-ghost">Bring to Front</button>
+      <button id="sendToBackBtn" class="btn-ghost">Send to Back</button>
+    </div>
+  </div>
+  
+  <div class="control-group">
+    <button id="deleteBtn" class="btn-ghost text-red-500">Delete Element</button>
+  </div>
+</div>
+
+<!-- Z-Index Overlay -->
+<div id="zIndexOverlay" class="z-index-overlay"></div>
+
 <!-- Toast -->
 <div id="toast" class="toast hidden"></div>
 
@@ -587,7 +800,13 @@
     sections: [],               // Section Builder
     settings: {},                // Settings terkini untuk preview mini
     activeSectionIndex: -1,     // Index of active section for canvas preview
-    canvasMode: 'canvas'        // 'canvas' or 'html'
+    canvasMode: 'canvas',        // 'canvas' or 'html'
+    selectedElement: null,       // Currently selected element in the editor
+    elements: [],                // All elements in the current design
+    history: [],                 // Undo/Redo history
+    historyIndex: -1,            // Current position in history
+    autoSaveTimer: null,         // Timer for auto-save
+    zoomLevel: 1                 // Current zoom level for preview
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -612,7 +831,7 @@
     clearTimeout(toastEl._t);
     toastEl._t = setTimeout(()=>toastEl.classList.add('hidden'), ms);
   }
-  function uid(){ return 's' + Math.random().toString(36).slice(2,9); }
+  function uid(){ return 'el_' + Math.random().toString(36).slice(2,9); }
 
   async function callApi(path, payload) {
     const res = await fetch(EXEC_URL, {
@@ -656,6 +875,7 @@
     await renderOrg();
     await refreshSettings();     // untuk theme/typography dll + preview mini
     await loadSections();        // untuk Section Builder
+    initEditor();                // Initialize the Canva Pro editor
   })();
 
   // ====== STATS ======
@@ -1035,11 +1255,6 @@
       setBodySize.value  = s.body_size || ''; setBodyColor.value = s.body_color || '#374151'; setBodyBold.checked = String(s.body_bold||'false')==='true';
       // kemas kini CSS root untuk brand color mini preview
       document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
-      
-      // Apply settings to canvas if active
-      if (store.activeSectionIndex >= 0) {
-        renderCanvasForSection(store.sections[store.activeSectionIndex]);
-      }
     }catch(e){ /* biarkan */ }
   }
   document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
@@ -1056,315 +1271,574 @@
     try{ await callApi('settings_set', payload); toast('Settings disimpan ✔️'); store.settings = payload; }catch(e){ toast('Gagal simpan settings'); }
   });
 
-  // ====== CANVAS MODE FUNCTIONALITY ======
+  // ====== CANVA PRO EDITOR FUNCTIONALITY ======
   
-  // Helper function for grid snapping
-  function snap(value, gridSize = 8) {
-    return Math.round(value / gridSize) * gridSize;
+  // Initialize the Canva Pro editor
+  function initEditor() {
+    const userPreview = document.getElementById('userPreview');
+    const editorToolbar = document.getElementById('editorToolbar');
+    
+    // Set up message listener for iframe communication
+    window.addEventListener('message', handleIframeMessage);
+    
+    // Set up toolbar controls
+    setupToolbarControls();
+    
+    // Set up preview controls
+    setupPreviewControls();
+    
+    // Load existing design
+    loadDesign();
+    
+    // Start auto-save timer
+    startAutoSave();
+    
+    // Handle save button
+    document.getElementById('btnSaveDesign').addEventListener('click', saveDesign);
   }
   
-  // Render canvas for a specific section
-  function renderCanvasForSection(sec) {
-    const canvas = document.getElementById('canvasArea');
-    if (!canvas) return;
+  // Handle messages from iframe
+  function handleIframeMessage(event) {
+    const { type, data } = event.data;
     
-    // Clear canvas but keep grid overlay
-    const gridOverlay = canvas.querySelector('.canvas-grid-overlay');
-    canvas.innerHTML = '';
-    canvas.appendChild(gridOverlay);
+    switch (type) {
+      case 'element-selected':
+        selectElement(data.id);
+        break;
+      case 'element-updated':
+        updateElement(data.id, data.properties);
+        break;
+      case 'element-deleted':
+        deleteElement(data.id);
+        break;
+      case 'elements-loaded':
+        store.elements = data.elements || [];
+        break;
+    }
+  }
+  
+  // Select an element and show toolbar
+  function selectElement(elementId) {
+    store.selectedElement = elementId;
+    const element = store.elements.find(el => el.id === elementId);
     
-    if (!sec || !sec.blocks || sec.blocks.length === 0) {
-      canvas.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No blocks to display</div>';
+    if (!element) {
+      editorToolbar.classList.remove('active');
       return;
     }
     
-    // Apply typography settings from store.settings
-    const hSize = Number(store.settings?.heading_size || 28);
-    const bSize = Number(store.settings?.body_size || 16);
-    const hColor = store.settings?.heading_color || '#111111';
-    const bColor = store.settings?.body_color || '#374151';
-    const hBold = String(store.settings?.heading_bold || 'false') === 'true';
-    const bBold = String(store.settings?.body_bold || 'false') === 'true';
-    const theme = store.settings?.theme_color || '#ef4444';
+    editorToolbar.classList.add('active');
     
-    sec.blocks.forEach((block, index) => {
-      const blockEl = createCanvasBlock(block, index, sec, {
-        hSize, bSize, hColor, bColor, hBold, bBold, theme
-      });
-      canvas.appendChild(blockEl);
-    });
+    // Update toolbar with element properties
+    document.getElementById('textContent').value = element.content || '';
+    document.getElementById('fontFamily').value = element.fontFamily || 'Inter';
+    document.getElementById('fontSize').value = element.fontSize || 24;
+    document.getElementById('textColor').value = element.color || '#000000';
+    document.getElementById('textColorHex').value = element.color || '#000000';
+    document.getElementById('bgColor').value = element.backgroundColor || '#ffffff';
+    document.getElementById('bgColorHex').value = element.backgroundColor || '#ffffff';
+    document.getElementById('borderWidth').value = element.borderWidth || 0;
+    document.getElementById('borderColor').value = element.borderColor || '#000000';
+    document.getElementById('borderRadius').value = element.borderRadius || 0;
+    document.getElementById('opacity').value = element.opacity || 100;
+    document.getElementById('opacityValue').textContent = element.opacity || 100;
+    document.getElementById('posX').value = Math.round(element.x || 0);
+    document.getElementById('posY').value = Math.round(element.y || 0);
+    document.getElementById('posWidth').value = Math.round(element.width || 200);
+    document.getElementById('posHeight').value = Math.round(element.height || 100);
     
-    // Initialize drag and drop for canvas blocks
-    initCanvasDragDrop();
+    // Update text style buttons
+    document.getElementById('boldBtn').classList.toggle('active', element.fontWeight === 'bold');
+    document.getElementById('italicBtn').classList.toggle('active', element.fontStyle === 'italic');
+    document.getElementById('underlineBtn').classList.toggle('active', element.textDecoration === 'underline');
+    
+    // Update alignment buttons
+    document.getElementById('alignLeftBtn').classList.toggle('active', element.textAlign === 'left');
+    document.getElementById('alignCenterBtn').classList.toggle('active', element.textAlign === 'center');
+    document.getElementById('alignRightBtn').classList.toggle('active', element.textAlign === 'right');
   }
   
-  // Create a canvas block element
-  function createCanvasBlock(block, index, section, typography) {
-    const blockEl = document.createElement('div');
-    blockEl.className = `canvas-block ${block.kind}`;
-    blockEl.dataset.blockIndex = index;
-    blockEl.dataset.sectionId = section.id;
+  // Update element properties
+  function updateElement(elementId, properties) {
+    const element = store.elements.find(el => el.id === elementId);
+    if (!element) return;
     
-    // Set default layout if not exists
-    if (!block.layout) {
-      block.layout = {
-        x: 20 + (index % 3) * 220,  // Arrange in 3 columns initially
-        y: 20 + Math.floor(index / 3) * 150,
-        width: 200,
-        height: 100
-      };
-    }
+    // Update element in store
+    Object.assign(element, properties);
     
-    // Apply layout
-    blockEl.style.left = `${block.layout.x}px`;
-    blockEl.style.top = `${block.layout.y}px`;
-    blockEl.style.width = `${block.layout.width}px`;
-    blockEl.style.height = `${block.layout.height}px`;
+    // Save to history
+    saveToHistory();
     
-    // Create content based on block type
-    switch (block.kind) {
-      case 'text':
-      case 'rich':
-        const textDiv = document.createElement('div');
-        textDiv.contentEditable = true;
-        textDiv.innerHTML = block.html || block.value || '<p>Text content</p>';
-        textDiv.style.fontSize = `${typography.bSize}px`;
-        textDiv.style.color = typography.bColor;
-        textDiv.style.fontWeight = typography.bBold ? '600' : '400';
-        textDiv.style.lineHeight = '1.5';
-        textDiv.style.overflow = 'auto';
-        textDiv.style.height = '100%';
-        
-        textDiv.addEventListener('input', () => {
-          block.html = textDiv.innerHTML;
-        });
-        
-        blockEl.appendChild(textDiv);
-        break;
-        
-      case 'image':
-        const img = document.createElement('img');
-        img.src = block.src || block.value || 'https://picsum.photos/seed/placeholder/300/200.jpg';
-        img.alt = '';
-        img.style.width = '100%';
-        img.style.height = '100%';
-        img.style.objectFit = 'cover';
-        blockEl.appendChild(img);
-        
-        // Add resize handle
-        addResizeHandle(blockEl, block, section);
-        break;
-        
-      case 'video':
-        const videoSrc = block.src || block.value;
-        if (videoSrc) {
-          const youtubeId = parseYouTube(videoSrc);
-          if (youtubeId) {
-            const iframe = document.createElement('iframe');
-            iframe.src = `https://www.youtube.com/embed/${youtubeId}`;
-            iframe.style.width = '100%';
-            iframe.style.height = '100%';
-            iframe.style.border = 'none';
-            blockEl.appendChild(iframe);
-          } else {
-            const video = document.createElement('video');
-            video.src = videoSrc;
-            video.controls = true;
-            video.style.width = '100%';
-            video.style.height = '100%';
-            blockEl.appendChild(video);
-          }
-        } else {
-          blockEl.innerHTML = '<div class="flex items-center justify-center h-full text-gray-500">No video source</div>';
-        }
-        
-        // Add resize handle
-        addResizeHandle(blockEl, block, section);
-        break;
-        
-      case 'link':
-        const link = document.createElement('a');
-        link.href = block.href || '#';
-        link.textContent = block.text || 'Link';
-        link.target = '_blank';
-        link.style.display = 'flex';
-        link.style.alignItems = 'center';
-        link.style.justifyContent = 'center';
-        link.style.width = '100%';
-        link.style.height = '100%';
-        link.style.textDecoration = 'none';
-        link.style.color = typography.bColor;
-        link.style.backgroundColor = '#f3f4f6';
-        link.style.borderRadius = '0.5rem';
-        blockEl.appendChild(link);
-        break;
-        
-      case 'social':
-        const social = document.createElement('a');
-        social.href = block.href || '#';
-        social.textContent = (block.icon || 'social').toUpperCase();
-        social.target = '_blank';
-        social.style.display = 'flex';
-        social.style.alignItems = 'center';
-        social.style.justifyContent = 'center';
-        social.style.width = '100%';
-        social.style.height = '100%';
-        social.style.textDecoration = 'none';
-        social.style.color = block.color || typography.bColor;
-        social.style.backgroundColor = '#f3f4f6';
-        social.style.borderRadius = '0.5rem';
-        blockEl.appendChild(social);
-        break;
-        
-      case 'button':
-        const button = document.createElement('a');
-        button.href = block.href || '#';
-        button.textContent = block.text || 'Button';
-        button.target = '_blank';
-        button.style.display = 'flex';
-        button.style.alignItems = 'center';
-        button.style.justifyContent = 'center';
-        button.style.width = '100%';
-        button.style.height = '100%';
-        button.style.textDecoration = 'none';
-        button.style.color = 'white';
-        button.style.backgroundColor = block.color || typography.theme;
-        button.style.borderRadius = '0.5rem';
-        button.style.fontWeight = '600';
-        blockEl.appendChild(button);
-        break;
-    }
-    
-    return blockEl;
+    // Auto-save
+    autoSave();
   }
   
-  // Add resize handle to a block
-  function addResizeHandle(blockEl, block, section) {
-    const handle = document.createElement('div');
-    handle.className = 'resize-handle se';
-    blockEl.appendChild(handle);
+  // Delete element
+  function deleteElement(elementId) {
+    const index = store.elements.findIndex(el => el.id === elementId);
+    if (index === -1) return;
     
-    let isResizing = false;
-    let startX, startY, startWidth, startHeight;
+    store.elements.splice(index, 1);
     
-    handle.addEventListener('mousedown', (e) => {
-      isResizing = true;
-      startX = e.clientX;
-      startY = e.clientY;
-      startWidth = parseInt(window.getComputedStyle(blockEl).width, 10);
-      startHeight = parseInt(window.getComputedStyle(blockEl).height, 10);
-      e.preventDefault();
+    // Hide toolbar if this was the selected element
+    if (store.selectedElement === elementId) {
+      store.selectedElement = null;
+      editorToolbar.classList.remove('active');
+    }
+    
+    // Save to history
+    saveToHistory();
+    
+    // Auto-save
+    autoSave();
+  }
+  
+  // Setup toolbar controls
+  function setupToolbarControls() {
+    // Text content
+    document.getElementById('textContent').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { content: e.target.value });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { content: e.target.value } });
     });
     
-    document.addEventListener('mousemove', (e) => {
-      if (!isResizing) return;
-      
-      const newWidth = snap(startWidth + e.clientX - startX);
-      const newHeight = snap(startHeight + e.clientY - startY);
-      
-      // Minimum size constraints
-      if (newWidth > 100) {
-        blockEl.style.width = `${newWidth}px`;
-        block.layout.width = newWidth;
-      }
-      
-      if (newHeight > 60) {
-        blockEl.style.height = `${newHeight}px`;
-        block.layout.height = newHeight;
+    // Font family
+    document.getElementById('fontFamily').addEventListener('change', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { fontFamily: e.target.value });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { fontFamily: e.target.value } });
+    });
+    
+    // Font size
+    document.getElementById('fontSize').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { fontSize: parseInt(e.target.value) });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { fontSize: parseInt(e.target.value) } });
+    });
+    
+    // Text color
+    document.getElementById('textColor').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      const color = e.target.value;
+      document.getElementById('textColorHex').value = color;
+      updateElement(store.selectedElement, { color });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { color } });
+    });
+    
+    document.getElementById('textColorHex').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      const color = e.target.value;
+      if (/^#[0-9A-F]{6}$/i.test(color)) {
+        document.getElementById('textColor').value = color;
+        updateElement(store.selectedElement, { color });
+        sendToIframe('update-element', { id: store.selectedElement, properties: { color } });
       }
     });
     
-    document.addEventListener('mouseup', () => {
-      isResizing = false;
+    // Background color
+    document.getElementById('bgColor').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      const color = e.target.value;
+      document.getElementById('bgColorHex').value = color;
+      updateElement(store.selectedElement, { backgroundColor: color });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { backgroundColor: color } });
     });
-  }
-  
-  // Initialize drag and drop for canvas blocks
-  function initCanvasDragDrop() {
-    const canvas = document.getElementById('canvasArea');
-    const blocks = canvas.querySelectorAll('.canvas-block');
     
-    blocks.forEach(block => {
-      let isDragging = false;
-      let startX, startY, initialLeft, initialTop;
-      
-      block.addEventListener('mousedown', (e) => {
-        // Ignore if clicking on resize handle or text input
-        if (e.target.classList.contains('resize-handle') || 
-            e.target.contentEditable === 'true' ||
-            e.target.tagName === 'INPUT' ||
-            e.target.tagName === 'TEXTAREA') {
-          return;
-        }
-        
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        
-        const rect = block.getBoundingClientRect();
-        const canvasRect = canvas.getBoundingClientRect();
-        
-        initialLeft = rect.left - canvasRect.left;
-        initialTop = rect.top - canvasRect.top;
-        
-        // Add selected class
-        document.querySelectorAll('.canvas-block').forEach(b => b.classList.remove('selected'));
-        block.classList.add('selected');
-        
-        // Add dragging class to canvas for visual feedback
-        canvas.classList.add('dragging');
-        
-        e.preventDefault();
-      });
-      
-      document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
-        
-        const canvasRect = canvas.getBoundingClientRect();
-        const deltaX = e.clientX - startX;
-        const deltaY = e.clientY - startY;
-        
-        let newLeft = snap(initialLeft + deltaX);
-        let newTop = snap(initialTop + deltaY);
-        
-        // Boundary constraints
-        newLeft = Math.max(0, Math.min(newLeft, canvasRect.width - block.offsetWidth));
-        newTop = Math.max(0, Math.min(newTop, canvasRect.height - block.offsetHeight));
-        
-        block.style.left = `${newLeft}px`;
-        block.style.top = `${newTop}px`;
-        
-        // Update block layout data
-        const blockIndex = parseInt(block.dataset.blockIndex);
-        const sectionId = block.dataset.sectionId;
-        const section = store.sections.find(s => s.id === sectionId);
-        
-        if (section && section.blocks[blockIndex]) {
-          section.blocks[blockIndex].layout = {
-            ...section.blocks[blockIndex].layout,
-            x: newLeft,
-            y: newTop
-          };
-        }
-      });
-      
-      document.addEventListener('mouseup', () => {
-        isDragging = false;
-        canvas.classList.remove('dragging');
-      });
+    document.getElementById('bgColorHex').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      const color = e.target.value;
+      if (/^#[0-9A-F]{6}$/i.test(color)) {
+        document.getElementById('bgColor').value = color;
+        updateElement(store.selectedElement, { backgroundColor: color });
+        sendToIframe('update-element', { id: store.selectedElement, properties: { backgroundColor: color } });
+      }
+    });
+    
+    // Text style buttons
+    document.getElementById('boldBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      const isBold = document.getElementById('boldBtn').classList.toggle('active');
+      updateElement(store.selectedElement, { fontWeight: isBold ? 'bold' : 'normal' });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { fontWeight: isBold ? 'bold' : 'normal' } });
+    });
+    
+    document.getElementById('italicBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      const isItalic = document.getElementById('italicBtn').classList.toggle('active');
+      updateElement(store.selectedElement, { fontStyle: isItalic ? 'italic' : 'normal' });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { fontStyle: isItalic ? 'italic' : 'normal' } });
+    });
+    
+    document.getElementById('underlineBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      const isUnderline = document.getElementById('underlineBtn').classList.toggle('active');
+      updateElement(store.selectedElement, { textDecoration: isUnderline ? 'underline' : 'none' });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { textDecoration: isUnderline ? 'underline' : 'none' } });
+    });
+    
+    // Text alignment
+    document.getElementById('alignLeftBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { textAlign: 'left' });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { textAlign: 'left' } });
+      updateAlignmentButtons('left');
+    });
+    
+    document.getElementById('alignCenterBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { textAlign: 'center' });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { textAlign: 'center' } });
+      updateAlignmentButtons('center');
+    });
+    
+    document.getElementById('alignRightBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { textAlign: 'right' });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { textAlign: 'right' } });
+      updateAlignmentButtons('right');
+    });
+    
+    // Border
+    document.getElementById('borderWidth').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { borderWidth: parseInt(e.target.value) });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { borderWidth: parseInt(e.target.value) } });
+    });
+    
+    document.getElementById('borderColor').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { borderColor: e.target.value });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { borderColor: e.target.value } });
+    });
+    
+    // Border radius
+    document.getElementById('borderRadius').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { borderRadius: parseInt(e.target.value) });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { borderRadius: parseInt(e.target.value) } });
+    });
+    
+    // Opacity
+    document.getElementById('opacity').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      const opacity = parseInt(e.target.value);
+      document.getElementById('opacityValue').textContent = opacity + '%';
+      updateElement(store.selectedElement, { opacity });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { opacity } });
+    });
+    
+    // Position
+    document.getElementById('posX').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { x: parseInt(e.target.value) });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { x: parseInt(e.target.value) } });
+    });
+    
+    document.getElementById('posY').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { y: parseInt(e.target.value) });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { y: parseInt(e.target.value) } });
+    });
+    
+    document.getElementById('posWidth').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { width: parseInt(e.target.value) });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { width: parseInt(e.target.value) } });
+    });
+    
+    document.getElementById('posHeight').addEventListener('input', (e) => {
+      if (!store.selectedElement) return;
+      updateElement(store.selectedElement, { height: parseInt(e.target.value) });
+      sendToIframe('update-element', { id: store.selectedElement, properties: { height: parseInt(e.target.value) } });
+    });
+    
+    // Z-Index controls
+    document.getElementById('bringToFrontBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      bringToFront(store.selectedElement);
+      sendToIframe('bring-to-front', { id: store.selectedElement });
+    });
+    
+    document.getElementById('sendToBackBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      sendToBack(store.selectedElement);
+      sendToIframe('send-to-back', { id: store.selectedElement });
+    });
+    
+    // Delete button
+    document.getElementById('deleteBtn').addEventListener('click', () => {
+      if (!store.selectedElement) return;
+      if (confirm('Adakah anda pasti ingin memadam elemen ini?')) {
+        sendToIframe('delete-element', { id: store.selectedElement });
+        deleteElement(store.selectedElement);
+      }
     });
   }
   
-  // Parse YouTube URL to get video ID
-  function parseYouTube(url) {
+  // Update alignment buttons
+  function updateAlignmentButtons(alignment) {
+    document.getElementById('alignLeftBtn').classList.toggle('active', alignment === 'left');
+    document.getElementById('alignCenterBtn').classList.toggle('active', alignment === 'center');
+    document.getElementById('alignRightBtn').classList.toggle('active', alignment === 'right');
+  }
+  
+  // Bring element to front
+  function bringToFront(elementId) {
+    const element = store.elements.find(el => el.id === elementId);
+    if (!element) return;
+    
+    // Find the highest z-index
+    const maxZ = Math.max(...store.elements.map(el => el.zIndex || 0));
+    
+    // Set this element's z-index to max + 1
+    element.zIndex = maxZ + 1;
+    
+    // Save to history
+    saveToHistory();
+    
+    // Auto-save
+    autoSave();
+  }
+  
+  // Send element to back
+  function sendToBack(elementId) {
+    const element = store.elements.find(el => el.id === elementId);
+    if (!element) return;
+    
+    // Find the lowest z-index
+    const minZ = Math.min(...store.elements.map(el => el.zIndex || 0));
+    
+    // Set this element's z-index to min - 1
+    element.zIndex = minZ - 1;
+    
+    // Save to history
+    saveToHistory();
+    
+    // Auto-save
+    autoSave();
+  }
+  
+  // Setup preview controls
+  function setupPreviewControls() {
+    // Undo
+    document.getElementById('btnUndo').addEventListener('click', () => {
+      undo();
+    });
+    
+    // Redo
+    document.getElementById('btnRedo').addEventListener('click', () => {
+      redo();
+    });
+    
+    // Zoom controls
+    document.getElementById('btnZoomIn').addEventListener('click', () => {
+      setZoom(Math.min(store.zoomLevel + 0.1, 2));
+    });
+    
+    document.getElementById('btnZoomOut').addEventListener('click', () => {
+      setZoom(Math.max(store.zoomLevel - 0.1, 0.5));
+    });
+    
+    document.getElementById('btnResetZoom').addEventListener('click', () => {
+      setZoom(1);
+    });
+  }
+  
+  // Set zoom level
+  function setZoom(level) {
+    store.zoomLevel = level;
+    const userPreview = document.getElementById('userPreview');
+    userPreview.style.transform = `scale(${level})`;
+  }
+  
+  // Add element
+  function addElement(type) {
+    const element = {
+      id: uid(),
+      type,
+      content: type === 'text' ? 'New Text' : '',
+      x: 100,
+      y: 100,
+      width: type === 'text' ? 200 : 150,
+      height: type === 'text' ? 50 : 150,
+      fontSize: 24,
+      fontFamily: 'Inter',
+      color: '#000000',
+      backgroundColor: type === 'button' ? '#ef4444' : 'transparent',
+      borderWidth: 0,
+      borderColor: '#000000',
+      borderRadius: type === 'button' ? 8 : 0,
+      opacity: 100,
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      textDecoration: 'none',
+      textAlign: 'center',
+      zIndex: store.elements.length
+    };
+    
+    // Add specific properties based on type
+    if (type === 'image') {
+      element.src = 'https://picsum.photos/seed/mova/300/200.jpg';
+    } else if (type === 'video') {
+      element.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+    } else if (type === 'button') {
+      element.content = 'Button';
+      element.textDecoration = 'none';
+    } else if (type === 'icon') {
+      element.icon = 'smile';
+      element.fontSize = 32;
+    }
+    
+    // Add to store
+    store.elements.push(element);
+    
+    // Save to history
+    saveToHistory();
+    
+    // Send to iframe
+    sendToIframe('add-element', element);
+    
+    // Auto-save
+    autoSave();
+  }
+  
+  // Add shape
+  function addShape(shapeType) {
+    const element = {
+      id: uid(),
+      type: 'shape',
+      shapeType,
+      x: 100,
+      y: 100,
+      width: 150,
+      height: 150,
+      backgroundColor: '#ef4444',
+      borderWidth: 0,
+      borderColor: '#000000',
+      borderRadius: shapeType === 'circle' ? 75 : 0,
+      opacity: 100,
+      zIndex: store.elements.length
+    };
+    
+    // Add to store
+    store.elements.push(element);
+    
+    // Save to history
+    saveToHistory();
+    
+    // Send to iframe
+    sendToIframe('add-element', element);
+    
+    // Auto-save
+    autoSave();
+    
+    // Hide shape options
+    document.getElementById('shapeOptions').classList.remove('active');
+  }
+  
+  // Toggle shape options
+  function toggleShapeOptions() {
+    document.getElementById('shapeOptions').classList.toggle('active');
+  }
+  
+  // Send message to iframe
+  function sendToIframe(type, data) {
+    const userPreview = document.getElementById('userPreview');
+    if (userPreview && userPreview.contentWindow) {
+      userPreview.contentWindow.postMessage({ type, data }, '*');
+    }
+  }
+  
+  // Save to history
+  function saveToHistory() {
+    // Remove any states after current index
+    store.history = store.history.slice(0, store.historyIndex + 1);
+    
+    // Add current state
+    store.history.push(JSON.parse(JSON.stringify(store.elements)));
+    store.historyIndex++;
+    
+    // Limit history size
+    if (store.history.length > 50) {
+      store.history.shift();
+      store.historyIndex--;
+    }
+  }
+  
+  // Undo
+  function undo() {
+    if (store.historyIndex > 0) {
+      store.historyIndex--;
+      store.elements = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
+      
+      // Reload iframe
+      sendToIframe('load-elements', { elements: store.elements });
+      
+      // Auto-save
+      autoSave();
+    }
+  }
+  
+  // Redo
+  function redo() {
+    if (store.historyIndex < store.history.length - 1) {
+      store.historyIndex++;
+      store.elements = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
+      
+      // Reload iframe
+      sendToIframe('load-elements', { elements: store.elements });
+      
+      // Auto-save
+      autoSave();
+    }
+  }
+  
+  // Load design from server
+  async function loadDesign() {
     try {
-      const u = new URL(url);
-      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
-      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
-    } catch (_) {}
-    return null;
+      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
+      const settings = out.settings || {};
+      
+      if (settings.elements_json) {
+        try {
+          store.elements = JSON.parse(settings.elements_json);
+          sendToIframe('load-elements', { elements: store.elements });
+        } catch (e) {
+          console.error('Failed to parse elements_json:', e);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to load design:', e);
+    }
   }
-
+  
+  // Save design to server
+  async function saveDesign() {
+    try {
+      await callApi('settings_set', { 
+        leader_id: store.leader.leader_id, 
+        elements_json: JSON.stringify(store.elements) 
+      });
+      toast('Reka bentuk disimpan ✔️');
+    } catch (e) {
+      toast('Gagal simpan reka bentuk');
+      console.error('Failed to save design:', e);
+    }
+  }
+  
+  // Auto-save
+  function autoSave() {
+    // Clear existing timer
+    if (store.autoSaveTimer) {
+      clearTimeout(store.autoSaveTimer);
+    }
+    
+    // Set new timer
+    store.autoSaveTimer = setTimeout(() => {
+      saveDesign();
+    }, 3000); // Auto-save after 3 seconds
+  }
+  
   // ====== SECTION BUILDER ======
   const builderArea = document.getElementById('builderArea');
   document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
@@ -1590,12 +2064,6 @@
     btnPrev.addEventListener('click', ()=>{
       prevBox.classList.toggle('hidden');
       if (!prevBox.classList.contains('hidden')) rerenderMini();
-      
-      // Set this section as active for canvas preview
-      store.activeSectionIndex = idx;
-      
-      // Update canvas preview
-      renderCanvasForSection(sec);
     });
 
     function rerenderMini(){
@@ -1631,13 +2099,6 @@
           const box = row.querySelector('.rtbox');
           box.innerHTML = html;
           makeToolbar(row, box);
-          box.addEventListener('input', ()=>{ 
-            blk.html = box.innerHTML; 
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
-          });
         } else if (blk.kind === 'image'){
           row.innerHTML = `
             <div class="flex items-center justify-between mb-1">
@@ -1654,10 +2115,6 @@
           row.querySelector('input').addEventListener('input', e=> { 
             blk.src = e.target.value; 
             blk.value = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
         } else if (blk.kind === 'video'){
           row.innerHTML = `
@@ -1675,10 +2132,6 @@
           row.querySelector('input').addEventListener('input', e=> { 
             blk.src = e.target.value; 
             blk.value = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
         } else if (blk.kind === 'link'){
           row.innerHTML = `
@@ -1698,18 +2151,10 @@
           const [txt, url] = row.querySelectorAll('input');
           txt.addEventListener('input', e=> {
             blk.text = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
           url.addEventListener('input', e=> { 
             blk.href = e.target.value; 
             blk.value = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
         } else if (blk.kind === 'social'){
           row.innerHTML = `
@@ -1737,24 +2182,12 @@
           const [sel, url, col] = row.querySelectorAll('select,input');
           sel.addEventListener('change', e=> {
             blk.icon = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
           url.addEventListener('input', e=> {
             blk.href = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
           col.addEventListener('input', e=> {
             blk.color = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
         } else if (blk.kind === 'button'){
           row.innerHTML = `
@@ -1775,24 +2208,12 @@
           const [t, h, c] = row.querySelectorAll('input');
           t.addEventListener('input', e=> {
             blk.text = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
           h.addEventListener('input', e=> {
             blk.href = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
           c.addEventListener('input', e=> {
             blk.color = e.target.value;
-            // Update canvas if this section is active
-            if (store.activeSectionIndex === idx) {
-              renderCanvasForSection(sec);
-            }
           });
         }
 
@@ -1893,6 +2314,15 @@
   }
 
   function safeJSON(s, def){ try{ const x = JSON.parse(s||''); return x; }catch(_){ return def; } }
+  
+  function parseYouTube(url) {
+    try {
+      const u = new URL(url);
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    } catch (_) {}
+    return null;
+  }
 </script>
 </body>
 </html>
