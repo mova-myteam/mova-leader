@@ -5,33 +5,22 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MOVA — Untuk Pengguna</title>
 
-  <!-- Inter -->
+  <!-- Inter Font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide -->
+  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root { --brand:#ef4444; }
-    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa}
-    .container{max-width:1152px}
+    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa;min-height:100vh}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
-    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.65rem 1rem;font-weight:700}
-    .btn-primary{background:var(--brand);color:#fff}
-    .btn-ghost{background:#fff;border:1px solid #e5e7eb}
-    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.65rem .9rem;background:#fff}
-    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
-    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
-    .muted{color:#6b7280}
-    /* plan card */
-    .plan{border:1px solid #e5e7eb;border-radius:1rem;padding:1rem;background:#fff;box-shadow:0 4px 14px rgba(15,23,42,.05)}
-    .plan h3{font-weight:800}
-    .pill{display:inline-flex;align-items:center;gap:.4rem;border-radius:9999px;font-size:.75rem;padding:.2rem .55rem;border:1px solid #e5e7eb;background:#f8fafc}
-    /* inline colored spans from [text]{#hex} */
-    .rich *{word-break:break-word}
+    .content-block{position:absolute;transform-origin:top left;}
+    .fallback{color:#6b7280;text-align:center;padding:4rem 1rem;}
+    .link-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1rem;border-radius:.75rem;border:1px solid #e5e7eb;background:#fff;font-weight:600;}
     .hero-title{font-weight:800;line-height:1.1}
+    .rich *{word-break:break-word;}
   </style>
 </head>
 <body>
@@ -43,405 +32,114 @@
       <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
         <i data-lucide="rocket" class="w-5 h-5"></i>
       </div>
-      <div class="font-extrabold">MOVA</div>
+      <div class="font-extrabold text-lg">MOVA</div>
     </div>
-    <div class="hidden sm:flex items-center gap-6 text-sm" id="navLinks"></div>
   </div>
 </nav>
 
-<!-- HERO -->
-<header class="bg-white">
-  <div class="mx-auto container px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-2 gap-8 items-center">
-    <div>
-      <h1 id="heroTitle" class="hero-title text-3xl sm:text-5xl"></h1>
-      <p id="heroSubtitle" class="mt-3 text-gray-600"></p>
-      <div class="mt-6 flex gap-3">
-        <a href="#calc" class="btn btn-primary"><i data-lucide="calculator" class="w-4 h-4"></i> Kira Cashback</a>
-        <a href="#updates" class="btn btn-ghost">Promosi Terkini</a>
-      </div>
-    </div>
-    <div class="card p-0 overflow-hidden">
-      <div id="heroMedia" class="aspect-video bg-gray-100 grid place-items-center text-gray-500">
-        <div class="p-6 text-center">
-          <i data-lucide="video" class="w-10 h-10 mx-auto"></i>
-          <div class="mt-2 text-sm">Video/gambar pengenalan akan dipaparkan di sini</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</header>
-
-<main class="mx-auto container px-4 sm:px-6 lg:px-8 space-y-10 pb-16" id="sectionsWrap">
-  <!-- seksyen dinamik akan dirender di sini -->
+<!-- KANDUNGAN -->
+<main id="mainWrap" class="relative container mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[80vh]">
+  <div id="loading" class="text-center text-gray-500 text-sm">Memuatkan kandungan...</div>
 </main>
 
-<footer class="mt-10 py-10 text-center text-sm text-gray-500">
+<footer class="mt-16 py-8 text-center text-sm text-gray-500">
   © <span id="year"></span> MOVA. Hak cipta terpelihara.
 </footer>
 
-<div id="toast" class="toast hidden"></div>
+<!-- TOAST -->
+<div id="toast" class="fixed left-1/2 bottom-6 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow hidden"></div>
 
 <script>
 const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 document.getElementById('year').textContent = new Date().getFullYear();
 lucide.createIcons();
 
-// === UTIL ===
-const toastEl = document.getElementById('toast');
-function toast(msg, ms=2200){ toastEl.textContent=msg; toastEl.classList.remove('hidden'); clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms); }
-async function api(path, payload){
-  const res = await fetch(EXEC_URL, {
-    method:'POST',
-    headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-    body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
-  });
-  const text=await res.text(); let json; try{ json=JSON.parse(text) }catch(e){ throw new Error(text) }
-  if (json && json.success===false) throw new Error(json.error||'Ralat tidak diketahui');
-  return json;
-}
-function esc(s){ return String(s==null?'':s); }
-function qs(key){ return new URLSearchParams(location.search).get(key) || ''; }
-
-// inline formatter: **bold** + [Text]{#hex}
-function formatInline(str){
-  if (!str) return '';
-  let html = esc(str);
-  html = html.replace(/\n/g,'<br>');
-  html = html.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  html = html.replace(/\[([^\]]+)\]\{(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)\}/g, '<span style="color:$2">$1</span>');
-  return html;
+// UTIL
+const toastEl=document.getElementById('toast');
+function toast(msg,ms=2500){toastEl.textContent=msg;toastEl.classList.remove('hidden');clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms);}
+async function api(path,payload){
+  const res=await fetch(EXEC_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:new URLSearchParams({path,payload:JSON.stringify(payload||{})})});
+  const text=await res.text();let json;try{json=JSON.parse(text)}catch(e){throw new Error(text)}if(json&&json.success===false)throw new Error(json.error||'Ralat tidak diketahui');return json;
 }
 
-// global state
-let SETTINGS = {};
-let RATE_MIN = 5, RATE_MAX = 10;
-let PARTNERS = [];
-
-// === INIT ===
+// RENDER
 (async function init(){
-  try{ await api('setup',{}); }catch(e){}
-  await loadSettings();
-  await loadHeroMedia();
-  await loadPartners();
-  await buildNavLinks();
-  await renderSections();
-  lucide.createIcons();
+  try{
+    const out = await api('settings_get',{});
+    const sets = out.settings || {};
+    const secs = sets.sections || [];
+    document.documentElement.style.setProperty('--brand', sets.theme_primary || '#ef4444');
+    if(!secs.length) return renderEmpty();
+
+    renderCanvasLayout(secs, sets);
+  }catch(e){
+    renderEmpty();
+  }
 })();
 
-async function loadSettings(){
-  try{
-    const out = await api('settings_get', {});
-    SETTINGS = out.settings || {};
-    // primary color
-    document.documentElement.style.setProperty('--brand', SETTINGS.theme_primary || SETTINGS.theme_color || '#ef4444');
-
-    // rates with alias fallback
-    const minA = Number(SETTINGS.cashback_min ?? SETTINGS.default_cashback_min ?? 5);
-    const maxA = Number(SETTINGS.cashback_max ?? SETTINGS.default_cashback_max ?? 10);
-    RATE_MIN = isFinite(minA) ? minA : 5;
-    RATE_MAX = isFinite(maxA) ? maxA : 10;
-
-    // hero from sections if present
-    const sec = (SETTINGS.sections||[]);
-    let heroSec = sec.find(s=> (s.type||'')==='hero') || sec[0] || {};
-    const titleBlock = (heroSec.blocks||[]).find(b=> b.kind==='text') || {};
-    const mediaBlock = (heroSec.blocks||[]).find(b=> b.kind==='image' || b.kind==='video');
-
-    const h1 = document.getElementById('heroTitle');
-    const h2 = document.getElementById('heroSubtitle');
-    h1.innerHTML = formatInline(heroSec.title || (titleBlock.value||'Selamat Datang ke [MOVA]{#ef4444}'));
-    h2.innerHTML = formatInline(heroSec.subtitle || 'Belanja, kumpul cashback, dan bina masa depan — dimulakan di sini.');
-
-    if (mediaBlock && mediaBlock.value){ renderMediaInto('heroMedia', mediaBlock.value); }
-  }catch(e){
-    document.getElementById('heroTitle').textContent = 'MOVA';
-  }
+function renderEmpty(){
+  const wrap=document.getElementById('mainWrap');
+  wrap.innerHTML='<div class="fallback">Laman belum disediakan oleh Leader.</div>';
 }
 
-async function loadHeroMedia(){
-  try{
-    const out = await api('media_list', {});
-    const vids = (out.items||[]).filter(x=> /^video\//i.test(x.file_type||''));
-    const imgs = (out.items||[]).filter(x=> /^image\//i.test(x.file_type||''));
-    const pick = vids[0] || imgs[0];
-    if (pick){ renderMediaInto('heroMedia', pick.public_url); }
-  }catch(e){}
-}
+function renderCanvasLayout(sections, settings){
+  const wrap=document.getElementById('mainWrap');
+  wrap.innerHTML='';
+  wrap.classList.add('relative');
+  const color = settings.theme_primary || '#ef4444';
+  const headingColor = settings.heading_color || '#111';
+  const bodyColor = settings.body_color || '#333';
 
-function renderMediaInto(elId, url){
-  const el = document.getElementById(elId);
-  if (!url || !el) return;
-  if (/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)){
-    el.innerHTML = `<video src="${url}" controls playsinline class="w-full h-full"></video>`;
-  } else {
-    el.innerHTML = `<img src="${url}" class="w-full h-full object-cover" alt="">`;
-  }
-}
+  sections.forEach(sec=>{
+    const secWrap = document.createElement('section');
+    secWrap.className='relative w-full min-h-[400px] mb-16 bg-white/80 rounded-xl shadow-sm overflow-hidden';
+    secWrap.innerHTML=`<div class="absolute inset-0" id="canvas-${sec.id||Math.random().toString(36).slice(2)}"></div>`;
+    wrap.appendChild(secWrap);
+    const canvas = secWrap.querySelector('div');
 
-async function loadPartners(){
-  try{
-    const out = await api('partner_list', {});
-    PARTNERS = out.items || [];
-  }catch(e){ PARTNERS = []; }
-}
+    (sec.blocks||[]).forEach(block=>{
+      const el=document.createElement('div');
+      el.className='content-block';
+      const lay = block.layout || {};
+      el.style.left=(lay.x||20)+'px';
+      el.style.top=(lay.y||20)+'px';
+      if(lay.w) el.style.width=lay.w+'px';
+      if(lay.h) el.style.height=lay.h+'px';
 
-async function buildNavLinks(){
-  const nav = document.getElementById('navLinks');
-  const secs = (SETTINGS.sections||[]);
-  nav.innerHTML = '';
-  secs.slice(0,6).forEach(s=>{
-    const id = 'sec-'+(s.id || s.title || Math.random().toString(36).slice(2));
-    const a = document.createElement('a');
-    a.href = '#'+id;
-    a.textContent = s.title || 'Seksyen';
-    a.className = 'hover:underline';
-    nav.appendChild(a);
-  });
-}
-
-function sectionShell(id, title, badge=''){
-  const div = document.createElement('section');
-  div.className = 'card p-6';
-  div.id = id;
-  div.innerHTML = `
-    <div class="flex items-center gap-2 mb-2">
-      <i data-lucide="panels-top-left" class="w-5 h-5 text-gray-700"></i>
-      <h2 class="text-xl sm:text-2xl font-extrabold">${esc(title||'Seksyen')}</h2>
-      ${badge? `<span class="pill">${badge}</span>`:''}
-    </div>
-    <div class="content"></div>
-  `;
-  return div;
-}
-
-function renderBlocksInto(host, sec){
-  const content = host.querySelector('.content');
-  const blocks = sec.blocks || [];
-
-  // Special hooks:
-  const hasUpgradeHook = (sec.title||'').toLowerCase().includes('upgrade') ||
-                         blocks.some(b=> b.kind==='text' && String(b.value||'').includes('[[upgrade-form]]'));
-
-  // If this section looks like SILVER/GOLD/DIAMOND list, render plan cards
-  const planLines = blocks
-    .filter(b=> b.kind==='text')
-    .map(b=> String(b.value||'').split('\n'))
-    .flat()
-    .map(x=> x.trim())
-    .filter(Boolean)
-    .filter(x=> /^(Silver|Gold|Diamond)\s*—/i.test(x));
-
-  if (planLines.length >= 1){
-    const grid = document.createElement('div');
-    grid.className = 'grid md:grid-cols-3 gap-4';
-    const colors = {silver:'#6b7280', gold:'#b45309', diamond:'#0ea5e9'};
-    planLines.forEach(line=>{
-      const m = line.match(/^(Silver|Gold|Diamond)\s*—\s*(.+)$/i);
-      if (!m) return;
-      const plan = m[1]; const desc = m[2];
-      const card = document.createElement('div');
-      const key = plan.toLowerCase();
-      card.className='plan';
-      card.innerHTML=`
-        <div class="text-sm badge" style="border-color:${colors[key]||'#e5e7eb'};background:#fafafa;color:${colors[key]||'#111'}">${plan}</div>
-        <h3 class="text-xl mt-1">${plan}</h3>
-        <div class="mt-2 text-sm text-gray-700">${formatInline(desc)}</div>
-      `;
-      grid.appendChild(card);
+      if(block.kind==='text'){
+        el.innerHTML=`<div class="rich" style="color:${bodyColor};font-size:${settings.body_size||16}px;">${block.value||''}</div>`;
+      }
+      else if(block.kind==='image' && block.value){
+        el.innerHTML=`<img src="${block.value}" class="w-full h-full object-cover rounded-lg border">`;
+      }
+      else if(block.kind==='video' && block.value){
+        const yt=parseYouTube(block.value);
+        el.innerHTML=yt
+          ? `<iframe src="https://www.youtube.com/embed/${yt}" class="w-full h-full rounded-lg border" frameborder="0" allowfullscreen></iframe>`
+          : `<video src="${block.value}" controls playsinline class="w-full h-full rounded-lg border"></video>`;
+      }
+      else if(block.kind==='link'){
+        el.innerHTML=`<a href="${block.value||'#'}" target="_blank" class="link-btn"><i data-lucide="link" class="w-4 h-4"></i><span>${block.text||'Pautan'}</span></a>`;
+      }
+      else if(block.kind==='social'){
+        el.innerHTML=`<div class="link-btn"><i data-lucide="share-2" class="w-4 h-4"></i><span>${block.text||'Sosial'}</span></div>`;
+      }
+      else if(block.kind==='button'){
+        el.innerHTML=`<a href="${block.value||'#'}" target="_blank" class="btn px-4 py-2 rounded-lg text-white font-semibold" style="background:${color}">${block.text||'Butang'}</a>`;
+      }
+      canvas.appendChild(el);
     });
-    content.appendChild(grid);
-  }
-
-  // Render normal blocks
-  blocks.forEach(b=>{
-    if (b.kind==='text'){
-      const div = document.createElement('div');
-      div.className = 'rich text-gray-800 leading-relaxed mt-3';
-      div.innerHTML = formatInline(b.value||'');
-      content.appendChild(div);
-    } else if (b.kind==='image'){
-      if (!b.value) return;
-      const img = document.createElement('img');
-      img.src = b.value; img.loading='lazy';
-      img.className = 'w-full rounded-xl border mt-3';
-      content.appendChild(img);
-    } else if (b.kind==='video'){
-      if (!b.value) return;
-      const yt = parseYouTube(b.value);
-      const wrap = document.createElement('div');
-      wrap.className='mt-3';
-      wrap.innerHTML = yt
-        ? `<div class="relative pb-[56.25%] h-0 overflow-hidden rounded-xl border"><iframe src="https://www.youtube.com/embed/${yt}" class="absolute top-0 left-0 w-full h-full" frameborder="0" allowfullscreen></iframe></div>`
-        : `<video src="${b.value}" controls playsinline class="w-full rounded-xl border"></video>`;
-      content.appendChild(wrap);
-    } else if (b.kind==='link'){
-      const text = b.text || 'Pautan';
-      const url  = b.value || '#';
-      const btn = document.createElement('a');
-      btn.href=url; btn.target='_blank';
-      btn.className='btn btn-ghost mt-3';
-      btn.innerHTML = `${iconFor(url)} <span>${esc(text)}</span>`;
-      content.appendChild(btn);
-    }
   });
-
-  // Upgrade form hook
-  if (hasUpgradeHook){
-    content.appendChild(buildUpgradeForm());
-  }
-}
-
-function iconFor(url){
-  const u = String(url||'').toLowerCase();
-  const map = [
-    ['t.me','send'], ['telegram','send'],
-    ['tiktok','music-2'], ['youtube','youtube'], ['youtu.be','youtube'],
-    ['facebook','facebook'], ['instagram','instagram'], ['twitter','twitter'], ['x.com','twitter']
-  ];
-  const hit = map.find(([k])=>u.includes(k));
-  const name = hit ? hit[1] : 'link';
-  return `<i data-lucide="${name}" class="w-4 h-4"></i>`;
+  lucide.createIcons();
 }
 
 function parseYouTube(url){
   try{
-    const u = new URL(url);
-    if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
-    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+    const u=new URL(url);
+    if(u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+    if(u.hostname.includes('youtu.be')) return u.pathname.slice(1);
   }catch(_){}
   return null;
-}
-
-function buildUpgradeForm(){
-  const div = document.createElement('div');
-  div.className = 'mt-5 p-4 bg-gray-50 rounded-xl border';
-  div.innerHTML = `
-    <div class="font-semibold mb-2">Saya Sedia Naik Taraf</div>
-    <div class="grid md:grid-cols-5 gap-3">
-      <input id="uName" class="input" placeholder="Nama penuh">
-      <input id="uPhone" class="input" placeholder="No. telefon">
-      <select id="uTarget" class="input">
-        <option value="">Pilih Peringkat</option>
-        <option>Silver</option>
-        <option>Gold</option>
-        <option>Diamond</option>
-      </select>
-      <select id="uPartner" class="input">
-        <option value="">Pilih Partner Anda</option>
-      </select>
-      <input id="uNote" class="input" placeholder="Nota (opsyen)">
-    </div>
-    <div class="mt-3 flex flex-wrap gap-2">
-      <button id="btnNotify" class="btn btn-primary"><i data-lucide="bell-ring" class="w-4 h-4"></i> Hantar Niat Upgrade</button>
-      <button id="btnWAPar" class="btn btn-ghost"><i data-lucide="messages-square" class="w-4 h-4"></i> WhatsApp Partner</button>
-    </div>
-    <div class="mt-2 text-xs text-gray-500">
-      * Jika endpoint <code>upgrade_intent</code> belum disediakan, sistem akan cuba <code>partner_upgrade</code>.
-    </div>
-  `;
-
-  // fill partners
-  const sel = div.querySelector('#uPartner');
-  PARTNERS.forEach(p=>{
-    const opt = document.createElement('option');
-    opt.value=p.name||''; opt.textContent=p.name||''; sel.appendChild(opt);
-  });
-
-  div.querySelector('#btnNotify').addEventListener('click', async ()=>{
-    const user_name = div.querySelector('#uName').value.trim();
-    const user_phone= div.querySelector('#uPhone').value.trim();
-    const target    = div.querySelector('#uTarget').value.trim();
-    const partner_name = div.querySelector('#uPartner').value.trim();
-    const leader_id = qs('leader') || 'LEAD-0001';
-    const note      = div.querySelector('#uNote').value.trim();
-    if (!user_name || !user_phone || !target) return toast('Lengkapkan nama, telefon & peringkat.');
-
-    // 1) Cuba upgrade_intent jika anda sediakan kemudian
-    try{
-      const out = await api('upgrade_intent', { user_name, user_phone, partner_name, leader_id, target, note });
-      if (out.success){ toast('Niat upgrade dihantar ✔️'); return; }
-    }catch(_){ /* teruskan fallback */ }
-
-    // 2) Fallback: partner_upgrade (mengikut Code.gs semasa)
-    try{
-      const out2 = await api('partner_upgrade', {
-        leader_id, name: user_name, phone: user_phone, email: '', package: target
-      });
-      if (out2.success){ toast('Permohonan upgrade dihantar ✔️'); }
-      else toast(out2.error||'Gagal hantar.');
-    }catch(e){ toast('Server belum sedia untuk upgrade.'); }
-  });
-
-  function waUrl(num, txt){ const p=String(num||'').replace(/\D/g,''); return p?`https://wa.me/${p}?text=${encodeURIComponent(txt||'')}`:''; }
-  div.querySelector('#btnWAPar').addEventListener('click', ()=>{
-    const name = sel.value;
-    const partner = PARTNERS.find(p=> (p.name||'')===name);
-    if (!partner || !partner.phone) return toast('Sila pilih partner yang ada nombor.');
-    const msg = `Hai, saya mahu naik taraf ke ${div.querySelector('#uTarget').value||'-'}. Nama: ${div.querySelector('#uName').value||'-'}, Telefon: ${div.querySelector('#uPhone').value||'-'}.`;
-    const url = waUrl(partner.phone, msg); if (url) window.open(url,'_blank');
-  });
-
-  return div;
-}
-
-async function renderSections(){
-  const wrap = document.getElementById('sectionsWrap');
-  wrap.innerHTML = '';
-
-  const secs = (SETTINGS.sections || []);
-  if (!secs.length){
-    const empty = sectionShell('sec-empty','Maklumat');
-    empty.querySelector('.content').innerHTML = '<div class="muted text-sm">Belum ada seksyen diset.</div>';
-    wrap.appendChild(empty);
-    return;
-  }
-
-  // Kalkulator seksyen auto
-  const calc = sectionShell('calc','Anggaran Cashback Anda','Auto');
-  calc.querySelector('.content').innerHTML = `
-    <div class="text-sm text-gray-700 mb-2">Kadar semasa ditetapkan oleh Leader: <span id="rateLabel" class="font-semibold">${RATE_MIN}% – ${RATE_MAX}%</span></div>
-    <div class="grid md:grid-cols-2 gap-3">
-      <div>
-        <label class="text-sm font-medium">Nilai Belanja (RM)</label>
-        <input id="spend" type="number" min="0" class="input mt-1" placeholder="cth: 200" />
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-sm font-medium">Anggaran Minimum (RM)</label>
-          <input id="rmMin" class="input mt-1" disabled />
-        </div>
-        <div>
-          <label class="text-sm font-medium">Anggaran Maksimum (RM)</label>
-          <input id="rmMax" class="input mt-1" disabled />
-        </div>
-      </div>
-    </div>
-    <div class="mt-3">
-      <button id="btnCalc" class="btn btn-primary">Kira</button>
-    </div>
-  `;
-  wrap.appendChild(calc);
-  calc.querySelector('#btnCalc').addEventListener('click', ()=>{
-    const spend = Math.max(0, Number(calc.querySelector('#spend').value||0));
-    const rmMin = (spend * (RATE_MIN/100)).toFixed(2);
-    const rmMax = (spend * (RATE_MAX/100)).toFixed(2);
-    calc.querySelector('#rmMin').value = spend ? rmMin : '';
-    calc.querySelector('#rmMax').value = spend ? rmMax : '';
-  });
-
-  // Dinamik seksyen dari settings
-  secs.forEach((sec, i)=>{
-    const id = 'sec-'+(sec.id || sec.title || i);
-    const box = sectionShell(id, sec.title||'Seksyen');
-    renderBlocksInto(box, sec);
-    wrap.appendChild(box);
-
-    if ((sec.type||'').toLowerCase()==='updates' || /promosi|update/i.test(sec.title||'')){
-      box.id='updates';
-    }
-  });
-
-  lucide.createIcons();
 }
 </script>
 </body>
