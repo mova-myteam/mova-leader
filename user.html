@@ -3,144 +3,143 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA — Untuk Pengguna</title>
+  <title>MOVA — User Canvas</title>
 
-  <!-- Inter Font -->
+  <!-- Font & Tailwind -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
   <style>
     :root { --brand:#ef4444; }
-    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa;min-height:100vh}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
-    .content-block{position:absolute;transform-origin:top left;}
-    .fallback{color:#6b7280;text-align:center;padding:4rem 1rem;}
-    .link-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1rem;border-radius:.75rem;border:1px solid #e5e7eb;background:#fff;font-weight:600;}
-    .hero-title{font-weight:800;line-height:1.1}
-    .rich *{word-break:break-word;}
+    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#f9fafb;margin:0;overflow-x:hidden;}
+    .canvas-area{position:relative;min-height:100vh;background:#fff;margin:0 auto;max-width:1200px;overflow:hidden;}
+    .draggable{position:absolute;cursor:move;border:1px dashed transparent;padding:4px;min-width:50px;min-height:20px;}
+    .draggable.active{border-color:#ef4444;}
+    .resize-handle{position:absolute;width:10px;height:10px;background:#ef4444;right:-5px;bottom:-5px;border-radius:2px;cursor:se-resize;}
+    .toolbar{position:fixed;top:0;left:0;right:0;height:48px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;gap:1rem;z-index:999;}
+    .toolbar button{background:#ef4444;color:#fff;font-weight:700;padding:.4rem .9rem;border-radius:.5rem;}
   </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="bg-white border-b border-gray-200">
-  <div class="mx-auto container px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
-        <i data-lucide="rocket" class="w-5 h-5"></i>
-      </div>
-      <div class="font-extrabold text-lg">MOVA</div>
-    </div>
-  </div>
-</nav>
+<!-- Toolbar ringkas -->
+<div class="toolbar">
+  <button onclick="addText()">Tambah Teks</button>
+  <button onclick="addImage()">Tambah Imej</button>
+  <button onclick="clearCanvas()">Padam Semua</button>
+</div>
 
-<!-- KANDUNGAN -->
-<main id="mainWrap" class="relative container mx-auto px-4 sm:px-6 lg:px-8 py-10 min-h-[80vh]">
-  <div id="loading" class="text-center text-gray-500 text-sm">Memuatkan kandungan...</div>
-</main>
-
-<footer class="mt-16 py-8 text-center text-sm text-gray-500">
-  © <span id="year"></span> MOVA. Hak cipta terpelihara.
-</footer>
-
-<!-- TOAST -->
-<div id="toast" class="fixed left-1/2 bottom-6 transform -translate-x-1/2 bg-black text-white px-4 py-2 rounded-lg shadow hidden"></div>
+<!-- Kawasan kerja -->
+<div id="canvas" class="canvas-area"></div>
 
 <script>
-const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
-document.getElementById('year').textContent = new Date().getFullYear();
-lucide.createIcons();
+const canvas=document.getElementById('canvas');
+let elements=[];let activeEl=null;
 
-// UTIL
-const toastEl=document.getElementById('toast');
-function toast(msg,ms=2500){toastEl.textContent=msg;toastEl.classList.remove('hidden');clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.classList.add('hidden'),ms);}
-async function api(path,payload){
-  const res=await fetch(EXEC_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body:new URLSearchParams({path,payload:JSON.stringify(payload||{})})});
-  const text=await res.text();let json;try{json=JSON.parse(text)}catch(e){throw new Error(text)}if(json&&json.success===false)throw new Error(json.error||'Ralat tidak diketahui');return json;
+//==== tambah teks / imej secara manual ====
+function addText(){
+  const el=document.createElement('div');
+  el.className='draggable';
+  el.textContent='Teks Baharu';
+  el.style.left='100px';el.style.top='100px';
+  el.contentEditable=true;
+  enableDragResize(el);
+  canvas.appendChild(el);
+  elements.push(el);
+}
+function addImage(){
+  const el=document.createElement('img');
+  el.src='https://via.placeholder.com/150';
+  el.className='draggable';
+  el.style.left='150px';el.style.top='150px';el.style.width='150px';
+  enableDragResize(el);
+  canvas.appendChild(el);
+  elements.push(el);
+}
+function clearCanvas(){
+  canvas.innerHTML='';
+  elements=[];
 }
 
-// RENDER
-(async function init(){
-  try{
-    const out = await api('settings_get',{});
-    const sets = out.settings || {};
-    const secs = sets.sections || [];
-    document.documentElement.style.setProperty('--brand', sets.theme_primary || '#ef4444');
-    if(!secs.length) return renderEmpty();
-
-    renderCanvasLayout(secs, sets);
-  }catch(e){
-    renderEmpty();
-  }
-})();
-
-function renderEmpty(){
-  const wrap=document.getElementById('mainWrap');
-  wrap.innerHTML='<div class="fallback">Laman belum disediakan oleh Leader.</div>';
-}
-
-function renderCanvasLayout(sections, settings){
-  const wrap=document.getElementById('mainWrap');
-  wrap.innerHTML='';
-  wrap.classList.add('relative');
-  const color = settings.theme_primary || '#ef4444';
-  const headingColor = settings.heading_color || '#111';
-  const bodyColor = settings.body_color || '#333';
-
-  sections.forEach(sec=>{
-    const secWrap = document.createElement('section');
-    secWrap.className='relative w-full min-h-[400px] mb-16 bg-white/80 rounded-xl shadow-sm overflow-hidden';
-    secWrap.innerHTML=`<div class="absolute inset-0" id="canvas-${sec.id||Math.random().toString(36).slice(2)}"></div>`;
-    wrap.appendChild(secWrap);
-    const canvas = secWrap.querySelector('div');
-
-    (sec.blocks||[]).forEach(block=>{
-      const el=document.createElement('div');
-      el.className='content-block';
-      const lay = block.layout || {};
-      el.style.left=(lay.x||20)+'px';
-      el.style.top=(lay.y||20)+'px';
-      if(lay.w) el.style.width=lay.w+'px';
-      if(lay.h) el.style.height=lay.h+'px';
-
-      if(block.kind==='text'){
-        el.innerHTML=`<div class="rich" style="color:${bodyColor};font-size:${settings.body_size||16}px;">${block.value||''}</div>`;
-      }
-      else if(block.kind==='image' && block.value){
-        el.innerHTML=`<img src="${block.value}" class="w-full h-full object-cover rounded-lg border">`;
-      }
-      else if(block.kind==='video' && block.value){
-        const yt=parseYouTube(block.value);
-        el.innerHTML=yt
-          ? `<iframe src="https://www.youtube.com/embed/${yt}" class="w-full h-full rounded-lg border" frameborder="0" allowfullscreen></iframe>`
-          : `<video src="${block.value}" controls playsinline class="w-full h-full rounded-lg border"></video>`;
-      }
-      else if(block.kind==='link'){
-        el.innerHTML=`<a href="${block.value||'#'}" target="_blank" class="link-btn"><i data-lucide="link" class="w-4 h-4"></i><span>${block.text||'Pautan'}</span></a>`;
-      }
-      else if(block.kind==='social'){
-        el.innerHTML=`<div class="link-btn"><i data-lucide="share-2" class="w-4 h-4"></i><span>${block.text||'Sosial'}</span></div>`;
-      }
-      else if(block.kind==='button'){
-        el.innerHTML=`<a href="${block.value||'#'}" target="_blank" class="btn px-4 py-2 rounded-lg text-white font-semibold" style="background:${color}">${block.text||'Butang'}</a>`;
-      }
-      canvas.appendChild(el);
+//==== drag & resize ====
+function enableDragResize(el){
+  el.addEventListener('click',()=>{document.querySelectorAll('.draggable').forEach(d=>d.classList.remove('active'));el.classList.add('active');activeEl=el;});
+  interact(el)
+    .draggable({
+      listeners:{move(event){
+        const x=(parseFloat(el.getAttribute('data-x'))||0)+event.dx;
+        const y=(parseFloat(el.getAttribute('data-y'))||0)+event.dy;
+        el.style.transform=`translate(${x}px,${y}px)`;
+        el.setAttribute('data-x',x);
+        el.setAttribute('data-y',y);
+      }}
+    })
+    .resizable({
+      edges:{bottom:true,right:true},
+    })
+    .on('resizemove',event=>{
+      let {width,height}=event.rect;
+      el.style.width=width+'px';
+      el.style.height=height+'px';
     });
-  });
-  lucide.createIcons();
 }
 
-function parseYouTube(url){
-  try{
-    const u=new URL(url);
-    if(u.hostname.includes('youtube.com')) return u.searchParams.get('v');
-    if(u.hostname.includes('youtu.be')) return u.pathname.slice(1);
-  }catch(_){}
-  return null;
+//==== listener dari dashboard ====
+window.addEventListener('message',(e)=>{
+  const {type,data}=e.data||{};
+  if(!type)return;
+
+  if(type==='add-element'){
+    if(data.kind==='text')addText();
+    if(data.kind==='image')addImage();
+  }
+
+  if(type==='update-element' && activeEl){
+    if(data.color)activeEl.style.color=data.color;
+    if(data.fontSize)activeEl.style.fontSize=data.fontSize+'px';
+    if(data.content!==undefined)activeEl.textContent=data.content;
+  }
+
+  if(type==='load-elements'){
+    clearCanvas();
+    (data||[]).forEach(item=>{
+      const el=item.tag==='img'?document.createElement('img'):document.createElement('div');
+      el.className='draggable';
+      if(item.tag==='img'){el.src=item.src;}
+      else{el.textContent=item.text;}
+      Object.assign(el.style,item.style||{});
+      el.style.position='absolute';
+      enableDragResize(el);
+      canvas.appendChild(el);
+      elements.push(el);
+    });
+  }
+});
+
+//==== fungsi simpan ke dashboard ====
+function saveToDashboard(){
+  const out=[...canvas.querySelectorAll('.draggable')].map(el=>{
+    return{
+      tag:el.tagName.toLowerCase(),
+      text:el.textContent,
+      src:el.src,
+      style:{
+        left:el.style.left,
+        top:el.style.top,
+        width:el.style.width,
+        height:el.style.height,
+        color:el.style.color,
+        fontSize:el.style.fontSize,
+      }
+    };
+  });
+  parent.postMessage({type:'save-elements',data:out},'*');
 }
+
+// auto simpan bila ubah
+canvas.addEventListener('input',saveToDashboard);
+window.addEventListener('mouseup',saveToDashboard);
 </script>
 </body>
 </html>
