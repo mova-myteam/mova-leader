@@ -11,8 +11,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- SortableJS for drag and drop -->
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
   <style>
     :root { --brand:#ef4444; }
@@ -58,19 +56,21 @@
     .toolbar select{transition: all 0.2s ease;}
     .toolbar select:focus{background:#f9fafb;}
     .rtbox{min-height:120px;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem;background:#fff}
-    /* Canvas preview styles */
-    .canvas-container {
+    
+    /* CANVAS MODE STYLES */
+    .canvas-area {
       position: relative;
-      overflow: hidden;
       background-color: #f9fafb;
       background-image: 
         linear-gradient(rgba(229, 231, 235, 0.5) 1px, transparent 1px),
         linear-gradient(90deg, rgba(229, 231, 235, 0.5) 1px, transparent 1px);
       background-size: 20px 20px;
+      border: 1px dashed #d1d5db;
       border-radius: 0.75rem;
       min-height: 560px;
-      width: 100%;
+      overflow: hidden;
     }
+    
     .canvas-block {
       position: absolute;
       cursor: move;
@@ -79,15 +79,18 @@
       transition: border-color 0.2s;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
+    
     .canvas-block:hover {
       border-color: #d1d5db;
       z-index: 10;
     }
+    
     .canvas-block.selected {
-      border-color: #111;
-      box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.2);
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
       z-index: 20;
     }
+    
     .canvas-block.text {
       padding: 8px;
       background-color: white;
@@ -96,21 +99,25 @@
       min-height: 40px;
       overflow: hidden;
     }
+    
     .canvas-block.image, .canvas-block.video {
       border-radius: 0.5rem;
       overflow: hidden;
     }
+    
     .canvas-block.image img, .canvas-block.video video {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
     }
+    
     .canvas-block.video iframe {
       width: 100%;
       height: 100%;
       border: none;
     }
+    
     .canvas-block.link, .canvas-block.social, .canvas-block.button {
       display: inline-flex;
       align-items: center;
@@ -119,74 +126,48 @@
       border-radius: 0.5rem;
       white-space: nowrap;
     }
+    
     .canvas-block.link {
       background-color: #f3f4f6;
       color: #374151;
       text-decoration: none;
     }
+    
     .canvas-block.social {
       background-color: #f3f4f6;
       color: #374151;
       text-decoration: none;
     }
+    
     .canvas-block.button {
       background-color: var(--brand);
       color: white;
       text-decoration: none;
       font-weight: 600;
     }
+    
     .resize-handle {
       position: absolute;
       width: 12px;
       height: 12px;
-      background-color: #111;
+      background-color: var(--brand);
       border-radius: 50%;
       opacity: 0;
       transition: opacity 0.2s;
       z-index: 30;
     }
+    
     .canvas-block:hover .resize-handle,
     .canvas-block.selected .resize-handle {
       opacity: 0.7;
     }
+    
     .resize-handle.se {
       bottom: -6px;
       right: -6px;
       cursor: se-resize;
     }
-    .canvas-mode-toggle {
-      display: flex;
-      background-color: #f3f4f6;
-      border-radius: 0.5rem;
-      padding: 4px;
-      margin-bottom: 12px;
-    }
-    .canvas-mode-toggle button {
-      padding: 6px 12px;
-      border-radius: 0.375rem;
-      font-size: 0.875rem;
-      font-weight: 500;
-      transition: all 0.2s;
-    }
-    .canvas-mode-toggle button.active {
-      background-color: white;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    }
-    .canvas-boundary {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      border: 2px dashed #d1d5db;
-      border-radius: 0.75rem;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-    .canvas-container.dragging .canvas-boundary {
-      opacity: 1;
-    }
+    
     .canvas-grid-overlay {
       position: absolute;
       top: 0;
@@ -201,7 +182,8 @@
       opacity: 0;
       transition: opacity 0.2s;
     }
-    .canvas-container.dragging .canvas-grid-overlay {
+    
+    .canvas-area.dragging .canvas-grid-overlay {
       opacity: 1;
     }
   </style>
@@ -299,22 +281,13 @@
       <!-- Two column layout for sections and canvas preview -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Left column: Section Builder -->
-        <div id="sectionsWrap" class="space-y-4"></div>
+        <div id="builderArea" class="space-y-4"></div>
         
         <!-- Right column: Canvas Preview -->
-        <div class="border border-gray-200 rounded-xl p-4">
-          <div class="flex items-center justify-between mb-3">
-            <h3 class="font-semibold">Mini Preview — Pro Canvas Mode</h3>
-            <div class="canvas-mode-toggle">
-              <button id="canvasModeBtn" class="active">Canvas</button>
-              <button id="htmlModeBtn">HTML</button>
-            </div>
-          </div>
-          <div id="canvasPreview" class="canvas-container">
-            <div class="canvas-boundary"></div>
+        <div id="canvasWrap" class="relative">
+          <div id="canvasArea" class="canvas-area">
             <div class="canvas-grid-overlay"></div>
           </div>
-          <div id="htmlPreview" class="mini-prev hidden"></div>
         </div>
       </div>
     </div>
@@ -683,7 +656,6 @@
     await renderOrg();
     await refreshSettings();     // untuk theme/typography dll + preview mini
     await loadSections();        // untuk Section Builder
-    initCanvasModeToggle();
   })();
 
   // ====== STATS ======
@@ -1063,6 +1035,11 @@
       setBodySize.value  = s.body_size || ''; setBodyColor.value = s.body_color || '#374151'; setBodyBold.checked = String(s.body_bold||'false')==='true';
       // kemas kini CSS root untuk brand color mini preview
       document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
+      
+      // Apply settings to canvas if active
+      if (store.activeSectionIndex >= 0) {
+        renderCanvasForSection(store.sections[store.activeSectionIndex]);
+      }
     }catch(e){ /* biarkan */ }
   }
   document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
@@ -1079,47 +1056,21 @@
     try{ await callApi('settings_set', payload); toast('Settings disimpan ✔️'); store.settings = payload; }catch(e){ toast('Gagal simpan settings'); }
   });
 
-  // ====== CANVAS PREVIEW FUNCTIONALITY ======
-  function initCanvasModeToggle() {
-    const canvasModeBtn = document.getElementById('canvasModeBtn');
-    const htmlModeBtn = document.getElementById('htmlModeBtn');
-    const canvasPreview = document.getElementById('canvasPreview');
-    const htmlPreview = document.getElementById('htmlPreview');
-    
-    canvasModeBtn.addEventListener('click', () => {
-      store.canvasMode = 'canvas';
-      canvasModeBtn.classList.add('active');
-      htmlModeBtn.classList.remove('active');
-      canvasPreview.classList.remove('hidden');
-      htmlPreview.classList.add('hidden');
-      if (store.activeSectionIndex >= 0) {
-        renderCanvasForSection(store.sections[store.activeSectionIndex]);
-      }
-    });
-    
-    htmlModeBtn.addEventListener('click', () => {
-      store.canvasMode = 'html';
-      htmlModeBtn.classList.add('active');
-      canvasModeBtn.classList.remove('active');
-      htmlPreview.classList.remove('hidden');
-      canvasPreview.classList.add('hidden');
-      if (store.activeSectionIndex >= 0) {
-        const sec = store.sections[store.activeSectionIndex];
-        const html = sectionPreviewHTML(sec, store.settings);
-        htmlPreview.innerHTML = html;
-      }
-    });
+  // ====== CANVAS MODE FUNCTIONALITY ======
+  
+  // Helper function for grid snapping
+  function snap(value, gridSize = 8) {
+    return Math.round(value / gridSize) * gridSize;
   }
-
+  
+  // Render canvas for a specific section
   function renderCanvasForSection(sec) {
-    const canvas = document.getElementById('canvasPreview');
+    const canvas = document.getElementById('canvasArea');
     if (!canvas) return;
     
-    // Clear canvas but keep boundary and grid overlay
-    const boundary = canvas.querySelector('.canvas-boundary');
+    // Clear canvas but keep grid overlay
     const gridOverlay = canvas.querySelector('.canvas-grid-overlay');
     canvas.innerHTML = '';
-    canvas.appendChild(boundary);
     canvas.appendChild(gridOverlay);
     
     if (!sec || !sec.blocks || sec.blocks.length === 0) {
@@ -1146,7 +1097,8 @@
     // Initialize drag and drop for canvas blocks
     initCanvasDragDrop();
   }
-
+  
+  // Create a canvas block element
   function createCanvasBlock(block, index, section, typography) {
     const blockEl = document.createElement('div');
     blockEl.className = `canvas-block ${block.kind}`;
@@ -1170,8 +1122,6 @@
     blockEl.style.height = `${block.layout.height}px`;
     
     // Create content based on block type
-    let content = '';
-    
     switch (block.kind) {
       case 'text':
       case 'rich':
@@ -1287,7 +1237,8 @@
     
     return blockEl;
   }
-
+  
+  // Add resize handle to a block
   function addResizeHandle(blockEl, block, section) {
     const handle = document.createElement('div');
     handle.className = 'resize-handle se';
@@ -1308,8 +1259,8 @@
     document.addEventListener('mousemove', (e) => {
       if (!isResizing) return;
       
-      const newWidth = startWidth + e.clientX - startX;
-      const newHeight = startHeight + e.clientY - startY;
+      const newWidth = snap(startWidth + e.clientX - startX);
+      const newHeight = snap(startHeight + e.clientY - startY);
       
       // Minimum size constraints
       if (newWidth > 100) {
@@ -1327,9 +1278,10 @@
       isResizing = false;
     });
   }
-
+  
+  // Initialize drag and drop for canvas blocks
   function initCanvasDragDrop() {
-    const canvas = document.getElementById('canvasPreview');
+    const canvas = document.getElementById('canvasArea');
     const blocks = canvas.querySelectorAll('.canvas-block');
     
     blocks.forEach(block => {
@@ -1372,12 +1324,8 @@
         const deltaX = e.clientX - startX;
         const deltaY = e.clientY - startY;
         
-        let newLeft = initialLeft + deltaX;
-        let newTop = initialTop + deltaY;
-        
-        // Apply grid snapping (8px)
-        newLeft = Math.round(newLeft / 8) * 8;
-        newTop = Math.round(newTop / 8) * 8;
+        let newLeft = snap(initialLeft + deltaX);
+        let newTop = snap(initialTop + deltaY);
         
         // Boundary constraints
         newLeft = Math.max(0, Math.min(newLeft, canvasRect.width - block.offsetWidth));
@@ -1406,7 +1354,8 @@
       });
     });
   }
-
+  
+  // Parse YouTube URL to get video ID
   function parseYouTube(url) {
     try {
       const u = new URL(url);
@@ -1417,7 +1366,7 @@
   }
 
   // ====== SECTION BUILDER ======
-  const sectionsWrap = document.getElementById('sectionsWrap');
+  const builderArea = document.getElementById('builderArea');
   document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
   document.getElementById('btnPreviewUser2')?.addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
 
@@ -1457,13 +1406,13 @@
   }
 
   function renderSections(){
-    sectionsWrap.innerHTML = '';
+    builderArea.innerHTML = '';
     if (!store.sections.length){
-      sectionsWrap.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Klik "Tambah Seksyen".</div>';
+      builderArea.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Klik "Tambah Seksyen".</div>';
       return;
     }
     store.sections.forEach((sec, idx)=>{
-      sectionsWrap.appendChild(sectionCard(sec, idx));
+      builderArea.appendChild(sectionCard(sec, idx));
     });
     lucide.createIcons();
   }
@@ -1645,13 +1594,8 @@
       // Set this section as active for canvas preview
       store.activeSectionIndex = idx;
       
-      // Update canvas preview based on current mode
-      if (store.canvasMode === 'canvas') {
-        renderCanvasForSection(sec);
-      } else {
-        const html = sectionPreviewHTML(sec, store.settings);
-        document.getElementById('htmlPreview').innerHTML = html;
-      }
+      // Update canvas preview
+      renderCanvasForSection(sec);
     });
 
     function rerenderMini(){
@@ -1690,7 +1634,7 @@
           box.addEventListener('input', ()=>{ 
             blk.html = box.innerHTML; 
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
@@ -1711,7 +1655,7 @@
             blk.src = e.target.value; 
             blk.value = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
@@ -1732,7 +1676,7 @@
             blk.src = e.target.value; 
             blk.value = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
@@ -1755,7 +1699,7 @@
           txt.addEventListener('input', e=> {
             blk.text = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
@@ -1763,7 +1707,7 @@
             blk.href = e.target.value; 
             blk.value = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
@@ -1794,21 +1738,21 @@
           sel.addEventListener('change', e=> {
             blk.icon = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
           url.addEventListener('input', e=> {
             blk.href = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
           col.addEventListener('input', e=> {
             blk.color = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
@@ -1832,21 +1776,21 @@
           t.addEventListener('input', e=> {
             blk.text = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
           h.addEventListener('input', e=> {
             blk.href = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
           c.addEventListener('input', e=> {
             blk.color = e.target.value;
             // Update canvas if this section is active
-            if (store.activeSectionIndex === idx && store.canvasMode === 'canvas') {
+            if (store.activeSectionIndex === idx) {
               renderCanvasForSection(sec);
             }
           });
