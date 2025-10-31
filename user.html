@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Papar sahaja (no edit) -->
+  <!-- Papar sahaja (no edit) + no cache -->
   <meta http-equiv="Cache-Control" content="no-store" />
   <style>
     :root{
@@ -27,26 +27,39 @@
     .body-text{font-size:var(--bSize);color:var(--bColor);font-weight:var(--bWeight);line-height:1.7}
     .section + .section{margin-top:3rem}
     .img-rounded{border-radius:1rem}
-    /* Kunci interaksi (papar sahaja) */
-    [data-role]{user-select:text; pointer-events:auto}
     .no-edit *{user-select:text}
+    /* Skrin blok akses */
+    #gate{display:none}
+    #gate.show{display:flex}
   </style>
 </head>
 <body class="bg-white text-slate-900 no-edit">
 
-  <!-- Bar atas minimal -->
+  <!-- Bar atas -->
   <div class="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-slate-200">
     <div class="container-narrow px-4 h-12 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <div class="h-7 w-7 rounded-lg bg-[color:var(--brand)] text-white grid place-items-center text-[13px] font-bold">M</div>
         <div class="text-sm text-slate-600">Laman User</div>
       </div>
-      <a href="./index.html" class="text-sm text-slate-500 hover:text-slate-800">Log Masuk</a>
+      <a id="logoutBtn" href="#" class="text-sm text-slate-500 hover:text-slate-800 hidden">Log Keluar</a>
     </div>
   </div>
 
-  <!-- Kandungan -->
-  <main class="container-narrow px-4 py-8">
+  <!-- Skrin Gate (dipaparkan jika belum dibenarkan) -->
+  <section id="gate" class="fixed inset-0 items-center justify-center bg-white">
+    <div class="text-center max-w-md mx-auto px-6">
+      <div class="h-10 w-10 mx-auto mb-4 rounded-lg bg-red-500 text-white grid place-items-center font-bold">!</div>
+      <h2 class="text-xl font-extrabold mb-1">Akses belum dibenarkan</h2>
+      <p id="gateMsg" class="text-slate-600 mb-5">
+        Sila log masuk dan pastikan nombor telefon anda telah disahkan.
+      </p>
+      <a id="toLogin" class="btn-brand inline-flex" href="./index.html">Pergi ke Log Masuk</a>
+    </div>
+  </section>
+
+  <!-- Kandungan (hanya dipaparkan jika lulus gate) -->
+  <main id="content" class="container-narrow px-4 py-8 hidden">
     <!-- HERO -->
     <section id="hero" class="section">
       <div class="chip mb-3" data-role="hero-kicker">MOVA</div>
@@ -69,11 +82,6 @@
   <script>
     /* ================== KONFIG ================== */
     const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
-
-    /* Ambil session leader jika ada (tidak wajib) */
-    let leader = {};
-    try { leader = JSON.parse(localStorage.getItem('mova_leader')||'{}') || {}; } catch(e){ leader = {}; }
-    const leader_id = leader?.leader_id || '';
 
     /* ================== UTIL ================== */
     const $ = sel => document.querySelector(sel);
@@ -155,71 +163,157 @@
       }
     }
 
-    /* ================== MAIN ================== */
-    (async function init(){
-      try{
-        const payload = new URLSearchParams({
-          path:'settings_get',
-          payload: JSON.stringify({ leader_id, _ts: Date.now() }) // _ts untuk elak cache di Apps Script
-        });
+    /* ================== GATE (AUTH) ================== */
+    function readUserSession(){
+      // Anda boleh selaraskan key ini dengan dashboard/index anda
+      // Bentuk dicadang: { name, phone, user_id, leader_id, status }
+      try { return JSON.parse(localStorage.getItem('mova_user')||'{}') } catch(_){ return {} }
+    }
+    function writeUserSession(obj){
+      localStorage.setItem('mova_user', JSON.stringify(obj||{}));
+    }
+    function redirectToLogin(){
+      const next = encodeURIComponent(location.pathname + location.search);
+      location.href = `./index.html?next=${next}`;
+    }
 
-        const res = await fetch(EXEC_URL+'?nocache='+Date.now(), {
-          method:'POST',
-          headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8', 'Cache-Control':'no-cache' },
-          cache:'no-store',
-          body: payload
-        });
+    async function resolveAccess(session){
+      const payload = new URLSearchParams({
+        path:'resolve_access',
+        payload: JSON.stringify({
+          role:'user',
+          name: session?.name || '',
+          phone: session?.phone || '',
+          user_id: session?.user_id || '',
+          _ts: Date.now()
+        })
+      });
 
-        const txt = await res.text();
-        let out; try { out = JSON.parse(txt); } catch(e){ out = {}; }
-        const s = out?.settings || {};
+      const res = await fetch(EXEC_URL+'?nocache='+Date.now(), {
+        method:'POST',
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8', 'Cache-Control':'no-cache' },
+        cache:'no-store',
+        body: payload
+      });
 
-        // Tema & typography
-        applyThemeFromSettings(s);
+      const txt = await res.text();
+      let out; try{ out = JSON.parse(txt) } catch(e){ out = {} }
+      return out; // jangkaan: { ok:boolean, status:'approved'|'pending'|'rejected', user:{...} }
+    }
 
-        // Sumber utama: sections_json yang disimpan oleh dashboard.html
-        const sections = safeJSON(s.sections_json, []);
-        let hero = null;
-        if (Array.isArray(sections) && sections.length){
-          hero = sections.find(x => (x.type==='hero') || x.featured) || sections[0];
-        }
+    async function gate(){
+      const sess = readUserSession();
 
-        if (hero){
-          document.querySelector('[data-role="hero-kicker"]').textContent =
-            (hero.kicker ?? s.brand_label ?? 'MOVA');
+      // 1) Tiada sesi → ke login
+      if(!sess?.phone || !sess?.name){
+        $('#gate').classList.add('show');
+        $('#gateMsg').textContent = 'Anda belum log masuk. Sila log masuk untuk mengakses laman ini.';
+        $('#toLogin').onclick = (e)=>{ e.preventDefault(); redirectToLogin(); };
+        return { allowed:false };
+      }
 
-          const $title = document.querySelector('[data-role="hero-title"]');
-          if (hero.title_html) $title.innerHTML = hero.title_html;
-          else if (hero.title)  $title.textContent = hero.title;
+      // 2) Sahkan dengan server
+      let resp;
+      try {
+        resp = await resolveAccess(sess);
+      } catch(e){
+        $('#gate').classList.add('show');
+        $('#gateMsg').textContent = 'Gagal mengesahkan akses. Cuba lagi atau log masuk semula.';
+        $('#toLogin').onclick = (ev)=>{ ev.preventDefault(); redirectToLogin(); };
+        return { allowed:false };
+      }
 
-          const $sub = document.querySelector('[data-role="hero-sub"]');
-          if (hero.sub_html) $sub.innerHTML = hero.sub_html;
-          else if (hero.sub)  $sub.textContent = hero.sub;
-
-          if (hero.cta_text){
-            const cta = document.querySelector('[data-role="hero-cta"]');
-            cta.textContent = hero.cta_text;
-            if (hero.cta_href) cta.href = hero.cta_href;
-          }
-          if (hero.badge_text){
-            document.querySelector('[data-role="hero-badge"]').textContent = hero.badge_text;
-          }
-
-          renderBlocks(hero);
+      const status = (resp?.status || '').toLowerCase();
+      if (!resp?.ok || status!=='approved'){
+        $('#gate').classList.add('show');
+        if (status==='pending'){
+          $('#gateMsg').textContent = 'Akaun anda sedang menunggu kelulusan. Sila hubungi Leader untuk pengesahan.';
+        } else if (status==='rejected'){
+          $('#gateMsg').textContent = 'Pendaftaran anda belum diluluskan. Sila semak semula dengan Leader.';
         } else {
-          renderBlocks({ blocks: [] }); // tiada sections_json: biar paparan lalai
+          $('#gateMsg').textContent = 'Akses ditolak. Sila log masuk semula.';
+        }
+        $('#toLogin').onclick = (ev)=>{ ev.preventDefault(); redirectToLogin(); };
+        return { allowed:false };
+      }
+
+      // 3) Lulus
+      const merged = Object.assign({}, sess, resp.user || {});
+      writeUserSession(merged);
+      $('#logoutBtn').classList.remove('hidden');
+      $('#logoutBtn').onclick = (e)=>{ e.preventDefault(); localStorage.removeItem('mova_user'); redirectToLogin(); };
+      $('#gate').classList.remove('show');
+      $('#content').classList.remove('hidden');
+
+      return { allowed:true, session: merged };
+    }
+
+    /* ================== MUAT SETTINGS & PAPAR ================== */
+    async function loadSettings(leader_id){
+      const payload = new URLSearchParams({
+        path:'settings_get',
+        payload: JSON.stringify({ leader_id: leader_id || '', _ts: Date.now() })
+      });
+
+      const res = await fetch(EXEC_URL+'?nocache='+Date.now(), {
+        method:'POST',
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8', 'Cache-Control':'no-cache' },
+        cache:'no-store',
+        body: payload
+      });
+
+      const txt = await res.text();
+      let out; try { out = JSON.parse(txt); } catch(e){ out = {}; }
+      return out?.settings || {};
+    }
+
+    (async function init(){
+      // Gate dahulu
+      const g = await gate();
+      if (!g.allowed) return;
+
+      // Dapatkan leader_id dari sesi user (atau lalai kosong)
+      const leaderId = g.session?.leader_id || '';
+
+      // Muat settings yang disimpan oleh dashboard.html
+      const s = await loadSettings(leaderId);
+
+      // Tema & typography
+      applyThemeFromSettings(s);
+
+      // Render hero + blocks dari sections_json
+      const sections = safeJSON(s.sections_json, []);
+      let hero = null;
+      if (Array.isArray(sections) && sections.length){
+        hero = sections.find(x => (x.type==='hero') || x.featured) || sections[0];
+      }
+
+      if (hero){
+        document.querySelector('[data-role="hero-kicker"]').textContent =
+          (hero.kicker ?? s.brand_label ?? 'MOVA');
+
+        const $title = document.querySelector('[data-role="hero-title"]');
+        if (hero.title_html) $title.innerHTML = hero.title_html;
+        else if (hero.title)  $title.textContent = hero.title;
+
+        const $sub = document.querySelector('[data-role="hero-sub"]');
+        if (hero.sub_html) $sub.innerHTML = hero.sub_html;
+        else if (hero.sub)  $sub.textContent = hero.sub;
+
+        if (hero.cta_text){
+          const cta = document.querySelector('[data-role="hero-cta"]');
+          cta.textContent = hero.cta_text;
+          if (hero.cta_href) cta.href = hero.cta_href;
+        }
+        if (hero.badge_text){
+          document.querySelector('[data-role="hero-badge"]').textContent = hero.badge_text;
         }
 
-      }catch(e){
-        console.warn('Gagal memuat settings:', e);
+        renderBlocks(hero);
+      } else {
+        renderBlocks({ blocks: [] });
       }
     })();
-
-    /* Kunci: jangan benarkan mod edit di user.html */
-    document.addEventListener('keydown', (e)=>{
-      // halang masuk contenteditable via shortcut (asas)
-      if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='e'){ e.preventDefault(); }
-    }, true);
   </script>
 </body>
 </html>
