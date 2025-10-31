@@ -6,517 +6,406 @@
   <title>MOVA — Laman User</title>
 
   <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind (optional; untuk gaya asas bersih) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind (CDN) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide (untuk ikon sosial jika perlu) -->
+  <!-- Lucide (untuk ikon jika perlu) -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Interact.js untuk drag/resize dalam mod editor (iframe dashboard) -->
-  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
   <style>
-    :root{
-      --brand:#ef4444;
-      --contentW: 980px;
-      --hSize: 28px; --hColor:#111111; --hWeight:800;
-      --bSize: 16px; --bColor:#374151; --bWeight:400;
+    :root{ --brand:#ef4444; }
+    html,body{ font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial; color:#111827 }
+    .container-narrow{ max-width: 980px; margin-inline:auto; padding-inline: 1rem }
+    .btn{ display:inline-flex; align-items:center; gap:.5rem; background: var(--brand); color:#fff; padding:.65rem 1rem; border-radius:.75rem; font-weight:700 }
+    .btn:hover{ filter:brightness(.95) }
+    .subtle{ color:#6b7280 }
+    /* ====== EDITOR STATES (aktif hanya bila edit mode) ====== */
+    .mova-editable[contenteditable="true"]{
+      outline:2px dashed rgba(239,68,68,.6);
+      outline-offset:6px; border-radius:.5rem;
+      transition: outline-color .2s;
     }
-    html,body{font-family:Inter,system-ui,ui-sans-serif; background:#fff; color:#111;}
-    .wrap{max-width:var(--contentW); margin:32px auto; padding:0 16px;}
-    .sec-title{font-size:var(--hSize); color:var(--hColor); font-weight:var(--hWeight);}
-    .sec-body{font-size:var(--bSize); color:var(--bColor); font-weight:var(--bWeight); line-height:1.7;}
-    .badge{display:inline-block;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:9999px;font-size:12px;padding:2px 8px;}
-    .btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--brand);color:#fff;padding:.6rem 1rem;border-radius:.7rem;text-decoration:none;}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 6px 24px rgba(15,23,42,.06);}
-    /* ===== Canvas Layer (for editor via dashboard) ===== */
-    .canvas-host{position:relative; margin:24px auto; max-width:var(--contentW);}
-    .canvas-stage{position:relative; width:100%; min-height:320px; border:1px dashed #e5e7eb; border-radius:12px; background:#fafafa;}
-    .el{position:absolute; box-sizing:border-box; user-select:none;}
-    .el.selected{outline:2px solid #111;}
-    .el[data-type="text"]{display:flex;align-items:center;justify-content:center;padding:8px;}
-    .el[data-type="button"] a{display:inline-block;padding:.55rem .9rem;border-radius:.7rem;color:#fff;text-decoration:none;}
-    .el[data-type="image"] img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
-    .el[data-type="video"] iframe,.el[data-type="video"] video{width:100%;height:100%;border:0;border-radius:8px;}
-    .el[data-type="shape"]{background:#ef4444;}
-    .ghost-msg{display:none;position:absolute;top:8px;right:8px;background:#111;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;opacity:.9}
-    .editor-active .ghost-msg{display:block;}
+    .mova-wrap{ position:relative }
+    .mova-badge{
+      position:absolute; top:-10px; right:-10px;
+      background:#ef4444; color:#fff; font-size:12px; line-height:1;
+      padding:4px 8px; border-radius:999px; box-shadow:0 8px 20px rgba(0,0,0,.15);
+      display:none; pointer-events:none; user-select:none;
+    }
+    .mova-wrap .mova-badge.show{ display:inline-block }
+    .hero-cover{ width:100%; border-radius:16px; border:1px solid #eee; }
+    a[data-type="link"]{ text-decoration:none }
+    .chip{ display:inline-flex; align-items:center; gap:.4rem; padding:.25rem .6rem; border-radius:999px; background:#f3f4f6; border:1px solid #e5e7eb; font-size:.8rem }
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06) }
   </style>
 </head>
-<body>
+<body class="bg-white">
 
-<!-- ===== WRAPPER ===== -->
-<div class="wrap">
-  <!-- Header ringkas -->
-  <header class="mb-6 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="h-10 w-10 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
-        <i data-lucide="rocket" class="w-5 h-5"></i>
+  <!-- ===== NAV (ringkas) ===== -->
+  <nav class="border-b border-gray-200">
+    <div class="container-narrow flex items-center justify-between h-14">
+      <div class="flex items-center gap-2">
+        <div class="h-8 w-8 rounded-lg bg-[color:var(--brand)] text-white grid place-items-center">
+          <i data-lucide="rocket" class="w-4 h-4"></i>
+        </div>
+        <span class="font-semibold">MOVA</span>
       </div>
-      <div>
-        <div class="text-lg font-semibold">MOVA</div>
-        <div class="text-xs text-gray-500" id="helloUser">Selamat datang</div>
-      </div>
+      <div class="text-xs subtle">Laman User</div>
     </div>
-    <div class="text-xs text-gray-500" id="viewModeHint"></div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <header class="container-narrow py-10">
+    <div class="mova-wrap mb-2">
+      <span class="mova-badge">Edit</span>
+      <div class="text-xs tracking-wide uppercase text-gray-500 mova-editable"
+           data-field="hero.eyebrow" data-type="text">MOVA</div>
+    </div>
+
+    <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <span class="mova-editable" data-field="hero.title" data-type="text">
+        Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan MOVA.
+      </span>
+    </h1>
+
+    <p class="mt-3 text-gray-600 mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <span class="mova-editable" data-field="hero.subtitle" data-type="text">
+        Mulakan sebagai Free user, fahami cara berfungsi, dan bila bersedia anda boleh naik taraf ke Silver/Gold/Diamond di bawah bimbingan Leader.
+      </span>
+    </p>
+
+    <div class="mt-5 flex items-center gap-3 mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <a href="#daftar" class="btn" data-field="hero.cta.href" data-type="link" title="Alt+klik untuk ubah pautan">
+        <span class="mova-editable" data-field="hero.cta.text" data-type="text">Daftar Sekarang</span>
+      </a>
+      <span class="chip">Cashback <span class="font-semibold" data-field="hero.cashback" data-type="text">5%–10%</span></span>
+    </div>
+
+    <div class="mt-8 mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <img class="hero-cover" alt=""
+           src="https://picsum.photos/seed/mova-hero/1200/640"
+           data-field="hero.image" data-type="img">
+      <div class="text-xs text-gray-500 mt-1">Dwi-klik pada imej untuk tukar URL.</div>
+    </div>
   </header>
 
-  <!-- Notice akses -->
-  <div id="accessNotice" class="hidden card p-4 mb-6">
-    <div class="text-sm text-gray-700" id="accessText"></div>
-  </div>
-
-  <!-- ===== Sections (content-driven) ===== -->
-  <main id="sectionsHost" class="space-y-8"></main>
-
-  <!-- ===== Canvas Design Layer (elements_json) ===== -->
-  <section id="canvasHost" class="canvas-host mt-10">
-    <div id="canvasStage" class="canvas-stage">
-      <div class="ghost-msg rounded">Editor aktif (melalui Dashboard) — boleh drag/resize klik elemen.</div>
-      <!-- Elemen akan dimasukkan secara dinamik -->
+  <!-- ===== FEATURES ===== -->
+  <section class="container-narrow py-10">
+    <div class="grid sm:grid-cols-3 gap-4">
+      <!-- Feature 1 -->
+      <div class="card p-5 mova-wrap">
+        <span class="mova-badge">Edit</span>
+        <div class="text-lg font-semibold mova-editable" data-field="features.0.title" data-type="text">Mudah Digunakan</div>
+        <p class="text-gray-600 mt-1 mova-editable" data-field="features.0.body" data-type="text">
+          Antaramuka ringkas, fokus pada hasil. Semua maklumat penting di hujung jari.
+        </p>
+      </div>
+      <!-- Feature 2 -->
+      <div class="card p-5 mova-wrap">
+        <span class="mova-badge">Edit</span>
+        <div class="text-lg font-semibold mova-editable" data-field="features.1.title" data-type="text">Jaringan Partner</div>
+        <p class="text-gray-600 mt-1 mova-editable" data-field="features.1.body" data-type="text">
+          Kembangkan rangkaian anda dan bina komuniti pelanggan & partner yang aktif.
+        </p>
+      </div>
+      <!-- Feature 3 -->
+      <div class="card p-5 mova-wrap">
+        <span class="mova-badge">Edit</span>
+        <div class="text-lg font-semibold mova-editable" data-field="features.2.title" data-type="text">Cashback</div>
+        <p class="text-gray-600 mt-1 mova-editable" data-field="features.2.body" data-type="text">
+          Nikmati pulangan sehingga <b>10%</b> mengikut kempen semasa & pakej terpilih.
+        </p>
+      </div>
     </div>
   </section>
 
-  <!-- Footer ringkas -->
-  <footer class="mt-12 text-center text-xs text-gray-400">
-    © <span id="yearNow"></span> MOVA. Semua hak cipta terpelihara.
+  <!-- ===== VIDEO / MEDIA ===== -->
+  <section class="container-narrow py-10">
+    <h2 class="text-2xl font-bold mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <span class="mova-editable" data-field="video.title" data-type="text">Tonton Penerangan Ringkas</span>
+    </h2>
+    <p class="text-gray-600 mt-1 mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <span class="mova-editable" data-field="video.desc" data-type="text">
+        Video ini menerangkan bagaimana MOVA membantu anda bermula dengan pantas.
+      </span>
+    </p>
+
+    <div class="mt-4 mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <div id="videoBox" class="w-full aspect-video rounded-xl border border-gray-200 overflow-hidden bg-black/5 grid place-items-center text-gray-400">
+        <!-- auto render oleh skrip dari data-field="video.src" -->
+        <span class="text-sm">Video akan dipaparkan di sini</span>
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        Dwi-klik pada kotak video untuk menetapkan URL (YouTube / MP4).
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TESTIMONIALS ===== -->
+  <section class="container-narrow py-10">
+    <h2 class="text-2xl font-bold mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <span class="mova-editable" data-field="testi.title" data-type="text">Apa Kata Mereka</span>
+    </h2>
+    <div class="grid sm:grid-cols-3 gap-4 mt-3">
+      <div class="card p-5 mova-wrap">
+        <span class="mova-badge">Edit</span>
+        <p class="text-gray-700 mova-editable" data-field="testi.0.text" data-type="text">
+          “Senang digunakan & support pantas. Saya terus dapat pelanggan pertama minggu yang sama.”
+        </p>
+        <div class="text-sm mt-2 font-semibold mova-editable" data-field="testi.0.name" data-type="text">Aina, Penang</div>
+      </div>
+      <div class="card p-5 mova-wrap">
+        <span class="mova-badge">Edit</span>
+        <p class="text-gray-700 mova-editable" data-field="testi.1.text" data-type="text">
+          “Dashboard kemas, broadcast WhatsApp membantu sangat untuk follow-up.”
+        </p>
+        <div class="text-sm mt-2 font-semibold mova-editable" data-field="testi.1.name" data-type="text">Hafiz, JB</div>
+      </div>
+      <div class="card p-5 mova-wrap">
+        <span class="mova-badge">Edit</span>
+        <p class="text-gray-700 mova-editable" data-field="testi.2.text" data-type="text">
+          “Saya suka bahagian sections — boleh susun konten dan ubah cepat.”
+        </p>
+        <div class="text-sm mt-2 font-semibold mova-editable" data-field="testi.2.name" data-type="text">Mira, KL</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="container-narrow py-12">
+    <div class="card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mova-wrap">
+      <span class="mova-badge">Edit</span>
+      <div>
+        <div class="text-xl font-bold mova-editable" data-field="cta.title" data-type="text">Sedia untuk bermula?</div>
+        <div class="text-gray-600 mova-editable" data-field="cta.subtitle" data-type="text">Daftar percuma & uji semua fungsi utama dahulu.</div>
+      </div>
+      <a href="#daftar" class="btn" data-field="cta.href" data-type="link" title="Alt+klik untuk ubah pautan">
+        <span class="mova-editable" data-field="cta.text" data-type="text">Buka Akaun Percuma</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="border-t border-gray-200 py-8">
+    <div class="container-narrow flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div class="mova-wrap">
+        <span class="mova-badge">Edit</span>
+        <div class="text-sm text-gray-500 mova-editable" data-field="footer.copy" data-type="text">
+          © <span id="y"></span> MOVA. Semua hak cipta terpelihara.
+        </div>
+      </div>
+      <div class="text-sm text-gray-400">Dikuasakan oleh MOVA</div>
+    </div>
   </footer>
-</div>
 
-<script>
-/** =========================
- *  KONFIG / UTIL
- *  ========================= */
-const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+  <!-- ===== SCRIPTS ===== -->
+  <script>
+    // ===== KONFIG (kekalkan EXEC_URL ini selari dengan dashboard anda) =====
+    const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-const qs = new URLSearchParams(location.search);
-const editorFlagQS = qs.get('editor') === '1'; // optional trigger
-const inIframe = (function(){ try { return window.self !== window.top; } catch(_){ return true; }})();
-let EDITOR_MODE = editorFlagQS || inIframe; // bila dibuka dari dashboard (iframe), mod editor hidup
+    // ===== STATE =====
+    const EDIT = {
+      enabled:false,
+      leader:null,
+      fields:{},       // map path->value (disimpan di settings_set: fields_map_json)
+      saveTimer:null
+    };
 
-const state = {
-  user: null,
-  settings: {},
-  elements: [], // dari elements_json
-  // mapping element DOM
-  elementMap: new Map()
-};
+    // Tahun footer
+    document.getElementById('y').textContent = new Date().getFullYear();
 
-const helloUser = document.getElementById('helloUser');
-const accessNotice = document.getElementById('accessNotice');
-const accessText = document.getElementById('accessText');
-const sectionsHost = document.getElementById('sectionsHost');
-const canvasStage = document.getElementById('canvasStage');
-const viewModeHint = document.getElementById('viewModeHint');
-document.getElementById('yearNow').textContent = new Date().getFullYear();
-lucide.createIcons();
+    // Gate: benarkan edit jika ?edit=1 & ada sesi leader
+    (function gate(){
+      const q = new URL(location.href).searchParams;
+      const wantEdit = q.get('edit')==='1';
+      try { EDIT.leader = JSON.parse(localStorage.getItem('mova_leader')||'null'); } catch(e){}
+      EDIT.enabled = !!(wantEdit && EDIT.leader && EDIT.leader.leader_id);
+    })();
 
-/** =========================
- *  BOOT
- *  ========================= */
-(async function boot(){
-  // 1) Sesi user (login) diperlukan
-  state.user = loadUserSession();
-  if (!state.user){ return deny("Sila log masuk terlebih dahulu.", true); }
-
-  helloUser.textContent = `Hai, ${state.user.name||'user'}`;
-
-  try{
-    // 2) Sahkan akses (mesti approved)
-    const ok = await resolveAccess(state.user);
-    if (!ok){ return; }
-
-    // 3) Muat tetapan & render
-    await loadSettings();
-    applyThemeFromSettings();
-    renderSections();
-    buildCanvasFromElements();
-
-    // 4) Jika editor (dipanggil dari dashboard), aktifkan interaksi & messaging
-    if (EDITOR_MODE) {
-      document.body.classList.add('editor-active');
-      enableInteract();
-      setupPostMessage();
-      viewModeHint.textContent = 'Mode: Preview Editor (via Dashboard)';
-    } else {
-      viewModeHint.textContent = 'Mode: Paparan';
-    }
-  }catch(e){
-    deny('Ralat memuat data. Cuba lagi.', false);
-  }
-})();
-
-/** =========================
- *  Sesi & Akses
- *  ========================= */
-function loadUserSession(){
-  try{
-    // Jangkaan struktur: { user_id, name, phone, status, partner, token? }
-    return JSON.parse(localStorage.getItem('mova_user') || 'null');
-  }catch(_){ return null; }
-}
-
-async function resolveAccess(user){
-  try{
-    const res = await callApi('resolve_access', { phone: user.phone||'', name: user.name||'' });
-    // Jangkaan: { success:true, approved:true/false, reason? }
-    if (!res.success){ deny('Gagal menyemak akses.', false); return false; }
-    if (!res.approved){ deny('Akses ditolak atau belum diluluskan. Hubungi Leader.', false); return false; }
-    return true;
-  }catch(_){
-    deny('Ralat rangkaian semak akses.', false);
-    return false;
-  }
-}
-
-function deny(msg, redirect){
-  accessText.textContent = msg;
-  accessNotice.classList.remove('hidden');
-  sectionsHost.innerHTML = '';
-  if (redirect){
-    setTimeout(()=> location.href = './index.html', 800);
-  }
-}
-
-/** =========================
- *  API
- *  ========================= */
-async function callApi(path, payload){
-  const res = await fetch(EXEC_URL, {
-    method:'POST',
-    headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-    body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
-  });
-  const text = await res.text();
-  let json; try{ json = JSON.parse(text); }catch(e){ throw new Error(text); }
-  if (json && json.success === false) throw new Error(json.error || 'Unknown error');
-  return json;
-}
-
-async function loadSettings(){
-  const out = await callApi('settings_get', { leader_id: (state.user?.leader_id || state.user?.owner_id || 'LEADER') });
-  state.settings = out.settings || {};
-  // Parse sections
-  let arr = []; try{ arr = JSON.parse(state.settings.sections_json || '[]'); }catch(_){}
-  state.sections = Array.isArray(arr) ? arr : [];
-  // Parse elements
-  let els = []; try{ els = JSON.parse(state.settings.elements_json || '[]'); }catch(_){}
-  state.elements = Array.isArray(els) ? els : [];
-}
-
-/** =========================
- *  Gaya Global dari Settings
- *  ========================= */
-function applyThemeFromSettings(){
-  const s = state.settings || {};
-  document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
-  if (s.content_width) document.documentElement.style.setProperty('--contentW', s.content_width + 'px');
-
-  document.documentElement.style.setProperty('--hSize', (Number(s.heading_size||0)||28) + 'px');
-  document.documentElement.style.setProperty('--bSize', (Number(s.body_size||0)||16) + 'px');
-  document.documentElement.style.setProperty('--hColor', s.heading_color || '#111111');
-  document.documentElement.style.setProperty('--bColor', s.body_color || '#374151');
-  document.documentElement.style.setProperty('--hWeight', (String(s.heading_bold||'false')==='true') ? '800' : '700');
-  document.documentElement.style.setProperty('--bWeight', (String(s.body_bold||'false')==='true') ? '600' : '400');
-}
-
-/** =========================
- *  Render Sections (sections_json)
- *  ========================= */
-function renderSections(){
-  sectionsHost.innerHTML = '';
-  const s = state.sections || [];
-  if (!s.length){
-    const empty = document.createElement('div');
-    empty.className = 'text-sm text-gray-500';
-    empty.textContent = 'Tiada kandungan lagi.';
-    sectionsHost.appendChild(empty);
-    return;
-  }
-  s.forEach(sec => {
-    if (sec.hidden) return; // skip jika ditanda sembunyi
-    const card = document.createElement('section');
-    card.className = 'card p-6';
-    const header = document.createElement('div');
-    header.className = 'flex items-center justify-between mb-2';
-    const left = document.createElement('div');
-    left.className = 'flex items-center gap-2';
-    left.innerHTML = `<span class="sec-title">${esc(sec.title||'')}</span>`;
-    const right = document.createElement('div');
-    if (sec.featured){ right.innerHTML = `<span class="badge">Featured</span>`; }
-    header.append(left,right);
-    const body = document.createElement('div');
-    body.className = 'sec-body mt-2';
-    body.innerHTML = blocksToHTML(sec.blocks || []);
-    card.append(header, body);
-    sectionsHost.appendChild(card);
-  });
-}
-
-function blocksToHTML(blocks){
-  return (blocks||[]).map(b=>{
-    if (b.kind==='text' || b.kind==='rich'){
-      return `<div style="margin:.5rem 0">${b.html ? b.html : esc(b.value||'')}</div>`;
-    } else if (b.kind==='image'){
-      const u = esc(b.src||b.value||'');
-      return u ? `<img src="${u}" alt="" class="w-full rounded-xl border border-gray-200 my-2">` : '';
-    } else if (b.kind==='video'){
-      const u = esc(b.src||b.value||''); if (!u) return '';
-      const yt = parseYouTube(u);
-      if (yt){
-        return `
-        <div class="relative pt-[56.25%] my-2">
-          <iframe class="absolute inset-0 w-full h-full rounded-xl border border-gray-200" src="https://www.youtube.com/embed/${yt}" allowfullscreen></iframe>
-        </div>`;
-      }
-      return `<video src="${u}" controls playsinline class="w-full rounded-xl border border-gray-200 my-2"></video>`;
-    } else if (b.kind==='link'){
-      const text = esc(b.text||'Pautan'); const u = esc(b.href||'#');
-      return `<a href="${u}" target="_blank" class="btn my-2">${text}</a>`;
-    } else if (b.kind==='social'){
-      const u = esc(b.href||'#'); const col = esc(b.color||'#111111');
-      return `<a href="${u}" target="_blank" class="inline-flex items-center gap-2 border border-gray-200 rounded-full px-3 py-1 text-sm mr-2" style="color:${col}">${(b.icon||'social').toUpperCase()}</a>`;
-    } else if (b.kind==='button'){
-      const text = esc(b.text||'Butang'); const u = esc(b.href||'#'); const col = esc(b.color||'#ef4444');
-      return `<a href="${u}" target="_blank" class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white my-2" style="background:${col}">${text}</a>`;
-    }
-    return '';
-  }).join('');
-}
-
-function esc(s){ return String(s||''); }
-function parseYouTube(url){
-  try{
-    const u = new URL(url);
-    if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
-    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
-  }catch(_){}
-  return null;
-}
-
-/** =========================
- *  Canvas (elements_json) — untuk Preview Editor
- *  ========================= */
-function buildCanvasFromElements(){
-  // Jika tiada elemen & bukan editor, sembunyikan kanvas
-  if ((!state.elements || !state.elements.length) && !EDITOR_MODE){
-    document.getElementById('canvasHost').style.display = 'none';
-    return;
-  }
-  canvasStage.innerHTML = `<div class="ghost-msg rounded">Editor aktif (melalui Dashboard) — boleh drag/resize klik elemen.</div>`;
-  state.elementMap.clear();
-
-  (state.elements||[]).forEach(el => addElementNode(el));
-
-  // Beritahu dashboard elemen siap dimuat
-  if (EDITOR_MODE){
-    postToParent('elements-loaded', { elements: state.elements });
-  }
-}
-
-function addElementNode(el){
-  const div = document.createElement('div');
-  div.className = 'el';
-  div.dataset.id = el.id;
-  div.dataset.type = el.type || 'text';
-  applyElStyle(div, el);
-
-  // Content per type
-  if (el.type === 'text'){
-    div.textContent = el.content || 'Text';
-  } else if (el.type === 'button'){
-    const a = document.createElement('a');
-    a.href = el.href || '#';
-    a.target = '_blank';
-    a.textContent = el.content || 'Button';
-    a.style.background = el.backgroundColor || '#ef4444';
-    a.style.color = el.color || '#fff';
-    a.style.padding = '.55rem .9rem';
-    a.style.borderRadius = (el.borderRadius||8) + 'px';
-    div.appendChild(a);
-  } else if (el.type === 'image'){
-    const img = document.createElement('img');
-    img.src = el.src || 'https://picsum.photos/seed/mova/300/200.jpg';
-    img.alt = '';
-    img.style.borderRadius = (el.borderRadius||8) + 'px';
-    div.appendChild(img);
-  } else if (el.type === 'video'){
-    if ((el.src||'').includes('youtube.com') || (el.src||'').includes('youtu.be')){
-      const yt = parseYouTube(el.src||'');
-      const ifr = document.createElement('iframe');
-      ifr.src = 'https://www.youtube.com/embed/' + (yt || '');
-      ifr.allowFullscreen = true;
-      div.appendChild(ifr);
-    } else {
-      const v = document.createElement('video');
-      v.src = el.src || '';
-      v.controls = true; v.playsInline = true;
-      div.appendChild(v);
-    }
-  } else if (el.type === 'icon'){
-    const i = document.createElement('i');
-    i.dataset.lucide = el.icon || 'smile';
-    div.appendChild(i);
-    setTimeout(()=> lucide.createIcons(), 0);
-  } else if (el.type === 'shape'){
-    // color via backgroundColor
-  }
-
-  // Click select (editor only)
-  if (EDITOR_MODE){
-    div.addEventListener('mousedown', (e)=> {
-      e.stopPropagation();
-      selectEl(div);
-      // Hantar ke dashboard element terpilih
-      postToParent('element-selected', { id: el.id });
+    // IPC dari dashboard
+    window.addEventListener('message', (e)=>{
+      const {type, data} = e.data||{};
+      if (type==='toggle-edit'){ EDIT.enabled = !!data?.on; applyEditMode(); }
+      if (type==='load-fields'){ EDIT.fields = data||{}; applyFieldsToDOM(); applyEditMode(); }
     });
-  }
 
-  canvasStage.appendChild(div);
-  state.elementMap.set(el.id, div);
-}
-
-function selectEl(div){
-  document.querySelectorAll('.el.selected').forEach(n=> n.classList.remove('selected'));
-  div.classList.add('selected');
-}
-
-function applyElStyle(node, el){
-  // Kedudukan & saiz
-  node.style.left = (el.x||100) + 'px';
-  node.style.top = (el.y||100) + 'px';
-  node.style.width = (el.width||200) + 'px';
-  node.style.height = (el.height||100) + 'px';
-  node.style.zIndex = (el.zIndex||0);
-
-  // Warna/teks
-  node.style.background = el.backgroundColor || 'transparent';
-  node.style.color = el.color || '#000';
-  node.style.opacity = (typeof el.opacity==='number' ? (el.opacity/100) : 1);
-
-  // Border
-  node.style.borderWidth = (el.borderWidth||0) + 'px';
-  node.style.borderStyle = el.borderWidth ? 'solid' : 'none';
-  node.style.borderColor = el.borderColor || '#000';
-  node.style.borderRadius = (el.borderRadius||0) + 'px';
-
-  // Tipografi (untuk text/button/icon)
-  node.style.fontFamily = el.fontFamily || 'Inter';
-  node.style.fontSize = (el.fontSize||24) + 'px';
-  node.style.fontWeight = el.fontWeight || 'normal';
-  node.style.fontStyle = el.fontStyle || 'normal';
-  node.style.textDecoration = el.textDecoration || 'none';
-  node.style.textAlign = el.textAlign || 'center';
-}
-
-/** =========================
- *  Interaksi Editor (drag/resize)
- *  ========================= */
-function enableInteract(){
-  interact('.el').draggable({
-    listeners: {
-      move (event) {
-        const target = event.target;
-        const id = target.dataset.id;
-        const x = (parseFloat(target.style.left)||0) + event.dx;
-        const y = (parseFloat(target.style.top)||0) + event.dy;
-        target.style.left = x + 'px';
-        target.style.top = y + 'px';
-        // Beritahu dashboard
-        postToParent('element-updated', { id, properties: { x, y }});
-      }
+    // Panggilan API Apps Script
+    async function callApi(path, payload){
+      const res = await fetch(EXEC_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body:new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
+      });
+      const text = await res.text();
+      let json; try{ json = JSON.parse(text); }catch(e){ throw new Error(text) }
+      if (json && json.success===false) throw new Error(json.error||'Ralat');
+      return json;
     }
-  }).resizable({
-    edges: { left:true, right:true, bottom:true, top:true }
-  }).on('resizemove', function (event) {
-    const target = event.target;
-    const id = target.dataset.id;
-    const w = Math.max(40, event.rect.width);
-    const h = Math.max(30, event.rect.height);
-    target.style.width = w + 'px';
-    target.style.height = h + 'px';
-    // Beritahu dashboard
-    postToParent('element-updated', { id, properties: { width:w, height:h }});
-  });
 
-  // Klik di kanvas kosong: buang pilihan
-  canvasStage.addEventListener('mousedown', (e)=>{
-    if (e.target === canvasStage){
-      document.querySelectorAll('.el.selected').forEach(n=> n.classList.remove('selected'));
-      postToParent('element-selected', { id: null });
+    // Muat fields_map_json dari server
+    async function loadFields(){
+      if (!(EDIT.leader && EDIT.leader.leader_id)) return;
+      try{
+        const out = await callApi('settings_get', { leader_id: EDIT.leader.leader_id });
+        const s = out.settings || {};
+        const map = safeJSON(s.fields_map_json, {}) || {};
+        EDIT.fields = map;
+        applyFieldsToDOM();
+      }catch(e){ /* diamkan */ }
     }
-  });
-}
 
-/** =========================
- *  Messaging dgn Dashboard
- *  ========================= */
-function setupPostMessage(){
-  window.addEventListener('message', (event)=>{
-    const msg = event.data || {};
-    const { type, data } = msg;
-    if (!type) return;
+    function safeJSON(s, def){ try{ return JSON.parse(s||''); }catch(_){ return def } }
 
-    if (type === 'load-elements'){
-      state.elements = data.elements || [];
-      buildCanvasFromElements();
-    }
-    else if (type === 'add-element'){
-      state.elements.push(data);
-      addElementNode(data);
-    }
-    else if (type === 'update-element'){
-      const el = (state.elements||[]).find(x=> x.id === data.id);
-      if (!el) return;
-      Object.assign(el, data.properties||{});
-      const node = state.elementMap.get(data.id);
-      if (node){
-        applyElStyle(node, el);
-        if (el.type==='text' && 'content' in (data.properties||{})) node.textContent = el.content || 'Text';
-        if (el.type==='button' && 'content' in (data.properties||{})) node.querySelector('a')?.textContent = el.content || 'Button';
-        if (el.type==='button' && 'backgroundColor' in (data.properties||{})) node.querySelector('a')?.style.setProperty('background', el.backgroundColor || '#ef4444');
-        if (el.type==='image' && 'src' in (data.properties||{})) node.querySelector('img')?.setAttribute('src', el.src || '');
-        if (el.type==='video' && 'src' in (data.properties||{})) {
-          // re-render video node ringkas
-          node.innerHTML = '';
-          if ((el.src||'').includes('youtube.com')||(el.src||'').includes('youtu.be')){
-            const yt = parseYouTube(el.src||''); const ifr = document.createElement('iframe'); ifr.src='https://www.youtube.com/embed/'+(yt||''); ifr.allowFullscreen = true; node.appendChild(ifr);
-          } else { const v=document.createElement('video'); v.src=el.src||''; v.controls=true; v.playsInline=true; node.appendChild(v); }
+    // Terapkan nilai ke DOM mengikut data-field + data-type
+    function applyFieldsToDOM(){
+      document.querySelectorAll('[data-field]').forEach(el=>{
+        const path = el.dataset.field;
+        const type = el.dataset.type || 'text';
+        const val  = getVal(path);
+        if (val==null) return;
+
+        if (type==='text' || type==='html'){
+          if (type==='text') el.textContent = String(val);
+          else el.innerHTML = String(val);
+        } else if (type==='img'){
+          el.setAttribute('src', String(val));
+        } else if (type==='link'){
+          el.setAttribute('href', String(val));
         }
-        if (el.type==='icon' && ('icon' in (data.properties||{}))) { node.innerHTML=''; const i=document.createElement('i'); i.dataset.lucide = el.icon || 'smile'; node.appendChild(i); setTimeout(()=> lucide.createIcons(), 0); }
+      });
+
+      // render video box
+      renderVideo();
+    }
+
+    function getVal(path){
+      return (EDIT.fields && Object.prototype.hasOwnProperty.call(EDIT.fields, path)) ? EDIT.fields[path] : null;
+    }
+
+    function setVal(path, value){
+      EDIT.fields[path] = value;
+      debounceSave();
+    }
+
+    function debounceSave(){
+      clearTimeout(EDIT.saveTimer);
+      EDIT.saveTimer = setTimeout(async ()=>{
+        if (!(EDIT.leader && EDIT.leader.leader_id)) return;
+        try{
+          await callApi('settings_set', {
+            leader_id: EDIT.leader.leader_id,
+            fields_map_json: JSON.stringify(EDIT.fields||{})
+          });
+          // console.log('Saved ✅');
+        }catch(e){ /* boleh tambah toast jika mahu */ }
+      }, 800);
+    }
+
+    // Aktif/padam edit mode
+    function applyEditMode(){
+      document.querySelectorAll('[data-field]').forEach(el=>{
+        const type = el.dataset.type || 'text';
+        const wrap = el.closest('.mova-wrap');
+        const badge = wrap ? wrap.querySelector('.mova-badge') : null;
+
+        if (EDIT.enabled){
+          if (type==='text' || type==='html'){
+            el.setAttribute('contenteditable','true');
+            el.classList.add('mova-editable');
+
+            const handler = ()=>{
+              const path = el.dataset.field;
+              const v = (type==='text') ? el.textContent.trim() : el.innerHTML;
+              setVal(path, v);
+            };
+
+            // pastikan tak gandakan listeners
+            el.oninput = handler;
+            el.onfocus = ()=> badge && badge.classList.add('show');
+            el.onblur  = ()=> badge && badge.classList.remove('show');
+          }
+          if (type==='img'){
+            el.style.cursor = 'pointer';
+            el.ondblclick = ()=>{
+              const u = prompt('Masukkan URL imej:', el.getAttribute('src')||'');
+              if (!u) return;
+              el.setAttribute('src', u);
+              setVal(el.dataset.field, u);
+            };
+          }
+          if (type==='link'){
+            el.onclick = (ev)=>{
+              if (!ev.altKey) return; ev.preventDefault();
+              const u = prompt('Masukkan URL pautan:', el.getAttribute('href')||'#');
+              if (!u) return;
+              el.setAttribute('href', u);
+              setVal(el.dataset.field, u);
+            };
+          }
+
+          // video box dblclick untuk tetapkan src
+          const vbox = document.getElementById('videoBox');
+          if (vbox){
+            vbox.style.cursor='pointer';
+            vbox.ondblclick = ()=>{
+              const cur = EDIT.fields['video.src'] || '';
+              const u = prompt('Masukkan URL YouTube atau MP4:', cur);
+              if (!u) return;
+              EDIT.fields['video.src'] = u;
+              renderVideo(); debounceSave();
+            };
+          }
+
+        } else {
+          el.removeAttribute('contenteditable');
+          el.classList.remove('mova-editable');
+          if (badge) badge.classList.remove('show');
+
+          // buang handler
+          el.oninput = el.onfocus = el.onblur = el.onclick = el.ondblclick = null;
+          const vbox = document.getElementById('videoBox');
+          if (vbox) vbox.ondblclick = null;
+        }
+      });
+    }
+
+    function renderVideo(){
+      const box = document.getElementById('videoBox'); if (!box) return;
+      const src = EDIT.fields['video.src'];
+      if (!src){ box.innerHTML = '<span class="text-sm text-gray-400">Video akan dipaparkan di sini</span>'; return; }
+
+      // YouTube?
+      let ytId = null;
+      try{
+        const u = new URL(src);
+        if (u.hostname.includes('youtube.com')) ytId = u.searchParams.get('v');
+        if (u.hostname.includes('youtu.be')) ytId = u.pathname.replace('/','');
+      }catch(_){}
+      if (ytId){
+        box.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe>`;
+      } else if (/\.(mp4|webm|m4v)(\?|$)/i.test(src)){
+        box.innerHTML = `<video src="${src}" controls playsinline class="w-full h-full"></video>`;
+      } else {
+        box.innerHTML = `<a class="text-blue-600 underline break-all" href="${src}" target="_blank" rel="noopener">Buka pautan video</a>`;
       }
-      // pantulkan ke dashboard supaya sejarah/auto-save berlaku di sana
-      postToParent('element-updated', { id: el.id, properties: data.properties });
     }
-    else if (type === 'delete-element'){
-      const idx = (state.elements||[]).findIndex(x=> x.id === data.id);
-      if (idx>-1) state.elements.splice(idx,1);
-      const node = state.elementMap.get(data.id);
-      if (node && node.parentNode) node.parentNode.removeChild(node);
-      state.elementMap.delete(data.id);
-    }
-    else if (type === 'bring-to-front'){
-      const el = (state.elements||[]).find(x=> x.id === data.id);
-      if (!el) return;
-      const maxZ = Math.max(0, ...state.elements.map(e=> e.zIndex||0));
-      el.zIndex = maxZ + 1;
-      const node = state.elementMap.get(el.id); if (node) node.style.zIndex = el.zIndex;
-    }
-    else if (type === 'send-to-back'){
-      const el = (state.elements||[]).find(x=> x.id === data.id);
-      if (!el) return;
-      const minZ = Math.min(0, ...state.elements.map(e=> e.zIndex||0));
-      el.zIndex = minZ - 1;
-      const node = state.elementMap.get(el.id); if (node) node.style.zIndex = el.zIndex;
-    }
-  });
 
-  // Handshake awal: beritahu dashboard versi siap
-  postToParent('elements-loaded', { elements: state.elements });
-}
+    // Init
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      lucide.createIcons();
 
-function postToParent(type, data){
-  try{ window.parent.postMessage({ type, data }, '*'); }catch(_){}
-}
-</script>
+      // Jika bukan edit mode, tetap cuba muat nilai supaya paparan guna nilai simpanan
+      await loadFields();
+      applyEditMode();
+    });
+  </script>
 </body>
 </html>
