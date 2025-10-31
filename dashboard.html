@@ -806,7 +806,8 @@
     history: [],                 // Undo/Redo history
     historyIndex: -1,            // Current position in history
     autoSaveTimer: null,         // Timer for auto-save
-    zoomLevel: 1                 // Current zoom level for preview
+    zoomLevel: 1,                // Current zoom level for preview
+    _autoSaveInterval: null      // Auto-save interval reference
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -1199,47 +1200,105 @@
   // ====== ORG CHART ======
   document.getElementById('btnReloadOrg').addEventListener('click', renderOrg);
   async function renderOrg(){
-    const grid = document.getElementById('orgGrid'); const svg  = document.getElementById('orgSvg'); const wrap = document.getElementById('orgWrap');
+    const grid = document.getElementById('orgGrid'); 
+    const svg  = document.getElementById('orgSvg'); 
+    const wrap = document.getElementById('orgWrap');
+    
+    // 修复部分：添加空值检查
     if (!grid || !svg || !wrap) return;
+    
     grid.innerHTML = ''; svg.innerHTML = '';
     let tree;
-    try{ const out = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
-      if (!out.success) throw new Error('Fail org_tree'); tree = out.tree;
-    }catch(e){ tree = { name:'LEADER', children:[] }; }
+    try{ 
+      const out = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
+      if (!out.success) throw new Error('Fail org_tree'); 
+      tree = out.tree;
+    }catch(e){ 
+      tree = { name:'LEADER', children:[] }; 
+    }
 
     const root = document.createElement('div');
     root.className = 'mx-auto px-4 py-2 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-200';
-    root.textContent = (tree.name || 'LEADER'); root.style.gridColumn = '1 / -1';
-    grid.style.gridTemplateColumns = `repeat(${Math.max(1,(tree.children||[]).length)}, minmax(180px,1fr))`; grid.appendChild(root);
+    root.textContent = (tree.name || 'LEADER'); 
+    root.style.gridColumn = '1 / -1';
+    grid.style.gridTemplateColumns = `repeat(${Math.max(1,(tree.children||[]).length)}, minmax(180px,1fr))`; 
+    grid.appendChild(root);
 
-    const rowTop = document.createElement('div'); rowTop.className = 'grid gap-8 mt-6'; rowTop.style.gridColumn = '1 / -1'; rowTop.style.gridTemplateColumns = grid.style.gridTemplateColumns; grid.appendChild(rowTop);
+    const rowTop = document.createElement('div'); 
+    rowTop.className = 'grid gap-8 mt-6'; 
+    rowTop.style.gridColumn = '1 / -1'; 
+    rowTop.style.gridTemplateColumns = grid.style.gridTemplateColumns; 
+    grid.appendChild(rowTop);
+    
     const partnerNodes = [];
     (tree.children||[]).forEach(p=>{
-      const n = document.createElement('div'); n.className = 'px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-center font-medium border border-emerald-200';
-      n.textContent = (p.name || 'PARTNER') + (p.title ? ` • ${p.title}` : ''); rowTop.appendChild(n);
+      const n = document.createElement('div'); 
+      n.className = 'px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-center font-medium border border-emerald-200';
+      n.textContent = (p.name || 'PARTNER') + (p.title ? ` • ${p.title}` : ''); 
+      rowTop.appendChild(n);
       partnerNodes.push({ el:n, children: p.children||[] });
     });
 
     const maxDepth = Math.max(0, ...partnerNodes.map(x=>x.children.length));
     for (let r=0; r<maxDepth; r++){
-      const row = document.createElement('div'); row.className = 'grid gap-8 mt-6'; row.style.gridColumn = '1 / -1'; row.style.gridTemplateColumns = grid.style.gridTemplateColumns; grid.appendChild(row);
+      const row = document.createElement('div'); 
+      row.className = 'grid gap-8 mt-6'; 
+      row.style.gridColumn = '1 / -1'; 
+      row.style.gridTemplateColumns = grid.style.gridTemplateColumns; 
+      grid.appendChild(row);
+      
       partnerNodes.forEach(col=>{
-        const cust = col.children[r]; const cell = document.createElement('div');
-        if (cust){ cell.className = 'px-4 py-2 rounded-full bg-rose-100 text-rose-900 text-center border border-rose-200'; cell.textContent = cust.name || 'Customer'; }
-        else { cell.innerHTML = '&nbsp;'; } row.appendChild(cell);
+        const cust = col.children[r]; 
+        const cell = document.createElement('div');
+        if (cust){ 
+          cell.className = 'px-4 py-2 rounded-full bg-rose-100 text-rose-900 text-center border border-rose-200'; 
+          cell.textContent = cust.name || 'Customer'; 
+        }
+        else { 
+          cell.innerHTML = '&nbsp;'; 
+        } 
+        row.appendChild(cell);
       });
     }
 
-    const rect = wrap.getBoundingClientRect(); svg.setAttribute('width', Math.ceil(rect.width)); svg.setAttribute('height', Math.ceil(wrap.scrollHeight));
-    const toSvg = (x,y)=> { const sb = svg.getBoundingClientRect(); return [x - sb.left + wrap.scrollLeft, y - sb.top + wrap.scrollTop]; };
+    const rect = wrap.getBoundingClientRect(); 
+    svg.setAttribute('width', Math.ceil(rect.width)); 
+    svg.setAttribute('height', Math.ceil(wrap.scrollHeight));
+    
+    const toSvg = (x,y)=> { 
+      const sb = svg.getBoundingClientRect(); 
+      return [x - sb.left + wrap.scrollLeft, y - sb.top + wrap.scrollTop]; 
+    };
+    
     const rb = root.getBoundingClientRect();
-    partnerNodes.forEach(p=>{ const pb = p.el.getBoundingClientRect(); drawLine(rb.left + rb.width/2, rb.bottom, pb.left + pb.width/2, pb.top); });
+    partnerNodes.forEach(p=>{ 
+      const pb = p.el.getBoundingClientRect(); 
+      drawLine(rb.left + rb.width/2, rb.bottom, pb.left + pb.width/2, pb.top); 
+    });
+    
     const rows = Array.from(grid.children).slice(2);
     rows.forEach(row=>{
       const cells = Array.from(row.children);
-      cells.forEach((cell, i)=>{ if (!cell.textContent.trim()) return; const pb = partnerNodes[i].el.getBoundingClientRect(); const cb = cell.getBoundingClientRect(); drawLine(pb.left + pb.width/2, pb.bottom, cb.left + cb.width/2, cb.top); });
+      cells.forEach((cell, i)=>{ 
+        if (!cell.textContent.trim()) return; 
+        const pb = partnerNodes[i].el.getBoundingClientRect(); 
+        const cb = cell.getBoundingClientRect(); 
+        drawLine(pb.left + pb.width/2, pb.bottom, cb.left + cb.width/2, cb.top); 
+      });
     });
-    function drawLine(x1,y1,x2,y2){ const [sx1,sy1] = toSvg(x1,y1); const [sx2,sy2] = toSvg(x2,y2); const ln = document.createElementNS('http://www.w3.org/2000/svg','line'); ln.setAttribute('x1', sx1); ln.setAttribute('y1', sy1); ln.setAttribute('x2', sx2); ln.setAttribute('y2', sy2); ln.setAttribute('stroke', '#e5e7eb'); ln.setAttribute('stroke-width', '2'); svg.appendChild(ln); }
+    
+    function drawLine(x1,y1,x2,y2){ 
+      const [sx1,sy1] = toSvg(x1,y1); 
+      const [sx2,sy2] = toSvg(x2,y2); 
+      const ln = document.createElementNS('http://www.w3.org/2000/svg','line'); 
+      ln.setAttribute('x1', sx1); 
+      ln.setAttribute('y1', sy1); 
+      ln.setAttribute('x2', sx2); 
+      ln.setAttribute('y2', sy2); 
+      ln.setAttribute('stroke', '#e5e7eb'); 
+      ln.setAttribute('stroke-width', '2'); 
+      svg.appendChild(ln); 
+    }
   }
 
   // ====== SETTINGS (global + typography) ======
@@ -1249,27 +1308,52 @@
       const s = out.settings||{};
       store.settings = s || {};
       // global
-      setMin.value = s.cashback_min || 5; setMax.value = s.cashback_max || 10; setLeaderPhone.value = s.whatsapp || '';
-      setFonnteApi.value = s.fonnte_api || ''; setThemeColor.value = s.theme_color || '#ef4444'; setContentWidth.value = s.content_width || '';
+      setMin.value = s.cashback_min || 5; 
+      setMax.value = s.cashback_max || 10; 
+      setLeaderPhone.value = s.whatsapp || '';
+      setFonnteApi.value = s.fonnte_api || ''; 
+      setThemeColor.value = s.theme_color || '#ef4444'; 
+      setContentWidth.value = s.content_width || '';
       // typography
-      setHeadingSize.value  = s.heading_size || ''; setHeadingColor.value = s.heading_color || '#111111'; setHeadingBold.checked = String(s.heading_bold||'false')==='true';
-      setBodySize.value  = s.body_size || ''; setBodyColor.value = s.body_color || '#374151'; setBodyBold.checked = String(s.body_bold||'false')==='true';
+      setHeadingSize.value  = s.heading_size || ''; 
+      setHeadingColor.value = s.heading_color || '#111111'; 
+      setHeadingBold.checked = String(s.heading_bold||'false')==='true';
+      setBodySize.value  = s.body_size || ''; 
+      setBodyColor.value = s.body_color || '#374151'; 
+      setBodyBold.checked = String(s.body_bold||'false')==='true';
       // kemas kini CSS root untuk brand color mini preview
       document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
     }catch(e){ /* biarkan */ }
   }
   document.getElementById('btnReloadSettings').addEventListener('click', refreshSettings);
   document.getElementById('btnSaveSettings').addEventListener('click', async ()=>{
-    let min = Number(setMin.value||5), max = Number(setMax.value||10); if (min<0) min=0; if (max<min) max=min;
+    let min = Number(setMin.value||5), max = Number(setMax.value||10); 
+    if (min<0) min=0; 
+    if (max<min) max=min;
+    
     const payload = {
       leader_id: store.leader.leader_id,
-      cashback_min: String(min), cashback_max: String(max), whatsapp: (setLeaderPhone.value||'').trim(),
-      fonnte_api: (setFonnteApi.value||'').trim(), theme_color: (setThemeColor.value||'#ef4444'),
+      cashback_min: String(min), 
+      cashback_max: String(max), 
+      whatsapp: (setLeaderPhone.value||'').trim(),
+      fonnte_api: (setFonnteApi.value||'').trim(), 
+      theme_color: (setThemeColor.value||'#ef4444'),
       content_width: (setContentWidth.value||'').trim(),
-      heading_size: (setHeadingSize.value||'').trim(), heading_color: (setHeadingColor.value||'#111111'), heading_bold: String(setHeadingBold.checked),
-      body_size: (setBodySize.value||'').trim(), body_color: (setBodyColor.value||'#374151'), body_bold: String(setBodyBold.checked)
+      heading_size: (setHeadingSize.value||'').trim(), 
+      heading_color: (setHeadingColor.value||'#111111'), 
+      heading_bold: String(setHeadingBold.checked),
+      body_size: (setBodySize.value||'').trim(), 
+      body_color: (setBodyColor.value||'#374151'), 
+      body_bold: String(setBodyBold.checked)
     };
-    try{ await callApi('settings_set', payload); toast('Settings disimpan ✔️'); store.settings = payload; }catch(e){ toast('Gagal simpan settings'); }
+    
+    try{ 
+      await callApi('settings_set', payload); 
+      toast('Settings disimpan ✔️'); 
+      store.settings = payload; 
+    }catch(e){ 
+      toast('Gagal simpan settings'); 
+    }
   });
 
   // ====== CANVA PRO EDITOR FUNCTIONALITY ======
@@ -1296,6 +1380,13 @@
     
     // Handle save button
     document.getElementById('btnSaveDesign').addEventListener('click', saveDesign);
+    
+    // 修复部分：添加iframe加载事件监听器，确保预览区域正常工作
+    if (userPreview) {
+      userPreview.addEventListener('load', () => {
+        sendToIframe('load-elements', { elements: store.elements || [] });
+      });
+    }
   }
   
   // Handle messages from iframe
@@ -1541,809 +1632,4 @@
       sendToIframe('update-element', { id: store.selectedElement, properties: { y: parseInt(e.target.value) } });
     });
     
-    document.getElementById('posWidth').addEventListener('input', (e) => {
-      if (!store.selectedElement) return;
-      updateElement(store.selectedElement, { width: parseInt(e.target.value) });
-      sendToIframe('update-element', { id: store.selectedElement, properties: { width: parseInt(e.target.value) } });
-    });
-    
-    document.getElementById('posHeight').addEventListener('input', (e) => {
-      if (!store.selectedElement) return;
-      updateElement(store.selectedElement, { height: parseInt(e.target.value) });
-      sendToIframe('update-element', { id: store.selectedElement, properties: { height: parseInt(e.target.value) } });
-    });
-    
-    // Z-Index controls
-    document.getElementById('bringToFrontBtn').addEventListener('click', () => {
-      if (!store.selectedElement) return;
-      bringToFront(store.selectedElement);
-      sendToIframe('bring-to-front', { id: store.selectedElement });
-    });
-    
-    document.getElementById('sendToBackBtn').addEventListener('click', () => {
-      if (!store.selectedElement) return;
-      sendToBack(store.selectedElement);
-      sendToIframe('send-to-back', { id: store.selectedElement });
-    });
-    
-    // Delete button
-    document.getElementById('deleteBtn').addEventListener('click', () => {
-      if (!store.selectedElement) return;
-      if (confirm('Adakah anda pasti ingin memadam elemen ini?')) {
-        sendToIframe('delete-element', { id: store.selectedElement });
-        deleteElement(store.selectedElement);
-      }
-    });
-  }
-  
-  // Update alignment buttons
-  function updateAlignmentButtons(alignment) {
-    document.getElementById('alignLeftBtn').classList.toggle('active', alignment === 'left');
-    document.getElementById('alignCenterBtn').classList.toggle('active', alignment === 'center');
-    document.getElementById('alignRightBtn').classList.toggle('active', alignment === 'right');
-  }
-  
-  // Bring element to front
-  function bringToFront(elementId) {
-    const element = store.elements.find(el => el.id === elementId);
-    if (!element) return;
-    
-    // Find the highest z-index
-    const maxZ = Math.max(...store.elements.map(el => el.zIndex || 0));
-    
-    // Set this element's z-index to max + 1
-    element.zIndex = maxZ + 1;
-    
-    // Save to history
-    saveToHistory();
-    
-    // Auto-save
-    autoSave();
-  }
-  
-  // Send element to back
-  function sendToBack(elementId) {
-    const element = store.elements.find(el => el.id === elementId);
-    if (!element) return;
-    
-    // Find the lowest z-index
-    const minZ = Math.min(...store.elements.map(el => el.zIndex || 0));
-    
-    // Set this element's z-index to min - 1
-    element.zIndex = minZ - 1;
-    
-    // Save to history
-    saveToHistory();
-    
-    // Auto-save
-    autoSave();
-  }
-  
-  // Setup preview controls
-  function setupPreviewControls() {
-    // Undo
-    document.getElementById('btnUndo').addEventListener('click', () => {
-      undo();
-    });
-    
-    // Redo
-    document.getElementById('btnRedo').addEventListener('click', () => {
-      redo();
-    });
-    
-    // Zoom controls
-    document.getElementById('btnZoomIn').addEventListener('click', () => {
-      setZoom(Math.min(store.zoomLevel + 0.1, 2));
-    });
-    
-    document.getElementById('btnZoomOut').addEventListener('click', () => {
-      setZoom(Math.max(store.zoomLevel - 0.1, 0.5));
-    });
-    
-    document.getElementById('btnResetZoom').addEventListener('click', () => {
-      setZoom(1);
-    });
-  }
-  
-  // Set zoom level
-  function setZoom(level) {
-    store.zoomLevel = level;
-    const userPreview = document.getElementById('userPreview');
-    userPreview.style.transform = `scale(${level})`;
-  }
-  
-  // Add element
-  function addElement(type) {
-    const element = {
-      id: uid(),
-      type,
-      content: type === 'text' ? 'New Text' : '',
-      x: 100,
-      y: 100,
-      width: type === 'text' ? 200 : 150,
-      height: type === 'text' ? 50 : 150,
-      fontSize: 24,
-      fontFamily: 'Inter',
-      color: '#000000',
-      backgroundColor: type === 'button' ? '#ef4444' : 'transparent',
-      borderWidth: 0,
-      borderColor: '#000000',
-      borderRadius: type === 'button' ? 8 : 0,
-      opacity: 100,
-      fontWeight: 'normal',
-      fontStyle: 'normal',
-      textDecoration: 'none',
-      textAlign: 'center',
-      zIndex: store.elements.length
-    };
-    
-    // Add specific properties based on type
-    if (type === 'image') {
-      element.src = 'https://picsum.photos/seed/mova/300/200.jpg';
-    } else if (type === 'video') {
-      element.src = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-    } else if (type === 'button') {
-      element.content = 'Button';
-      element.textDecoration = 'none';
-    } else if (type === 'icon') {
-      element.icon = 'smile';
-      element.fontSize = 32;
-    }
-    
-    // Add to store
-    store.elements.push(element);
-    
-    // Save to history
-    saveToHistory();
-    
-    // Send to iframe
-    sendToIframe('add-element', element);
-    
-    // Auto-save
-    autoSave();
-  }
-  
-  // Add shape
-  function addShape(shapeType) {
-    const element = {
-      id: uid(),
-      type: 'shape',
-      shapeType,
-      x: 100,
-      y: 100,
-      width: 150,
-      height: 150,
-      backgroundColor: '#ef4444',
-      borderWidth: 0,
-      borderColor: '#000000',
-      borderRadius: shapeType === 'circle' ? 75 : 0,
-      opacity: 100,
-      zIndex: store.elements.length
-    };
-    
-    // Add to store
-    store.elements.push(element);
-    
-    // Save to history
-    saveToHistory();
-    
-    // Send to iframe
-    sendToIframe('add-element', element);
-    
-    // Auto-save
-    autoSave();
-    
-    // Hide shape options
-    document.getElementById('shapeOptions').classList.remove('active');
-  }
-  
-  // Toggle shape options
-  function toggleShapeOptions() {
-    document.getElementById('shapeOptions').classList.toggle('active');
-  }
-  
-  // Send message to iframe
-  function sendToIframe(type, data) {
-    const userPreview = document.getElementById('userPreview');
-    if (userPreview && userPreview.contentWindow) {
-      userPreview.contentWindow.postMessage({ type, data }, '*');
-    }
-  }
-  
-  // Save to history
-  function saveToHistory() {
-    // Remove any states after current index
-    store.history = store.history.slice(0, store.historyIndex + 1);
-    
-    // Add current state
-    store.history.push(JSON.parse(JSON.stringify(store.elements)));
-    store.historyIndex++;
-    
-    // Limit history size
-    if (store.history.length > 50) {
-      store.history.shift();
-      store.historyIndex--;
-    }
-  }
-  
-  // Undo
-  function undo() {
-    if (store.historyIndex > 0) {
-      store.historyIndex--;
-      store.elements = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
-      
-      // Reload iframe
-      sendToIframe('load-elements', { elements: store.elements });
-      
-      // Auto-save
-      autoSave();
-    }
-  }
-  
-  // Redo
-  function redo() {
-    if (store.historyIndex < store.history.length - 1) {
-      store.historyIndex++;
-      store.elements = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
-      
-      // Reload iframe
-      sendToIframe('load-elements', { elements: store.elements });
-      
-      // Auto-save
-      autoSave();
-    }
-  }
-  
-  // Load design from server
-  async function loadDesign() {
-    try {
-      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
-      const settings = out.settings || {};
-      
-      if (settings.elements_json) {
-        try {
-          store.elements = JSON.parse(settings.elements_json);
-          sendToIframe('load-elements', { elements: store.elements });
-        } catch (e) {
-          console.error('Failed to parse elements_json:', e);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load design:', e);
-    }
-  }
-  
-  // Save design to server
-  async function saveDesign() {
-    try {
-      await callApi('settings_set', { 
-        leader_id: store.leader.leader_id, 
-        elements_json: JSON.stringify(store.elements) 
-      });
-      toast('Reka bentuk disimpan ✔️');
-    } catch (e) {
-      toast('Gagal simpan reka bentuk');
-      console.error('Failed to save design:', e);
-    }
-  }
-  
-  // Auto-save
-  function autoSave() {
-    // Clear existing timer
-    if (store.autoSaveTimer) {
-      clearTimeout(store.autoSaveTimer);
-    }
-    
-    // Set new timer
-    store.autoSaveTimer = setTimeout(() => {
-      saveDesign();
-    }, 3000); // Auto-save after 3 seconds
-  }
-  
-  // ====== SECTION BUILDER ======
-  // 修复部分：添加空值检查，防止在DOM元素不存在时出现错误
-  const builderArea = document.getElementById('builderArea');
-  document.getElementById('btnPreviewUser')?.addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
-  document.getElementById('btnPreviewUser2')?.addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
-
-  // 修复部分：添加空值检查
-  const btnAddSection = document.getElementById('btnAddSection');
-  if (btnAddSection) {
-    btnAddSection.addEventListener('click', ()=>{
-      store.sections.push(defaultSection());
-      renderSections();
-    });
-  }
-  
-  // 修复部分：添加空值检查
-  const btnReloadSections = document.getElementById('btnReloadSections');
-  if (btnReloadSections) {
-    btnReloadSections.addEventListener('click', loadSections);
-  }
-  
-  // 修复部分：添加空值检查
-  const btnSaveSections = document.getElementById('btnSaveSections');
-  if (btnSaveSections) {
-    btnSaveSections.addEventListener('click', async ()=>{
-      try{
-        await callApi('settings_set', { leader_id: store.leader.leader_id, sections_json: JSON.stringify(store.sections||[]) });
-        toast('User Sections disimpan ✔️');
-      }catch(e){ toast('Gagal simpan user sections'); }
-    });
-  }
-
-  function defaultSection(){
-    return { id: uid(), title:'Seksyen Baharu', type:'custom', featured:false, hidden:false, blocks:[
-      { kind:'text', html:'<h2>Judul Seksyen</h2><p>Teks contoh — ubah ikut keperluan.</p>' }
-    ]};
-  }
-
-  // 修复部分：添加空值检查
-  async function loadSections(){
-    try{
-      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
-      const s = out.settings||{};
-      store.settings = s || store.settings;
-      let sections = safeJSON(s.sections_json, null);
-      if (!Array.isArray(sections)){
-        sections = [];
-      }
-      store.sections = sections || [];
-      renderSections();
-    }catch(e){
-      store.sections = [];
-      renderSections();
-    }
-  }
-
-  // 修复部分：添加空值检查
-  function renderSections(){
-    // 修复部分：检查builderArea是否存在
-    if (!builderArea) return;
-    
-    builderArea.innerHTML = '';
-    if (!store.sections.length){
-      builderArea.innerHTML = '<div class="text-sm text-gray-500">Tiada seksyen. Klik "Tambah Seksyen".</div>';
-      return;
-    }
-    store.sections.forEach((sec, idx)=>{
-      builderArea.appendChild(sectionCard(sec, idx));
-    });
-    lucide.createIcons();
-  }
-
-  // --- Rich text helpers ---
-  function exec(cmd, val=null){ document.execCommand(cmd,false,val); }
-  function makeToolbar(container, box){
-    const bar = document.createElement('div');
-    bar.className='toolbar flex flex-wrap gap-2 mb-2';
-    bar.innerHTML = `
-      <button type="button" data-cmd="bold" title="Bold"><b>B</b></button>
-      <button type="button" data-cmd="italic" title="Italic"><i>I</i></button>
-      <button type="button" data-cmd="underline" title="Underline"><u>U</u></button>
-      <input type="color" title="Warna Teks" class="border border-gray-200 rounded w-8 h-8 p-0" data-role="color">
-      <select class="border border-gray-200 rounded px-2 py-1 text-sm" data-role="size">
-        <option value="">Saiz</option>
-        <option value="h1">H1</option>
-        <option value="h2">H2</option>
-        <option value="h3">H3</option>
-        <option value="p">Body</option>
-      </select>
-      <button type="button" data-cmd="insertUnorderedList">• Bullets</button>
-      <button type="button" data-cmd="insertOrderedList">1. Number</button>
-      <button type="button" data-cmd="removeFormat">Clear</button>
-    `;
-    
-    // Add event listeners for toolbar buttons with toggle behavior
-    bar.querySelectorAll('button[data-cmd]').forEach(btn=>{
-      btn.addEventListener('click', (e)=> {
-        const cmd = btn.dataset.cmd;
-        
-        // Check if command is already active
-        const isActive = document.queryCommandState(cmd);
-        
-        // Toggle the command
-        if (isActive) {
-          // Command is active, so remove it
-          document.execCommand(cmd, false, null);
-        } else {
-          // Command is not active, so apply it
-          document.execCommand(cmd, false, null);
-        }
-        
-        // Update button states
-        updateToolbarState(bar, box);
-      });
-    });
-    
-    // Color picker
-    const color = bar.querySelector('[data-role="color"]');
-    color.addEventListener('input', ()=> {
-      exec('foreColor', color.value);
-      updateToolbarState(bar, box);
-    });
-    
-    // Size selector
-    const sizeSel = bar.querySelector('[data-role="size"]');
-    sizeSel.addEventListener('change', ()=>{
-      const tag = sizeSel.value || 'p';
-      document.execCommand('formatBlock', false, tag);
-      updateToolbarState(bar, box);
-    });
-    
-    // Update toolbar state when selection changes
-    box.addEventListener('mouseup', () => updateToolbarState(bar, box));
-    box.addEventListener('keyup', () => updateToolbarState(bar, box));
-    
-    container.prepend(bar);
-    
-    // Initial state update
-    setTimeout(() => updateToolbarState(bar, box), 100);
-  }
-  
-  function updateToolbarState(toolbar, editor) {
-    // Update button states
-    toolbar.querySelectorAll('button[data-cmd]').forEach(btn => {
-      const cmd = btn.dataset.cmd;
-      try {
-        const isActive = document.queryCommandState(cmd);
-        btn.classList.toggle('active', isActive);
-      } catch(e) {
-        btn.classList.remove('active');
-      }
-    });
-    
-    // Update size selector
-    const sizeSel = toolbar.querySelector('[data-role="size"]');
-    if (sizeSel) {
-      try {
-        const formatBlock = document.queryCommandValue('formatBlock');
-        sizeSel.value = formatBlock.toLowerCase() || '';
-      } catch(e) {
-        sizeSel.value = '';
-      }
-    }
-  }
-
-  function sectionCard(sec, idx){
-    const card = document.createElement('div');
-    card.className = 'border border-gray-200 rounded-xl p-4';
-    card.innerHTML = `
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2 flex-wrap">
-          <i data-lucide="panels-top-left" class="w-4 h-4"></i>
-          <input class="input !py-1 !px-2 !h-9 !text-sm w-[240px]" value="${sec.title||''}" placeholder="Tajuk seksyen">
-          <select class="input !py-1 !px-2 !h-9 !text-sm w-[160px]">
-            <option value="custom"${sec.type==='custom'?' selected':''}>Custom</option>
-            <option value="hero"${sec.type==='hero'?' selected':''}>Hero</option>
-            <option value="rich"${sec.type==='rich'?' selected':''}>Rich Text</option>
-            <option value="list"${sec.type==='list'?' selected':''}>Senarai</option>
-            <option value="faq"${sec.type==='faq'?' selected':''}>FAQ</option>
-            <option value="testimonials"${sec.type==='testimonials'?' selected':''}>Testimoni</option>
-            <option value="updates"${sec.type==='updates'?' selected':''}>Berita/Update</option>
-          </select>
-          <label class="text-xs flex items-center gap-2">
-            <span class="switch"><input type="checkbox" ${sec.featured?'checked':''}><span></span></span> Featured
-          </label>
-          <label class="text-xs flex items-center gap-2">
-            <span class="switch"><input type="checkbox" ${sec.hidden?'checked':''}><span></span></span> Sembunyi
-          </label>
-        </div>
-        <div class="flex items-center gap-2">
-          <button class="btn-ghost btn-prev-mini" title="Preview Mini"><i data-lucide="eye" class="w-4 h-4"></i></button>
-          <button class="btn-ghost btn-up" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-          <button class="btn-ghost btn-down" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-          <button class="btn-ghost btn-del" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-        </div>
-      </div>
-
-      <div class="mt-3">
-        <div class="text-sm font-semibold mb-1">Blok Kandungan</div>
-        <div class="grid md:grid-cols-[1fr_auto] gap-2">
-          <div id="blk-${sec.id}"></div>
-          <div class="flex md:flex-col gap-2">
-            <button class="btn-ghost btn-add-rich"><i data-lucide="type" class="w-4 h-4"></i> Text (Rich)</button>
-            <button class="btn-ghost btn-add-image"><i data-lucide="image" class="w-4 h-4"></i> Gambar URL</button>
-            <button class="btn-ghost btn-add-video"><i data-lucide="video" class="w-4 h-4"></i> Video URL</button>
-            <button class="btn-ghost btn-add-link"><i data-lucide="link" class="w-4 h-4"></i> Link</button>
-            <button class="btn-ghost btn-add-social"><i data-lucide="share-2" class="w-4 h-4"></i> Ikon Sosial</button>
-            <button class="btn-ghost btn-add-button"><i data-lucide="mouse-pointer-click" class="w-4 h-4"></i> Butang</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="mt-3 hidden mini-prev" id="prev-${sec.id}"></div>
-    `;
-
-    // wiring header fields
-    const [titleInput, typeSelect, featuredToggle, hiddenToggle] = card.querySelectorAll('input,select');
-    titleInput.addEventListener('input', e=>{ sec.title = e.target.value; rerenderMini(); });
-    typeSelect.addEventListener('change', e=>{ sec.type = e.target.value; rerenderMini(); });
-    featuredToggle.addEventListener('change', e=>{ sec.featured = e.target.checked; rerenderMini(); });
-    hiddenToggle.addEventListener('change', e=>{ sec.hidden = e.target.checked; rerenderMini(); });
-
-    // move up/down/delete
-    card.querySelector('.btn-up').addEventListener('click', ()=>{
-      if (idx<=0) return;
-      const tmp = store.sections[idx-1]; store.sections[idx-1] = store.sections[idx]; store.sections[idx] = tmp;
-      renderSections();
-    });
-    card.querySelector('.btn-down').addEventListener('click', ()=>{
-      if (idx>=store.sections.length-1) return;
-      const tmp = store.sections[idx+1]; store.sections[idx+1] = store.sections[idx]; store.sections[idx] = tmp;
-      renderSections();
-    });
-    card.querySelector('.btn-del').addEventListener('click', ()=>{
-      if (!confirm('Padam seksyen ini?')) return;
-      store.sections.splice(idx,1);
-      renderSections();
-    });
-
-    // preview mini toggle
-    const btnPrev = card.querySelector('.btn-prev-mini');
-    const prevBox = card.querySelector('#prev-'+sec.id);
-    btnPrev.addEventListener('click', ()=>{
-      prevBox.classList.toggle('hidden');
-      if (!prevBox.classList.contains('hidden')) rerenderMini();
-    });
-
-    function rerenderMini(){
-      const html = sectionPreviewHTML(sec, store.settings);
-      prevBox.innerHTML = html;
-    }
-
-    // render blocks
-    function renderBlocks(){
-      const host = card.querySelector(`#blk-${sec.id}`);
-      host.innerHTML = '';
-      if (!Array.isArray(sec.blocks) || !sec.blocks.length){
-        host.innerHTML = '<div class="text-sm text-gray-500">Tiada blok. Tambah blok di sebelah kanan.</div>';
-        return;
-      }
-      sec.blocks.forEach((blk, bIdx)=>{
-        const row = document.createElement('div');
-        row.className = 'block-row';
-        if (blk.kind === 'text' || blk.kind === 'rich'){
-          const html = (blk.html || blk.value || '');
-          row.innerHTML = `
-            <div class="flex items-center justify-between mb-2">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="type" class="w-3.5 h-3.5"></i> Text (Rich)</div>
-              <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1" title="Naik"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1" title="Turun"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>
-            </div>
-            <div class="rtbox" contenteditable="true"></div>
-            <div class="help mt-2">Pilih teks kemudian tukar warna, saiz (H1/H2/H3/Body), bold/italic/underline menggunakan toolbar di atas.</div>
-          `;
-          const box = row.querySelector('.rtbox');
-          box.innerHTML = html;
-          makeToolbar(row, box);
-        } else if (blk.kind === 'image'){
-          row.innerHTML = `
-            <div class="flex items-center justify-between mb-1">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="image" class="w-3.5 h-3.5"></i> Gambar URL</div>
-              <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>
-            </div>
-            <input class="input" placeholder="https://..." value="${blk.src||blk.value||''}">
-            <div class="help mt-1">Letak pautan gambar (Google Drive "Anyone with link" / CDN / hosting sendiri).</div>
-          `;
-          row.querySelector('input').addEventListener('input', e=> { 
-            blk.src = e.target.value; 
-            blk.value = e.target.value;
-          });
-        } else if (blk.kind === 'video'){
-          row.innerHTML = `
-            <div class="flex items-center justify-between mb-1">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="video" class="w-3.5 h-3.5"></i> Video URL</div>
-              <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>
-            </div>
-            <input class="input" placeholder="https://... (mp4/webm atau YouTube)" value="${blk.src||blk.value||''}">
-            <div class="help mt-1">Fail .mp4/.webm atau link YouTube — user.html akan cuba embed.</div>
-          `;
-          row.querySelector('input').addEventListener('input', e=> { 
-            blk.src = e.target.value; 
-            blk.value = e.target.value;
-          });
-        } else if (blk.kind === 'link'){
-          row.innerHTML = `
-            <div class="flex items-center justify-between mb-1">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="link" class="w-3.5 h-3.5"></i> Pautan</div>
-              <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>
-            </div>
-            <div class="grid md:grid-cols-2 gap-2">
-              <input class="input" placeholder="Teks link (cth: Lihat panduan)" value="${blk.text||''}">
-              <input class="input" placeholder="https://..." value="${blk.href||blk.value||''}">
-            </div>
-          `;
-          const [txt, url] = row.querySelectorAll('input');
-          txt.addEventListener('input', e=> {
-            blk.text = e.target.value;
-          });
-          url.addEventListener('input', e=> { 
-            blk.href = e.target.value; 
-            blk.value = e.target.value;
-          });
-        } else if (blk.kind === 'social'){
-          row.innerHTML = `
-            <div class="flex items-center justify-between mb-1">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="share-2" class="w-3.5 h-3.5"></i> Ikon Sosial</div>
-              <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>
-            </div>
-            <div class="grid md:grid-cols-3 gap-2">
-              <select class="input">
-                <option ${blk.icon==='facebook'?'selected':''} value="facebook">Facebook</option>
-                <option ${blk.icon==='instagram'?'selected':''} value="instagram">Instagram</option>
-                <option ${blk.icon==='tiktok'?'selected':''} value="tiktok">TikTok</option>
-                <option ${blk.icon==='youtube'?'selected':''} value="youtube">YouTube</option>
-                <option ${blk.icon==='telegram'?'selected':''} value="telegram">Telegram</option>
-                <option ${blk.icon==='x'?'selected':''} value="x">X / Twitter</option>
-              </select>
-              <input class="input" placeholder="https://profil..." value="${blk.href||''}">
-              <input class="input" type="color" value="${blk.color||'#111111'}" title="Warna ikon">
-            </div>
-          `;
-          const [sel, url, col] = row.querySelectorAll('select,input');
-          sel.addEventListener('change', e=> {
-            blk.icon = e.target.value;
-          });
-          url.addEventListener('input', e=> {
-            blk.href = e.target.value;
-          });
-          col.addEventListener('input', e=> {
-            blk.color = e.target.value;
-          });
-        } else if (blk.kind === 'button'){
-          row.innerHTML = `
-            <div class="flex items-center justify-between mb-1">
-              <div class="text-xs font-semibold text-gray-600"><i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> Butang</div>
-              <div class="flex gap-1">
-                <button class="btn-ghost btn-upb !py-1"><i data-lucide="arrow-up" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-downb !py-1"><i data-lucide="arrow-down" class="w-4 h-4"></i></button>
-                <button class="btn-ghost btn-delb !py-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-              </div>
-            </div>
-            <div class="grid md:grid-cols-3 gap-2">
-              <input class="input" placeholder="Teks butang" value="${blk.text||'Butang'}">
-              <input class="input" placeholder="https://..." value="${blk.href||'#'}">
-              <input class="input" type="color" value="${blk.color||'#ef4444'}" title="Warna butang">
-            </div>
-          `;
-          const [t, h, c] = row.querySelectorAll('input');
-          t.addEventListener('input', e=> {
-            blk.text = e.target.value;
-          });
-          h.addEventListener('input', e=> {
-            blk.href = e.target.value;
-          });
-          c.addEventListener('input', e=> {
-            blk.color = e.target.value;
-          });
-        }
-
-        // move/del block
-        row.querySelector('.btn-upb').addEventListener('click', ()=>{
-          if (bIdx<=0) return;
-          const t=sec.blocks[bIdx-1]; sec.blocks[bIdx-1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
-        });
-        row.querySelector('.btn-downb').addEventListener('click', ()=>{
-          if (bIdx>=sec.blocks.length-1) return;
-          const t=sec.blocks[bIdx+1]; sec.blocks[bIdx+1]=sec.blocks[bIdx]; sec.blocks[bIdx]=t; renderBlocks();
-        });
-        row.querySelector('.btn-delb').addEventListener('click', ()=>{
-          sec.blocks.splice(bIdx,1); renderBlocks();
-        });
-        host.appendChild(row);
-      });
-      lucide.createIcons();
-    }
-    renderBlocks();
-
-    // add block buttons
-    card.querySelector('.btn-add-rich').addEventListener('click', ()=>{
-      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'rich', html:'<p>Teks baharu</p>'}); renderBlocks();
-    });
-    card.querySelector('.btn-add-image').addEventListener('click', ()=>{
-      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'image', src:''}); renderBlocks();
-    });
-    card.querySelector('.btn-add-video').addEventListener('click', ()=>{
-      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'video', src:''}); renderBlocks();
-    });
-    card.querySelector('.btn-add-link').addEventListener('click', ()=>{
-      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'link', text:'Pautan', href:'#'}); renderBlocks();
-    });
-    card.querySelector('.btn-add-social').addEventListener('click', ()=>{
-      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'social', icon:'telegram', href:'', color:'#111111'}); renderBlocks();
-    });
-    card.querySelector('.btn-add-button').addEventListener('click', ()=>{
-      sec.blocks = sec.blocks || []; sec.blocks.push({kind:'button', text:'Butang', href:'#', color:'#ef4444'}); renderBlocks();
-    });
-
-    return card;
-  }
-
-  // ==== MINI PREVIEW RENDERER ====
-  function sectionPreviewHTML(sec, s){
-    const hSize = Number(s?.heading_size||0) || 28;
-    const bSize = Number(s?.body_size||0) || 16;
-    const hColor = s?.heading_color || '#111111';
-    const bColor = s?.body_color || '#374151';
-    const hBold = String(s?.heading_bold||'false')==='true';
-    const bBold = String(s?.body_bold||'false')==='true';
-    const theme = s?.theme_color || '#ef4444';
-
-    const style = `
-      style="
-        --theme:${theme};
-        --hSize:${hSize}px; --bSize:${bSize}px;
-        --hColor:${hColor}; --bColor:${bColor};
-        --hWeight:${hBold?'800':'700'}; --bWeight:${bBold?'600':'400'};
-      "
-    `;
-    const esc = (t)=> String(t||'');
-    const blocks = (sec.blocks||[]).map(b=>{
-      if (b.kind==='text' || b.kind==='rich'){
-        return `<div style="font-size:var(--bSize);color:var(--bColor);font-weight:var(--bWeight);line-height:1.6;margin:.4rem 0">${esc(b.html||b.value||'')}</div>`;
-      } else if (b.kind==='image'){
-        const u = esc(b.src||b.value);
-        return u? `<img src="${u}" alt="" style="max-width:100%;border-radius:12px;border:1px solid #eee;margin:.4rem 0">` : '';
-      } else if (b.kind==='video'){
-        const u = esc(b.src||b.value);
-        if (!u) return '';
-        const yt = parseYouTube(u);
-        if (yt) return `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:12px;border:1px solid #eee;margin:.4rem 0"><iframe src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen style="position:absolute;top:0;left:0;width:100%;height:100%"></iframe></div>`;
-        return `<video src="${u}" controls playsinline style="width:100%;border-radius:12px;border:1px solid #eee;margin:.4rem 0"></video>`;
-      } else if (b.kind==='link'){
-        const text = esc(b.text||'Pautan'); const u = esc(b.href||'#');
-        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:var(--theme);color:#fff;padding:.5rem .8rem;border-radius:.6rem;text-decoration:none;margin:.4rem 0">${text}</a>`;
-      } else if (b.kind==='social'){
-        const u = esc(b.href||'#'); const col = esc(b.color||'#111111');
-        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.4rem;color:${col};margin-right:.5rem;text-decoration:none;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem">${(b.icon||'social').toUpperCase()}</a>`;
-      } else if (b.kind==='button'){
-        const text = esc(b.text||'Butang'); const u = esc(b.href||'#'); const col = esc(b.color||'#ef4444');
-        return `<a href="${u}" target="_blank" style="display:inline-flex;align-items:center;gap:.5rem;background:${col};color:#fff;padding:.55rem .9rem;border-radius:.7rem;text-decoration:none;margin:.4rem 0">${text}</a>`;
-      }
-      return '';
-    }).join('');
-
-    const title = sec.title ? `<div style="font-size:var(--hSize);color:var(--hColor);font-weight:var(--hWeight);margin-bottom:.4rem">${esc(sec.title)}</div>` : '';
-    const tag = sec.featured ? `<span style="display:inline-block;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:9999px;font-size:12px;padding:2px 8px;margin-bottom:6px">Featured</span>` : '';
-
-    return `<div ${style}>
-      ${tag}
-      ${title}
-      ${blocks || '<div style="color:#6b7280;font-size:14px">Tiada kandungan.</div>'}
-      ${sec.hidden ? '<div style="margin-top:6px;color:#9ca3af;font-size:12px">* Seksyen ini ditanda Sembunyi</div>' : ''}
-    </div>`;
-  }
-
-  function safeJSON(s, def){ try{ const x = JSON.parse(s||''); return x; }catch(_){ return def; } }
-  
-  function parseYouTube(url) {
-    try {
-      const u = new URL(url);
-      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
-      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
-    } catch (_) {}
-    return null;
-  }
-</script>
-</body>
-</html>
+    document.getElementById('posWidth').addEventListener('input', (
