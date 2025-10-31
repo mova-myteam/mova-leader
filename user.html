@@ -3,143 +3,385 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA — User Canvas</title>
+  <title>MOVA — User Page</title>
 
-  <!-- Font & Tailwind -->
+  <!-- Font & Tailwind (CDN) -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Interact.js untuk drag/resize dalam iframe -->
   <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+  <!-- Lucide untuk ikon (jika guna type: 'icon') -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    :root { --brand:#ef4444; }
-    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#f9fafb;margin:0;overflow-x:hidden;}
-    .canvas-area{position:relative;min-height:100vh;background:#fff;margin:0 auto;max-width:1200px;overflow:hidden;}
-    .draggable{position:absolute;cursor:move;border:1px dashed transparent;padding:4px;min-width:50px;min-height:20px;}
-    .draggable.active{border-color:#ef4444;}
-    .resize-handle{position:absolute;width:10px;height:10px;background:#ef4444;right:-5px;bottom:-5px;border-radius:2px;cursor:se-resize;}
-    .toolbar{position:fixed;top:0;left:0;right:0;height:48px;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;justify-content:center;gap:1rem;z-index:999;}
-    .toolbar button{background:#ef4444;color:#fff;font-weight:700;padding:.4rem .9rem;border-radius:.5rem;}
+    :root{
+      --brand:#ef4444;
+      --hSize:28px; --bSize:16px;
+      --hColor:#111111; --bColor:#374151;
+      --hWeight:700; --bWeight:400;
+    }
+    html,body{font-family:Inter,system-ui,ui-sans-serif; background:#fafafa; color:#111}
+    /* Kanvas pusat */
+    .page-wrap{display:grid; place-items:start center; padding:32px}
+    .canvas{
+      position:relative;
+      width:min(980px, 100%);
+      min-height:70vh;
+      background:#fff;
+      border:1px solid #e5e7eb;
+      border-radius:16px;
+      box-shadow:0 6px 22px rgba(15,23,42,.06);
+      overflow:hidden;
+    }
+    /* Elemen boleh ubah suai */
+    .el{
+      position:absolute;
+      box-sizing:border-box;
+      user-select:none;
+      touch-action:none;
+      outline:0;
+    }
+    .el.selected{ outline:2px dashed var(--brand); outline-offset:0 }
+    .el[data-type="text"]{ display:flex; align-items:center; justify-content:center; padding:.25rem .35rem }
+    .el[data-type="button"] a{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:.6rem .95rem; border-radius:.7rem; text-decoration:none; color:#fff; font-weight:700;
+    }
+    .el[data-type="image"] img, .el[data-type="video"] iframe, .el[data-type="video"] video{
+      width:100%; height:100%; object-fit:cover; border-radius:inherit;
+    }
+    /* Triangle (bentuk) */
+    .triangle {
+      width:0; height:0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 90px solid var(--brand);
+    }
+    /* Heading/Body global (jika guna blok rich static) */
+    h1{ font-size:var(--hSize); font-weight:var(--hWeight); color:var(--hColor) }
+    p{ font-size:var(--bSize); font-weight:var(--bWeight); color:var(--bColor) }
   </style>
 </head>
 <body>
-
-<!-- Toolbar ringkas -->
-<div class="toolbar">
-  <button onclick="addText()">Tambah Teks</button>
-  <button onclick="addImage()">Tambah Imej</button>
-  <button onclick="clearCanvas()">Padam Semua</button>
-</div>
-
-<!-- Kawasan kerja -->
-<div id="canvas" class="canvas-area"></div>
+  <div class="page-wrap">
+    <!-- Kanvas utama -->
+    <div id="canvas" class="canvas"></div>
+  </div>
 
 <script>
-const canvas=document.getElementById('canvas');
-let elements=[];let activeEl=null;
+/* =========================
+   STATE & HELPERS
+========================= */
+const state = {
+  elements: [],      // {id,type, x,y,width,height, zIndex, ...}
+  selectedId: null,
+  zoom: 1
+};
+const canvas = document.getElementById('canvas');
 
-//==== tambah teks / imej secara manual ====
-function addText(){
-  const el=document.createElement('div');
-  el.className='draggable';
-  el.textContent='Teks Baharu';
-  el.style.left='100px';el.style.top='100px';
-  el.contentEditable=true;
-  enableDragResize(el);
-  canvas.appendChild(el);
-  elements.push(el);
-}
-function addImage(){
-  const el=document.createElement('img');
-  el.src='https://via.placeholder.com/150';
-  el.className='draggable';
-  el.style.left='150px';el.style.top='150px';el.style.width='150px';
-  enableDragResize(el);
-  canvas.appendChild(el);
-  elements.push(el);
-}
-function clearCanvas(){
-  canvas.innerHTML='';
-  elements=[];
+/* Posting ke parent (dashboard) */
+function post(type, data){ try{ window.parent.postMessage({type, data}, '*'); }catch{} }
+
+/* Cari element dalam state */
+function byId(id){ return state.elements.find(el => el.id === id); }
+
+/* Normalisasi input elemen */
+function normalize(el){
+  const base = {
+    id: el.id,
+    type: el.type,
+    x: Number(el.x ?? 100),
+    y: Number(el.y ?? 100),
+    width: Number(el.width ?? (el.type==='text'? 240 : 200)),
+    height: Number(el.height ?? (el.type==='text'? 60 : 160)),
+    zIndex: Number(el.zIndex ?? 0),
+    opacity: Number(el.opacity ?? 100),
+    borderWidth: Number(el.borderWidth ?? 0),
+    borderColor: el.borderColor ?? '#000000',
+    borderRadius: Number(el.borderRadius ?? (el.type==='button'?8:0)),
+    backgroundColor: el.backgroundColor ?? (el.type==='button' ? 'var(--brand)' : 'transparent'),
+    textAlign: el.textAlign ?? 'center',
+    fontFamily: el.fontFamily ?? 'Inter',
+    fontSize: Number(el.fontSize ?? 24),
+    fontWeight: el.fontWeight ?? 'normal',
+    fontStyle: el.fontStyle ?? 'normal',
+    textDecoration: el.textDecoration ?? 'none',
+    color: el.color ?? '#111111',
+  };
+  if (el.type === 'text'){
+    base.content = el.content ?? 'New Text';
+  } else if (el.type === 'button'){
+    base.content = el.content ?? 'Button';
+    base.href = el.href ?? '#';
+  } else if (el.type === 'image' || el.type === 'video'){
+    base.src = el.src ?? '';
+  } else if (el.type === 'icon'){
+    base.icon = el.icon ?? 'smile';
+  } else if (el.type === 'shape'){
+    base.shapeType = el.shapeType ?? 'rectangle'; // rectangle | circle | triangle
+  }
+  return base;
 }
 
-//==== drag & resize ====
-function enableDragResize(el){
-  el.addEventListener('click',()=>{document.querySelectorAll('.draggable').forEach(d=>d.classList.remove('active'));el.classList.add('active');activeEl=el;});
-  interact(el)
-    .draggable({
-      listeners:{move(event){
-        const x=(parseFloat(el.getAttribute('data-x'))||0)+event.dx;
-        const y=(parseFloat(el.getAttribute('data-y'))||0)+event.dy;
-        el.style.transform=`translate(${x}px,${y}px)`;
-        el.setAttribute('data-x',x);
-        el.setAttribute('data-y',y);
-      }}
-    })
-    .resizable({
-      edges:{bottom:true,right:true},
-    })
-    .on('resizemove',event=>{
-      let {width,height}=event.rect;
-      el.style.width=width+'px';
-      el.style.height=height+'px';
-    });
+/* Gaya inline untuk kotak el */
+function boxStyle(el){
+  const base = `
+    left:${el.x}px; top:${el.y}px; width:${el.width}px; height:${el.height}px;
+    z-index:${el.zIndex}; opacity:${(el.opacity ?? 100)/100};
+    border:${el.borderWidth}px solid ${el.borderColor}; border-radius:${el.borderRadius}px;
+    background:${el.backgroundColor};
+    transform: translateZ(0);
+  `;
+  return base;
 }
 
-//==== listener dari dashboard ====
-window.addEventListener('message',(e)=>{
-  const {type,data}=e.data||{};
-  if(!type)return;
+/* =========================
+   RENDERING
+========================= */
+function renderAll(){
+  canvas.innerHTML = '';
+  // Sort ikut zIndex supaya DOM order konsisten
+  [...state.elements].sort((a,b)=> (a.zIndex||0)-(b.zIndex||0)).forEach(el => {
+    canvas.appendChild(renderOne(el));
+  });
+  lucide?.createIcons?.();
+  post('elements-loaded', { elements: state.elements });
+}
 
-  if(type==='add-element'){
-    if(data.kind==='text')addText();
-    if(data.kind==='image')addImage();
+function renderOne(el){
+  const n = normalize(el);
+  // simpan balik dalam state (lengkap)
+  Object.assign(el, n);
+
+  const node = document.createElement('div');
+  node.className = 'el';
+  node.dataset.id = el.id;
+  node.dataset.type = el.type;
+  node.style.cssText = boxStyle(el);
+  node.style.fontFamily = el.fontFamily;
+  node.style.fontSize = (el.type==='text'||el.type==='icon') ? `${el.fontSize}px` : '';
+  node.style.fontWeight = el.fontWeight;
+  node.style.fontStyle = el.fontStyle;
+  node.style.textDecoration = el.textDecoration;
+  node.style.color = el.color;
+  node.style.textAlign = el.textAlign;
+
+  // isi mengikut type
+  if (el.type === 'text'){
+    node.innerHTML = `<div class="w-full h-full flex items-center justify-center">${escapeHTML(el.content||'')}</div>`;
+  }
+  else if (el.type === 'image'){
+    node.innerHTML = `<img src="${encodeURI(el.src||'')}" alt="">`;
+  }
+  else if (el.type === 'video'){
+    if (isYouTube(el.src)){
+      const vid = youTubeId(el.src);
+      node.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>`;
+    } else {
+      node.innerHTML = `<video src="${encodeURI(el.src||'')}" playsinline controls></video>`;
+    }
+  }
+  else if (el.type === 'button'){
+    node.innerHTML = `<a href="${el.href||'#'}" target="_blank" style="background:${el.backgroundColor}; font-size:${el.fontSize}px">${escapeHTML(el.content||'Button')}</a>`;
+  }
+  else if (el.type === 'icon'){
+    // placeholder ikon lucide (SVG dihasilkan kemudian oleh lucide.createIcons)
+    node.innerHTML = `<i data-lucide="${el.icon||'smile'}" class="w-full h-full"></i>`;
+  }
+  else if (el.type === 'shape'){
+    if (el.shapeType === 'circle'){
+      node.style.borderRadius = '9999px';
+    } else if (el.shapeType === 'triangle'){
+      // segi tiga guna anak elemen khas
+      node.style.background = 'transparent';
+      node.style.border = '0';
+      node.style.borderRadius = '0';
+      node.innerHTML = `<div class="triangle" style="transform:translate(-50%,-50%); position:absolute; left:50%; top:50%"></div>`;
+    }
+    // rectangle guna gaya asas
   }
 
-  if(type==='update-element' && activeEl){
-    if(data.color)activeEl.style.color=data.color;
-    if(data.fontSize)activeEl.style.fontSize=data.fontSize+'px';
-    if(data.content!==undefined)activeEl.textContent=data.content;
-  }
+  // pemilih klik
+  node.addEventListener('pointerdown', (e)=>{
+    e.stopPropagation();
+    select(el.id);
+  });
 
-  if(type==='load-elements'){
-    clearCanvas();
-    (data||[]).forEach(item=>{
-      const el=item.tag==='img'?document.createElement('img'):document.createElement('div');
-      el.className='draggable';
-      if(item.tag==='img'){el.src=item.src;}
-      else{el.textContent=item.text;}
-      Object.assign(el.style,item.style||{});
-      el.style.position='absolute';
-      enableDragResize(el);
-      canvas.appendChild(el);
-      elements.push(el);
-    });
+  // aktifkan drag/resize
+  makeInteractable(node, el);
+
+  return node;
+}
+
+function select(id){
+  state.selectedId = id;
+  document.querySelectorAll('.el').forEach(x=> x.classList.toggle('selected', x.dataset.id === id));
+  const el = byId(id);
+  post('element-selected', el);
+}
+
+/* =========================
+   INTERACT.JS (drag/resize)
+========================= */
+function makeInteractable(node, el){
+  interact(node).draggable({
+    listeners: {
+      move (event) {
+        const target = event.target;
+        const id = target.dataset.id;
+        const item = byId(id); if (!item) return;
+        item.x += event.dx / state.zoom;
+        item.y += event.dy / state.zoom;
+        target.style.left = item.x + 'px';
+        target.style.top  = item.y + 'px';
+        post('element-updated', { id, properties: { x:item.x, y:item.y }});
+      }
+    }
+  }).resizable({
+    edges: { left:true, right:true, bottom:true, top:true }
+  }).on('resizemove', (event)=>{
+    const target = event.target;
+    const id = target.dataset.id;
+    const item = byId(id); if (!item) return;
+    item.width  = Math.max(20, event.rect.width / state.zoom);
+    item.height = Math.max(20, event.rect.height / state.zoom);
+    item.x = item.x + (event.deltaRect?.left || 0) / state.zoom;
+    item.y = item.y + (event.deltaRect?.top  || 0) / state.zoom;
+
+    target.style.width  = item.width + 'px';
+    target.style.height = item.height + 'px';
+    target.style.left   = item.x + 'px';
+    target.style.top    = item.y + 'px';
+
+    post('element-updated', { id, properties: { x:item.x, y:item.y, width:item.width, height:item.height }});
+  });
+}
+
+/* =========================
+   MESSAGE HANDLERS
+========================= */
+window.addEventListener('message', (e)=>{
+  const { type, data } = e.data || {};
+  if (!type) return;
+
+  switch(type){
+
+    // Muat semua elemen; data mungkin array ATAU {elements:[...]}
+    case 'load-elements': {
+      const list = Array.isArray(data) ? data
+                  : Array.isArray(data?.elements) ? data.elements
+                  : [];
+      state.elements = list.map(normalize);
+      renderAll();
+      break;
+    }
+
+    // Tambah satu elemen baru
+    case 'add-element': {
+      const el = normalize(data || {});
+      // letak di atas
+      el.zIndex = Math.max(0, ...state.elements.map(x=>x.zIndex||0)) + 1;
+      state.elements.push(el);
+      // render & pilih
+      const node = renderOne(el);
+      canvas.appendChild(node);
+      select(el.id);
+      break;
+    }
+
+    // Kemas kini properti elemen
+    case 'update-element': {
+      const { id, properties } = data || {};
+      const el = byId(id); if (!el) break;
+      Object.assign(el, properties||{});
+      // segar semula node
+      const old = canvas.querySelector(`.el[data-id="${id}"]`);
+      if (old) old.replaceWith(renderOne(el));
+      // hantar balik untuk sync
+      post('element-updated', { id, properties });
+      break;
+    }
+
+    // Hapus
+    case 'delete-element': {
+      const { id } = data || {};
+      const idx = state.elements.findIndex(x=>x.id===id);
+      if (idx >= 0){
+        state.elements.splice(idx,1);
+        const node = canvas.querySelector(`.el[data-id="${id}"]`);
+        node?.remove();
+        post('element-deleted', { id });
+      }
+      break;
+    }
+
+    // Z-order
+    case 'bring-to-front': {
+      const { id } = data || {};
+      const el = byId(id); if (!el) break;
+      el.zIndex = Math.max(0, ...state.elements.map(x=>x.zIndex||0)) + 1;
+      renderAll(); select(id);
+      break;
+    }
+    case 'send-to-back': {
+      const { id } = data || {};
+      const el = byId(id); if (!el) break;
+      el.zIndex = Math.min(0, ...state.elements.map(x=>x.zIndex||0)) - 1;
+      renderAll(); select(id);
+      break;
+    }
+
+    // Tetapan global (opsyenal: warna tema, tipografi)
+    case 'apply-settings': {
+      const s = data || {};
+      document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
+      if (s.heading_size)  document.documentElement.style.setProperty('--hSize',  `${Number(s.heading_size)}px`);
+      if (s.body_size)     document.documentElement.style.setProperty('--bSize',  `${Number(s.body_size)}px`);
+      if (s.heading_color) document.documentElement.style.setProperty('--hColor', s.heading_color);
+      if (s.body_color)    document.documentElement.style.setProperty('--bColor',  s.body_color);
+      if (String(s.heading_bold||'false')==='true') document.documentElement.style.setProperty('--hWeight','800');
+      if (String(s.body_bold||'false')==='true')    document.documentElement.style.setProperty('--bWeight','600');
+      // Content width
+      if (s.content_width){
+        canvas.style.width = Math.min(Number(s.content_width)||980, window.innerWidth-32) + 'px';
+      }
+      break;
+    }
+
+    // Zoom dari parent (jika anda guna)
+    case 'set-zoom': {
+      const { level } = data || {};
+      state.zoom = Math.max(.5, Math.min(2, Number(level)||1));
+      canvas.style.transformOrigin = 'top left';
+      canvas.style.transform = `scale(${state.zoom})`;
+      break;
+    }
   }
 });
 
-//==== fungsi simpan ke dashboard ====
-function saveToDashboard(){
-  const out=[...canvas.querySelectorAll('.draggable')].map(el=>{
-    return{
-      tag:el.tagName.toLowerCase(),
-      text:el.textContent,
-      src:el.src,
-      style:{
-        left:el.style.left,
-        top:el.style.top,
-        width:el.style.width,
-        height:el.style.height,
-        color:el.style.color,
-        fontSize:el.style.fontSize,
-      }
-    };
-  });
-  parent.postMessage({type:'save-elements',data:out},'*');
+/* Kosongkan pilihan jika klik kanvas */
+canvas.addEventListener('pointerdown', ()=> {
+  state.selectedId = null;
+  document.querySelectorAll('.el').forEach(x=> x.classList.remove('selected'));
+  post('element-selected', null);
+});
+
+/* =========================
+   UTIL
+========================= */
+function escapeHTML(s){ return String(s??'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
+
+function isYouTube(u){ try{ const x=new URL(u); return x.hostname.includes('youtube.com')||x.hostname.includes('youtu.be'); }catch{ return false; } }
+function youTubeId(u){
+  try{
+    const x=new URL(u);
+    if (x.hostname.includes('youtu.be')) return x.pathname.slice(1);
+    if (x.searchParams.get('v')) return x.searchParams.get('v');
+    const parts = x.pathname.split('/'); return parts[parts.length-1];
+  }catch{ return ''; }
 }
 
-// auto simpan bila ubah
-canvas.addEventListener('input',saveToDashboard);
-window.addEventListener('mouseup',saveToDashboard);
+/* Bootstrap awal: beritahu parent kita sedia */
+post('elements-loaded', { elements: state.elements });
+
 </script>
 </body>
 </html>
