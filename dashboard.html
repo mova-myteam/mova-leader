@@ -7,15 +7,14 @@
 
   <!-- Inter font -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="placeholder.com/placeholder.com/150/200.jpg" rel="preload" as="image">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="placeholder.com/placeholder.com/150/200.jpg" rel="preload" as="image">
   <!-- Tailwind (CDN for simplicity; use CLI for production) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Interact.js for drag and drop -->
-  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/img/placeholder.com/150/200.jpg" rel="preload" as="script">
   <style>
     :root { --brand:#ef4444; }
     html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
@@ -30,9 +29,9 @@
     .btn-primary:hover{ filter:brightness(0.95); }
     .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.5rem 1rem; }
     .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem .9rem; background:#fff; }
-    .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .input:focus{ outline:none; box-shadow:0 0 0 0 2px #111; }
     .textarea{ width:100%; min-height:140px; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; background:#fff; }
-    .textarea:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .textarea:focus{ outline:none; box-shadow:0 0 0 0 2px #111; }
     .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
     .media-tile{ position:relative; overflow:hidden; border:1px solid #e5e7eb; border-radius:.75rem; cursor:pointer; }
     .media-tile.selected{ outline:2px solid #111; }
@@ -253,8 +252,7 @@
         <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar
       </button>
     </div>
-  </div>
-</header>
+  </header>
 
 <!-- ====== CONTENT ====== -->
 <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -287,10 +285,10 @@
       <button data-tab="media" class="pill pill-idle"><i data-lucide="image" class="w-4 h-4"></i> Media</button>
       <button data-tab="partner" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Partner</button>
       <button data-tab="customer" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Customer</button>
-      <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
-      <button data-tab="broadcast" class="pill pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
-      <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta</button>
-      <button data-tab="settings" class="pill pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
+      <button data-tab="approve" class="pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
+      <button data-tab="broadcast" class="pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
+      <button data-tab="org" class="pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta</button>
+      <button data-tab="settings" class="pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
     </div>
   </section>
 
@@ -462,7 +460,6 @@
           <button id="btnInsertToContent" class="btn-ghost">Tandakan sebagai Lampiran</button>
           <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
         </div>
-      </div>
       <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
     </div>
 
@@ -498,7 +495,7 @@
       <div class="grid gap-3 md:grid-cols-3">
         <input id="customerName" class="input" placeholder="Nama customer">
         <input id="customerPhone" class="input" placeholder="+60XXXXXXXXX">
-        <select id="customerPartner" class="input"><option value="">Pilih Partner</option></select></select>
+        <select id="customerPartner" class="input"><option value="">Pilih Partner</option></select>
       </div>
       <div>
         <button id="btnAddCustomer" class="btn-primary">Tambah Customer</button>
@@ -547,7 +544,7 @@
       </div>
 
       <div class="grid lg:grid-cols-2 gap-6 mt-2">
-        <div class="p-4 border border-gray-200 rounded-xl">
+        <div class="p-4 border border-gray-200 rounded-xl p-4">
           <div class="flex items-center justify-between">
             <div class="font-semibold">Penerima (ikut partner)</div>
             <div class="flex gap-2">
@@ -558,7 +555,7 @@
           <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
         </div>
 
-        <div class="p-4 border border-gray-200 rounded-xl">
+        <div class="p-4 border border-gray-200 rounded-xl p-4">
           <div class="font-semibold mb-2">Tindakan</div>
           <div class="grid gap-2">
             <button id="btnBroadcast" class="btn-primary">Log Broadcast (server)</button>
@@ -624,44 +621,45 @@
       <!-- Typography -->
       <div class="border border-gray-200 rounded-xl p-4 mt-4">
         <div class="flex items-center gap-2 mb-2">
-          <i data-lucide="type" class="w-4 h-4 text-gray-700"></i>
+          <i data-lucide="type" class="w-5 h-5 text-gray-700"></i>
           <div class="font-semibold">Typography (Global)</div>
         </div>
-        <div class="grid md:grid-cols-2 gap-4">
+        <div class="grid md:grid-cols-2 gap-4 gap-4">
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="text-sm font-medium">Heading Size (px)</label>
               <input id="setHeadingSize" class="input mt-1" placeholder="cth: 28">
             </div>
             <div>
-              <label class="text-sm font-medium">Heading Color</label>
-              <input id="setHeadingColor" type="color" class="input mt-1 p-1" value="#111111">
+              <label class="text-sm font-medium">Color</label>
+              <input id="setHeadingColor" type="color" class="input mt-1" value="#111111">
             </div>
             <label class="text-sm font-medium flex items-center gap-2 mt-2">
-              <span class="switch"><input id="setHeadingBold" type="checkbox"><span></span></span> Heading Bold</span>
+              <span class="switch"><input id="setHeadingBold" type="checkbox"><span></span></span></span>
+              <span>Heading Bold</span>
             </label>
           </div>
-
-          <div class="grid grid-cols-2 gap-3">
+          <div class="grid grid grid-cols-2 gap-3">
             <div>
-              <label class="text-sm font-medium">Body Size (px)</label>
+              <label class="text-sm font-medium">Size (px)</label>
               <input id="setBodySize" class="input mt-1" placeholder="cth: 16">
             </div>
             <div>
-              <label class="text-sm font-medium">Body Color</label>
-              <input id="setBodyColor" type="color" class="input mt-1 p-1" value="#374151">
+              <label class="text-sm font-medium">Color</label>
+              <input id="setBodyColor" type="color" class="input mt-1" value="#374151">
+              </div>
             </div>
             <label class="text-sm font-medium flex items-center gap-2 mt-2">
-              <span class="switch"><input id="setBodyBold" type="checkbox"><span></span></span> Body Bold</span>
+              <span class="switch"><input id="setBodyBold" type="checkbox"><span></span></span></span>
+              <span>Body Bold</span>
             </label>
           </div>
-          </div>
         </div>
-        <div class="text-xs text-gray-500 mt-2">user.html akan mematuhi tetapan ini setiap kali halaman dimuatkan.</div>
+        <div class="text-xs text-gray-500 mt-2">user.html akan mematuhi tetapan ini setiap kali kali halaman dimuatkan.</div>
       </div>
 
       <div class="flex gap-2 mt-4">
-        <button id="btnSaveSettings" class="btn-primary">Simpan</button>
+        <button id="btnSaveSettings" class="btn-primary">Simpan> Simpan</button>
         <button id="btnReloadSettings" class="btn-ghost">Muat Semula</button>
         <button id="btnPreviewUser2" class="btn-ghost">Preview Laman User</button>
       </div>
@@ -670,122 +668,10 @@
   </section>
 </main>
 
-<!-- Editor Toolbar -->
-<div id="editorToolbar" class="editor-toolbar">
-  <h3>Editor Properties</h3>
-  
-  <div class="control-group">
-    <label>Text Content</label>
-    <textarea id="textContent" class="input" rows="3" placeholder="Enter text content"></textarea>
-  </div>
-  
-  <div class="control-group">
-    <label>Font</label>
-    <div class="control-row">
-      <select id="fontFamily" class="input">
-        <option value="Inter">Inter</option>
-        <option value="Poppins">Poppins</option>
-        <option value="Playfair Display">Playfair Display</option>
-      </select>
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Font Size</label>
-    <div class="control-row">
-      <input id="fontSize" type="number" min="10" max="120" value="24" class="input">
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Text Color</label>
-    <div class="control-row">
-      <input id="textColor" type="color" value="#000000">
-      <input id="textColorHex" type="text" value="#000000" class="input">
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Background Color</label>
-    <div class="control-row">
-      <input id="bgColor" type="color" value="#ffffff">
-      <input id="bgColorHex" type="text" value="#ffffff" class="input">
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Text Style</label>
-    <div class="control-row">
-      <button id="boldBtn" class="btn-ghost"><i data-lucide="bold" class="w-4 h-4"></i></button>
-      <button id="italicBtn" class="btn-ghost"><i data-lucide="italic" class="w-4 h-4"></i></button>
-      <button id="underlineBtn" class="btn-ghost"><i data-lucide="underline" class="w-4 h-4"></i></button>
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Text Alignment</label>
-    <div class="control-row">
-      <button id="alignLeftBtn" class="btn-ghost"><i data-lucide="align-left" class="w-4 h-4"></i></button>
-      <button id="alignCenterBtn" class="btn-ghost"><i data-lucide="align-center" class="w-4 h-4"></i></button>
-      <button id="alignRightBtn" class="btn-ghost"><i data-lucide="align-right" class="w-4 h-4"></i></button>
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Border</label>
-    <div class="control-row">
-      <input id="borderWidth" type="number" min="0" max="10" value="0" class="input">
-      <input id="borderColor" type="color" value="#000000">
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Border Radius</label>
-    <div class="control-row">
-      <input id="borderRadius" type="number" min="0" max="50" value="0" class="input">
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Opacity</label>
-    <div class="control-row">
-      <input id="opacity" type="range" min="0" max="100" value="100" class="input">
-      <span id="opacityValue">100%</span>
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Position</label>
-    <div class="control-row">
-      <input id="posX" type="number" placeholder="X" class="input">
-      <input id="posY" type="number" placeholder="Y" class="input">
-    </div>
-    <div class="control-row">
-      <input id="posWidth" type="number" placeholder="Width" class="input">
-      <input id="posHeight" type="number" placeholder="Height" class="input">
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <label>Z-Index</label>
-    <div class="control-row">
-      <button id="bringToFrontBtn" class="btn-ghost">Bring to Front</button>
-      <button id="sendToBackBtn" class="btn-ghost">Send to Back</button>
-    </div>
-  </div>
-  
-  <div class="control-group">
-    <button id="deleteBtn" class="btn-ghost text-red-500">Delete Element</button>
-  </div>
-</div>
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
 
-<!-- Z-Index Overlay -->
-<div id="zIndexOverlay" class="z-index-overlay"></div>
-
-<!-- Toast -->
-<div id="toast" class="toast hidden"></div>
-
-<script>
+  <script>
   // ====== KONFIG ======
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
@@ -799,7 +685,7 @@
     sections: [],               // Section Builder
     settings: {},                // Settings terkini untuk preview mini
     activeSectionIndex: -1,     // Index of active section for canvas preview
-    canvasMode: 'canvas',        // 'canvas' or 'html'
+    canvasMode: 'canvas'        // 'canvas' or 'html'
     selectedElement: null,       // Currently selected element in the editor
     elements: [],                // All elements in the current design
     history: [],                 // Undo/Redo history
@@ -817,7 +703,7 @@
     localStorage.removeItem('mova_leader');
     location.href = "./index.html";
   });
-  document.getElementById('btnOpenUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
+  document.getElementById('btnOpenUser').addEventListener('click', ()=> window.open('./user.html?preview='+Date.now(),'_blank'));
 
   // icons
   lucide.createIcons();
@@ -838,7 +724,7 @@
       headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
       body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
     });
-    const text = await res.text();
+    const text = await res.text;
     let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
     if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
     return json;
@@ -855,13 +741,12 @@
         btn.classList.remove('pill-active'); 
       }
     });
-    document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
+    document.querySelectorAll('[id^="tab-"]').forEach(p=>p=>p.classList.add('hidden'));
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
-    if (name === 'org') renderOrg();
-    if (name === 'broadcast') buildRecipientTree();
   }
-  document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab)));
+
+  document.querySelectorAll('[data-tab]').forEach(btn=> btn.addEventListener('click', ()=> setActiveTab(btn.dataset.tab));
   setActiveTab('user');
 
   // ====== INIT ======
@@ -914,7 +799,7 @@
       row.className='block-row';
       row.innerHTML = `
         <div class="flex items-center gap-2">
-          <i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(u)?'video':'link'}" class="w-4 h-4 text-gray-600"></i>
+          <i data-lucide="${/\.(mp4|webm|mov|m4v|m4v)(\?|$)/i.test(u)?'video':'link'}" class="w-4 h-4 text-gray-600"></i>
           <input class="input !py-1 !px-2 !text-xs flex-1" value="${u}">
           <button class="btn-ghost !py-1">Padam</button>
         </div>
@@ -946,7 +831,7 @@
     try{
       const json = await callApi('content_save', payload);
       if (json.success) { toast('Kandungan disimpan ✔️'); await reloadStats(); await loadLatestContent(); }
-      else { toast('Gagal simpan: '+(json.error||'')); }
+      else { toast('Gagal simpan: '+(json.error||''); }
     }catch(err){ toast('Ralat rangkaian: '+err.message); }
   });
   document.getElementById('btnRefreshContent').addEventListener('click', ()=>{
@@ -960,7 +845,7 @@
   async function loadLatestContent(){
     try{
       const out = await callApi('content_list', { leader_id: store.leader.leader_id });
-      const items = (out.items||[]).sort((a,b)=> new Date(b.updated_at||0) - new Date(a.updated_at||0)).slice(0,6);
+      const items = (out.items||[]).sort((a,b)=> new Date(b.updated_at||0) - new Date(a.updated_at||0)).slice(0,6));
       const wrap = document.getElementById('contentList');
       const contWrap = document.getElementById('contentListWrap');
       wrap.innerHTML = '';
@@ -976,7 +861,7 @@
       });
       contWrap.classList.toggle('hidden', items.length===0);
       toast('Kandungan dimuat');
-    }catch(e){ toast('Gagal muat senarai'); }
+    }catch(e){ toast('Gagal muat senarai senarai'); }
   }
 
   // ====== BROADCAST ======
@@ -1002,7 +887,7 @@
     store.attachments.forEach((url, idx)=>{
       const chip = document.createElement('span');
       chip.className='chip';
-      chip.innerHTML = `<i data-lucide="${/\.(mp4|webm|mov|m4v)(\?|$)/i.test(url)?'video':'image'}" class="w-3.5 h-3.5"></i><span>Media ${idx+1}</span><button title="Buang">&times;</button>`;
+      chip.innerHTML = `<i data-lucide="${/\.(mp4|webm|mov|m4v|m4v)(\?|$)/i.test(url)?'video':'image'}" class="w-3.5 h-3.5"></i><span>Media ${idx+1}</span><button title="Buang">&times;</button>`;
       chip.querySelector('button').addEventListener('click', ()=>{ store.attachments.splice(idx,1); renderAttachChips(); });
       attachChips.appendChild(chip);
     });
@@ -1012,38 +897,8 @@
   document.getElementById('btnSelectAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true); });
   document.getElementById('btnClearAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false); });
 
-  async function buildRecipientTree(){
-    const wrap = document.getElementById('recipientsWrap');
-    if (!wrap) return;
-    wrap.innerHTML = '<div class="text-sm text-gray-500">Memuat senarai penerima…</div>';
-    try{
-      let partners = []; try{ const outP = await callApi('partner_list', { leader_id: store.leader.leader_id }); partners = outP.items || []; }catch(e){}
-      let tree = { children:[] }; try{ const outT = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') }); if (outT.success) tree = outT.tree || tree; }catch(e){}
-
-      const byPartner = new Map(); partners.forEach(p=> byPartner.set(p.name||'', p));
-      const frag = document.createDocumentFragment();
-      (tree.children||[]).forEach(node=>{
-        const pName = node.name || ''; const pPkg  = node.title || ''; const partnerPhone = (byPartner.get(pName||{}).phone || '';
-        const head = document.createElement('div'); head.className='mt-3 mb-1 font-semibold'; head.textContent = `${pName || 'Partner'}${pPkg? ' ('+pPkg+')':''}`; frag.appendChild(head);
-        frag.appendChild(recipientRow({ type:'partner', name:pName, phone: partnerPhone, partnerName:pName }));
-        (node.children||[]).forEach(c=>{ frag.appendChild(recipientRow({ type:'customer', name:(c.name||''), phone:'', partnerName:pName })); });
-      });
-      wrap.innerHTML = '';
-      frag.childElementCount ? wrap.appendChild(frag) : wrap.innerHTML = '<div class="text-sm text-gray-500">Tiada data organisasi.</div>';
-    }catch(e){ wrap.innerHTML = '<div class="text-sm text-red-600">Gagal memuat penerima.</div>'; }
-  }
-  function recipientRow(rec){
-    const row = document.createElement('div');
-    row.className='recip-row text-sm';
-    row.innerHTML = `
-      <input type="checkbox" class="recip-check">
-      <span class="min-w-[90px] inline-block ${rec.type==='partner'?'text-emerald-700':'text-rose-700'}">${rec.type==='partner'?'Partner':'Customer'}</span>
-      <span class="flex-1">${rec.name||'-'} ${rec.partnerName? '<span class="text-xs text-gray-400">• '+rec.partnerName+'</span>':''}</span>
-      <input type="text" class="input !py-1 !px-2 !text-xs recip-phone" placeholder="Telefon" value="${(rec.phone||'')}">
-    `;
-    row.dataset.type = rec.type; row.dataset.name = rec.name||''; row.dataset.partner = rec.partnerName||'';
-    return row;
-  }
+  document.getElementById('btnSelectAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true); });
+  document.getElementById('btnClearAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false); });
 
   document.getElementById('btnBroadcast')?.addEventListener('click', async ()=>{
     const message = buildMessageWithAttachments();
@@ -1066,188 +921,4 @@
     toast(`Membuka ${opened} tab WhatsApp`);
   });
   document.getElementById('btnExportCSV')?.addEventListener('click', ()=>{
-    const rows = getSelectedRecipients().map(r=>({ phone: (r.phone||'').replace(/\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone);
-    if (!rows.length) return toast('Tiada penerima sah untuk dieksport');
-    const csv = makeCSV(['phone','message','media_urls','fonnte_api'], rows);
-    downloadText(csv, `broadcast_${Date.now()}.csv`, 'text/csv'); toast('CSV dijana');
-  });
-  function buildMessageWithAttachments(){
-    const base = (document.getElementById('broadcastMsg').value||'').trim();
-    const medias = (store.attachments||[]); if (!medias.length) return base;
-    return `${base}\n\nLampiran:\n${medias.map((u,i)=>`${i+1}. ${u}`).join('\n')}`.trim();
-  }
-  function getSelectedRecipients(){
-    return Array.from(document.querySelectorAll('#recipientsWrap .recip-row')).filter(r=> r.querySelector('.recip-check').checked).map(r=>({ type:r.dataset.type, name:r.dataset.name, partner:r.dataset.partner, phone:r.querySelector('.recip-phone').value.trim() }));
-  }
-  function makeCSV(headers, rows){ const esc=s=>`"${String(s??'').replace(/"/g,'""')}"`; const head=headers.map(esc).join(','); const body=rows.map(r=>headers.map(h=>esc(r[h])).join(',')).join('\n'); return head+'\n'+body; }
-  function downloadText(text, filename, mime){ const blob=new Blob([text],{type:mime||'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=filename; a.click(); URL.revokeObjectURL(a.href); }
-
-  // ====== MEDIA ======
-  const fileInput = document.getElementById('fileInput');
-  const mediaGrid = document.getElementById('mediaGrid');
-  const chosenMediaHint = document.getElementById('chosenMedia');
-
-  document.getElementById('btnUpload').addEventListener('click', async ()=>{
-    const f = fileInput.files?.[0]; if (!f) return toast('Pilih satu fail');
-    try{
-      const b64 = await toBase64NoPrefix(f);
-      const json = await callApi('upload_media', { leader_id: store.leader.leader_id, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64 });
-      if (json.success){ addMediaTile(json.public_url, json.isVideo); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
-    }catch(err){ toast('Ralat muat naik'); }
-  });
-  document.getElementById('btnInsertToContent').addEventListener('click', ()=>{ const count = store.selectedMedia.size; toast(count ? `Ditandakan ${count} media` : 'Tiada media dipilih'); updateChosenMediaHint(); });
-  document.getElementById('btnReloadMedia').addEventListener('click', reloadMedia);
-
-  async function reloadMedia(){
-    try{
-      const out = await callApi('media_list', { leader_id: store.leader.leader_id });
-      const list = out.items || [];
-      mediaGrid.innerHTML = ''; store.selectedMedia.clear();
-      list.sort((a,b)=> new Date(b.created_at||0) - new Date(a.created_at||0));
-      list.forEach(row => addMediaTile(row.public_url, /^video\//i.test(row.file_type||''));
-      updateChosenMediaHint();
-    }catch(e){ mediaGrid.innerHTML=''; updateChosenMediaHint(); }
-  }
-  function addMediaTile(url, isVideo=false){
-    if (!url) return;
-    const wrap = document.createElement('div');
-    wrap.className = 'media-tile aspect-square';
-    wrap.dataset.url = url;
-    wrap.addEventListener('click', ()=>{ if (wrap.classList.toggle('selected')) store.selectedMedia.add(url); else store.selectedMedia.delete(url); updateChosenMediaHint(); });
-    if (isVideo){ const v=document.createElement('video'); v.src=url; v.controls=false; v.muted=true; v.playsInline=true; v.className='w-full h-full object-cover'; wrap.appendChild(v); }
-    else { const img=document.createElement('img'); img.src=url; img.loading='lazy'; img.className='w-full h-full object-cover'; wrap.appendChild(img); }
-    mediaGrid.appendChild(wrap);
-  }
-  function updateChosenMediaHint(){ const n = store.selectedMedia.size; if (chosenMediaHint) chosenMediaHint.textContent = n ? `${n} media dipilih (akan dilampir semasa Simpan)` : 'Tiada media dipilih. Pergi ke tab <b>Media</b> dan klik untuk memilih.'; }
-  function toBase64NoPrefix(file){
-    return new Promise((resolve,reject)=>{
-      const fr = new FileReader();
-      fr.onload = () => { const s = String(fr.result||''); resolve(s.includes(',') ? s.split(',')[1] : s); };
-      fr.onerror = reject; fr.readAsDataURL(file);
-    });
-  }
-
-  // ====== PARTNER ======
-  const partnerSelect = document.getElementById('customerPartner');
-  document.getElementById('btnCreatePartner').addEventListener('click', async ()=>{
-    const name = document.getElementById('partnerName').value.trim();
-    const email = document.getElementById('partnerEmail').value.trim();
-    const phone = document.getElementById('partnerPhone').value.trim();
-    const pkg   = document.getElementById('partnerPackage').value.trim();
-    if (!name) return toast('Nama partner diperlukan');
-    try{
-      const out = await callApi('partner_create', { leader_id: store.leader.leader_id, name, email, phone, package: pkg });
-      if (out.success){ toast('Partner ditambah ✔️'); await reloadPartners(); await reloadStats(); await renderOrg(); await buildRecipientTree();
-        partnerName.value=partnerEmail.value=partnerPhone.value=''; partnerPackage.value=''; }
-      else { toast(out.error||'Gagal tambah partner'); }
-    }catch(e){ toast('Ralat tambah partner'); }
-  });
-  async function reloadPartners(){
-    try{
-      const out = await callApi('partner_list', { leader_id: store.leader.leader_id });
-      store.partners = out.items || [];
-      partnerSelect.innerHTML = '<option value="">Pilih Partner</option>';
-      store.partners.forEach(p=>{ const opt=document.createElement('option'); opt.value=p.name; opt.textContent=p.name; partnerSelect.appendChild(opt); });
-    }catch(e){ partnerSelect.innerHTML = '<option value="">Pilih Partner</option>'; }
-  }
-
-  // ====== CUSTOMER ======
-  document.getElementById('btnAddCustomer').addEventListener('click', async ()=>{
-    const name = document.getElementById('customerName').value.trim();
-    const phone = document.getElementById('customerPhone').value.trim();
-    const partner = document.getElementById('customerPartner').value.trim();
-    if (!name || !phone) return toast('Nama & telefon diperlukan');
-    try{
-      const out = await callApi('customer_add', { leader_id: store.leader.leader_id, name, phone, partner });
-      if (out.success){ toast('Customer ditambah ✔️'); customerName.value=''; customerPhone.value=''; customerPartner.value='';
-        await reloadStats(); await renderOrg(); await buildRecipientTree(); }
-      else { toast(out.error||'Gagal tambah customer'); }
-    }catch(e){ toast('Ralat tambah customer'); }
-  });
-
-  // ====== APPROVALS ======
-  const regTableBody = document.getElementById('regTableBody');
-  document.getElementById('btnReloadReg').addEventListener('click', reloadRegs);
-  async function reloadRegs(){
-    try{
-      const out = await callApi('registration_list', {});
-      const items = out.items || [];
-      regTableBody.innerHTML = '';
-      items.forEach(row=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="text-xs">${row.id||''}</td>
-          <td>${row.name||''}</td>
-          <td>${row.phone||''}</td>
-          <td><span class="badge">${row.status||''}</span></td>
-          <td>${String(row.status||'').toLowerCase()==='lulus' ? '<span class="text-green-700 text-sm">Diluluskan</span>' : '<button class="btn-ghost text-sm">Luluskan</button>'}</td>
-        `;
-        const btn = tr.querySelector('button');
-        if (btn) btn.addEventListener('click', async ()=>{
-          try{ const res = await callApi('registration_approve', { id: row.id });
-            if (res.success){ toast('Diluluskan ✔️'); await reloadRegs(); await reloadStats(); } else toast(res.error||'Gagal meluluskan'); }
-          catch(e){ toast('Ralat meluluskan'); }
-        });
-        regTableBody.appendChild(tr);
-      });
-    }catch(e){
-      regTableBody.innerHTML = '<tr><td colspan="5" class="text-sm text-gray-500">Gagal memuat pendaftaran.</td></tr>';
-    }
-  }
-
-  // ====== ORG CHART ======
-  document.getElementById('btnReloadOrg').addEventListener('click', renderOrg);
-  async function renderOrg(){
-    const grid = document.getElementById('orgGrid'); const svg  = document.getElementById('orgSvg'); const wrap = document.getElementById('orgWrap');
-    grid.innerHTML = ''; svg.innerHTML = '';
-    let tree;
-    try{ const out = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
-      if (!out.success) throw new Error('Fail org_tree'); tree = out.tree;
-    }catch(e){ tree = { name:'LEADER', children:[] }; }
-
-    const root = document.createElement('div');
-    root.className = 'mx-auto px-4 py-2 rounded-full bg-amber-100 text-amber-900 font-semibold border border-amber-200';
-    root.textContent = (tree.name || 'LEADER'); root.style.gridColumn = '1 / -1';
-    grid.style.gridTemplateColumns = `repeat(${Math.max(1,(tree.children||[]).length)}, minmax(180px,1fr))`; grid.appendChild(root);
-
-    const rowTop = document.createElement('div'); rowTop.className = 'grid gap-8 mt-6'; rowTop.style.gridColumn = '1 / -1'; rowTop.style.gridTemplateColumns = grid.style.gridTemplateColumns; grid.appendChild(rowTop);
-    const partnerNodes = [];
-    (tree.children||[]).forEach(p=>{
-      const n = document.createElement('div'); n.className = 'px-4 py-2 rounded-full bg-emerald-100 text-emerald-900 text-center font-medium border border-emerald-200';
-      n.textContent = (p.name || 'PARTNER') + (p.title ? ` • ${p.title}` : ''); rowTop.appendChild(n);
-      partnerNodes.push({ el:n, children: p.children||[] });
-    });
-
-    const maxDepth = Math.max(0, ...partnerNodes.map(x=>x.children.length));
-    for (let r=0; r<maxDepth; r++){
-      const row = document.createElement('div'); row.className = 'grid gap-8 mt-6'; row.style.gridColumn = '1 / -1'; row.style.gridTemplateColumns = grid.style.gridTemplateColumns; grid.appendChild(row);
-      partnerNodes.forEach(col=>{
-        const cust = col.children[r]; const cell = document.createElement('div');
-        if (cust){ cell.className = 'px-4 py-2 rounded-full bg-rose-100 text-rose-900 text-center border border-rose-200'; cell.textContent = cust.name || 'Customer'; }
-        else { cell.innerHTML = '&nbsp;'; } row.appendChild(cell);
-      });
-    }
-
-    const rect = wrap.getBoundingClientRect(); svg.setAttribute('width', Math.ceil(rect.width)); svg.setAttribute('height', Math.ceil(wrap.scrollHeight));
-    const toSvg = (x,y)=> { const sb = svg.getBoundingClientRect(); return [x - sb.left + wrap.scrollLeft, y - sb.top + wrap.scrollTop]; };
-    const rb = root.getBoundingClientRect();
-    partnerNodes.forEach(p=>{ const pb = p.el.getBoundingClientRect(); drawLine(rb.left + rb.width/2, rb.bottom, pb.left + pb.width/2, pb.top); });
-    const rows = Array.from(grid.children).slice(2);
-    rows.forEach(row=>{
-      const cells = Array.from(row.children);
-      cells.forEach((cell, i)=>{ if (!cell.textContent.trim()) return; const pb = partnerNodes[i].el.getBoundingClientRect(); const cb = cell.getBoundingClientRect(); drawLine(pb.left + pb.width/2, pb.bottom, cb.left + cb.width/2, cb.top); });
-    });
-    function drawLine(x1,y1,x2,y2){ const [sx1,sy1] = toSvg(x1,y1); const [sx2,sy2] = toSvg(x2,y2); const ln = document.createElementNS('http://www.w3.org/2000/svg','line'); ln.setAttribute('x1', sx1); ln.setAttribute('y1', sy1); ln.setAttribute('x2', sx2); ln.setAttribute('stroke', '#e5e7eb'); ln.setAttribute('stroke-width', '2'); svg.appendChild(ln); }
-  }
-
-  // ====== SETTINGS (global + typography) ======
-  async function refreshSettings(){
-    try{
-      const out = await callApi('settings_get', { leader_id: store.leader.leader_id });
-      const s = out.settings||{};
-      store.settings = s || {};
-      // global
-      setMin.value = s.cashback_min || 5; setMax.value = s.cashback_max || 10; setLeaderPhone.value = s.whatsapp || '';
-      setFonnteApi.value = s.fonnte_api || ''; setThemeColor.value = s.theme_color || '#ef4444'; setContentWidth.value = s.content_width || '';
-      // typography
-      setHeadingSize.value  = s.heading_size || ''; setHeadingColor
+    const rows = getSelectedRecipients().map(r=>({ phone: (r.phone||'').replace(/\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).filter(x=> x.phone).map(r=>({ phone: (r.phone||' ).replace(/\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=>({ phone: (r.phone||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r.phone||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r.phone||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('console.error('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g,'), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '') })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '') })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D/g), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone).map(r=> ({ phone: (r||' ).replace(/\D
