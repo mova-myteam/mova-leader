@@ -3,385 +3,232 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA — User Page</title>
-
-  <!-- Font & Tailwind (CDN) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-
-  <!-- Interact.js untuk drag/resize dalam iframe -->
-  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
-  <!-- Lucide untuk ikon (jika guna type: 'icon') -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
+  <title>MOVA — User</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --brand:#ef4444;
-      --hSize:28px; --bSize:16px;
-      --hColor:#111111; --bColor:#374151;
-      --hWeight:700; --bWeight:400;
+      --brand:#ef4444; --cw:980px;
+      --hSize:28px; --hColor:#111; --hWeight:800;
+      --bSize:16px; --bColor:#374151; --bWeight:400;
     }
-    html,body{font-family:Inter,system-ui,ui-sans-serif; background:#fafafa; color:#111}
-    /* Kanvas pusat */
-    .page-wrap{display:grid; place-items:start center; padding:32px}
-    .canvas{
-      position:relative;
-      width:min(980px, 100%);
-      min-height:70vh;
-      background:#fff;
-      border:1px solid #e5e7eb;
-      border-radius:16px;
-      box-shadow:0 6px 22px rgba(15,23,42,.06);
-      overflow:hidden;
-    }
-    /* Elemen boleh ubah suai */
-    .el{
-      position:absolute;
-      box-sizing:border-box;
-      user-select:none;
-      touch-action:none;
-      outline:0;
-    }
-    .el.selected{ outline:2px dashed var(--brand); outline-offset:0 }
-    .el[data-type="text"]{ display:flex; align-items:center; justify-content:center; padding:.25rem .35rem }
-    .el[data-type="button"] a{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:.6rem .95rem; border-radius:.7rem; text-decoration:none; color:#fff; font-weight:700;
-    }
-    .el[data-type="image"] img, .el[data-type="video"] iframe, .el[data-type="video"] video{
-      width:100%; height:100%; object-fit:cover; border-radius:inherit;
-    }
-    /* Triangle (bentuk) */
-    .triangle {
-      width:0; height:0; border-left: 50px solid transparent; border-right: 50px solid transparent; border-bottom: 90px solid var(--brand);
-    }
-    /* Heading/Body global (jika guna blok rich static) */
-    h1{ font-size:var(--hSize); font-weight:var(--hWeight); color:var(--hColor) }
-    p{ font-size:var(--bSize); font-weight:var(--bWeight); color:var(--bColor) }
+    html,body{font-family:Inter,system-ui; background:#fff; color:var(--bColor); margin:0}
+    .wrap{max-width:var(--cw); margin:0 auto; padding:20px}
+    .h{font-size:var(--hSize); color:var(--hColor); font-weight:var(--hWeight); margin:0 0 8px}
+    .p{font-size:var(--bSize); color:var(--bColor); font-weight:var(--bWeight); line-height:1.7; margin:0 0 10px}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--brand);color:#fff;
+         padding:.7rem 1rem;border-radius:.8rem;text-decoration:none;font-weight:700}
+    .card{border:1px solid #eee;border-radius:14px;padding:16px}
+    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    @media (max-width:900px){ .grid3{grid-template-columns:1fr} :root{--cw:92vw} }
+    /* Canvas overlay (optional) */
+    .canvas{position:relative}
+    .el{position:absolute; pointer-events:none}
   </style>
 </head>
 <body>
-  <div class="page-wrap">
-    <!-- Kanvas utama -->
-    <div id="canvas" class="canvas"></div>
-  </div>
+  <main id="app" class="wrap"></main>
 
-<script>
-/* =========================
-   STATE & HELPERS
-========================= */
-const state = {
-  elements: [],      // {id,type, x,y,width,height, zIndex, ...}
-  selectedId: null,
-  zoom: 1
-};
-const canvas = document.getElementById('canvas');
-
-/* Posting ke parent (dashboard) */
-function post(type, data){ try{ window.parent.postMessage({type, data}, '*'); }catch{} }
-
-/* Cari element dalam state */
-function byId(id){ return state.elements.find(el => el.id === id); }
-
-/* Normalisasi input elemen */
-function normalize(el){
-  const base = {
-    id: el.id,
-    type: el.type,
-    x: Number(el.x ?? 100),
-    y: Number(el.y ?? 100),
-    width: Number(el.width ?? (el.type==='text'? 240 : 200)),
-    height: Number(el.height ?? (el.type==='text'? 60 : 160)),
-    zIndex: Number(el.zIndex ?? 0),
-    opacity: Number(el.opacity ?? 100),
-    borderWidth: Number(el.borderWidth ?? 0),
-    borderColor: el.borderColor ?? '#000000',
-    borderRadius: Number(el.borderRadius ?? (el.type==='button'?8:0)),
-    backgroundColor: el.backgroundColor ?? (el.type==='button' ? 'var(--brand)' : 'transparent'),
-    textAlign: el.textAlign ?? 'center',
-    fontFamily: el.fontFamily ?? 'Inter',
-    fontSize: Number(el.fontSize ?? 24),
-    fontWeight: el.fontWeight ?? 'normal',
-    fontStyle: el.fontStyle ?? 'normal',
-    textDecoration: el.textDecoration ?? 'none',
-    color: el.color ?? '#111111',
+  <script>
+  // ===== Design state =====
+  const state = {
+    design: window.__INIT__DESIGN__ || null
   };
-  if (el.type === 'text'){
-    base.content = el.content ?? 'New Text';
-  } else if (el.type === 'button'){
-    base.content = el.content ?? 'Button';
-    base.href = el.href ?? '#';
-  } else if (el.type === 'image' || el.type === 'video'){
-    base.src = el.src ?? '';
-  } else if (el.type === 'icon'){
-    base.icon = el.icon ?? 'smile';
-  } else if (el.type === 'shape'){
-    base.shapeType = el.shapeType ?? 'rectangle'; // rectangle | circle | triangle
+
+  // ===== Utilities =====
+  const $ = sel => document.querySelector(sel);
+  const setTheme = (t={})=>{
+    const r = document.documentElement;
+    if (t.brand) r.style.setProperty('--brand', t.brand);
+    if (t.contentWidth) r.style.setProperty('--cw', t.contentWidth+'px');
+    if (t.heading){ r.style.setProperty('--hSize', (t.heading.size||28)+'px');
+      r.style.setProperty('--hColor', t.heading.color||'#111');
+      r.style.setProperty('--hWeight', (t.heading.bold?'800':'700')); }
+    if (t.body){ r.style.setProperty('--bSize', (t.body.size||16)+'px');
+      r.style.setProperty('--bColor', t.body.color||'#374151');
+      r.style.setProperty('--bWeight', (t.body.bold?'600':'400')); }
+  };
+  const byId = (id)=> (state.design.sections || []).find(s=>s.id===id);
+
+  // ===== Renderers =====
+  const R = {
+    hero: s=>{
+      const d=s.data||{};
+      return `
+        <section style="display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center;margin:28px 0">
+          <div>
+            <div class="p" style="color:#6b7280">${d.eyebrow||''}</div>
+            <h1 class="h" style="font-size:clamp(28px,4vw,44px)">${d.title||''}</h1>
+            <p class="p">${d.subtitle||''}</p>
+            ${d.ctaText?`<a href="${d.ctaHref||'#'}" class="btn">${d.ctaText}</a>`:''}
+          </div>
+          ${d.image?`<img src="${d.image}" alt="" style="width:100%;border-radius:16px;border:1px solid #eee">`:''}
+        </section>`;
+    },
+    features: s=>{
+      const items=(s.data?.items)||[];
+      return `
+        <section style="margin:36px 0">
+          <h2 class="h">Ciri Utama</h2>
+          <div class="grid3">
+            ${items.map(it=>`
+              <div class="card">
+                <div class="h" style="font-size:20px">${it.title||''}</div>
+                <div class="p">${it.text||''}</div>
+              </div>`).join('')}
+          </div>
+        </section>`;
+    },
+    video: s=>{
+      const src=s.data?.src||'';
+      if (!src) return '';
+      const yt = parseYT(src);
+      return `
+        <section style="margin:36px 0">
+          <div style="position:relative;padding-bottom:56%;height:0;overflow:hidden;border-radius:16px;border:1px solid #eee">
+            ${yt
+              ? `<iframe src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen
+                    style="position:absolute;inset:0;width:100%;height:100%"></iframe>`
+              : `<video src="${src}" controls playsinline style="position:absolute;inset:0;width:100%;height:100%"></video>`}
+          </div>
+        </section>`;
+    },
+    testimonials: s=>{
+      const items=s.data?.items||[];
+      return `
+        <section style="margin:36px 0">
+          <h2 class="h">Testimoni</h2>
+          <div class="grid3">
+            ${items.map(it=>`
+              <div class="card">
+                <div class="p" style="font-style:italic">“${it.quote||''}”</div>
+                <div class="p" style="color:#6b7280">— ${it.name||''}</div>
+              </div>`).join('')}
+          </div>
+        </section>`;
+    },
+    cta: s=>{
+      const d=s.data||{};
+      return `
+        <section class="card" style="margin:36px 0; text-align:center; padding:28px">
+          <h2 class="h" style="margin-bottom:10px">${d.title||''}</h2>
+          ${d.button?`<a href="${d.href||'#'}" class="btn">${d.button}</a>`:''}
+        </section>`;
+    },
+    footer: s=>{
+      const d=s.data||{};
+      const links=(d.links||[]).map(l=>`<a href="${l.href}" class="p" style="text-decoration:none;color:#6b7280">${l.text}</a>`).join(' · ');
+      return `
+        <footer style="margin:48px 0 16px; border-top:1px solid #eee; padding-top:16px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
+          <div class="p" style="color:#6b7280">${links}</div>
+          <div class="p" style="color:#9ca3af">${d.copyright||''}</div>
+        </footer>`;
+    }
+  };
+
+  function parseYT(url){
+    try{
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+    }catch(_){}
+    return null;
   }
-  return base;
-}
 
-/* Gaya inline untuk kotak el */
-function boxStyle(el){
-  const base = `
-    left:${el.x}px; top:${el.y}px; width:${el.width}px; height:${el.height}px;
-    z-index:${el.zIndex}; opacity:${(el.opacity ?? 100)/100};
-    border:${el.borderWidth}px solid ${el.borderColor}; border-radius:${el.borderRadius}px;
-    background:${el.backgroundColor};
-    transform: translateZ(0);
-  `;
-  return base;
-}
+  // ===== Main render =====
+  function render(){
+    const d = state.design;
+    if (!d) return;
+    setTheme(d.meta?.theme || {});
+    const parts = (d.sections||[]).map(sec=>{
+      const fn = R[sec.type];
+      return fn ? fn(sec) : '';
+    }).join('');
+    $('#app').innerHTML = parts + renderCanvasOverlay(d);
+  }
+  function renderCanvasOverlay(d){
+    if ((d.meta?.mode||'template') !== 'canvas') return '';
+    const els = d.elements||[];
+    return `<div class="canvas" style="height:0">
+      ${els.map(el=>renderEl(el)).join('')}
+    </div>`;
+  }
+  function renderEl(el){
+    if (el.type==='text'){
+      return `<div class="el" style="left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;
+        font-size:${el.fontSize||24}px;color:${el.color||'#111'};font-weight:${el.fontWeight||'400'};opacity:${(el.opacity??100)/100};
+        text-align:${el.textAlign||'left'};z-index:${el.zIndex||1}">${el.content||''}</div>`;
+    }
+    if (el.type==='image'){
+      return `<img class="el" src="${el.src}" style="left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;object-fit:cover;border-radius:${el.borderRadius||0}px;opacity:${(el.opacity??100)/100};z-index:${el.zIndex||1};">`;
+    }
+    // boleh tambah video/button/shape/icon
+    return '';
+  }
 
-/* =========================
-   RENDERING
-========================= */
-function renderAll(){
-  canvas.innerHTML = '';
-  // Sort ikut zIndex supaya DOM order konsisten
-  [...state.elements].sort((a,b)=> (a.zIndex||0)-(b.zIndex||0)).forEach(el => {
-    canvas.appendChild(renderOne(el));
+  // ===== Message API (dari dashboard) =====
+  window.addEventListener('message', (e)=>{
+    const { type, data } = e.data || {};
+    if (!type) return;
+
+    if (type==='load-design'){ state.design = normalizeDesign(data); render(); }
+    if (type==='apply-theme'){ state.design.meta = state.design.meta||{}; state.design.meta.theme = {...(state.design.meta.theme||{}), ...(data||{})}; render(); }
+    if (type==='update-field'){ // data: {path:'sections.hero.data.title', value:'...'}
+      try{
+        applyPath(state.design, data.path, data.value);
+        render();
+      }catch(_){}
+    }
+    if (type==='load-elements'){ // support array atau {elements:[...]}
+      const arr = Array.isArray(data)? data : (Array.isArray(data?.elements)? data.elements: []);
+      state.design.elements = arr;
+      state.design.meta = state.design.meta||{}; state.design.meta.mode='canvas';
+      render();
+    }
+    if (type==='update-element'){ // data:{id, properties:{}}
+      const i=(state.design.elements||[]).findIndex(x=>x.id===data.id);
+      if (i>-1){ Object.assign(state.design.elements[i], data.properties||{}); render(); }
+    }
+    if (type==='delete-element'){
+      state.design.elements = (state.design.elements||[]).filter(x=>x.id!==data.id); render();
+    }
   });
-  lucide?.createIcons?.();
-  post('elements-loaded', { elements: state.elements });
-}
 
-function renderOne(el){
-  const n = normalize(el);
-  // simpan balik dalam state (lengkap)
-  Object.assign(el, n);
-
-  const node = document.createElement('div');
-  node.className = 'el';
-  node.dataset.id = el.id;
-  node.dataset.type = el.type;
-  node.style.cssText = boxStyle(el);
-  node.style.fontFamily = el.fontFamily;
-  node.style.fontSize = (el.type==='text'||el.type==='icon') ? `${el.fontSize}px` : '';
-  node.style.fontWeight = el.fontWeight;
-  node.style.fontStyle = el.fontStyle;
-  node.style.textDecoration = el.textDecoration;
-  node.style.color = el.color;
-  node.style.textAlign = el.textAlign;
-
-  // isi mengikut type
-  if (el.type === 'text'){
-    node.innerHTML = `<div class="w-full h-full flex items-center justify-center">${escapeHTML(el.content||'')}</div>`;
-  }
-  else if (el.type === 'image'){
-    node.innerHTML = `<img src="${encodeURI(el.src||'')}" alt="">`;
-  }
-  else if (el.type === 'video'){
-    if (isYouTube(el.src)){
-      const vid = youTubeId(el.src);
-      node.innerHTML = `<iframe src="https://www.youtube.com/embed/${vid}" frameborder="0" allowfullscreen></iframe>`;
-    } else {
-      node.innerHTML = `<video src="${encodeURI(el.src||'')}" playsinline controls></video>`;
+  // ===== Helpers =====
+  function normalizeDesign(d){
+    // fallback minimum if dashboard belum hantar apa-apa
+    if (!d || !Array.isArray(d.sections)) {
+      return {
+        meta:{ mode:'template', theme:{} },
+        sections:[
+          {id:'hero',type:'hero',locked:true,data:{eyebrow:'MOVA',title:'Selamat Datang',subtitle:'Edit dari dashboard.',ctaText:'Mula',ctaHref:'#',image:'https://picsum.photos/seed/mova/960/600'}},
+          {id:'features',type:'features',locked:true,data:{items:[{title:'Ciri 1',text:'Ringkas.'},{title:'Ciri 2',text:'Cepat.'},{title:'Ciri 3',text:'Premium.'}]}},
+          {id:'cta',type:'cta',locked:true,data:{title:'Ready?',button:'Hubungi',href:'#'}},
+          {id:'footer',type:'footer',locked:true,data:{links:[{text:'Privasi',href:'#'}],copyright:'© '+new Date().getFullYear()+' MOVA'}}
+        ],
+        elements:[]
+      };
     }
+    return d;
   }
-  else if (el.type === 'button'){
-    node.innerHTML = `<a href="${el.href||'#'}" target="_blank" style="background:${el.backgroundColor}; font-size:${el.fontSize}px">${escapeHTML(el.content||'Button')}</a>`;
-  }
-  else if (el.type === 'icon'){
-    // placeholder ikon lucide (SVG dihasilkan kemudian oleh lucide.createIcons)
-    node.innerHTML = `<i data-lucide="${el.icon||'smile'}" class="w-full h-full"></i>`;
-  }
-  else if (el.type === 'shape'){
-    if (el.shapeType === 'circle'){
-      node.style.borderRadius = '9999px';
-    } else if (el.shapeType === 'triangle'){
-      // segi tiga guna anak elemen khas
-      node.style.background = 'transparent';
-      node.style.border = '0';
-      node.style.borderRadius = '0';
-      node.innerHTML = `<div class="triangle" style="transform:translate(-50%,-50%); position:absolute; left:50%; top:50%"></div>`;
+  function applyPath(obj, path, value){
+    const keys = path.split('.');
+    let cur = obj;
+    for (let i=0;i<keys.length-1;i++){
+      const k = keys[i];
+      if (!(k in cur)) cur[k] = {};
+      cur = cur[k];
     }
-    // rectangle guna gaya asas
+    cur[keys[keys.length-1]] = value;
   }
 
-  // pemilih klik
-  node.addEventListener('pointerdown', (e)=>{
-    e.stopPropagation();
-    select(el.id);
-  });
-
-  // aktifkan drag/resize
-  makeInteractable(node, el);
-
-  return node;
-}
-
-function select(id){
-  state.selectedId = id;
-  document.querySelectorAll('.el').forEach(x=> x.classList.toggle('selected', x.dataset.id === id));
-  const el = byId(id);
-  post('element-selected', el);
-}
-
-/* =========================
-   INTERACT.JS (drag/resize)
-========================= */
-function makeInteractable(node, el){
-  interact(node).draggable({
-    listeners: {
-      move (event) {
-        const target = event.target;
-        const id = target.dataset.id;
-        const item = byId(id); if (!item) return;
-        item.x += event.dx / state.zoom;
-        item.y += event.dy / state.zoom;
-        target.style.left = item.x + 'px';
-        target.style.top  = item.y + 'px';
-        post('element-updated', { id, properties: { x:item.x, y:item.y }});
-      }
-    }
-  }).resizable({
-    edges: { left:true, right:true, bottom:true, top:true }
-  }).on('resizemove', (event)=>{
-    const target = event.target;
-    const id = target.dataset.id;
-    const item = byId(id); if (!item) return;
-    item.width  = Math.max(20, event.rect.width / state.zoom);
-    item.height = Math.max(20, event.rect.height / state.zoom);
-    item.x = item.x + (event.deltaRect?.left || 0) / state.zoom;
-    item.y = item.y + (event.deltaRect?.top  || 0) / state.zoom;
-
-    target.style.width  = item.width + 'px';
-    target.style.height = item.height + 'px';
-    target.style.left   = item.x + 'px';
-    target.style.top    = item.y + 'px';
-
-    post('element-updated', { id, properties: { x:item.x, y:item.y, width:item.width, height:item.height }});
-  });
-}
-
-/* =========================
-   MESSAGE HANDLERS
-========================= */
-window.addEventListener('message', (e)=>{
-  const { type, data } = e.data || {};
-  if (!type) return;
-
-  switch(type){
-
-    // Muat semua elemen; data mungkin array ATAU {elements:[...]}
-    case 'load-elements': {
-      const list = Array.isArray(data) ? data
-                  : Array.isArray(data?.elements) ? data.elements
-                  : [];
-      state.elements = list.map(normalize);
-      renderAll();
-      break;
-    }
-
-    // Tambah satu elemen baru
-    case 'add-element': {
-      const el = normalize(data || {});
-      // letak di atas
-      el.zIndex = Math.max(0, ...state.elements.map(x=>x.zIndex||0)) + 1;
-      state.elements.push(el);
-      // render & pilih
-      const node = renderOne(el);
-      canvas.appendChild(node);
-      select(el.id);
-      break;
-    }
-
-    // Kemas kini properti elemen
-    case 'update-element': {
-      const { id, properties } = data || {};
-      const el = byId(id); if (!el) break;
-      Object.assign(el, properties||{});
-      // segar semula node
-      const old = canvas.querySelector(`.el[data-id="${id}"]`);
-      if (old) old.replaceWith(renderOne(el));
-      // hantar balik untuk sync
-      post('element-updated', { id, properties });
-      break;
-    }
-
-    // Hapus
-    case 'delete-element': {
-      const { id } = data || {};
-      const idx = state.elements.findIndex(x=>x.id===id);
-      if (idx >= 0){
-        state.elements.splice(idx,1);
-        const node = canvas.querySelector(`.el[data-id="${id}"]`);
-        node?.remove();
-        post('element-deleted', { id });
-      }
-      break;
-    }
-
-    // Z-order
-    case 'bring-to-front': {
-      const { id } = data || {};
-      const el = byId(id); if (!el) break;
-      el.zIndex = Math.max(0, ...state.elements.map(x=>x.zIndex||0)) + 1;
-      renderAll(); select(id);
-      break;
-    }
-    case 'send-to-back': {
-      const { id } = data || {};
-      const el = byId(id); if (!el) break;
-      el.zIndex = Math.min(0, ...state.elements.map(x=>x.zIndex||0)) - 1;
-      renderAll(); select(id);
-      break;
-    }
-
-    // Tetapan global (opsyenal: warna tema, tipografi)
-    case 'apply-settings': {
-      const s = data || {};
-      document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
-      if (s.heading_size)  document.documentElement.style.setProperty('--hSize',  `${Number(s.heading_size)}px`);
-      if (s.body_size)     document.documentElement.style.setProperty('--bSize',  `${Number(s.body_size)}px`);
-      if (s.heading_color) document.documentElement.style.setProperty('--hColor', s.heading_color);
-      if (s.body_color)    document.documentElement.style.setProperty('--bColor',  s.body_color);
-      if (String(s.heading_bold||'false')==='true') document.documentElement.style.setProperty('--hWeight','800');
-      if (String(s.body_bold||'false')==='true')    document.documentElement.style.setProperty('--bWeight','600');
-      // Content width
-      if (s.content_width){
-        canvas.style.width = Math.min(Number(s.content_width)||980, window.innerWidth-32) + 'px';
-      }
-      break;
-    }
-
-    // Zoom dari parent (jika anda guna)
-    case 'set-zoom': {
-      const { level } = data || {};
-      state.zoom = Math.max(.5, Math.min(2, Number(level)||1));
-      canvas.style.transformOrigin = 'top left';
-      canvas.style.transform = `scale(${state.zoom})`;
-      break;
-    }
-  }
-});
-
-/* Kosongkan pilihan jika klik kanvas */
-canvas.addEventListener('pointerdown', ()=> {
-  state.selectedId = null;
-  document.querySelectorAll('.el').forEach(x=> x.classList.remove('selected'));
-  post('element-selected', null);
-});
-
-/* =========================
-   UTIL
-========================= */
-function escapeHTML(s){ return String(s??'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m])); }
-
-function isYouTube(u){ try{ const x=new URL(u); return x.hostname.includes('youtube.com')||x.hostname.includes('youtu.be'); }catch{ return false; } }
-function youTubeId(u){
-  try{
-    const x=new URL(u);
-    if (x.hostname.includes('youtu.be')) return x.pathname.slice(1);
-    if (x.searchParams.get('v')) return x.searchParams.get('v');
-    const parts = x.pathname.split('/'); return parts[parts.length-1];
-  }catch{ return ''; }
-}
-
-/* Bootstrap awal: beritahu parent kita sedia */
-post('elements-loaded', { elements: state.elements });
-
-</script>
+  // ===== Boot =====
+  (function boot(){
+    const url = new URL(location.href);
+    const mode = url.searchParams.get('mode'); // optional
+    state.design = normalizeDesign(null);
+    if (mode) { state.design.meta.mode = mode; }
+    render();
+  })();
+  </script>
 </body>
 </html>
