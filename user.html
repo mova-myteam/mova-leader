@@ -3,409 +3,232 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA — Laman User</title>
-
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide (untuk ikon jika perlu) -->
-  <script src="https://unpkg.com/lucide@latest"></script>
-
+  <title>MOVA — User</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    :root{ --brand:#ef4444; }
-    html,body{ font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial; color:#111827 }
-    .container-narrow{ max-width: 980px; margin-inline:auto; padding-inline: 1rem }
-    .btn{ display:inline-flex; align-items:center; gap:.5rem; background: var(--brand); color:#fff; padding:.65rem 1rem; border-radius:.75rem; font-weight:700 }
-    .btn:hover{ filter:brightness(.95) }
-    .subtle{ color:#6b7280 }
-    /* ====== EDITOR STATES (aktif hanya bila edit mode) ====== */
-    .mova-editable[contenteditable="true"]{
-      outline:2px dashed rgba(239,68,68,.6);
-      outline-offset:6px; border-radius:.5rem;
-      transition: outline-color .2s;
+    :root{
+      --brand:#ef4444; --cw:980px;
+      --hSize:28px; --hColor:#111; --hWeight:800;
+      --bSize:16px; --bColor:#374151; --bWeight:400;
     }
-    .mova-wrap{ position:relative }
-    .mova-badge{
-      position:absolute; top:-10px; right:-10px;
-      background:#ef4444; color:#fff; font-size:12px; line-height:1;
-      padding:4px 8px; border-radius:999px; box-shadow:0 8px 20px rgba(0,0,0,.15);
-      display:none; pointer-events:none; user-select:none;
-    }
-    .mova-wrap .mova-badge.show{ display:inline-block }
-    .hero-cover{ width:100%; border-radius:16px; border:1px solid #eee; }
-    a[data-type="link"]{ text-decoration:none }
-    .chip{ display:inline-flex; align-items:center; gap:.4rem; padding:.25rem .6rem; border-radius:999px; background:#f3f4f6; border:1px solid #e5e7eb; font-size:.8rem }
-    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06) }
+    html,body{font-family:Inter,system-ui; background:#fff; color:var(--bColor); margin:0}
+    .wrap{max-width:var(--cw); margin:0 auto; padding:20px}
+    .h{font-size:var(--hSize); color:var(--hColor); font-weight:var(--hWeight); margin:0 0 8px}
+    .p{font-size:var(--bSize); color:var(--bColor); font-weight:var(--bWeight); line-height:1.7; margin:0 0 10px}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--brand);color:#fff;
+         padding:.7rem 1rem;border-radius:.8rem;text-decoration:none;font-weight:700}
+    .card{border:1px solid #eee;border-radius:14px;padding:16px}
+    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    @media (max-width:900px){ .grid3{grid-template-columns:1fr} :root{--cw:92vw} }
+    /* Canvas overlay (optional) */
+    .canvas{position:relative}
+    .el{position:absolute; pointer-events:none}
   </style>
 </head>
-<body class="bg-white">
+<body>
+  <main id="app" class="wrap"></main>
 
-  <!-- ===== NAV (ringkas) ===== -->
-  <nav class="border-b border-gray-200">
-    <div class="container-narrow flex items-center justify-between h-14">
-      <div class="flex items-center gap-2">
-        <div class="h-8 w-8 rounded-lg bg-[color:var(--brand)] text-white grid place-items-center">
-          <i data-lucide="rocket" class="w-4 h-4"></i>
-        </div>
-        <span class="font-semibold">MOVA</span>
-      </div>
-      <div class="text-xs subtle">Laman User</div>
-    </div>
-  </nav>
-
-  <!-- ===== HERO ===== -->
-  <header class="container-narrow py-10">
-    <div class="mova-wrap mb-2">
-      <span class="mova-badge">Edit</span>
-      <div class="text-xs tracking-wide uppercase text-gray-500 mova-editable"
-           data-field="hero.eyebrow" data-type="text">MOVA</div>
-    </div>
-
-    <h1 class="text-3xl sm:text-4xl font-extrabold leading-tight mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <span class="mova-editable" data-field="hero.title" data-type="text">
-        Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan MOVA.
-      </span>
-    </h1>
-
-    <p class="mt-3 text-gray-600 mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <span class="mova-editable" data-field="hero.subtitle" data-type="text">
-        Mulakan sebagai Free user, fahami cara berfungsi, dan bila bersedia anda boleh naik taraf ke Silver/Gold/Diamond di bawah bimbingan Leader.
-      </span>
-    </p>
-
-    <div class="mt-5 flex items-center gap-3 mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <a href="#daftar" class="btn" data-field="hero.cta.href" data-type="link" title="Alt+klik untuk ubah pautan">
-        <span class="mova-editable" data-field="hero.cta.text" data-type="text">Daftar Sekarang</span>
-      </a>
-      <span class="chip">Cashback <span class="font-semibold" data-field="hero.cashback" data-type="text">5%–10%</span></span>
-    </div>
-
-    <div class="mt-8 mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <img class="hero-cover" alt=""
-           src="https://picsum.photos/seed/mova-hero/1200/640"
-           data-field="hero.image" data-type="img">
-      <div class="text-xs text-gray-500 mt-1">Dwi-klik pada imej untuk tukar URL.</div>
-    </div>
-  </header>
-
-  <!-- ===== FEATURES ===== -->
-  <section class="container-narrow py-10">
-    <div class="grid sm:grid-cols-3 gap-4">
-      <!-- Feature 1 -->
-      <div class="card p-5 mova-wrap">
-        <span class="mova-badge">Edit</span>
-        <div class="text-lg font-semibold mova-editable" data-field="features.0.title" data-type="text">Mudah Digunakan</div>
-        <p class="text-gray-600 mt-1 mova-editable" data-field="features.0.body" data-type="text">
-          Antaramuka ringkas, fokus pada hasil. Semua maklumat penting di hujung jari.
-        </p>
-      </div>
-      <!-- Feature 2 -->
-      <div class="card p-5 mova-wrap">
-        <span class="mova-badge">Edit</span>
-        <div class="text-lg font-semibold mova-editable" data-field="features.1.title" data-type="text">Jaringan Partner</div>
-        <p class="text-gray-600 mt-1 mova-editable" data-field="features.1.body" data-type="text">
-          Kembangkan rangkaian anda dan bina komuniti pelanggan & partner yang aktif.
-        </p>
-      </div>
-      <!-- Feature 3 -->
-      <div class="card p-5 mova-wrap">
-        <span class="mova-badge">Edit</span>
-        <div class="text-lg font-semibold mova-editable" data-field="features.2.title" data-type="text">Cashback</div>
-        <p class="text-gray-600 mt-1 mova-editable" data-field="features.2.body" data-type="text">
-          Nikmati pulangan sehingga <b>10%</b> mengikut kempen semasa & pakej terpilih.
-        </p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== VIDEO / MEDIA ===== -->
-  <section class="container-narrow py-10">
-    <h2 class="text-2xl font-bold mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <span class="mova-editable" data-field="video.title" data-type="text">Tonton Penerangan Ringkas</span>
-    </h2>
-    <p class="text-gray-600 mt-1 mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <span class="mova-editable" data-field="video.desc" data-type="text">
-        Video ini menerangkan bagaimana MOVA membantu anda bermula dengan pantas.
-      </span>
-    </p>
-
-    <div class="mt-4 mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <div id="videoBox" class="w-full aspect-video rounded-xl border border-gray-200 overflow-hidden bg-black/5 grid place-items-center text-gray-400">
-        <!-- auto render oleh skrip dari data-field="video.src" -->
-        <span class="text-sm">Video akan dipaparkan di sini</span>
-      </div>
-      <div class="text-xs text-gray-500 mt-1">
-        Dwi-klik pada kotak video untuk menetapkan URL (YouTube / MP4).
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== TESTIMONIALS ===== -->
-  <section class="container-narrow py-10">
-    <h2 class="text-2xl font-bold mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <span class="mova-editable" data-field="testi.title" data-type="text">Apa Kata Mereka</span>
-    </h2>
-    <div class="grid sm:grid-cols-3 gap-4 mt-3">
-      <div class="card p-5 mova-wrap">
-        <span class="mova-badge">Edit</span>
-        <p class="text-gray-700 mova-editable" data-field="testi.0.text" data-type="text">
-          “Senang digunakan & support pantas. Saya terus dapat pelanggan pertama minggu yang sama.”
-        </p>
-        <div class="text-sm mt-2 font-semibold mova-editable" data-field="testi.0.name" data-type="text">Aina, Penang</div>
-      </div>
-      <div class="card p-5 mova-wrap">
-        <span class="mova-badge">Edit</span>
-        <p class="text-gray-700 mova-editable" data-field="testi.1.text" data-type="text">
-          “Dashboard kemas, broadcast WhatsApp membantu sangat untuk follow-up.”
-        </p>
-        <div class="text-sm mt-2 font-semibold mova-editable" data-field="testi.1.name" data-type="text">Hafiz, JB</div>
-      </div>
-      <div class="card p-5 mova-wrap">
-        <span class="mova-badge">Edit</span>
-        <p class="text-gray-700 mova-editable" data-field="testi.2.text" data-type="text">
-          “Saya suka bahagian sections — boleh susun konten dan ubah cepat.”
-        </p>
-        <div class="text-sm mt-2 font-semibold mova-editable" data-field="testi.2.name" data-type="text">Mira, KL</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== CTA ===== -->
-  <section class="container-narrow py-12">
-    <div class="card p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mova-wrap">
-      <span class="mova-badge">Edit</span>
-      <div>
-        <div class="text-xl font-bold mova-editable" data-field="cta.title" data-type="text">Sedia untuk bermula?</div>
-        <div class="text-gray-600 mova-editable" data-field="cta.subtitle" data-type="text">Daftar percuma & uji semua fungsi utama dahulu.</div>
-      </div>
-      <a href="#daftar" class="btn" data-field="cta.href" data-type="link" title="Alt+klik untuk ubah pautan">
-        <span class="mova-editable" data-field="cta.text" data-type="text">Buka Akaun Percuma</span>
-      </a>
-    </div>
-  </section>
-
-  <!-- ===== FOOTER ===== -->
-  <footer class="border-t border-gray-200 py-8">
-    <div class="container-narrow flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-      <div class="mova-wrap">
-        <span class="mova-badge">Edit</span>
-        <div class="text-sm text-gray-500 mova-editable" data-field="footer.copy" data-type="text">
-          © <span id="y"></span> MOVA. Semua hak cipta terpelihara.
-        </div>
-      </div>
-      <div class="text-sm text-gray-400">Dikuasakan oleh MOVA</div>
-    </div>
-  </footer>
-
-  <!-- ===== SCRIPTS ===== -->
   <script>
-    // ===== KONFIG (kekalkan EXEC_URL ini selari dengan dashboard anda) =====
-    const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+  // ===== Design state =====
+  const state = {
+    design: window.__INIT__DESIGN__ || null
+  };
 
-    // ===== STATE =====
-    const EDIT = {
-      enabled:false,
-      leader:null,
-      fields:{},       // map path->value (disimpan di settings_set: fields_map_json)
-      saveTimer:null
-    };
+  // ===== Utilities =====
+  const $ = sel => document.querySelector(sel);
+  const setTheme = (t={})=>{
+    const r = document.documentElement;
+    if (t.brand) r.style.setProperty('--brand', t.brand);
+    if (t.contentWidth) r.style.setProperty('--cw', t.contentWidth+'px');
+    if (t.heading){ r.style.setProperty('--hSize', (t.heading.size||28)+'px');
+      r.style.setProperty('--hColor', t.heading.color||'#111');
+      r.style.setProperty('--hWeight', (t.heading.bold?'800':'700')); }
+    if (t.body){ r.style.setProperty('--bSize', (t.body.size||16)+'px');
+      r.style.setProperty('--bColor', t.body.color||'#374151');
+      r.style.setProperty('--bWeight', (t.body.bold?'600':'400')); }
+  };
+  const byId = (id)=> (state.design.sections || []).find(s=>s.id===id);
 
-    // Tahun footer
-    document.getElementById('y').textContent = new Date().getFullYear();
-
-    // Gate: benarkan edit jika ?edit=1 & ada sesi leader
-    (function gate(){
-      const q = new URL(location.href).searchParams;
-      const wantEdit = q.get('edit')==='1';
-      try { EDIT.leader = JSON.parse(localStorage.getItem('mova_leader')||'null'); } catch(e){}
-      EDIT.enabled = !!(wantEdit && EDIT.leader && EDIT.leader.leader_id);
-    })();
-
-    // IPC dari dashboard
-    window.addEventListener('message', (e)=>{
-      const {type, data} = e.data||{};
-      if (type==='toggle-edit'){ EDIT.enabled = !!data?.on; applyEditMode(); }
-      if (type==='load-fields'){ EDIT.fields = data||{}; applyFieldsToDOM(); applyEditMode(); }
-    });
-
-    // Panggilan API Apps Script
-    async function callApi(path, payload){
-      const res = await fetch(EXEC_URL, {
-        method:'POST',
-        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-        body:new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
-      });
-      const text = await res.text();
-      let json; try{ json = JSON.parse(text); }catch(e){ throw new Error(text) }
-      if (json && json.success===false) throw new Error(json.error||'Ralat');
-      return json;
+  // ===== Renderers =====
+  const R = {
+    hero: s=>{
+      const d=s.data||{};
+      return `
+        <section style="display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center;margin:28px 0">
+          <div>
+            <div class="p" style="color:#6b7280">${d.eyebrow||''}</div>
+            <h1 class="h" style="font-size:clamp(28px,4vw,44px)">${d.title||''}</h1>
+            <p class="p">${d.subtitle||''}</p>
+            ${d.ctaText?`<a href="${d.ctaHref||'#'}" class="btn">${d.ctaText}</a>`:''}
+          </div>
+          ${d.image?`<img src="${d.image}" alt="" style="width:100%;border-radius:16px;border:1px solid #eee">`:''}
+        </section>`;
+    },
+    features: s=>{
+      const items=(s.data?.items)||[];
+      return `
+        <section style="margin:36px 0">
+          <h2 class="h">Ciri Utama</h2>
+          <div class="grid3">
+            ${items.map(it=>`
+              <div class="card">
+                <div class="h" style="font-size:20px">${it.title||''}</div>
+                <div class="p">${it.text||''}</div>
+              </div>`).join('')}
+          </div>
+        </section>`;
+    },
+    video: s=>{
+      const src=s.data?.src||'';
+      if (!src) return '';
+      const yt = parseYT(src);
+      return `
+        <section style="margin:36px 0">
+          <div style="position:relative;padding-bottom:56%;height:0;overflow:hidden;border-radius:16px;border:1px solid #eee">
+            ${yt
+              ? `<iframe src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen
+                    style="position:absolute;inset:0;width:100%;height:100%"></iframe>`
+              : `<video src="${src}" controls playsinline style="position:absolute;inset:0;width:100%;height:100%"></video>`}
+          </div>
+        </section>`;
+    },
+    testimonials: s=>{
+      const items=s.data?.items||[];
+      return `
+        <section style="margin:36px 0">
+          <h2 class="h">Testimoni</h2>
+          <div class="grid3">
+            ${items.map(it=>`
+              <div class="card">
+                <div class="p" style="font-style:italic">“${it.quote||''}”</div>
+                <div class="p" style="color:#6b7280">— ${it.name||''}</div>
+              </div>`).join('')}
+          </div>
+        </section>`;
+    },
+    cta: s=>{
+      const d=s.data||{};
+      return `
+        <section class="card" style="margin:36px 0; text-align:center; padding:28px">
+          <h2 class="h" style="margin-bottom:10px">${d.title||''}</h2>
+          ${d.button?`<a href="${d.href||'#'}" class="btn">${d.button}</a>`:''}
+        </section>`;
+    },
+    footer: s=>{
+      const d=s.data||{};
+      const links=(d.links||[]).map(l=>`<a href="${l.href}" class="p" style="text-decoration:none;color:#6b7280">${l.text}</a>`).join(' · ');
+      return `
+        <footer style="margin:48px 0 16px; border-top:1px solid #eee; padding-top:16px; display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap">
+          <div class="p" style="color:#6b7280">${links}</div>
+          <div class="p" style="color:#9ca3af">${d.copyright||''}</div>
+        </footer>`;
     }
+  };
 
-    // Muat fields_map_json dari server
-    async function loadFields(){
-      if (!(EDIT.leader && EDIT.leader.leader_id)) return;
+  function parseYT(url){
+    try{
+      const u = new URL(url);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+    }catch(_){}
+    return null;
+  }
+
+  // ===== Main render =====
+  function render(){
+    const d = state.design;
+    if (!d) return;
+    setTheme(d.meta?.theme || {});
+    const parts = (d.sections||[]).map(sec=>{
+      const fn = R[sec.type];
+      return fn ? fn(sec) : '';
+    }).join('');
+    $('#app').innerHTML = parts + renderCanvasOverlay(d);
+  }
+  function renderCanvasOverlay(d){
+    if ((d.meta?.mode||'template') !== 'canvas') return '';
+    const els = d.elements||[];
+    return `<div class="canvas" style="height:0">
+      ${els.map(el=>renderEl(el)).join('')}
+    </div>`;
+  }
+  function renderEl(el){
+    if (el.type==='text'){
+      return `<div class="el" style="left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;
+        font-size:${el.fontSize||24}px;color:${el.color||'#111'};font-weight:${el.fontWeight||'400'};opacity:${(el.opacity??100)/100};
+        text-align:${el.textAlign||'left'};z-index:${el.zIndex||1}">${el.content||''}</div>`;
+    }
+    if (el.type==='image'){
+      return `<img class="el" src="${el.src}" style="left:${el.x}px;top:${el.y}px;width:${el.width}px;height:${el.height}px;object-fit:cover;border-radius:${el.borderRadius||0}px;opacity:${(el.opacity??100)/100};z-index:${el.zIndex||1};">`;
+    }
+    // boleh tambah video/button/shape/icon
+    return '';
+  }
+
+  // ===== Message API (dari dashboard) =====
+  window.addEventListener('message', (e)=>{
+    const { type, data } = e.data || {};
+    if (!type) return;
+
+    if (type==='load-design'){ state.design = normalizeDesign(data); render(); }
+    if (type==='apply-theme'){ state.design.meta = state.design.meta||{}; state.design.meta.theme = {...(state.design.meta.theme||{}), ...(data||{})}; render(); }
+    if (type==='update-field'){ // data: {path:'sections.hero.data.title', value:'...'}
       try{
-        const out = await callApi('settings_get', { leader_id: EDIT.leader.leader_id });
-        const s = out.settings || {};
-        const map = safeJSON(s.fields_map_json, {}) || {};
-        EDIT.fields = map;
-        applyFieldsToDOM();
-      }catch(e){ /* diamkan */ }
-    }
-
-    function safeJSON(s, def){ try{ return JSON.parse(s||''); }catch(_){ return def } }
-
-    // Terapkan nilai ke DOM mengikut data-field + data-type
-    function applyFieldsToDOM(){
-      document.querySelectorAll('[data-field]').forEach(el=>{
-        const path = el.dataset.field;
-        const type = el.dataset.type || 'text';
-        const val  = getVal(path);
-        if (val==null) return;
-
-        if (type==='text' || type==='html'){
-          if (type==='text') el.textContent = String(val);
-          else el.innerHTML = String(val);
-        } else if (type==='img'){
-          el.setAttribute('src', String(val));
-        } else if (type==='link'){
-          el.setAttribute('href', String(val));
-        }
-      });
-
-      // render video box
-      renderVideo();
-    }
-
-    function getVal(path){
-      return (EDIT.fields && Object.prototype.hasOwnProperty.call(EDIT.fields, path)) ? EDIT.fields[path] : null;
-    }
-
-    function setVal(path, value){
-      EDIT.fields[path] = value;
-      debounceSave();
-    }
-
-    function debounceSave(){
-      clearTimeout(EDIT.saveTimer);
-      EDIT.saveTimer = setTimeout(async ()=>{
-        if (!(EDIT.leader && EDIT.leader.leader_id)) return;
-        try{
-          await callApi('settings_set', {
-            leader_id: EDIT.leader.leader_id,
-            fields_map_json: JSON.stringify(EDIT.fields||{})
-          });
-          // console.log('Saved ✅');
-        }catch(e){ /* boleh tambah toast jika mahu */ }
-      }, 800);
-    }
-
-    // Aktif/padam edit mode
-    function applyEditMode(){
-      document.querySelectorAll('[data-field]').forEach(el=>{
-        const type = el.dataset.type || 'text';
-        const wrap = el.closest('.mova-wrap');
-        const badge = wrap ? wrap.querySelector('.mova-badge') : null;
-
-        if (EDIT.enabled){
-          if (type==='text' || type==='html'){
-            el.setAttribute('contenteditable','true');
-            el.classList.add('mova-editable');
-
-            const handler = ()=>{
-              const path = el.dataset.field;
-              const v = (type==='text') ? el.textContent.trim() : el.innerHTML;
-              setVal(path, v);
-            };
-
-            // pastikan tak gandakan listeners
-            el.oninput = handler;
-            el.onfocus = ()=> badge && badge.classList.add('show');
-            el.onblur  = ()=> badge && badge.classList.remove('show');
-          }
-          if (type==='img'){
-            el.style.cursor = 'pointer';
-            el.ondblclick = ()=>{
-              const u = prompt('Masukkan URL imej:', el.getAttribute('src')||'');
-              if (!u) return;
-              el.setAttribute('src', u);
-              setVal(el.dataset.field, u);
-            };
-          }
-          if (type==='link'){
-            el.onclick = (ev)=>{
-              if (!ev.altKey) return; ev.preventDefault();
-              const u = prompt('Masukkan URL pautan:', el.getAttribute('href')||'#');
-              if (!u) return;
-              el.setAttribute('href', u);
-              setVal(el.dataset.field, u);
-            };
-          }
-
-          // video box dblclick untuk tetapkan src
-          const vbox = document.getElementById('videoBox');
-          if (vbox){
-            vbox.style.cursor='pointer';
-            vbox.ondblclick = ()=>{
-              const cur = EDIT.fields['video.src'] || '';
-              const u = prompt('Masukkan URL YouTube atau MP4:', cur);
-              if (!u) return;
-              EDIT.fields['video.src'] = u;
-              renderVideo(); debounceSave();
-            };
-          }
-
-        } else {
-          el.removeAttribute('contenteditable');
-          el.classList.remove('mova-editable');
-          if (badge) badge.classList.remove('show');
-
-          // buang handler
-          el.oninput = el.onfocus = el.onblur = el.onclick = el.ondblclick = null;
-          const vbox = document.getElementById('videoBox');
-          if (vbox) vbox.ondblclick = null;
-        }
-      });
-    }
-
-    function renderVideo(){
-      const box = document.getElementById('videoBox'); if (!box) return;
-      const src = EDIT.fields['video.src'];
-      if (!src){ box.innerHTML = '<span class="text-sm text-gray-400">Video akan dipaparkan di sini</span>'; return; }
-
-      // YouTube?
-      let ytId = null;
-      try{
-        const u = new URL(src);
-        if (u.hostname.includes('youtube.com')) ytId = u.searchParams.get('v');
-        if (u.hostname.includes('youtu.be')) ytId = u.pathname.replace('/','');
+        applyPath(state.design, data.path, data.value);
+        render();
       }catch(_){}
-      if (ytId){
-        box.innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe>`;
-      } else if (/\.(mp4|webm|m4v)(\?|$)/i.test(src)){
-        box.innerHTML = `<video src="${src}" controls playsinline class="w-full h-full"></video>`;
-      } else {
-        box.innerHTML = `<a class="text-blue-600 underline break-all" href="${src}" target="_blank" rel="noopener">Buka pautan video</a>`;
-      }
     }
+    if (type==='load-elements'){ // support array atau {elements:[...]}
+      const arr = Array.isArray(data)? data : (Array.isArray(data?.elements)? data.elements: []);
+      state.design.elements = arr;
+      state.design.meta = state.design.meta||{}; state.design.meta.mode='canvas';
+      render();
+    }
+    if (type==='update-element'){ // data:{id, properties:{}}
+      const i=(state.design.elements||[]).findIndex(x=>x.id===data.id);
+      if (i>-1){ Object.assign(state.design.elements[i], data.properties||{}); render(); }
+    }
+    if (type==='delete-element'){
+      state.design.elements = (state.design.elements||[]).filter(x=>x.id!==data.id); render();
+    }
+  });
 
-    // Init
-    document.addEventListener('DOMContentLoaded', async ()=>{
-      lucide.createIcons();
+  // ===== Helpers =====
+  function normalizeDesign(d){
+    // fallback minimum if dashboard belum hantar apa-apa
+    if (!d || !Array.isArray(d.sections)) {
+      return {
+        meta:{ mode:'template', theme:{} },
+        sections:[
+          {id:'hero',type:'hero',locked:true,data:{eyebrow:'MOVA',title:'Selamat Datang',subtitle:'Edit dari dashboard.',ctaText:'Mula',ctaHref:'#',image:'https://picsum.photos/seed/mova/960/600'}},
+          {id:'features',type:'features',locked:true,data:{items:[{title:'Ciri 1',text:'Ringkas.'},{title:'Ciri 2',text:'Cepat.'},{title:'Ciri 3',text:'Premium.'}]}},
+          {id:'cta',type:'cta',locked:true,data:{title:'Ready?',button:'Hubungi',href:'#'}},
+          {id:'footer',type:'footer',locked:true,data:{links:[{text:'Privasi',href:'#'}],copyright:'© '+new Date().getFullYear()+' MOVA'}}
+        ],
+        elements:[]
+      };
+    }
+    return d;
+  }
+  function applyPath(obj, path, value){
+    const keys = path.split('.');
+    let cur = obj;
+    for (let i=0;i<keys.length-1;i++){
+      const k = keys[i];
+      if (!(k in cur)) cur[k] = {};
+      cur = cur[k];
+    }
+    cur[keys[keys.length-1]] = value;
+  }
 
-      // Jika bukan edit mode, tetap cuba muat nilai supaya paparan guna nilai simpanan
-      await loadFields();
-      applyEditMode();
-    });
+  // ===== Boot =====
+  (function boot(){
+    const url = new URL(location.href);
+    const mode = url.searchParams.get('mode'); // optional
+    state.design = normalizeDesign(null);
+    if (mode) { state.design.meta.mode = mode; }
+    render();
+  })();
   </script>
 </body>
 </html>
