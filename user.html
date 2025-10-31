@@ -5,315 +5,518 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MOVA — Laman User</title>
 
-  <!-- Font & Tailwind -->
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind (optional; untuk gaya asas bersih) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide (untuk ikon sosial jika perlu) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Interact.js untuk drag/resize dalam mod editor (iframe dashboard) -->
+  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
-  <!-- Papar sahaja (no edit) + no cache -->
-  <meta http-equiv="Cache-Control" content="no-store" />
   <style>
     :root{
       --brand:#ef4444;
-      --hSize:28px; --hColor:#111111; --hWeight:800;
-      --bSize:16px; --bColor:#374151; --bWeight:400;
-      --contentWidth: 980px;
+      --contentW: 980px;
+      --hSize: 28px; --hColor:#111111; --hWeight:800;
+      --bSize: 16px; --bColor:#374151; --bWeight:400;
     }
-    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
-    .container-narrow{max-width:var(--contentWidth);margin:0 auto}
-    .chip{display:inline-flex;align-items:center;gap:.5rem;border:1px solid #e5e7eb;background:#fff;border-radius:9999px;padding:.35rem .6rem;font-size:.75rem;color:#374151}
-    .btn-brand{background:var(--brand);color:#fff;border-radius:.75rem;padding:.6rem 1rem;font-weight:700}
-    .btn-brand:hover{filter:brightness(.95)}
-    .hero-title{font-size:var(--hSize);color:var(--hColor);font-weight:var(--hWeight);line-height:1.15}
-    .body-text{font-size:var(--bSize);color:var(--bColor);font-weight:var(--bWeight);line-height:1.7}
-    .section + .section{margin-top:3rem}
-    .img-rounded{border-radius:1rem}
-    .no-edit *{user-select:text}
-    /* Skrin blok akses */
-    #gate{display:none}
-    #gate.show{display:flex}
+    html,body{font-family:Inter,system-ui,ui-sans-serif; background:#fff; color:#111;}
+    .wrap{max-width:var(--contentW); margin:32px auto; padding:0 16px;}
+    .sec-title{font-size:var(--hSize); color:var(--hColor); font-weight:var(--hWeight);}
+    .sec-body{font-size:var(--bSize); color:var(--bColor); font-weight:var(--bWeight); line-height:1.7;}
+    .badge{display:inline-block;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:9999px;font-size:12px;padding:2px 8px;}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--brand);color:#fff;padding:.6rem 1rem;border-radius:.7rem;text-decoration:none;}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:16px;box-shadow:0 6px 24px rgba(15,23,42,.06);}
+    /* ===== Canvas Layer (for editor via dashboard) ===== */
+    .canvas-host{position:relative; margin:24px auto; max-width:var(--contentW);}
+    .canvas-stage{position:relative; width:100%; min-height:320px; border:1px dashed #e5e7eb; border-radius:12px; background:#fafafa;}
+    .el{position:absolute; box-sizing:border-box; user-select:none;}
+    .el.selected{outline:2px solid #111;}
+    .el[data-type="text"]{display:flex;align-items:center;justify-content:center;padding:8px;}
+    .el[data-type="button"] a{display:inline-block;padding:.55rem .9rem;border-radius:.7rem;color:#fff;text-decoration:none;}
+    .el[data-type="image"] img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
+    .el[data-type="video"] iframe,.el[data-type="video"] video{width:100%;height:100%;border:0;border-radius:8px;}
+    .el[data-type="shape"]{background:#ef4444;}
+    .ghost-msg{display:none;position:absolute;top:8px;right:8px;background:#111;color:#fff;padding:6px 10px;border-radius:8px;font-size:12px;opacity:.9}
+    .editor-active .ghost-msg{display:block;}
   </style>
 </head>
-<body class="bg-white text-slate-900 no-edit">
+<body>
 
-  <!-- Bar atas -->
-  <div class="sticky top-0 z-30 bg-white/85 backdrop-blur border-b border-slate-200">
-    <div class="container-narrow px-4 h-12 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="h-7 w-7 rounded-lg bg-[color:var(--brand)] text-white grid place-items-center text-[13px] font-bold">M</div>
-        <div class="text-sm text-slate-600">Laman User</div>
+<!-- ===== WRAPPER ===== -->
+<div class="wrap">
+  <!-- Header ringkas -->
+  <header class="mb-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-10 w-10 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
+        <i data-lucide="rocket" class="w-5 h-5"></i>
       </div>
-      <a id="logoutBtn" href="#" class="text-sm text-slate-500 hover:text-slate-800 hidden">Log Keluar</a>
+      <div>
+        <div class="text-lg font-semibold">MOVA</div>
+        <div class="text-xs text-gray-500" id="helloUser">Selamat datang</div>
+      </div>
     </div>
+    <div class="text-xs text-gray-500" id="viewModeHint"></div>
+  </header>
+
+  <!-- Notice akses -->
+  <div id="accessNotice" class="hidden card p-4 mb-6">
+    <div class="text-sm text-gray-700" id="accessText"></div>
   </div>
 
-  <!-- Skrin Gate (dipaparkan jika belum dibenarkan) -->
-  <section id="gate" class="fixed inset-0 items-center justify-center bg-white">
-    <div class="text-center max-w-md mx-auto px-6">
-      <div class="h-10 w-10 mx-auto mb-4 rounded-lg bg-red-500 text-white grid place-items-center font-bold">!</div>
-      <h2 class="text-xl font-extrabold mb-1">Akses belum dibenarkan</h2>
-      <p id="gateMsg" class="text-slate-600 mb-5">
-        Sila log masuk dan pastikan nombor telefon anda telah disahkan.
-      </p>
-      <a id="toLogin" class="btn-brand inline-flex" href="./index.html">Pergi ke Log Masuk</a>
+  <!-- ===== Sections (content-driven) ===== -->
+  <main id="sectionsHost" class="space-y-8"></main>
+
+  <!-- ===== Canvas Design Layer (elements_json) ===== -->
+  <section id="canvasHost" class="canvas-host mt-10">
+    <div id="canvasStage" class="canvas-stage">
+      <div class="ghost-msg rounded">Editor aktif (melalui Dashboard) — boleh drag/resize klik elemen.</div>
+      <!-- Elemen akan dimasukkan secara dinamik -->
     </div>
   </section>
 
-  <!-- Kandungan (hanya dipaparkan jika lulus gate) -->
-  <main id="content" class="container-narrow px-4 py-8 hidden">
-    <!-- HERO -->
-    <section id="hero" class="section">
-      <div class="chip mb-3" data-role="hero-kicker">MOVA</div>
-      <h1 class="hero-title mt-2" data-role="hero-title">
-        Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan MOVA.
-      </h1>
-      <p class="body-text mt-4 max-w-3xl" data-role="hero-sub">
-        Mulakan sebagai Free user, fahami cara berfungsi, dan bila bersedia anda boleh naik taraf ke Silver/Gold/Diamond di bawah bimbingan Leader.
-      </p>
-      <div class="mt-5 flex items-center gap-3 flex-wrap">
-        <a class="btn-brand" data-role="hero-cta" href="#daftar">Daftar Sekarang</a>
-        <span class="chip" data-role="hero-badge">Cashback 5%–10%</span>
-      </div>
-    </section>
+  <!-- Footer ringkas -->
+  <footer class="mt-12 text-center text-xs text-gray-400">
+    © <span id="yearNow"></span> MOVA. Semua hak cipta terpelihara.
+  </footer>
+</div>
 
-    <!-- BLOK-BLOK dinamik dari sections_json -->
-    <section id="blocks" class="section"></section>
-  </main>
+<script>
+/** =========================
+ *  KONFIG / UTIL
+ *  ========================= */
+const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-  <script>
-    /* ================== KONFIG ================== */
-    const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+const qs = new URLSearchParams(location.search);
+const editorFlagQS = qs.get('editor') === '1'; // optional trigger
+const inIframe = (function(){ try { return window.self !== window.top; } catch(_){ return true; }})();
+let EDITOR_MODE = editorFlagQS || inIframe; // bila dibuka dari dashboard (iframe), mod editor hidup
 
-    /* ================== UTIL ================== */
-    const $ = sel => document.querySelector(sel);
-    function safeJSON(s, def){ try{ return JSON.parse(s||''); } catch(_){ return def; } }
-    function setVar(name, val){ document.documentElement.style.setProperty(name, val); }
-    function esc(s){ return String(s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+const state = {
+  user: null,
+  settings: {},
+  elements: [], // dari elements_json
+  // mapping element DOM
+  elementMap: new Map()
+};
 
-    /* ================== THEME/TYPO ================== */
-    function applyThemeFromSettings(s){
-      if (s?.theme_color) setVar('--brand', s.theme_color);
-      if (s?.content_width) setVar('--contentWidth', s.content_width+'px');
+const helloUser = document.getElementById('helloUser');
+const accessNotice = document.getElementById('accessNotice');
+const accessText = document.getElementById('accessText');
+const sectionsHost = document.getElementById('sectionsHost');
+const canvasStage = document.getElementById('canvasStage');
+const viewModeHint = document.getElementById('viewModeHint');
+document.getElementById('yearNow').textContent = new Date().getFullYear();
+lucide.createIcons();
 
-      const hSize  = Number(s?.heading_size || 0) || 28;
-      const bSize  = Number(s?.body_size   || 0) || 16;
-      const hColor = s?.heading_color || '#111111';
-      const bColor = s?.body_color    || '#374151';
-      const hBold  = String(s?.heading_bold||'false')==='true';
-      const bBold  = String(s?.body_bold   ||'false')==='true';
+/** =========================
+ *  BOOT
+ *  ========================= */
+(async function boot(){
+  // 1) Sesi user (login) diperlukan
+  state.user = loadUserSession();
+  if (!state.user){ return deny("Sila log masuk terlebih dahulu.", true); }
 
-      setVar('--hSize',  hSize+'px');
-      setVar('--bSize',  bSize+'px');
-      setVar('--hColor', hColor);
-      setVar('--bColor', bColor);
-      setVar('--hWeight', hBold? '800':'700');
-      setVar('--bWeight', bBold? '600':'400');
+  helloUser.textContent = `Hai, ${state.user.name||'user'}`;
+
+  try{
+    // 2) Sahkan akses (mesti approved)
+    const ok = await resolveAccess(state.user);
+    if (!ok){ return; }
+
+    // 3) Muat tetapan & render
+    await loadSettings();
+    applyThemeFromSettings();
+    renderSections();
+    buildCanvasFromElements();
+
+    // 4) Jika editor (dipanggil dari dashboard), aktifkan interaksi & messaging
+    if (EDITOR_MODE) {
+      document.body.classList.add('editor-active');
+      enableInteract();
+      setupPostMessage();
+      viewModeHint.textContent = 'Mode: Preview Editor (via Dashboard)';
+    } else {
+      viewModeHint.textContent = 'Mode: Paparan';
     }
+  }catch(e){
+    deny('Ralat memuat data. Cuba lagi.', false);
+  }
+})();
 
-    /* ================== RENDER BLOK ================== */
-    function parseYouTube(url){
-      try{
-        const u = new URL(url);
-        if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
-        if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
-      }catch(_){}
-      return null;
+/** =========================
+ *  Sesi & Akses
+ *  ========================= */
+function loadUserSession(){
+  try{
+    // Jangkaan struktur: { user_id, name, phone, status, partner, token? }
+    return JSON.parse(localStorage.getItem('mova_user') || 'null');
+  }catch(_){ return null; }
+}
+
+async function resolveAccess(user){
+  try{
+    const res = await callApi('resolve_access', { phone: user.phone||'', name: user.name||'' });
+    // Jangkaan: { success:true, approved:true/false, reason? }
+    if (!res.success){ deny('Gagal menyemak akses.', false); return false; }
+    if (!res.approved){ deny('Akses ditolak atau belum diluluskan. Hubungi Leader.', false); return false; }
+    return true;
+  }catch(_){
+    deny('Ralat rangkaian semak akses.', false);
+    return false;
+  }
+}
+
+function deny(msg, redirect){
+  accessText.textContent = msg;
+  accessNotice.classList.remove('hidden');
+  sectionsHost.innerHTML = '';
+  if (redirect){
+    setTimeout(()=> location.href = './index.html', 800);
+  }
+}
+
+/** =========================
+ *  API
+ *  ========================= */
+async function callApi(path, payload){
+  const res = await fetch(EXEC_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+    body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
+  });
+  const text = await res.text();
+  let json; try{ json = JSON.parse(text); }catch(e){ throw new Error(text); }
+  if (json && json.success === false) throw new Error(json.error || 'Unknown error');
+  return json;
+}
+
+async function loadSettings(){
+  const out = await callApi('settings_get', { leader_id: (state.user?.leader_id || state.user?.owner_id || 'LEADER') });
+  state.settings = out.settings || {};
+  // Parse sections
+  let arr = []; try{ arr = JSON.parse(state.settings.sections_json || '[]'); }catch(_){}
+  state.sections = Array.isArray(arr) ? arr : [];
+  // Parse elements
+  let els = []; try{ els = JSON.parse(state.settings.elements_json || '[]'); }catch(_){}
+  state.elements = Array.isArray(els) ? els : [];
+}
+
+/** =========================
+ *  Gaya Global dari Settings
+ *  ========================= */
+function applyThemeFromSettings(){
+  const s = state.settings || {};
+  document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
+  if (s.content_width) document.documentElement.style.setProperty('--contentW', s.content_width + 'px');
+
+  document.documentElement.style.setProperty('--hSize', (Number(s.heading_size||0)||28) + 'px');
+  document.documentElement.style.setProperty('--bSize', (Number(s.body_size||0)||16) + 'px');
+  document.documentElement.style.setProperty('--hColor', s.heading_color || '#111111');
+  document.documentElement.style.setProperty('--bColor', s.body_color || '#374151');
+  document.documentElement.style.setProperty('--hWeight', (String(s.heading_bold||'false')==='true') ? '800' : '700');
+  document.documentElement.style.setProperty('--bWeight', (String(s.body_bold||'false')==='true') ? '600' : '400');
+}
+
+/** =========================
+ *  Render Sections (sections_json)
+ *  ========================= */
+function renderSections(){
+  sectionsHost.innerHTML = '';
+  const s = state.sections || [];
+  if (!s.length){
+    const empty = document.createElement('div');
+    empty.className = 'text-sm text-gray-500';
+    empty.textContent = 'Tiada kandungan lagi.';
+    sectionsHost.appendChild(empty);
+    return;
+  }
+  s.forEach(sec => {
+    if (sec.hidden) return; // skip jika ditanda sembunyi
+    const card = document.createElement('section');
+    card.className = 'card p-6';
+    const header = document.createElement('div');
+    header.className = 'flex items-center justify-between mb-2';
+    const left = document.createElement('div');
+    left.className = 'flex items-center gap-2';
+    left.innerHTML = `<span class="sec-title">${esc(sec.title||'')}</span>`;
+    const right = document.createElement('div');
+    if (sec.featured){ right.innerHTML = `<span class="badge">Featured</span>`; }
+    header.append(left,right);
+    const body = document.createElement('div');
+    body.className = 'sec-body mt-2';
+    body.innerHTML = blocksToHTML(sec.blocks || []);
+    card.append(header, body);
+    sectionsHost.appendChild(card);
+  });
+}
+
+function blocksToHTML(blocks){
+  return (blocks||[]).map(b=>{
+    if (b.kind==='text' || b.kind==='rich'){
+      return `<div style="margin:.5rem 0">${b.html ? b.html : esc(b.value||'')}</div>`;
+    } else if (b.kind==='image'){
+      const u = esc(b.src||b.value||'');
+      return u ? `<img src="${u}" alt="" class="w-full rounded-xl border border-gray-200 my-2">` : '';
+    } else if (b.kind==='video'){
+      const u = esc(b.src||b.value||''); if (!u) return '';
+      const yt = parseYouTube(u);
+      if (yt){
+        return `
+        <div class="relative pt-[56.25%] my-2">
+          <iframe class="absolute inset-0 w-full h-full rounded-xl border border-gray-200" src="https://www.youtube.com/embed/${yt}" allowfullscreen></iframe>
+        </div>`;
+      }
+      return `<video src="${u}" controls playsinline class="w-full rounded-xl border border-gray-200 my-2"></video>`;
+    } else if (b.kind==='link'){
+      const text = esc(b.text||'Pautan'); const u = esc(b.href||'#');
+      return `<a href="${u}" target="_blank" class="btn my-2">${text}</a>`;
+    } else if (b.kind==='social'){
+      const u = esc(b.href||'#'); const col = esc(b.color||'#111111');
+      return `<a href="${u}" target="_blank" class="inline-flex items-center gap-2 border border-gray-200 rounded-full px-3 py-1 text-sm mr-2" style="color:${col}">${(b.icon||'social').toUpperCase()}</a>`;
+    } else if (b.kind==='button'){
+      const text = esc(b.text||'Butang'); const u = esc(b.href||'#'); const col = esc(b.color||'#ef4444');
+      return `<a href="${u}" target="_blank" class="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-white my-2" style="background:${col}">${text}</a>`;
     }
+    return '';
+  }).join('');
+}
 
-    function renderBlocks(sectionObj){
-      const host = $('#blocks'); host.innerHTML = '';
-      const blocks = Array.isArray(sectionObj?.blocks) ? sectionObj.blocks : [];
-      if (!blocks.length) return;
+function esc(s){ return String(s||''); }
+function parseYouTube(url){
+  try{
+    const u = new URL(url);
+    if (u.hostname.includes('youtube.com')) return u.searchParams.get('v');
+    if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+  }catch(_){}
+  return null;
+}
 
-      for (const b of blocks){
-        const wrap = document.createElement('div');
-        wrap.className = 'mb-6';
+/** =========================
+ *  Canvas (elements_json) — untuk Preview Editor
+ *  ========================= */
+function buildCanvasFromElements(){
+  // Jika tiada elemen & bukan editor, sembunyikan kanvas
+  if ((!state.elements || !state.elements.length) && !EDITOR_MODE){
+    document.getElementById('canvasHost').style.display = 'none';
+    return;
+  }
+  canvasStage.innerHTML = `<div class="ghost-msg rounded">Editor aktif (melalui Dashboard) — boleh drag/resize klik elemen.</div>`;
+  state.elementMap.clear();
 
-        if (b.kind==='text' || b.kind==='rich'){
-          wrap.innerHTML = `<div class="body-text">${b.html || b.value || ''}</div>`;
-        } else if (b.kind==='image'){
-          const u = b.src || b.value || '';
-          wrap.innerHTML = u
-            ? `<img class="w-full img-rounded border border-slate-200" src="${esc(u)}" alt="">`
-            : `<div class="text-sm text-slate-400">[Gambar belum ditetapkan]</div>`;
-        } else if (b.kind==='video'){
-          const u = b.src || b.value || '';
-          if (!u){
-            wrap.innerHTML = `<div class="text-sm text-slate-400">[Video belum ditetapkan]</div>`;
-          } else {
-            const yt = parseYouTube(u);
-            wrap.innerHTML = yt
-              ? `<div class="relative" style="padding-bottom:56.25%">
-                   <iframe class="absolute inset-0 w-full h-full rounded-xl border border-slate-200"
-                           src="https://www.youtube.com/embed/${yt}" frameborder="0" allowfullscreen></iframe>
-                 </div>`
-              : `<video class="w-full rounded-xl border border-slate-200" src="${esc(u)}" controls playsinline></video>`;
-          }
-        } else if (b.kind==='link'){
-          const text = b.text || 'Pautan', href = b.href || '#';
-          wrap.innerHTML = `<a href="${esc(href)}" target="_blank" class="btn-brand inline-flex">${esc(text)}</a>`;
-        } else if (b.kind==='social'){
-          const u = b.href || '#', col = b.color || '#111111', label = (b.icon || 'Sosial').toUpperCase();
-          wrap.innerHTML = `<a href="${esc(u)}" target="_blank" class="chip" style="color:${esc(col)}">${esc(label)}</a>`;
-        } else if (b.kind==='button'){
-          const text = b.text || 'Butang', href = b.href || '#', col  = b.color || 'var(--brand)';
-          wrap.innerHTML = `<a href="${esc(href)}" target="_blank" class="inline-flex px-4 py-2 rounded-lg text-white font-semibold" style="background:${esc(col)}">${esc(text)}</a>`;
+  (state.elements||[]).forEach(el => addElementNode(el));
+
+  // Beritahu dashboard elemen siap dimuat
+  if (EDITOR_MODE){
+    postToParent('elements-loaded', { elements: state.elements });
+  }
+}
+
+function addElementNode(el){
+  const div = document.createElement('div');
+  div.className = 'el';
+  div.dataset.id = el.id;
+  div.dataset.type = el.type || 'text';
+  applyElStyle(div, el);
+
+  // Content per type
+  if (el.type === 'text'){
+    div.textContent = el.content || 'Text';
+  } else if (el.type === 'button'){
+    const a = document.createElement('a');
+    a.href = el.href || '#';
+    a.target = '_blank';
+    a.textContent = el.content || 'Button';
+    a.style.background = el.backgroundColor || '#ef4444';
+    a.style.color = el.color || '#fff';
+    a.style.padding = '.55rem .9rem';
+    a.style.borderRadius = (el.borderRadius||8) + 'px';
+    div.appendChild(a);
+  } else if (el.type === 'image'){
+    const img = document.createElement('img');
+    img.src = el.src || 'https://picsum.photos/seed/mova/300/200.jpg';
+    img.alt = '';
+    img.style.borderRadius = (el.borderRadius||8) + 'px';
+    div.appendChild(img);
+  } else if (el.type === 'video'){
+    if ((el.src||'').includes('youtube.com') || (el.src||'').includes('youtu.be')){
+      const yt = parseYouTube(el.src||'');
+      const ifr = document.createElement('iframe');
+      ifr.src = 'https://www.youtube.com/embed/' + (yt || '');
+      ifr.allowFullscreen = true;
+      div.appendChild(ifr);
+    } else {
+      const v = document.createElement('video');
+      v.src = el.src || '';
+      v.controls = true; v.playsInline = true;
+      div.appendChild(v);
+    }
+  } else if (el.type === 'icon'){
+    const i = document.createElement('i');
+    i.dataset.lucide = el.icon || 'smile';
+    div.appendChild(i);
+    setTimeout(()=> lucide.createIcons(), 0);
+  } else if (el.type === 'shape'){
+    // color via backgroundColor
+  }
+
+  // Click select (editor only)
+  if (EDITOR_MODE){
+    div.addEventListener('mousedown', (e)=> {
+      e.stopPropagation();
+      selectEl(div);
+      // Hantar ke dashboard element terpilih
+      postToParent('element-selected', { id: el.id });
+    });
+  }
+
+  canvasStage.appendChild(div);
+  state.elementMap.set(el.id, div);
+}
+
+function selectEl(div){
+  document.querySelectorAll('.el.selected').forEach(n=> n.classList.remove('selected'));
+  div.classList.add('selected');
+}
+
+function applyElStyle(node, el){
+  // Kedudukan & saiz
+  node.style.left = (el.x||100) + 'px';
+  node.style.top = (el.y||100) + 'px';
+  node.style.width = (el.width||200) + 'px';
+  node.style.height = (el.height||100) + 'px';
+  node.style.zIndex = (el.zIndex||0);
+
+  // Warna/teks
+  node.style.background = el.backgroundColor || 'transparent';
+  node.style.color = el.color || '#000';
+  node.style.opacity = (typeof el.opacity==='number' ? (el.opacity/100) : 1);
+
+  // Border
+  node.style.borderWidth = (el.borderWidth||0) + 'px';
+  node.style.borderStyle = el.borderWidth ? 'solid' : 'none';
+  node.style.borderColor = el.borderColor || '#000';
+  node.style.borderRadius = (el.borderRadius||0) + 'px';
+
+  // Tipografi (untuk text/button/icon)
+  node.style.fontFamily = el.fontFamily || 'Inter';
+  node.style.fontSize = (el.fontSize||24) + 'px';
+  node.style.fontWeight = el.fontWeight || 'normal';
+  node.style.fontStyle = el.fontStyle || 'normal';
+  node.style.textDecoration = el.textDecoration || 'none';
+  node.style.textAlign = el.textAlign || 'center';
+}
+
+/** =========================
+ *  Interaksi Editor (drag/resize)
+ *  ========================= */
+function enableInteract(){
+  interact('.el').draggable({
+    listeners: {
+      move (event) {
+        const target = event.target;
+        const id = target.dataset.id;
+        const x = (parseFloat(target.style.left)||0) + event.dx;
+        const y = (parseFloat(target.style.top)||0) + event.dy;
+        target.style.left = x + 'px';
+        target.style.top = y + 'px';
+        // Beritahu dashboard
+        postToParent('element-updated', { id, properties: { x, y }});
+      }
+    }
+  }).resizable({
+    edges: { left:true, right:true, bottom:true, top:true }
+  }).on('resizemove', function (event) {
+    const target = event.target;
+    const id = target.dataset.id;
+    const w = Math.max(40, event.rect.width);
+    const h = Math.max(30, event.rect.height);
+    target.style.width = w + 'px';
+    target.style.height = h + 'px';
+    // Beritahu dashboard
+    postToParent('element-updated', { id, properties: { width:w, height:h }});
+  });
+
+  // Klik di kanvas kosong: buang pilihan
+  canvasStage.addEventListener('mousedown', (e)=>{
+    if (e.target === canvasStage){
+      document.querySelectorAll('.el.selected').forEach(n=> n.classList.remove('selected'));
+      postToParent('element-selected', { id: null });
+    }
+  });
+}
+
+/** =========================
+ *  Messaging dgn Dashboard
+ *  ========================= */
+function setupPostMessage(){
+  window.addEventListener('message', (event)=>{
+    const msg = event.data || {};
+    const { type, data } = msg;
+    if (!type) return;
+
+    if (type === 'load-elements'){
+      state.elements = data.elements || [];
+      buildCanvasFromElements();
+    }
+    else if (type === 'add-element'){
+      state.elements.push(data);
+      addElementNode(data);
+    }
+    else if (type === 'update-element'){
+      const el = (state.elements||[]).find(x=> x.id === data.id);
+      if (!el) return;
+      Object.assign(el, data.properties||{});
+      const node = state.elementMap.get(data.id);
+      if (node){
+        applyElStyle(node, el);
+        if (el.type==='text' && 'content' in (data.properties||{})) node.textContent = el.content || 'Text';
+        if (el.type==='button' && 'content' in (data.properties||{})) node.querySelector('a')?.textContent = el.content || 'Button';
+        if (el.type==='button' && 'backgroundColor' in (data.properties||{})) node.querySelector('a')?.style.setProperty('background', el.backgroundColor || '#ef4444');
+        if (el.type==='image' && 'src' in (data.properties||{})) node.querySelector('img')?.setAttribute('src', el.src || '');
+        if (el.type==='video' && 'src' in (data.properties||{})) {
+          // re-render video node ringkas
+          node.innerHTML = '';
+          if ((el.src||'').includes('youtube.com')||(el.src||'').includes('youtu.be')){
+            const yt = parseYouTube(el.src||''); const ifr = document.createElement('iframe'); ifr.src='https://www.youtube.com/embed/'+(yt||''); ifr.allowFullscreen = true; node.appendChild(ifr);
+          } else { const v=document.createElement('video'); v.src=el.src||''; v.controls=true; v.playsInline=true; node.appendChild(v); }
         }
-
-        host.appendChild(wrap);
+        if (el.type==='icon' && ('icon' in (data.properties||{}))) { node.innerHTML=''; const i=document.createElement('i'); i.dataset.lucide = el.icon || 'smile'; node.appendChild(i); setTimeout(()=> lucide.createIcons(), 0); }
       }
+      // pantulkan ke dashboard supaya sejarah/auto-save berlaku di sana
+      postToParent('element-updated', { id: el.id, properties: data.properties });
     }
-
-    /* ================== GATE (AUTH) ================== */
-    function readUserSession(){
-      // Anda boleh selaraskan key ini dengan dashboard/index anda
-      // Bentuk dicadang: { name, phone, user_id, leader_id, status }
-      try { return JSON.parse(localStorage.getItem('mova_user')||'{}') } catch(_){ return {} }
+    else if (type === 'delete-element'){
+      const idx = (state.elements||[]).findIndex(x=> x.id === data.id);
+      if (idx>-1) state.elements.splice(idx,1);
+      const node = state.elementMap.get(data.id);
+      if (node && node.parentNode) node.parentNode.removeChild(node);
+      state.elementMap.delete(data.id);
     }
-    function writeUserSession(obj){
-      localStorage.setItem('mova_user', JSON.stringify(obj||{}));
+    else if (type === 'bring-to-front'){
+      const el = (state.elements||[]).find(x=> x.id === data.id);
+      if (!el) return;
+      const maxZ = Math.max(0, ...state.elements.map(e=> e.zIndex||0));
+      el.zIndex = maxZ + 1;
+      const node = state.elementMap.get(el.id); if (node) node.style.zIndex = el.zIndex;
     }
-    function redirectToLogin(){
-      const next = encodeURIComponent(location.pathname + location.search);
-      location.href = `./index.html?next=${next}`;
+    else if (type === 'send-to-back'){
+      const el = (state.elements||[]).find(x=> x.id === data.id);
+      if (!el) return;
+      const minZ = Math.min(0, ...state.elements.map(e=> e.zIndex||0));
+      el.zIndex = minZ - 1;
+      const node = state.elementMap.get(el.id); if (node) node.style.zIndex = el.zIndex;
     }
+  });
 
-    async function resolveAccess(session){
-      const payload = new URLSearchParams({
-        path:'resolve_access',
-        payload: JSON.stringify({
-          role:'user',
-          name: session?.name || '',
-          phone: session?.phone || '',
-          user_id: session?.user_id || '',
-          _ts: Date.now()
-        })
-      });
+  // Handshake awal: beritahu dashboard versi siap
+  postToParent('elements-loaded', { elements: state.elements });
+}
 
-      const res = await fetch(EXEC_URL+'?nocache='+Date.now(), {
-        method:'POST',
-        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8', 'Cache-Control':'no-cache' },
-        cache:'no-store',
-        body: payload
-      });
-
-      const txt = await res.text();
-      let out; try{ out = JSON.parse(txt) } catch(e){ out = {} }
-      return out; // jangkaan: { ok:boolean, status:'approved'|'pending'|'rejected', user:{...} }
-    }
-
-    async function gate(){
-      const sess = readUserSession();
-
-      // 1) Tiada sesi → ke login
-      if(!sess?.phone || !sess?.name){
-        $('#gate').classList.add('show');
-        $('#gateMsg').textContent = 'Anda belum log masuk. Sila log masuk untuk mengakses laman ini.';
-        $('#toLogin').onclick = (e)=>{ e.preventDefault(); redirectToLogin(); };
-        return { allowed:false };
-      }
-
-      // 2) Sahkan dengan server
-      let resp;
-      try {
-        resp = await resolveAccess(sess);
-      } catch(e){
-        $('#gate').classList.add('show');
-        $('#gateMsg').textContent = 'Gagal mengesahkan akses. Cuba lagi atau log masuk semula.';
-        $('#toLogin').onclick = (ev)=>{ ev.preventDefault(); redirectToLogin(); };
-        return { allowed:false };
-      }
-
-      const status = (resp?.status || '').toLowerCase();
-      if (!resp?.ok || status!=='approved'){
-        $('#gate').classList.add('show');
-        if (status==='pending'){
-          $('#gateMsg').textContent = 'Akaun anda sedang menunggu kelulusan. Sila hubungi Leader untuk pengesahan.';
-        } else if (status==='rejected'){
-          $('#gateMsg').textContent = 'Pendaftaran anda belum diluluskan. Sila semak semula dengan Leader.';
-        } else {
-          $('#gateMsg').textContent = 'Akses ditolak. Sila log masuk semula.';
-        }
-        $('#toLogin').onclick = (ev)=>{ ev.preventDefault(); redirectToLogin(); };
-        return { allowed:false };
-      }
-
-      // 3) Lulus
-      const merged = Object.assign({}, sess, resp.user || {});
-      writeUserSession(merged);
-      $('#logoutBtn').classList.remove('hidden');
-      $('#logoutBtn').onclick = (e)=>{ e.preventDefault(); localStorage.removeItem('mova_user'); redirectToLogin(); };
-      $('#gate').classList.remove('show');
-      $('#content').classList.remove('hidden');
-
-      return { allowed:true, session: merged };
-    }
-
-    /* ================== MUAT SETTINGS & PAPAR ================== */
-    async function loadSettings(leader_id){
-      const payload = new URLSearchParams({
-        path:'settings_get',
-        payload: JSON.stringify({ leader_id: leader_id || '', _ts: Date.now() })
-      });
-
-      const res = await fetch(EXEC_URL+'?nocache='+Date.now(), {
-        method:'POST',
-        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8', 'Cache-Control':'no-cache' },
-        cache:'no-store',
-        body: payload
-      });
-
-      const txt = await res.text();
-      let out; try { out = JSON.parse(txt); } catch(e){ out = {}; }
-      return out?.settings || {};
-    }
-
-    (async function init(){
-      // Gate dahulu
-      const g = await gate();
-      if (!g.allowed) return;
-
-      // Dapatkan leader_id dari sesi user (atau lalai kosong)
-      const leaderId = g.session?.leader_id || '';
-
-      // Muat settings yang disimpan oleh dashboard.html
-      const s = await loadSettings(leaderId);
-
-      // Tema & typography
-      applyThemeFromSettings(s);
-
-      // Render hero + blocks dari sections_json
-      const sections = safeJSON(s.sections_json, []);
-      let hero = null;
-      if (Array.isArray(sections) && sections.length){
-        hero = sections.find(x => (x.type==='hero') || x.featured) || sections[0];
-      }
-
-      if (hero){
-        document.querySelector('[data-role="hero-kicker"]').textContent =
-          (hero.kicker ?? s.brand_label ?? 'MOVA');
-
-        const $title = document.querySelector('[data-role="hero-title"]');
-        if (hero.title_html) $title.innerHTML = hero.title_html;
-        else if (hero.title)  $title.textContent = hero.title;
-
-        const $sub = document.querySelector('[data-role="hero-sub"]');
-        if (hero.sub_html) $sub.innerHTML = hero.sub_html;
-        else if (hero.sub)  $sub.textContent = hero.sub;
-
-        if (hero.cta_text){
-          const cta = document.querySelector('[data-role="hero-cta"]');
-          cta.textContent = hero.cta_text;
-          if (hero.cta_href) cta.href = hero.cta_href;
-        }
-        if (hero.badge_text){
-          document.querySelector('[data-role="hero-badge"]').textContent = hero.badge_text;
-        }
-
-        renderBlocks(hero);
-      } else {
-        renderBlocks({ blocks: [] });
-      }
-    })();
-  </script>
+function postToParent(type, data){
+  try{ window.parent.postMessage({ type, data }, '*'); }catch(_){}
+}
+</script>
 </body>
 </html>
