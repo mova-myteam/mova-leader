@@ -83,7 +83,7 @@
 <div id="toast" class="toast hidden"></div>
 
 <!-- 
-  SKRIP UNTUK EDITOR HALAMAN
+  SKRIP UNTUK EDITOR HALAMAN (TELAH DIPERBAIKI)
   Skrip ini akan memuatkan, memaparkan, dan membolehkan penyuntingan elemen halaman.
 -->
 <script>
@@ -117,38 +117,37 @@
   const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
   let pageElements = []; // Simpan semua elemen halaman di sini
 
-  // Dengar mesej dari dashboard.html (editor)
-  window.addEventListener('message', (event) => {
-    // Semak untuk memastikan mesej datang dari sumber yang dijangka (pilihan)
-    // if (event.origin !== "URL_DASHBOARD_ANDA") return;
-
-    if (event.data.type) {
-      switch (event.data.type) {
-        case 'toggle-edit':
-          document.body.classList.toggle('edit-mode', event.data.data.on);
-          break;
-        case 'load-elements':
-          pageElements = event.data.data.elements || [];
-          renderPage();
-          break;
-        case 'add-element':
-          addElement(event.data.data);
-          break;
-        case 'update-element':
-          updateElement(event.data.data.id, event.data.data.properties);
-          break;
-        case 'delete-element':
-          deleteElement(event.data.data.id);
-          break;
-        case 'bring-to-front':
-          bringToFront(event.data.data.id);
-          break;
-        case 'send-to-back':
-          sendToBack(event.data.data.id);
-          break;
+  // Dengar mesej dari dashboard.html (editor) - HANYA jika dalam mod edit
+  if (EDIT_MODE) {
+    window.addEventListener('message', (event) => {
+      if (event.data.type) {
+        switch (event.data.type) {
+          case 'toggle-edit':
+            document.body.classList.toggle('edit-mode', event.data.data.on);
+            break;
+          case 'load-elements':
+            pageElements = event.data.data.elements || [];
+            renderPage();
+            break;
+          case 'add-element':
+            addElement(event.data.data);
+            break;
+          case 'update-element':
+            updateElement(event.data.data.id, event.data.data.properties);
+            break;
+          case 'delete-element':
+            deleteElement(event.data.data.id);
+            break;
+          case 'bring-to-front':
+            bringToFront(event.data.data.id);
+            break;
+          case 'send-to-back':
+            sendToBack(event.data.data.id);
+            break;
+        }
       }
-    }
-  });
+    });
+  }
 
   // Fungsi untuk menjana semula keseluruhan halaman dari `pageElements`
   function renderPage() {
@@ -221,7 +220,6 @@
         wrapper.style.cursor = 'pointer';
         innerHTML = `<a href="${el.href || '#'}" style="text-decoration:none; color:inherit; display:block; width:100%; text-align:center;">${el.content || 'Button'}</a>`;
         break;
-      // Anda boleh tambah jenis elemen lain di sini (contohnya 'shape', 'icon')
     }
     
     wrapper.innerHTML = innerHTML;
@@ -284,31 +282,32 @@
   lucide.createIcons();
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // Muat data halaman dari server semasa halaman dimuatkan
+  // --- PERUBAHAN UTAMA DI SINI ---
+  // Fungsi init akan sentiasa berjalan, tidak kira mod edit atau tidak
   (async function init() {
-    if (EDIT_MODE) {
-      try {
-        // Guna leader_id dari URL jika ada, atau default
-        const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
-        const response = await api('settings_get', { leader_id: leader_id });
-        
-        if (response.success && response.settings.sections_json) {
-          pageElements = JSON.parse(response.settings.sections_json);
-          renderPage();
-          // Beritahu dashboard bahawa elemen telah dimuat
+    try {
+      // Cuba dapatkan leader_id dari URL, jika tidak ada guna default
+      const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
+      const response = await api('settings_get', { leader_id: leader_id });
+      
+      if (response.success && response.settings.sections_json) {
+        pageElements = JSON.parse(response.settings.sections_json);
+        renderPage(); // Paparkan halaman
+
+        // JIKA dalam mod edit, beritahu dashboard bahawa elemen telah dimuat
+        if (EDIT_MODE) {
           window.parent.postMessage({ type: 'elements-loaded', data: { elements: pageElements } }, '*');
-        } else {
-          // Jika tiada kandungan, beritahu dashboard
+        }
+      } else {
+        // Jika tiada kandungan, kosongkan halaman
+        renderPage();
+        if (EDIT_MODE) {
           window.parent.postMessage({ type: 'elements-loaded', data: { elements: [] } }, '*');
         }
-      } catch (error) {
-        console.error("Gagal memuat data halaman:", error);
-        toast("Gagal memuatkan halaman untuk diedit.");
       }
-    } else {
-      // Mod biasa: muat kandungan statik jika perlu (untuk sekarang ia kosong)
-      // Anda boleh memuatkan kandungan asal di sini jika tidak mahu halaman kosong untuk pengguna biasa
-      // sehingga leader menyimpan reka bentuk pertama.
+    } catch (error) {
+      console.error("Gagal memuat data halaman:", error);
+      toast("Gagal memuatkan kandungan halaman.");
     }
   })();
 </script>
