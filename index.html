@@ -7,7 +7,7 @@
 
   <!-- Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind (CDN; amaran produksi boleh diabaikan buat masa ini) -->
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -37,11 +37,11 @@
           <div class="space-y-3">
             <div>
               <label class="block text-sm font-semibold">Nama</label>
-              <input id="inpName" class="input" placeholder="cth: amirul"/>
+              <input id="inpName" class="input" placeholder="cth: amirul">
             </div>
             <div>
               <label class="block text-sm font-semibold">Telefon</label>
-              <input id="inpPhone" class="input" placeholder="0109022333"/>
+              <input id="inpPhone" class="input" placeholder="0109022333">
             </div>
             <div class="flex items-center gap-3">
               <button id="btnGo" class="btn btn-primary">Teruskan</button>
@@ -52,7 +52,7 @@
         </div>
       </div>
       <div class="hidden md:block">
-        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=1200&auto=format&fit=crop" class="rounded-xl shadow" alt="Laptop"/>
+        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=1200&auto=format&fit=crop" class="rounded-xl shadow" alt="Laptop">
       </div>
     </div>
   </div>
@@ -60,16 +60,8 @@
   <div id="toast" class="toast"></div>
 
 <script>
-  /*** PENTING: Gantikan nilai di bawah dengan URL Web App Apps Script sebenar (berakhir dengan /exec) ***/
-  const EXEC_URL = 'https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXXXXXXXX/exec';
-
-  // Guard: beritahu awal kalau EXEC_URL belum betul
-  (function guardExecUrl(){
-    if (!/^https:\/\/script\.google\.com\/macros\/.+\/exec$/.test(EXEC_URL)) {
-      console.warn('EXEC_URL belum ditetapkan kepada URL Web App Apps Script yang sah.');
-      setTimeout(()=> alert('EXEC_URL belum diset kepada Google Apps Script Web App URL (…/exec).'), 100);
-    }
-  })();
+  // URL Web App anda (sedia ada dari rumus asal)
+  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
   function toast(msg){
     const el = document.getElementById('toast');
@@ -83,11 +75,7 @@
     const fd = new URLSearchParams();
     fd.set('path', path);
     fd.set('payload', JSON.stringify(payload||{}));
-    const res = await fetch(EXEC_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body:fd
-    });
+    const res = await fetch(EXEC_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:fd });
     if (!res.ok) throw new Error('HTTP '+res.status);
     const json = await res.json();
     if (json && json.success===false && json.error) throw new Error(json.error||'Ralat tidak diketahui');
@@ -110,16 +98,14 @@
     }
   }
 
-  // Setup idempotent
-  (async function init(){
-    try { await api('setup', {}); } catch(_){}
-  })();
+  // ===== INIT =====
+  document.getElementById('year').textContent = new Date().getFullYear?.() || new Date().getFullYear?.() || '';
 
-  // UI handlers
   document.getElementById('btnClear').addEventListener('click', ()=>{
     document.getElementById('inpName').value = '';
     document.getElementById('inpPhone').value = '';
   });
+
   document.getElementById('btnGo').addEventListener('click', onGo);
   document.getElementById('inpName').addEventListener('keydown', (e)=> e.key==='Enter' && onGo());
   document.getElementById('inpPhone').addEventListener('keydown', (e)=> e.key==='Enter' && onGo());
@@ -146,13 +132,14 @@
           name, phone,
           profile:{ role:'leader', name, phone }
         });
-        // Tambahan penting: tulis mova_leader untuk guard di dashboard.html
+        /* ===== TAMBAHAN PENTING (fix tendang balik) ===== */
         try {
           localStorage.setItem('mova_leader', JSON.stringify({
             leader_id,
             profile:{ role:'leader', name, phone }
           }));
         } catch(_){}
+        /* ===== TAMAT TAMBAHAN ===== */
         toast('Akses leader disahkan. Membuka Dashboard…');
         return setTimeout(()=> location.href='./dashboard.html', 600);
       }
@@ -161,8 +148,8 @@
         saveSession({
           role:'partner',
           leader_id: leader_id,
-          partner_name: partner_name,
           name, phone,
+          partner_name,
           profile:{ role:'partner', name, phone }
         });
         toast('Akses partner disahkan. Membuka Panel Partner…');
@@ -173,7 +160,7 @@
         saveSession({
           role:'user',
           leader_id: leader_id,
-          partner_name: partner_name,
+          partner_name,
           name, phone,
           profile:{ role:'user', name, phone }
         });
@@ -181,6 +168,7 @@
         return setTimeout(()=> location.href=`./user.html?leader=${encodeURIComponent(leader_id)}`, 600);
       }
 
+      // role none / gagal
       toast(out.message || 'Akses tidak ditemui. Hubungi admin/partner.');
     }catch(e){
       toast(e.message || 'Ralat sambungan.');
