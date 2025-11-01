@@ -1,9 +1,96 @@
-<!-- TAMBAHKAN SKRIP INI DI user.html -->
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MOVA — Untuk Pengguna (Free Users)</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root { --brand:#ef4444; }
+    html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa}
+    .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.7rem 1rem;font-weight:700}
+    .btn-primary{background:var(--brand);color:#fff}
+    .btn-ghost{background:#fff;border:1px solid #e5e7eb}
+    .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
+    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.7rem .9rem;background:#fff}
+    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
+    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
+    .section-title{font-weight:800;font-size:1.25rem}
+    .muted{color:#6b7280}
+
+    /* --- Gaya Untuk Mod Edit --- */
+    /* Berikan garis pandang pada container utama semasa edit */
+    .edit-mode main {
+      position: relative;
+      min-height: 100vh;
+      background-image: 
+        linear-gradient(0deg, transparent 24%, rgba(0, 0, 0, .02) 25%, rgba(0, 0, 0, .02) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, .02) 75%, rgba(0, 0, 0, .02) 76%, transparent 77%, transparent),
+        linear-gradient(90deg, transparent 24%, rgba(0, 0, 0, .02) 25%, rgba(0, 0, 0, .02) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, .02) 75%, rgba(0, 0, 0, .02) 76%, transparent 77%, transparent);
+      background-size: 50px 50px;
+    }
+
+    /* Gaya untuk setiap elemen yang boleh diedit */
+    .page-element {
+      cursor: pointer;
+      transition: box-shadow 0.2s ease;
+    }
+    
+    /* Berikan outline apabila elemen dipilih dalam editor */
+    .page-element.selected {
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="bg-white border-b border-gray-200">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
+        <i data-lucide="rocket" class="w-5 h-5"></i>
+      </div>
+      <div class="font-extrabold">MOVA</div>
+    </div>
+    <div class="hidden sm:flex items-center gap-6 text-sm">
+      <a href="#intro" class="hover:underline">Apa itu MOVA</a>
+      <a href="#calc" class="hover:underline">Anggaran Cashback</a>
+      <a href="#upgrade" class="hover:underline">Naik Taraf</a>
+      <a href="#faq" class="hover:underline">FAQ</a>
+    </div>
+  </div>
+</nav>
+
+<!-- 
+  BAHAGIAN UTAMA (MAIN)
+  Semua kandungan lama (Hero, Intro, Calculator, dll) telah dibuang.
+  Kandungan sekarang akan dijana secara dinamik oleh JavaScript di bawah.
+-->
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Elemen-elemen halaman akan dimasukkan di sini oleh JavaScript -->
+</main>
+
+<footer class="mt-10 py-10 text-center text-sm text-gray-500">
+  © <span id="year"></span> MOVA. Hak cipta terpelihara.
+</footer>
+
+<div id="toast" class="toast hidden"></div>
+
+<!-- 
+  SKRIP UNTUK EDITOR HALAMAN
+  Skrip ini akan memuatkan, memaparkan, dan membolehkan penyuntingan elemen halaman.
+-->
 <script>
   // Pastikan pembolehubah EXEC_URL wujud
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-  // Fungsi utiliti asas (jika belum ada)
+  // Fungsi utiliti asas
   function toast(msg, ms = 2200) {
     const el = document.getElementById('toast');
     el.textContent = msg;
@@ -30,9 +117,11 @@
   const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
   let pageElements = []; // Simpan semua elemen halaman di sini
 
-  // Dengar mesej dari dashboard.html
+  // Dengar mesej dari dashboard.html (editor)
   window.addEventListener('message', (event) => {
-    // Tambah semakan keselamatan jika perlu
+    // Semak untuk memastikan mesej datang dari sumber yang dijangka (pilihan)
+    // if (event.origin !== "URL_DASHBOARD_ANDA") return;
+
     if (event.data.type) {
       switch (event.data.type) {
         case 'toggle-edit':
@@ -66,7 +155,7 @@
     const mainContent = document.querySelector('main');
     if (!mainContent) return;
 
-    // Kosongkan kandungan sedia ada, kecuali nav dan footer
+    // Kosongkan kandungan sedia ada
     mainContent.innerHTML = ''; 
 
     // Isi semula dengan elemen dari `pageElements`
@@ -123,8 +212,7 @@
         innerHTML = `<img src="${el.src || ''}" style="max-width:100%; max-height:100%; display:block;">`;
         break;
       case 'video':
-        // Anda mahu embed video
-        innerHTML = `<video src="${el.src || ''}" controls style="max-width:100%; max-height:100%; display:block;"></video>`;
+        innerHTML = `<video src="${el.src || ''}" controls playsinline style="max-width:100%; max-height:100%; display:block;"></video>`;
         break;
       case 'button':
         wrapper.style.display = 'flex';
@@ -133,7 +221,7 @@
         wrapper.style.cursor = 'pointer';
         innerHTML = `<a href="${el.href || '#'}" style="text-decoration:none; color:inherit; display:block; width:100%; text-align:center;">${el.content || 'Button'}</a>`;
         break;
-      // Tambah jenis elemen lain di sini (contohnya 'hero', 'calculator')
+      // Anda boleh tambah jenis elemen lain di sini (contohnya 'shape', 'icon')
     }
     
     wrapper.innerHTML = innerHTML;
@@ -176,31 +264,53 @@
     }
   }
 
-  // Fungsi untuk menjadikan elemen boleh dipilih dan dipindah (jika perlu)
+  // Fungsi untuk menjadikan elemen boleh dipilih
   function makeElementsSelectable() {
     document.querySelectorAll('.page-element').forEach(el => {
-      el.addEventListener('click', () => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Hapus kelas 'selected' dari elemen lain
+        document.querySelectorAll('.page-element.selected').forEach(el => el.classList.remove('selected'));
+        // Tambah kelas 'selected' pada elemen ini
+        el.classList.add('selected');
+        
         // Hantar ID elemen yang dipilih ke dashboard
         window.parent.postMessage({ type: 'element-selected', data: { id: el.dataset.id } }, '*');
       });
     });
   }
 
+  // Inisialisasi Lucide icons (jika ada)
+  lucide.createIcons();
+  document.getElementById('year').textContent = new Date().getFullYear();
+
   // Muat data halaman dari server semasa halaman dimuatkan
   (async function init() {
     if (EDIT_MODE) {
       try {
-        const response = await api('settings_get', { leader_id: 'LEAD-0001' }); // Guna leader_id yang betul
+        // Guna leader_id dari URL jika ada, atau default
+        const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
+        const response = await api('settings_get', { leader_id: leader_id });
+        
         if (response.success && response.settings.sections_json) {
           pageElements = JSON.parse(response.settings.sections_json);
           renderPage();
           // Beritahu dashboard bahawa elemen telah dimuat
           window.parent.postMessage({ type: 'elements-loaded', data: { elements: pageElements } }, '*');
+        } else {
+          // Jika tiada kandungan, beritahu dashboard
+          window.parent.postMessage({ type: 'elements-loaded', data: { elements: [] } }, '*');
         }
       } catch (error) {
         console.error("Gagal memuat data halaman:", error);
         toast("Gagal memuatkan halaman untuk diedit.");
       }
+    } else {
+      // Mod biasa: muat kandungan statik jika perlu (untuk sekarang ia kosong)
+      // Anda boleh memuatkan kandungan asal di sini jika tidak mahu halaman kosong untuk pengguna biasa
+      // sehingga leader menyimpan reka bentuk pertama.
     }
   })();
 </script>
+</body>
+</html>
