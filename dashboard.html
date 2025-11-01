@@ -13,8 +13,6 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Interact.js for drag and drop (No longer needed for the new editor, but kept in case other features use it) -->
-  <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
   <style>
     :root { --brand:#ef4444; }
@@ -74,6 +72,12 @@
       height: 90vh;
       border: none;
     }
+
+    <!-- PEMBAIKAN BAHARU: Gaya untuk Section Design -->
+    .section-style-card { background: #ffffff; border-radius: 1rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); padding: 3rem 1rem; }
+    .section-style-rounded { background: #f3f4f6; border-radius: 2rem; }
+    .section-style-dark { background: #1f2937; color: #f9fafb; }
+    .section-style-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -478,7 +482,7 @@
 
 <script>
   // ====== KONFIG ======
-  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM.exec";
 
   // ====== STATE LOGIN ======
   const store = {
@@ -1085,7 +1089,7 @@
       const sectionItem = document.createElement('div');
       sectionItem.className = 'p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 flex justify-between items-center';
       sectionItem.innerHTML = `
-        <span>${section.id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+        <span>${section.name || section.id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
         <div class="flex gap-1">
           <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveSectionUp(${index})" title="Naik"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
           <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveSectionDown(${index})" title="Turun"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
@@ -1099,8 +1103,13 @@
   }
 
   function addNewSection() {
+    const sectionName = prompt("Berikan nama untuk bahagian ini:", "Bahagian Baharu");
+    if (!sectionName) return;
+
     const newSection = {
       id: `section-${Date.now()}`,
+      name: sectionName,
+      style: 'default', // PEMBAIKAN BAHARU: Guna gaya lalai
       backgroundColor: '#ffffff',
       padding: '4rem 1rem',
       elements: []
@@ -1134,12 +1143,26 @@
     const title = document.getElementById('propertiesTitle');
     const content = document.getElementById('propertiesContent');
 
-    title.textContent = `Sifat Bahagian: ${section.id}`;
+    title.textContent = `Sifat Bahagian: ${section.name || section.id}`;
     content.innerHTML = `
       <div class="space-y-4">
         <div>
+          <label class="text-sm font-medium">Nama Bahagian</label>
+          <input type="text" id="prop-sectionName" class="input mt-1" value="${section.name || ''}">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Gaya / Design</label>
+          <select id="prop-sectionStyle" class="input mt-1">
+            <option value="default" ${section.style === 'default' ? 'selected' : ''}>Default</option>
+            <option value="card" ${section.style === 'card' ? 'selected' : ''}>Kad</option>
+            <option value="rounded" ${section.style === 'rounded' ? 'selected' : ''}>Bulatan</option>
+            <option value="dark" ${section.style === 'dark' ? 'selected' : ''}>Latar Gelap</option>
+            <option value="gradient" ${section.style === 'gradient' ? 'selected' : ''}>Gradien</option>
+          </select>
+        </div>
+        <div>
           <label class="text-sm font-medium">Warna Latar Belakang</label>
-          <input type="color" id="prop-bgColor" class="input mt-1" value="${section.backgroundColor || '#ffffff'}">
+          <input type="color" id="prop-bgColor" class="input mt-1 p-1" value="${section.backgroundColor || '#ffffff'}">
         </div>
         <div>
           <label class="text-sm font-medium">Jarak (Padding)</label>
@@ -1161,6 +1184,19 @@
     panel.classList.remove('hidden');
 
     // Add event listeners for properties
+    document.getElementById('prop-sectionName').addEventListener('input', (e) => {
+      section.name = e.target.value;
+      renderSectionList(); // Update the list to show the new name
+      saveDesign();
+    });
+
+    document.getElementById('prop-sectionStyle').addEventListener('change', (e) => {
+      section.style = e.target.value;
+      applySectionStyle(section);
+      saveDesign();
+      sendToIframe('update-section', { id: sectionId, properties: { style: section.style } });
+    });
+
     document.getElementById('prop-bgColor').addEventListener('input', (e) => {
       section.backgroundColor = e.target.value;
       saveDesign(); // Auto-save
@@ -1176,6 +1212,20 @@
     document.getElementById('btnAddElementInSection').onclick = () => showAddElementDialog(sectionId);
     
     renderElementListInSection(sectionId);
+  }
+
+  // PEMBAIKAN BAHARU: Fungsi untuk menggunakan gaya
+  function applySectionStyle(section) {
+    const mainElement = document.querySelector(`#userPreview`).contentWindow.document.querySelector(`[data-section-id="${section.id}"]`);
+    if (!mainElement) return;
+    
+    // Remove all existing style classes
+    mainElement.className = mainElement.className.replace(/section-style-\S+/g, '');
+    
+    // Add the new style class
+    if (section.style && section.style !== 'default') {
+      mainElement.classList.add(`section-style-${section.style}`);
+    }
   }
 
   // ===================================================================
@@ -1223,52 +1273,93 @@
       case 'text':
         content.innerHTML = `
           <div class="space-y-4">
-            <div>
-              <label class="text-sm font-medium">Kandungan Teks (Anda boleh gunakan &lt;strong&gt;, &lt;br&gt;, &lt;span&gt; dll.)</label>
-              <textarea id="prop-elementContent" class="textarea mt-1" rows="4">${element.content || ''}</textarea>
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium">Saiz Fon (px)</label>
-                <input type="number" id="prop-fontSize" class="input mt-1" value="${element.fontSize || 16}">
+            <div class="border border-gray-200 rounded-xl p-3">
+              <div class="toolbar mb-2">
+                <button type="button" data-command="bold" class="p-1 rounded"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                <button type="button" data-command="italic" class="p-1 rounded"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                <button type="button" data-command="underline" class="p-1 rounded"><i data-lucide="underline" class="w-4 h-4"></i></button>
+                <input type="color" id="prop-textColor" class="w-8 h-8 p-1 rounded cursor-pointer" value="${element.color || '#000000'}">
+                <input type="color" id="prop-textColorHex" class="w-20 h-8 p-1 rounded cursor-pointer ml-2" value="${element.color || '#000000'}">
               </div>
-              <div>
-                <label class="text-sm font-medium">Warna Fon</label>
-                <input type="color" id="prop-color" class="input mt-1 p-1" value="${element.color || '#000000'}">
-              </div>
-            </div>
-            <div>
-              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
-              <select id="prop-gridColumn" class="input mt-1">
-                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+              <select id="prop-fontSize" class="text-sm border border-gray-200 rounded p-1">
+                <option value="12">Kecil</option>
+                <option value="14">Kecil</option>
+                <option value="16">Biasa</option>
+                <option value="18">Sederhana Besar</option>
+                <option value="20">Besar</option>
+                <option value="24">Sangat Besar</option>
+                <option value="30">Paling Besar</option>
               </select>
+            </div>
+            <div id="prop-elementContent" class="rtbox border border-gray-200 rounded-xl p-3" contenteditable="true">${element.content || ''}</div>
+            <div class="grid grid-cols-2 gap-4 mt-3">
+              <div>
+                <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+                <select id="prop-gridColumn" class="input mt-1">
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
+              </div>
             </div>
           </div>
         `;
         // Add event listeners for text element
-        document.getElementById('prop-elementContent').addEventListener('input', (e) => {
-          element.content = e.target.value;
-          saveDesign();
-          sendToIframe('update-element', { id: element.id, properties: { content: e.target.value } });
+        const rtbox = content.querySelector('#prop-elementContent');
+        const toolbar = content.querySelector('.toolbar');
+        const textColorPicker = content.querySelector('#prop-textColor');
+        const textColorHex = content.querySelector('#prop-textColorHex');
+        const fontSizeSelect = content.querySelector('#prop-fontSize');
+        const gridColumnSelect = content.querySelector('#prop-gridColumn');
+
+        // Toolbar functionality
+        toolbar.querySelectorAll('button[data-command]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const command = btn.dataset.command;
+            document.execCommand(command, false, null);
+            updateElementContent();
+          });
         });
-        document.getElementById('prop-fontSize').addEventListener('input', (e) => {
-          element.fontSize = parseInt(e.target.value);
-          saveDesign();
-          sendToIframe('update-element', { id: element.id, properties: { fontSize: parseInt(e.target.value) } });
+
+        // Sync color pickers
+        textColorPicker.addEventListener('input', (e) => {
+          textColorHex.value = e.target.value;
+          applyTextColor(e.target.value);
         });
-        document.getElementById('prop-color').addEventListener('input', (e) => {
-          element.color = e.target.value;
-          saveDesign();
-          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
+        textColorHex.addEventListener('input', (e) => {
+          const color = e.target.value;
+          if (/^#[0-9A-F]{6}$/i.test(color)) {
+            textColorPicker.value = color;
+            applyTextColor(color);
+          }
         });
-        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
+
+        fontSizeSelect.addEventListener('change', () => {
+          element.fontSize = parseInt(fontSizeSelect.value);
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { fontSize: element.fontSize } });
+        });
+
+        gridColumnSelect.addEventListener('change', (e) => {
           element.gridColumn = e.target.value;
           saveDesign();
           sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
         });
+
+        // Update content on input
+        rtbox.addEventListener('input', updateElementContent);
+        rtbox.addEventListener('paste', updateElementContent);
+
+        function updateElementContent() {
+          element.content = rtbox.innerHTML;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { content: element.content } });
+        }
+
+        function applyTextColor(color) {
+          document.execCommand('foreColor', false, color);
+        }
         break;
 
       case 'image':
@@ -1359,6 +1450,128 @@
           sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
         });
         break;
+
+      case 'social':
+        content.innerHTML = `
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium">Platform</label>
+                <select id="prop-socialPlatform" class="input mt-1">
+                  <option value="facebook" ${element.platform === 'facebook' ? 'selected' : ''}>Facebook</option>
+                  <option value="instagram" ${element.platform === 'instagram' ? 'selected' : ''}>Instagram</option>
+                  <option value="twitter" ${element.platform === 'twitter' ? 'selected' : ''}>Twitter</option>
+                  <option value="tiktok" ${element.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+                  <option value="youtube" ${element.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+                  <option value="telegram" ${element.platform === 'telegram' ? 'selected' : ''}>Telegram</option>
+                  <option value="whatsapp" ${element.platform === 'whatsapp' ? 'selected' : ''}>WhatsApp</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">URL Profil</label>
+                <input type="text" id="prop-socialUrl" class="input mt-1" value="${element.url || ''}" placeholder="https://...">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Warna Ikon</label>
+                <input type="color" id="prop-socialColor" class="input mt-1 p-1" value="${element.color || '#374151'}">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Saiz Ikon</label>
+                <select id="prop-socialSize" class="input mt-1">
+                  <option value="24" ${element.size === 24 ? 'selected' : ''}>Kecil</option>
+                  <option value="32" ${element.size === 32 ? 'selected' : ''}>Biasa</option>
+                  <option value="48" ${element.size === 48 ? 'selected' : ''}>Besar</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+              <select id="prop-gridColumn" class="input mt-1">
+                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+              </select>
+            </div>
+          </div>
+        `;
+        document.getElementById('prop-socialPlatform').addEventListener('change', (e) => {
+          element.platform = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { platform: e.target.value } });
+        });
+        document.getElementById('prop-socialUrl').addEventListener('input', (e) => {
+          element.url = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { url: e.target.value } });
+        });
+        document.getElementById('prop-socialColor').addEventListener('input', (e) => {
+          element.color = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
+        });
+        document.getElementById('prop-socialSize').addEventListener('change', (e) => {
+          element.size = parseInt(e.target.value);
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { size: e.target.value } });
+        });
+        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
+          element.gridColumn = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
+        });
+        break;
+
+      case 'link':
+        content.innerHTML = `
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm font-medium">Teks Pautan</label>
+              <input type="text" id="prop-linkText" class="input mt-1" value="${element.text || 'Pautan di sini'}">
+            </div>
+            <div>
+              <label class="text-sm font-medium">URL Pautan</label>
+              <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.url || '#'}" placeholder="https://...">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Buka di Tab Baharu?</label>
+              <select id="prop-linkTarget" class="input mt-1">
+                <option value="_blank" ${element.target === '_blank' ? 'selected' : ''}>Ya</option>
+                <option value="_self" ${element.target === '_self' ? 'selected' : ''}>Tidak</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+              <select id="prop-gridColumn" class="input mt-1">
+                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+              </select>
+            </div>
+          </div>
+        `;
+        document.getElementById('prop-linkText').addEventListener('input', (e) => {
+          element.text = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { text: e.target.value } });
+        });
+        document.getElementById('prop-linkUrl').addEventListener('input', (e) => {
+          element.url = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { url: e.target.value } });
+        });
+        document.getElementById('prop-linkTarget').addEventListener('change', (e) => {
+          element.target = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { target: e.target.value } });
+        });
+        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
+          element.gridColumn = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
+        });
+        break;
     }
     
     panel.classList.remove('hidden');
@@ -1392,23 +1605,183 @@
   }
 
   function showAddElementDialog(sectionId) {
-    // Simple prompt for now. Can be replaced with a modal.
-    const elementType = prompt("Jenis elemen (text, image, button):", "text");
-    if (!elementType) return;
+    // PEMBAIKAN BAHARU: Gantikan dialog prompt dengan modal yang lebih baik
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+    modal.id = 'addElementModal';
+    modal.innerHTML = `
+      <div class="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+        <h3 class="text-lg font-semibold mb-4">Tambah Elemen Baharu</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Elemen</label>
+            <select id="modalElementType" class="input">
+              <option value="text">Teks</option>
+              <option value="image">Imej</option>
+              <option value="video">Video</option>
+              <option value="button">Butang</option>
+              <option value="social">Media Sosial</option>
+              <option value="link">Pautan</option>
+            </select>
+          </div>
+          <div id="modalOptions" class="space-y-4">
+            <!-- Options will be dynamically inserted here -->
+          </div>
+          <div class="flex justify-end gap-2 mt-6">
+            <button id="btnModalCancel" class="btn-ghost">Batal</button>
+            <button id="btnModalAdd" class="btn-primary">Tambah</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    lucide.createIcons();
 
-    const newElement = {
-      id: `el-${Date.now()}`,
-      type: elementType,
-      content: elementType === 'text' ? 'Teks Baharu' : (elementType === 'button' ? 'Butang Baharu' : ''),
-      gridColumn: 'span 12 / span 12'
-    };
-    
-    const section = store.sections.find(s => s.id === sectionId);
-    section.elements.push(newElement);
-    
-    renderElementListInSection(sectionId);
-    saveDesign();
-    sendToIframe('add-element', { sectionId, element: newElement });
+    const elementTypeSelect = document.getElementById('modalElementType');
+    const modalOptions = document.getElementById('modalOptions');
+    const btnCancel = document.getElementById('btnModalCancel');
+    const btnAdd = document.getElementById('btnModalAdd');
+
+    // Function to show options based on selected type
+    function showOptionsForType(type) {
+      switch(type) {
+        case 'text':
+          modalOptions.innerHTML = `
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Kandungan Teks Awal</label>
+              <textarea id="modalTextContent" class="textarea" rows="3" placeholder="Tulis kandungan awal di sini..."></textarea>
+            </div>
+          `;
+          break;
+        case 'image':
+        case 'video':
+          modalOptions.innerHTML = `
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">URL Media</label>
+              <input type="text" id="modalMediaUrl" class="input" placeholder="https://...">
+            </div>
+          `;
+          break;
+        case 'button':
+          modalOptions.innerHTML = `
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Teks Butang</label>
+              <input type="text" id="modalButtonText" class="input" placeholder="Cth: "Daftar Sekarang">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Pautan (URL)</label>
+              <input type="text" id="modalButtonUrl" class="input" placeholder="https://...">
+            </div>
+            </div>
+          `;
+          break;
+        case 'social':
+          modalOptions.innerHTML = `
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Platform</label>
+                <select id="modalSocialPlatform" class="input">
+                  <option value="facebook">Facebook</option>
+                  <option value="instagram">Instagram</option>
+                  <option value="tiktok">TikTok</option>
+                  <option value="youtube">YouTube</option>
+                  <option value="telegram">Telegram</option>
+                  <option value="whatsapp">WhatsApp</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">URL Profil</label>
+                <input type="text" id="modalSocialUrl" class="input" placeholder="https://...">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Warna Ikon</label>
+                <input type="color" id="modalSocialColor" class="input mt-1 p-1" value="#374151">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Saiz Ikon</label>
+                <select id="modalSocialSize" class="input">
+                  <option value="24">Kecil</option>
+                  <option value="32">Biasa</option>
+                  <option value="48">Besar</option>
+                </select>
+              </div>
+            </div>
+          `;
+          break;
+        case 'link':
+          modalOptions.innerHTML = `
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Teks Pautan</label>
+              <input type="text" id="modalLinkText" class="input" placeholder="Cth: Lihat Promosi">
+              <label class="block text-sm font-medium text-gray-700 mb-1">URL Pautan</label>
+              <input type="text" id="modalLinkUrl" class="input" placeholder="https://...">
+              <label class="block text-sm font-medium text-gray-700 mb-1">Buka di Tab Baharu?</label>
+              <select id="modalLinkTarget" class="input">
+                <option value="_blank">Ya</option>
+                <option value="_self">Tidak</option>
+              </select>
+            </div>
+          `;
+          break;
+      }
+    }
+
+    // Show initial options
+    showOptionsForType(elementTypeSelect.value);
+
+    // Listen for type change
+    elementTypeSelect.addEventListener('change', () => {
+      showOptionsForType(elementTypeSelect.value);
+    });
+
+    btnCancel.addEventListener('click', () => {
+      document.body.removeChild(modal);
+    });
+
+    btnAdd.addEventListener('click', () => {
+      const type = elementTypeSelect.value;
+      let newElement = {
+        id: `el-${Date.now()}`,
+        type: type,
+        gridColumn: 'span 12 / span 12'
+      };
+      
+      // Get values from modal based on type
+      switch (type) {
+        case 'text':
+          newElement.content = document.getElementById('modalTextContent').value || 'Teks Baharu';
+          break;
+        case 'image':
+          newElement.src = document.getElementById('modalMediaUrl').value || '';
+          break;
+        case 'video':
+          newElement.src = document.getElementById('modalMediaUrl').value || '';
+          break;
+        case 'button':
+          newElement.content = document.getElementById('modalButtonText').value || 'Butang Baharu';
+          newElement.href = document.getElementById('modalButtonUrl').value || '#';
+          break;
+        case 'social':
+          newElement.platform = document.getElementById('modalSocialPlatform').value || 'facebook';
+          newElement.url = document.getElementById('modalSocialUrl').value || '';
+          newElement.color = document.getElementById('modalSocialColor').value || '#374151';
+          newElement.size = parseInt(document.getElementById('modalSocialSize').value || 24);
+          break;
+        case 'link':
+          newElement.text = document.getElementById('modalLinkText').value || 'Pautan di sini';
+          newElement.url = document.getElementById('modalLinkUrl').value || '#';
+          newElement.target = document.getElementById('modalLinkTarget').value || '_blank';
+          break;
+      }
+      
+      const section = store.sections.find(s => s.id === store.selectedSectionId);
+      if (section) {
+        section.elements.push(newElement);
+        renderElementListInSection(store.selectedSectionId);
+        saveDesign();
+        sendToIframe('add-element', { sectionId: store.selectedSectionId, element: newElement });
+      }
+      
+      document.body.removeChild(modal);
+    });
   }
 
   function closePropertiesPanel() {
@@ -1499,7 +1872,7 @@
     }
   }
 
-  // Pastikan fungsi sendToIframe dikemas kini
+  // Pastikan fungsi sendToIframe
   function sendToIframe(type, data) {
     const userPreview = document.getElementById('userPreview');
     if (userPreview && userPreview.contentWindow) {
