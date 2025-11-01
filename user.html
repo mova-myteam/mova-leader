@@ -23,15 +23,25 @@
     .section-title{font-weight:800;font-size:1.25rem}
     .muted{color:#6b7280}
 
-    /* --- Gaya Untuk Mod Edit --- */
-    /* Berikan garis pandang pada container utama semasa edit */
-    .edit-mode main {
-      position: relative;
-      min-height: 100vh;
-      background-image: 
-        linear-gradient(0deg, transparent 24%, rgba(0, 0, 0, .02) 25%, rgba(0, 0, 0, .02) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, .02) 75%, rgba(0, 0, 0, .02) 76%, transparent 77%, transparent),
-        linear-gradient(90deg, transparent 24%, rgba(0, 0, 0, .02) 25%, rgba(0, 0, 0, .02) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, .02) 75%, rgba(0, 0, 0, .02) 76%, transparent 77%, transparent);
-      background-size: 50px 50px;
+    /* --- Gaya Untuk Mod Edit & Bahagian --- */
+    .edit-mode .page-section {
+      outline: 1px dashed #d1d5db;
+      outline-offset: -1px;
+      transition: outline 0.2s ease;
+    }
+    .edit-mode .page-section:hover {
+      outline: 1px dashed #9ca3af;
+    }
+    .page-section.selected {
+      outline: 2px solid #3b82f6 !important;
+      outline-offset: -2px;
+    }
+
+    /* Gaya untuk grid di dalam bahagian */
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr); /* Grid 12 lajur */
+      gap: 1rem; /* Jarak antara elemen */
     }
 
     /* Gaya untuk setiap elemen yang boleh diedit */
@@ -42,7 +52,7 @@
     
     /* Berikan outline apabila elemen dipilih dalam editor */
     .page-element.selected {
-      outline: 2px solid #3b82f6;
+      outline: 2px solid #10b981;
       outline-offset: 2px;
     }
   </style>
@@ -69,11 +79,10 @@
 
 <!-- 
   BAHAGIAN UTAMA (MAIN)
-  Semua kandungan lama (Hero, Intro, Calculator, dll) telah dibuang.
-  Kandungan sekarang akan dijana secara dinamik oleh JavaScript di bawah.
+  Kandungan sekarang akan dijana secara dinamik sebagai "Bahagian".
 -->
-<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-  <!-- Elemen-elemen halaman akan dimasukkan di sini oleh JavaScript -->
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+  <!-- Bahagian-bahagian halaman akan dimasukkan di sini oleh JavaScript -->
 </main>
 
 <footer class="mt-10 py-10 text-center text-sm text-gray-500">
@@ -83,14 +92,11 @@
 <div id="toast" class="toast hidden"></div>
 
 <!-- 
-  SKRIP UNTUK EDITOR HALAMAN (TELAH DIPERBAIKI)
-  Skrip ini akan memuatkan, memaparkan, dan membolehkan penyuntingan elemen halaman.
+  SKRIP UNTUK EDITOR HALAMAN (SISTEM BAHAGIAN)
 -->
 <script>
-  // Pastikan pembolehubah EXEC_URL wujud
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
-  // Fungsi utiliti asas
   function toast(msg, ms = 2200) {
     const el = document.getElementById('toast');
     el.textContent = msg;
@@ -115,9 +121,8 @@
   // --- LOGIK EDITOR BERMULA DI SINI ---
 
   const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
-  let pageElements = []; // Simpan semua elemen halaman di sini
+  let pageSections = []; // Simpan semua BAHAGIAN halaman di sini
 
-  // Dengar mesej dari dashboard.html (editor) - HANYA jika dalam mod edit
   if (EDIT_MODE) {
     window.addEventListener('message', (event) => {
       if (event.data.type) {
@@ -125,12 +130,22 @@
           case 'toggle-edit':
             document.body.classList.toggle('edit-mode', event.data.data.on);
             break;
-          case 'load-elements':
-            pageElements = event.data.data.elements || [];
+          case 'load-sections':
+            pageSections = event.data.data.sections || [];
             renderPage();
             break;
+          case 'add-section':
+            addSection(event.data.data);
+            break;
+          case 'update-section':
+            updateSection(event.data.data.id, event.data.data.properties);
+            break;
+          case 'delete-section':
+            deleteSection(event.data.data.id);
+            break;
+          // Fungsi elemen kekal sama, tetapi sekarang merujuk kepada bahagian induk
           case 'add-element':
-            addElement(event.data.data);
+            addElement(event.data.data.sectionId, event.data.data.element);
             break;
           case 'update-element':
             updateElement(event.data.data.id, event.data.data.properties);
@@ -138,62 +153,68 @@
           case 'delete-element':
             deleteElement(event.data.data.id);
             break;
-          case 'bring-to-front':
-            bringToFront(event.data.data.id);
-            break;
-          case 'send-to-back':
-            sendToBack(event.data.data.id);
-            break;
         }
       }
     });
   }
 
-  // Fungsi untuk menjana semula keseluruhan halaman dari `pageElements`
   function renderPage() {
     const mainContent = document.querySelector('main');
     if (!mainContent) return;
+    mainContent.innerHTML = '';
 
-    // Kosongkan kandungan sedia ada
-    mainContent.innerHTML = ''; 
-
-    // Isi semula dengan elemen dari `pageElements`
-    pageElements.forEach(el => {
-      const elementNode = createElementNode(el);
-      if (elementNode) {
-        mainContent.appendChild(elementNode);
+    pageSections.forEach(section => {
+      const sectionNode = createSectionNode(section);
+      if (sectionNode) {
+        mainContent.appendChild(sectionNode);
       }
     });
 
-    // Jika dalam edit mode, jadikan elemen boleh dipilih
     if (EDIT_MODE) {
+      makeSectionsSelectable();
       makeElementsSelectable();
     }
   }
   
-  // Fungsi untuk cipta nod DOM untuk setiap elemen
+  function createSectionNode(section) {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'page-section';
+    sectionDiv.dataset.id = section.id;
+    
+    // Gaya untuk bahagian
+    Object.assign(sectionDiv.style, {
+      backgroundColor: section.backgroundColor || 'transparent',
+      padding: section.padding || '4rem 1rem',
+      borderRadius: `${section.borderRadius || 0}px`
+    });
+
+    // Gunakan grid untuk susun elemen di dalamnya
+    const grid = document.createElement('div');
+    grid.className = 'section-grid';
+
+    if (section.elements && section.elements.length > 0) {
+      section.elements.forEach(el => {
+        const elementNode = createElementNode(el);
+        if (elementNode) {
+          grid.appendChild(elementNode);
+        }
+      });
+    }
+    
+    sectionDiv.appendChild(grid);
+    return sectionDiv;
+  }
+
   function createElementNode(el) {
     const wrapper = document.createElement('div');
     wrapper.className = 'page-element';
     wrapper.dataset.id = el.id;
-    wrapper.style.position = 'absolute'; // Kedudukan mutlak diperlukan untuk editor
-    wrapper.style.left = `${el.x || 0}px`;
-    wrapper.style.top = `${el.y || 0}px`;
-    wrapper.style.width = `${el.width || 200}px`;
-    wrapper.style.height = el.height ? `${el.height}px` : 'auto';
-    wrapper.style.zIndex = el.zIndex || 1;
-    wrapper.style.opacity = (el.opacity || 100) / 100;
 
-    // Gaya latar belakang, border, dll
-    Object.assign(wrapper.style, {
-      backgroundColor: el.backgroundColor || 'transparent',
-      borderWidth: `${el.borderWidth || 0}px`,
-      borderStyle: 'solid',
-      borderColor: el.borderColor || '#000000',
-      borderRadius: `${el.borderRadius || 0}px`,
-      padding: '10px',
-      boxSizing: 'border-box'
-    });
+    // Gunakan CSS Grid untuk kedudukan
+    // Contoh: gridColumn: 'span 6 / span 6' bermaksud ambil 6 dari 12 lajur
+    wrapper.style.gridColumn = el.gridColumn || 'span 12 / span 12';
+    wrapper.style.textAlign = el.textAlign || 'left';
+    wrapper.style.zIndex = el.zIndex || 1;
 
     let innerHTML = '';
     switch (el.type) {
@@ -204,21 +225,18 @@
         wrapper.style.fontWeight = el.fontWeight || 'normal';
         wrapper.style.fontStyle = el.fontStyle || 'normal';
         wrapper.style.textDecoration = el.textDecoration || 'none';
-        wrapper.style.textAlign = el.textAlign || 'left';
         innerHTML = el.content || '';
         break;
       case 'image':
-        innerHTML = `<img src="${el.src || ''}" style="max-width:100%; max-height:100%; display:block;">`;
+        innerHTML = `<img src="${el.src || ''}" style="max-width:100%; height:auto; display:block; border-radius: 0.75rem;">`;
         break;
       case 'video':
-        innerHTML = `<video src="${el.src || ''}" controls playsinline style="max-width:100%; max-height:100%; display:block;"></video>`;
+        innerHTML = `<video src="${el.src || ''}" controls playsinline style="width:100%; border-radius: 0.75rem;"></video>`;
         break;
       case 'button':
         wrapper.style.display = 'flex';
-        wrapper.style.alignItems = 'center';
-        wrapper.style.justifyContent = 'center';
-        wrapper.style.cursor = 'pointer';
-        innerHTML = `<a href="${el.href || '#'}" style="text-decoration:none; color:inherit; display:block; width:100%; text-align:center;">${el.content || 'Button'}</a>`;
+        wrapper.style.justifyContent = el.textAlign === 'center' ? 'center' : (el.textAlign === 'right' ? 'flex-end' : 'flex-start');
+        innerHTML = `<a href="${el.href || '#'}" class="inline-flex items-center gap-2" style="text-decoration:none; color:${el.color || '#fff'}; background-color:${el.backgroundColor || '#ef4444'}; padding: 0.7rem 1.5rem; font-weight: 700; border-radius: 0.75rem;">${el.content || 'Button'}</a>`;
         break;
     }
     
@@ -226,83 +244,95 @@
     return wrapper;
   }
 
-  function addElement(el) {
-    pageElements.push(el);
+  // Fungsi untuk menguruskan bahagian
+  function addSection(section) {
+    pageSections.push(section);
+    renderPage();
+  }
+  function updateSection(id, properties) {
+    const sec = pageSections.find(s => s.id === id);
+    if (sec) { Object.assign(sec, properties); renderPage(); }
+  }
+  function deleteSection(id) {
+    pageSections = pageSections.filter(s => s.id !== id);
     renderPage();
   }
 
+  // Fungsi untuk menguruskan elemen
+  function addElement(sectionId, element) {
+    const sec = pageSections.find(s => s.id === sectionId);
+    if (sec) {
+      sec.elements = sec.elements || [];
+      sec.elements.push(element);
+      renderPage();
+    }
+  }
   function updateElement(id, properties) {
-    const el = pageElements.find(e => e.id === id);
-    if (el) {
-      Object.assign(el, properties);
-      renderPage();
+    for (const sec of pageSections) {
+      const el = sec.elements.find(e => e.id === id);
+      if (el) {
+        Object.assign(el, properties);
+        renderPage();
+        return;
+      }
     }
   }
-
   function deleteElement(id) {
-    pageElements = pageElements.filter(e => e.id !== id);
-    renderPage();
-  }
-  
-  function bringToFront(id) {
-    const el = pageElements.find(e => e.id === id);
-    if (el) {
-      const maxZ = Math.max(...pageElements.map(e => e.zIndex || 0));
-      el.zIndex = maxZ + 1;
-      renderPage();
+    for (const sec of pageSections) {
+      const index = sec.elements.findIndex(e => e.id === id);
+      if (index > -1) {
+        sec.elements.splice(index, 1);
+        renderPage();
+        return;
+      }
     }
   }
 
-  function sendToBack(id) {
-    const el = pageElements.find(e => e.id === id);
-    if (el) {
-      const minZ = Math.min(...pageElements.map(e => e.zIndex || 0));
-      el.zIndex = minZ - 1;
-      renderPage();
-    }
+  function makeSectionsSelectable() {
+    document.querySelectorAll('.page-section').forEach(sec => {
+      sec.addEventListener('click', (e) => {
+        // Jangan pilih bahagian jika elemen di dalamnya diklik
+        if (e.target.closest('.page-element')) return;
+        
+        e.stopPropagation();
+        document.querySelectorAll('.page-section.selected').forEach(s => s.classList.remove('selected'));
+        sec.classList.add('selected');
+        window.parent.postMessage({ type: 'section-selected', data: { id: sec.dataset.id } }, '*');
+      });
+    });
   }
 
-  // Fungsi untuk menjadikan elemen boleh dipilih
   function makeElementsSelectable() {
     document.querySelectorAll('.page-element').forEach(el => {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
-        // Hapus kelas 'selected' dari elemen lain
-        document.querySelectorAll('.page-element.selected').forEach(el => el.classList.remove('selected'));
-        // Tambah kelas 'selected' pada elemen ini
+        document.querySelectorAll('.page-element.selected').forEach(elem => elem.classList.remove('selected'));
         el.classList.add('selected');
-        
-        // Hantar ID elemen yang dipilih ke dashboard
         window.parent.postMessage({ type: 'element-selected', data: { id: el.dataset.id } }, '*');
       });
     });
   }
 
-  // Inisialisasi Lucide icons (jika ada)
+  // Inisialisasi
   lucide.createIcons();
   document.getElementById('year').textContent = new Date().getFullYear();
 
-  // --- PERUBAHAN UTAMA DI SINI ---
-  // Fungsi init akan sentiasa berjalan, tidak kira mod edit atau tidak
   (async function init() {
     try {
-      // Cuba dapatkan leader_id dari URL, jika tidak ada guna default
       const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
       const response = await api('settings_get', { leader_id: leader_id });
       
       if (response.success && response.settings.sections_json) {
-        pageElements = JSON.parse(response.settings.sections_json);
-        renderPage(); // Paparkan halaman
+        pageSections = JSON.parse(response.settings.sections_json);
+        renderPage();
 
-        // JIKA dalam mod edit, beritahu dashboard bahawa elemen telah dimuat
         if (EDIT_MODE) {
-          window.parent.postMessage({ type: 'elements-loaded', data: { elements: pageElements } }, '*');
+          window.parent.postMessage({ type: 'sections-loaded', data: { sections: pageSections } }, '*');
         }
       } else {
-        // Jika tiada kandungan, kosongkan halaman
         renderPage();
         if (EDIT_MODE) {
-          window.parent.postMessage({ type: 'elements-loaded', data: { elements: [] } }, '*');
+          window.parent.postMessage({ type: 'sections-loaded', data: { sections: [] } }, '*');
         }
       }
     } catch (error) {
