@@ -37,11 +37,11 @@
           <div class="space-y-3">
             <div>
               <label class="block text-sm font-semibold">Nama</label>
-              <input id="inpName" class="input" placeholder="cth: amirul">
+              <input id="inpName" class="input" placeholder="cth: amirul"/>
             </div>
             <div>
               <label class="block text-sm font-semibold">Telefon</label>
-              <input id="inpPhone" class="input" placeholder="0109022333">
+              <input id="inpPhone" class="input" placeholder="0109022333"/>
             </div>
             <div class="flex items-center gap-3">
               <button id="btnGo" class="btn btn-primary">Teruskan</button>
@@ -52,7 +52,7 @@
         </div>
       </div>
       <div class="hidden md:block">
-        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=1200&auto=format&fit=crop" class="rounded-xl shadow" alt="Laptop">
+        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=1200&auto=format&fit=crop" class="rounded-xl shadow"/>
       </div>
     </div>
   </div>
@@ -60,8 +60,7 @@
   <div id="toast" class="toast"></div>
 
 <script>
-  // URL Web App anda (sedia ada dari rumus asal)
-  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+  const EXEC_URL = (typeof window !== 'undefined' && window.EXEC_URL) || (window.EXEC_URL = (window.EXEC_URL||'https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec'));
 
   function toast(msg){
     const el = document.getElementById('toast');
@@ -69,7 +68,7 @@
     setTimeout(()=> el.classList.remove('show'), 2200);
   }
 
-  function onlyDigits(s){ return String(s||'').replace(/\D+/g,''); }
+  function onlyDigits(s){ return String(s||'').replace(/\\D+/g,''); }
 
   async function api(path, payload){
     const fd = new URLSearchParams();
@@ -83,7 +82,8 @@
   }
 
   function saveSession(obj){
-    try { localStorage.setItem('mova_session', JSON.stringify(obj)); } catch(_){}
+    try { localStorage.setItem('mova_session', JSON.stringify(obj)); }
+    catch(_){}
   }
 
   function setLoading(btn, is){
@@ -98,8 +98,9 @@
     }
   }
 
-  // ===== INIT =====
-  document.getElementById('year').textContent = new Date().getFullYear?.() || new Date().getFullYear?.() || '';
+  (async function init(){
+    try { await api('setup', {}); } catch(_){}
+  })();
 
   document.getElementById('btnClear').addEventListener('click', ()=>{
     document.getElementById('inpName').value = '';
@@ -119,7 +120,6 @@
     setLoading(btn, true);
     try{
       const out = await api('resolve_access', { name, phone });
-      // { success, role:'leader'|'partner'|'user'|'none', leader_id, partner_name, access:[...], message }
       const role = String(out.role||'none').toLowerCase();
       const leader_id = out.leader_id || 'LEAD-0001';
       const partner_name = out.partner_name || '';
@@ -132,14 +132,13 @@
           name, phone,
           profile:{ role:'leader', name, phone }
         });
-        /* ===== TAMBAHAN PENTING (fix tendang balik) ===== */
-        try {
-          localStorage.setItem('mova_leader', JSON.stringify({
-            leader_id,
-            profile:{ role:'leader', name, phone }
-          }));
+        // === Tambahan penting untuk Dashboard ===
+        try { 
+          localStorage.setItem('mova_leader', JSON.stringify({ 
+            leader_id, 
+            profile:{ role:'leader', name, phone } 
+          })); 
         } catch(_){}
-        /* ===== TAMAT TAMBAHAN ===== */
         toast('Akses leader disahkan. Membuka Dashboard…');
         return setTimeout(()=> location.href='./dashboard.html', 600);
       }
@@ -148,8 +147,8 @@
         saveSession({
           role:'partner',
           leader_id: leader_id,
+          partner_name: partner_name,
           name, phone,
-          partner_name,
           profile:{ role:'partner', name, phone }
         });
         toast('Akses partner disahkan. Membuka Panel Partner…');
@@ -160,7 +159,7 @@
         saveSession({
           role:'user',
           leader_id: leader_id,
-          partner_name,
+          partner_name: partner_name,
           name, phone,
           profile:{ role:'user', name, phone }
         });
@@ -168,7 +167,6 @@
         return setTimeout(()=> location.href=`./user.html?leader=${encodeURIComponent(leader_id)}`, 600);
       }
 
-      // role none / gagal
       toast(out.message || 'Akses tidak ditemui. Hubungi admin/partner.');
     }catch(e){
       toast(e.message || 'Ralat sambungan.');
