@@ -23,119 +23,68 @@
     .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.65rem .9rem;background:#fff}
     .input:focus{outline:none;box-shadow:0 0 0 2px #111}
     .muted{color:#6b7280}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
-    .spinner{width:18px;height:18px;border:3px solid #fff;border-right-color:transparent;border-radius:9999px;animation:spin 0.7s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .pill{display:inline-flex;align-items:center;gap:.4rem;border-radius:9999px;font-size:.75rem;padding:.2rem .55rem;border:1px solid #e5e7eb;background:#f8fafc}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:.6rem .9rem;border-radius:.75rem;box-shadow:0 8px 24px rgba(0,0,0,.15);opacity:0;transition:.25s}
+    .toast.show{opacity:1}
   </style>
 </head>
 <body>
-
-<!-- NAV -->
-<nav class="bg-white border-b border-gray-200">
-  <div class="mx-auto container px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
-        <i data-lucide="rocket" class="w-5 h-5"></i>
-      </div>
-      <div class="font-extrabold">MOVA</div>
-    </div>
-    <div class="hidden sm:flex items-center gap-2">
-      <a href="./user.html" class="btn-ghost text-sm"><i data-lucide="external-link" class="w-4 h-4"></i> Laman Pengguna</a>
-    </div>
-  </div>
-</nav>
-
-<!-- HERO -->
-<header class="bg-white">
-  <div class="mx-auto container px-4 sm:px-6 lg:px-8 py-12 grid md:grid-cols-2 gap-10 items-center">
-    <div>
-      <div class="pill mb-3"><i data-lucide="lock-keyhole" class="w-4 h-4"></i> Akses Terpandu</div>
-      <h1 class="text-3xl sm:text-5xl font-extrabold leading-tight">
-        Log masuk untuk akses <span class="text-[color:var(--brand)]">automatik</span> ke panel yang betul
-      </h1>
-      <p class="mt-3 text-gray-600">
-        Masukkan <b>nama</b> dan <b>telefon</b> — sistem akan semak peranan anda melalui <code>resolve_access</code> dan hantar anda ke
-        <b>Dashboard Leader</b>, <b>Panel Partner</b> atau <b>Laman User</b> secara automatik.
-      </p>
-      <ul class="mt-4 text-sm text-gray-600 list-disc ml-5 space-y-1">
-        <li>Leader → <code>dashboard.html</code></li>
-        <li>Partner → <code>partner.html</code></li>
-        <li>User → <code>user.html</code></li>
-      </ul>
-    </div>
-
-    <div class="card p-6">
-      <div class="flex items-center gap-2 mb-4">
-        <i data-lucide="log-in" class="w-5 h-5 text-gray-700"></i>
-        <h2 class="text-xl font-extrabold">Log Masuk / Semak Akses</h2>
-      </div>
-      <div class="grid gap-3">
-        <div>
-          <label class="text-sm font-medium">Nama penuh</label>
-          <input id="inpName" class="input mt-1" placeholder="cth: amirul">
+  <div class="container mx-auto p-4">
+    <div class="grid md:grid-cols-2 gap-6 items-center">
+      <div>
+        <h1 class="text-3xl font-extrabold tracking-tight">MOVA — Akses</h1>
+        <p class="mt-2 text-gray-600">Log masuk menggunakan <strong>nama</strong> & <strong>nombor telefon</strong>. Sistem akan mengesahkan peranan anda (Leader / Partner / User).
+        </p>
+        <div class="mt-6 card p-6">
+          <div class="space-y-3">
+            <div>
+              <label class="block text-sm font-semibold">Nama</label>
+              <input id="inpName" class="input" placeholder="cth: amirul"/>
+            </div>
+            <div>
+              <label class="block text-sm font-semibold">Telefon</label>
+              <input id="inpPhone" class="input" placeholder="0109022333"/>
+            </div>
+            <div class="flex items-center gap-3">
+              <button id="btnGo" class="btn btn-primary">Teruskan</button>
+              <button id="btnClear" class="btn btn-ghost">Kosongkan</button>
+            </div>
+            <p class="muted text-sm">Tip: nama & telefon perlu sama seperti rekod pendaftaran anda.</p>
+          </div>
         </div>
-        <div>
-          <label class="text-sm font-medium">No. telefon</label>
-          <input id="inpPhone" class="input mt-1" placeholder="cth: 0109074190">
-        </div>
-        <button id="btnGo" class="btn btn-primary mt-2">
-          <span>Teruskan</span>
-        </button>
-        <button id="btnUserOnly" class="btn btn-ghost">
-          <i data-lucide="user" class="w-4 h-4"></i>
-          Buka Laman User sahaja
-        </button>
       </div>
-      <div class="mt-4 text-xs text-gray-500">
-        Dengan menekan Teruskan, sesi akan disimpan ke <code>localStorage</code> sebagai <code>mova_session</code>.
+      <div class="hidden md:block">
+        <img src="https://images.unsplash.com/photo-1531297484001-80022131f5a1?q=80&w=1200&auto=format&fit=crop" class="rounded-xl shadow"/>
       </div>
     </div>
   </div>
-</header>
 
-<!-- FOOT -->
-<footer class="mt-10 py-10 text-center text-sm text-gray-500">
-  © <span id="year"></span> MOVA. Hak cipta terpelihara.
-</footer>
-
-<!-- Toast -->
-<div id="toast" class="toast hidden"></div>
+  <div id="toast" class="toast"></div>
 
 <script>
-  // ===== KONFIG =====
-  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+  const EXEC_URL = (typeof window !== 'undefined' && window.EXEC_URL) || (window.EXEC_URL = (window.EXEC_URL||'YOUR_EXEC_URL_HERE'));
 
-  // ===== INIT =====
-  document.getElementById('year').textContent = new Date().getFullYear();
-  lucide.createIcons();
-
-  // ===== UTIL =====
-  const toastEl = document.getElementById('toast');
-  function toast(msg, ms=2200){
-    toastEl.textContent = msg;
-    toastEl.classList.remove('hidden');
-    clearTimeout(toastEl._t);
-    toastEl._t = setTimeout(()=> toastEl.classList.add('hidden'), ms);
+  function toast(msg){
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(()=> el.classList.remove('show'), 2200);
   }
-  function onlyDigits(s){ return String(s||'').replace(/\D/g,''); }
+
+  function onlyDigits(s){ return String(s||'').replace(/\D+/g,''); }
 
   async function api(path, payload){
-    const res = await fetch(EXEC_URL, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
-      body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
-    });
-    const text = await res.text();
-    let json; try{ json = JSON.parse(text) }catch(e){ throw new Error(text) }
-    if (json && json.success===false) throw new Error(json.error || 'Ralat tidak diketahui');
+    const fd = new URLSearchParams();
+    fd.set('path', path);
+    fd.set('payload', JSON.stringify(payload||{}));
+    const res = await fetch(EXEC_URL, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:fd });
+    if (!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    if (json && json.success===false && json.error) throw new Error(json.error||'Ralat tidak diketahui');
     return json;
   }
 
   function saveSession(obj){
     try { localStorage.setItem('mova_session', JSON.stringify(obj)); }
-    catch(_){}
-  }
+    catch(_){}}
 
   function setLoading(btn, is){
     if (!btn) return;
@@ -151,26 +100,19 @@
 
   // ===== PRE-SETUP (idempotent) =====
   (async function init(){
-    try { await api('setup', {}); } catch(_){}
-    // auto-fill dari memori jika ada
-    try{
-      const s = localStorage.getItem('mova_session');
-      if (s){
-        const o = JSON.parse(s);
-        if (o?.name) document.getElementById('inpName').value = o.name;
-        if (o?.phone) document.getElementById('inpPhone').value = o.phone;
-      }
-    }catch(_){}
-  })();
+    try { await api('setup', {}); } catch(_){}}
+  )();
 
-  // ===== HANDLERS =====
-  document.getElementById('btnGo').addEventListener('click', onContinue);
-  document.getElementById('btnUserOnly').addEventListener('click', ()=>{
-    // laluan ringkas ke user page tanpa resolve_access
-    location.href = './user.html';
+  document.getElementById('btnClear').addEventListener('click', ()=>{
+    document.getElementById('inpName').value = '';
+    document.getElementById('inpPhone').value = '';
   });
 
-  async function onContinue(){
+  document.getElementById('btnGo').addEventListener('click', onGo);
+  document.getElementById('inpName').addEventListener('keydown', (e)=> e.key==='Enter' && onGo());
+  document.getElementById('inpPhone').addEventListener('keydown', (e)=> e.key==='Enter' && onGo());
+
+  async function onGo(){
     const btn = document.getElementById('btnGo');
     const name  = (document.getElementById('inpName').value||'').trim();
     const phone = onlyDigits(document.getElementById('inpPhone').value||'');
@@ -179,7 +121,6 @@
     setLoading(btn, true);
     try{
       const out = await api('resolve_access', { name, phone });
-      // Bentuk respons jangkaan:
       // { success, role:'leader'|'partner'|'user'|'none', leader_id, partner_name, access:[...], message }
       const role = String(out.role||'none').toLowerCase();
       const leader_id = out.leader_id || 'LEAD-0001';
@@ -193,6 +134,8 @@
           name, phone,
           profile:{ role:'leader', name, phone }
         });
+        // === 新增：写入 mova_leader（为 dashboard.html 的访问校验做准备） ===
+        try { localStorage.setItem('mova_leader', JSON.stringify({ leader_id, profile:{ role:'leader', name, phone } })); } catch(_){}
         toast('Akses leader disahkan. Membuka Dashboard…');
         return setTimeout(()=> location.href='./dashboard.html', 600);
       }
@@ -201,8 +144,8 @@
         saveSession({
           role:'partner',
           leader_id: leader_id,
+          partner_name: partner_name,
           name, phone,
-          partner_name,
           profile:{ role:'partner', name, phone }
         });
         toast('Akses partner disahkan. Membuka Panel Partner…');
@@ -213,15 +156,14 @@
         saveSession({
           role:'user',
           leader_id: leader_id,
+          partner_name: partner_name,
           name, phone,
-          partner_name
+          profile:{ role:'user', name, phone }
         });
         toast('Akses user disahkan. Membuka Laman User…');
-        // optional: pass leader id utk hook dalam user.html
         return setTimeout(()=> location.href=`./user.html?leader=${encodeURIComponent(leader_id)}`, 600);
       }
 
-      // role none / gagal
       toast(out.message || 'Akses tidak ditemui. Hubungi admin/partner.');
     }catch(e){
       toast(e.message || 'Ralat sambungan.');
