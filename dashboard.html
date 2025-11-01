@@ -1037,7 +1037,7 @@
   });
 
   // ===================================================================
-  // ====== EDITOR BAHAGIAN (GANTIKAN FUNGSI EDITOR LAMA) ======
+  // ====== EDITOR BAHAGIAN (KOD LENGKAP & DIKEMASKINI) ======
   // ===================================================================
 
   function initEditor() {
@@ -1178,6 +1178,192 @@
     renderElementListInSection(sectionId);
   }
 
+  // ===================================================================
+  // ====== FUNGSI UNTUK MENGEDIT ELEMEN (DIKEMASKINI) ======
+  // ===================================================================
+
+  function selectElement(elementId) {
+    store.selectedElementId = elementId;
+    store.selectedSectionId = null; // Deselect section when element is selected
+    
+    // Find the element and its parent section
+    let selectedElement = null;
+    let parentSection = null;
+
+    for (const section of store.sections) {
+      const el = section.elements.find(e => e.id === elementId);
+      if (el) {
+        selectedElement = el;
+        parentSection = section;
+        break;
+      }
+    }
+
+    if (!selectedElement) {
+      console.error("Element not found:", elementId);
+      return;
+    }
+
+    // Show the correct properties panel based on element type
+    showElementProperties(selectedElement, parentSection);
+    
+    // Send message to iframe to highlight the element
+    sendToIframe('select-element', { id: elementId });
+  }
+
+  function showElementProperties(element, parentSection) {
+    const panel = document.getElementById('propertiesPanel');
+    const title = document.getElementById('propertiesTitle');
+    const content = document.getElementById('propertiesContent');
+
+    title.textContent = `Sifat Elemen: ${element.type}`;
+    
+    // Render different properties based on element type
+    switch (element.type) {
+      case 'text':
+        content.innerHTML = `
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm font-medium">Kandungan Teks (Anda boleh gunakan &lt;strong&gt;, &lt;br&gt;, &lt;span&gt; dll.)</label>
+              <textarea id="prop-elementContent" class="textarea mt-1" rows="4">${element.content || ''}</textarea>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium">Saiz Fon (px)</label>
+                <input type="number" id="prop-fontSize" class="input mt-1" value="${element.fontSize || 16}">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Warna Fon</label>
+                <input type="color" id="prop-color" class="input mt-1 p-1" value="${element.color || '#000000'}">
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+              <select id="prop-gridColumn" class="input mt-1">
+                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+              </select>
+            </div>
+          </div>
+        `;
+        // Add event listeners for text element
+        document.getElementById('prop-elementContent').addEventListener('input', (e) => {
+          element.content = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { content: e.target.value } });
+        });
+        document.getElementById('prop-fontSize').addEventListener('input', (e) => {
+          element.fontSize = parseInt(e.target.value);
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { fontSize: parseInt(e.target.value) } });
+        });
+        document.getElementById('prop-color').addEventListener('input', (e) => {
+          element.color = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
+        });
+        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
+          element.gridColumn = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
+        });
+        break;
+
+      case 'image':
+        content.innerHTML = `
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm font-medium">URL Imej</label>
+              <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://...">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+              <select id="prop-gridColumn" class="input mt-1">
+                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+              </select>
+            </div>
+          </div>
+        `;
+        document.getElementById('prop-src').addEventListener('input', (e) => {
+          element.src = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { src: e.target.value } });
+        });
+        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
+          element.gridColumn = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
+        });
+        break;
+
+      case 'button':
+        content.innerHTML = `
+          <div class="space-y-4">
+            <div>
+              <label class="text-sm font-medium">Teks Butang</label>
+              <input type="text" id="prop-content" class="input mt-1" value="${element.content || ''}">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Pautan (URL)</label>
+              <input type="text" id="prop-href" class="input mt-1" value="${element.href || '#'}">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium">Warna Latar</label>
+                <input type="color" id="prop-bgColor" class="input mt-1 p-1" value="${element.backgroundColor || '#ef4444'}">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Warna Teks</label>
+                <input type="color" id="prop-color" class="input mt-1 p-1" value="${element.color || '#ffffff'}">
+              </div>
+            </div>
+            <div>
+              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+              <select id="prop-gridColumn" class="input mt-1">
+                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+              </select>
+            </div>
+          </div>
+        `;
+        document.getElementById('prop-content').addEventListener('input', (e) => {
+          element.content = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { content: e.target.value } });
+        });
+        document.getElementById('prop-href').addEventListener('input', (e) => {
+          element.href = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { href: e.target.value } });
+        });
+        document.getElementById('prop-bgColor').addEventListener('input', (e) => {
+          element.backgroundColor = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { backgroundColor: e.target.value } });
+        });
+        document.getElementById('prop-color').addEventListener('input', (e) => {
+          element.color = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
+        });
+        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
+          element.gridColumn = e.target.value;
+          saveDesign();
+          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
+        });
+        break;
+    }
+    
+    panel.classList.remove('hidden');
+  }
+
   function renderElementListInSection(sectionId) {
     const section = store.sections.find(s => s.id === sectionId);
     const listContainer = document.getElementById('elementListInSection');
@@ -1190,9 +1376,9 @@
 
     section.elements.forEach((element, index) => {
       const elementItem = document.createElement('div');
-      elementItem.className = 'p-2 border border-gray-200 rounded flex justify-between items-center text-sm';
+      elementItem.className = 'p-2 border border-gray-200 rounded flex justify-between items-center text-sm cursor-pointer hover:bg-gray-50'; // Added cursor-pointer and hover effect
       elementItem.innerHTML = `
-        <span>${element.type} - ${element.content ? element.content.substring(0, 20) + '...' : ''}</span>
+        <span>${element.type} - ${element.content ? element.content.replace(/<[^>]*>/g, '').substring(0, 20) + '...' : ''}</span>
         <div class="flex gap-1">
           <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveElementUp('${sectionId}', ${index})" title="Naik"><i data-lucide="chevron-up" class="w-3 h-3"></i></button>
           <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveElementDown('${sectionId}', ${index})" title="Turun"><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
@@ -1223,13 +1409,6 @@
     renderElementListInSection(sectionId);
     saveDesign();
     sendToIframe('add-element', { sectionId, element: newElement });
-  }
-
-  function selectElement(elementId) {
-    store.selectedElementId = elementId;
-    // Logic to show element properties can be added here
-    console.log('Selected element:', elementId);
-    // For now, we'll just log it. A full implementation would show a properties panel.
   }
 
   function closePropertiesPanel() {
