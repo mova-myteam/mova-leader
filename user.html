@@ -50,6 +50,65 @@
     /* Social icons */
     .social-icon { display:inline-flex; align-items:center; gap:.5rem; font-size:var(--icon-size,24px); color:var(--icon-color,#374151); transition:transform .2s ease }
     .social-icon:hover { transform: translateY(-2px) }
+    
+    /* Calculator styles */
+    .calculator-container { 
+      background: white; 
+      border-radius: 1rem; 
+      padding: 1.5rem; 
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+      max-width: 400px; 
+      margin: 0 auto; 
+    }
+    .calculator-display { 
+      background: #f9fafb; 
+      border-radius: 0.5rem; 
+      padding: 1rem; 
+      margin-bottom: 1rem; 
+      text-align: center; 
+      font-size: 1.25rem; 
+      font-weight: 600; 
+    }
+    .calculator-buttons { 
+      display: grid; 
+      grid-template-columns: repeat(3, 1fr); 
+      gap: 0.5rem; 
+    }
+    .calculator-button { 
+      background: #f3f4f6; 
+      border: none; 
+      border-radius: 0.5rem; 
+      padding: 1rem; 
+      font-size: 1.25rem; 
+      font-weight: 600; 
+      cursor: pointer; 
+      transition: all 0.2s ease; 
+    }
+    .calculator-button:hover { 
+      background: #e5e7eb; 
+    }
+    .calculator-button.operator { 
+      background: var(--brand); 
+      color: white; 
+    }
+    .calculator-button.operator:hover { 
+      background: #dc2626; 
+    }
+    .calculator-button.equals { 
+      background: #10b981; 
+      color: white; 
+      grid-column: span 2; 
+    }
+    .calculator-button.equals:hover { 
+      background: #059669; 
+    }
+    .calculator-button.clear { 
+      background: #ef4444; 
+      color: white; 
+    }
+    .calculator-button.clear:hover { 
+      background: #dc2626; 
+    }
   </style>
 </head>
 <body>
@@ -152,7 +211,146 @@
       }
       case 'update-element': {
         const el = document.querySelector(`[data-id="${data.id}"]`); // unique var name
-        if (el && data?.properties) Object.assign(el.style, data.properties);
+        if (el && data?.properties) {
+          // Apply style properties directly to the element
+          Object.keys(data.properties).forEach(prop => {
+            if (prop === 'content') {
+              el.innerHTML = data.properties[prop];
+            } else if (prop === 'fontSize') {
+              el.style.fontSize = `${data.properties[prop]}px`;
+            } else if (prop === 'color') {
+              el.style.color = data.properties[prop];
+            } else if (prop === 'fontFamily') {
+              el.style.fontFamily = data.properties[prop];
+            } else if (prop === 'textAlign') {
+              el.style.textAlign = data.properties[prop];
+            } else if (prop === 'lineHeight') {
+              el.style.lineHeight = data.properties[prop];
+            } else if (prop === 'letterSpacing') {
+              el.style.letterSpacing = data.properties[prop];
+            } else if (prop === 'fontWeight') {
+              el.style.fontWeight = data.properties[prop];
+            } else if (prop === 'fontStyle') {
+              el.style.fontStyle = data.properties[prop];
+            } else if (prop === 'textDecoration') {
+              el.style.textDecoration = data.properties[prop];
+            } else if (prop === 'backgroundColor') {
+              el.style.backgroundColor = data.properties[prop];
+            } else if (prop === 'borderWidth') {
+              el.style.borderWidth = `${data.properties[prop]}px`;
+            } else if (prop === 'borderColor') {
+              el.style.borderColor = data.properties[prop];
+            } else if (prop === 'borderRadius') {
+              el.style.borderRadius = `${data.properties[prop]}px`;
+            } else if (prop === 'padding') {
+              el.style.padding = data.properties[prop];
+            } else if (prop === 'opacity') {
+              el.style.opacity = data.properties[prop];
+            } else if (prop === 'gridColumn') {
+              el.style.gridColumn = data.properties[prop];
+            } else if (prop === 'zIndex') {
+              el.style.zIndex = data.properties[prop];
+            } else if (prop === 'boxShadow') {
+              el.style.boxShadow = data.properties[prop];
+            } else if (prop === 'transform') {
+              el.style.transform = data.properties[prop];
+            } else if (prop === 'transition') {
+              el.style.transition = data.properties[prop];
+            } else if (prop === 'animation') {
+              el.style.animation = data.properties[prop];
+            } else if (prop === 'animationDelay') {
+              el.style.animationDelay = `${data.properties[prop]}ms`;
+            } else if (prop === 'animationDuration') {
+              el.style.animationDuration = `${data.properties[prop]}ms`;
+            } else if (prop === 'animationDirection') {
+              el.style.animationDirection = data.properties[prop];
+            } else if (prop === 'animationFillMode') {
+              el.style.animationFillMode = data.properties[prop];
+            } else if (prop === 'animationIterationCount') {
+              el.style.animationIterationCount = data.properties[prop];
+            } else if (prop === 'animationName') {
+              el.style.animationName = data.properties[prop];
+            } else if (prop === 'animationPlayState') {
+              el.style.animationPlayState = data.properties[prop];
+            } else if (prop === 'animationTimingFunction') {
+              el.style.animationTimingFunction = data.properties[prop];
+            } else {
+              el.style[prop] = data.properties[prop];
+            }
+          });
+        }
+        break;
+      }
+      case 'update-section': {
+        const section = document.querySelector(`[data-section-id="${data.id}"]`);
+        if (section && data?.properties) {
+          // Apply style properties directly to the section
+          Object.keys(data.properties).forEach(prop => {
+            if (prop === 'backgroundColor') {
+              section.style.backgroundColor = data.properties[prop];
+            } else if (prop === 'padding') {
+              section.style.padding = data.properties[prop];
+            } else if (prop === 'borderRadius') {
+              section.style.borderRadius = `${data.properties[prop]}px`;
+            } else if (prop === 'borderWidth') {
+              section.style.borderWidth = `${data.properties[prop]}px`;
+            } else if (prop === 'borderColor') {
+              section.style.borderColor = data.properties[prop];
+            } else if (prop === 'borderStyle') {
+              section.style.borderStyle = data.properties[prop];
+            } else if (prop === 'boxShadow') {
+              section.style.boxShadow = data.properties[prop];
+            } else if (prop === 'opacity') {
+              section.style.opacity = data.properties[prop];
+            } else if (prop === 'transform') {
+              section.style.transform = data.properties[prop];
+            } else if (prop === 'transition') {
+              section.style.transition = data.properties[prop];
+            } else if (prop === 'animation') {
+              section.style.animation = data.properties[prop];
+            } else if (prop === 'animationDelay') {
+              section.style.animationDelay = `${data.properties[prop]}ms`;
+            } else if (prop === 'animationDuration') {
+              section.style.animationDuration = `${data.properties[prop]}ms`;
+            } else if (prop === 'animationDirection') {
+              section.style.animationDirection = data.properties[prop];
+            } else if (prop === 'animationFillMode') {
+              section.style.animationFillMode = data.properties[prop];
+            } else if (prop === 'animationIterationCount') {
+              section.style.animationIterationCount = data.properties[prop];
+            } else if (prop === 'animationName') {
+              section.style.animationName = data.properties[prop];
+            } else if (prop === 'animationPlayState') {
+              section.style.animationPlayState = data.properties[prop];
+            } else if (prop === 'animationTimingFunction') {
+              section.style.animationTimingFunction = data.properties[prop];
+            } else if (prop === 'backgroundImage') {
+              section.style.backgroundImage = data.properties[prop];
+            } else if (prop === 'backgroundSize') {
+              section.style.backgroundSize = data.properties[prop];
+            } else if (prop === 'backgroundPosition') {
+              section.style.backgroundPosition = data.properties[prop];
+            } else if (prop === 'backgroundRepeat') {
+              section.style.backgroundRepeat = data.properties[prop];
+            } else if (prop === 'backgroundAttachment') {
+              section.style.backgroundAttachment = data.properties[prop];
+            } else if (prop === 'backgroundClip') {
+              section.style.backgroundClip = data.properties[prop];
+            } else if (prop === 'backgroundOrigin') {
+              section.style.backgroundOrigin = data.properties[prop];
+            } else {
+              section.style[prop] = data.properties[prop];
+            }
+          });
+        }
+        break;
+      }
+      case 'delete-element': {
+        deleteElement(event.data.id);
+        break;
+      }
+      case 'deselect-all': {
+        document.querySelectorAll('.page-section.selected, .page-element.selected').forEach(el => el.classList.remove('selected'));
         break;
       }
       case 'apply-command': {
@@ -189,11 +387,46 @@
     sectionDiv.dataset.id = section.id;
     sectionDiv.dataset.sectionId = section.id;
 
+    // Apply section styles
     Object.assign(sectionDiv.style, {
       backgroundColor: section.backgroundColor || 'transparent',
       padding: section.padding || '4rem 1rem',
       borderRadius: `${section.borderRadius || 0}px`
     });
+
+    // Apply section style classes
+    if (section.style && section.style !== 'default') {
+      sectionDiv.classList.add(`section-style-${section.style}`);
+    }
+
+    // Apply background image if exists
+    if (section.backgroundImage) {
+      sectionDiv.style.backgroundImage = section.backgroundImage;
+    }
+
+    // Apply background pattern if exists
+    if (section.pattern && section.pattern !== 'none') {
+      switch (section.pattern) {
+        case 'dots':
+          sectionDiv.style.backgroundImage = 'radial-gradient(#e5e7eb 1px,transparent 1px)';
+          sectionDiv.style.backgroundSize = '10px 10px';
+          break;
+        case 'grid':
+          sectionDiv.style.backgroundImage = 'linear-gradient(#e5e7eb 1px,transparent 1px),linear-gradient(90deg,#e5e7eb 1px,transparent 1px)';
+          sectionDiv.style.backgroundSize = '10px 10px';
+          break;
+        case 'diagonal':
+          sectionDiv.style.backgroundImage = 'repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 1px,transparent 1px,transparent 10px)';
+          break;
+        case 'waves':
+          sectionDiv.style.backgroundImage = 'repeating-linear-gradient(45deg,transparent,transparent 10px,#e5e7eb 10px,#e5e7eb 20px)';
+          break;
+        case 'zigzag':
+          sectionDiv.style.backgroundImage = 'linear-gradient(135deg,#e5e7eb 25%,transparent 25%) -10px 0,linear-gradient(225deg,#e5e7eb 25%,transparent 25%) -10px 0,linear-gradient(315deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,#e5e7eb 25%,transparent 25%)';
+          sectionDiv.style.backgroundSize = '20px 20px';
+          break;
+      }
+    }
 
     const grid = document.createElement('div');
     grid.className = 'section-grid';
@@ -230,6 +463,47 @@
       boxSizing: 'border-box'
     });
 
+    // Apply shape styles
+    if (el.shape) {
+      switch (el.shape) {
+        case 'circle':
+          wrap.style.borderRadius = '50%';
+          break;
+        case 'rounded':
+          wrap.style.borderRadius = '0.75rem';
+          break;
+        case 'pill':
+          wrap.style.borderRadius = '9999px';
+          break;
+        case 'diamond':
+          wrap.style.transform = 'rotate(45deg)';
+          break;
+      }
+    }
+
+    // Apply shadow styles
+    if (el.shadow) {
+      switch (el.shadow) {
+        case 'sm':
+          wrap.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
+          break;
+        case 'md':
+          wrap.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+          break;
+        case 'lg':
+          wrap.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
+          break;
+        case 'xl':
+          wrap.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
+          break;
+      }
+    }
+
+    // Apply animation styles
+    if (el.animation && el.animation !== 'none') {
+      wrap.style.animation = `${el.animation} ${el.animationDuration || 1000}ms ${el.animationDelay || 0}ms ease forwards`;
+    }
+
     switch (el.type) {
       case 'text': {
         wrap.style.fontFamily = el.fontFamily || 'Inter';
@@ -238,15 +512,44 @@
         wrap.style.fontWeight = el.fontWeight || 'normal';
         wrap.style.fontStyle = el.fontStyle || 'normal';
         wrap.style.textDecoration = el.textDecoration || 'none';
+        wrap.style.lineHeight = el.lineHeight || '1.5';
+        wrap.style.letterSpacing = el.letterSpacing || '0';
         wrap.innerHTML = el.content || '';
         break;
       }
       case 'image': {
-        wrap.innerHTML = `<img src="${el.src || ''}" alt="" style="max-width:100%;height:auto;display:block;border-radius:.75rem">`;
+        const img = document.createElement('img');
+        img.src = el.src || '';
+        img.alt = el.alt || '';
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
+        img.style.display = 'block';
+        img.style.borderRadius = '0.75rem';
+        img.style.objectFit = el.objectFit || 'cover';
+        
+        // Make image clickable if needed
+        if (el.clickable === 'yes' && el.linkUrl) {
+          const link = document.createElement('a');
+          link.href = el.linkUrl;
+          link.target = el.linkTarget || '_blank';
+          link.appendChild(img);
+          wrap.appendChild(link);
+        } else {
+          wrap.appendChild(img);
+        }
         break;
       }
       case 'video': {
-        wrap.innerHTML = `<video src="${el.src || ''}" controls playsinline style="width:100%;border-radius:.75rem"></video>`;
+        const video = document.createElement('video');
+        video.src = el.src || '';
+        video.controls = el.controls !== 'no';
+        video.autoplay = el.autoplay === 'yes';
+        video.muted = el.muted === 'yes';
+        video.loop = el.loop === 'yes';
+        video.playsInline = true;
+        video.style.width = '100%';
+        video.style.borderRadius = '0.75rem';
+        wrap.appendChild(video);
         break;
       }
       case 'button': {
@@ -257,27 +560,155 @@
         const label = el.content || 'Button';
         const href = el.href || '#';
         const target = el.target || '_blank';
-        wrap.innerHTML = `<a href="${href}" target="${target}" style="text-decoration:none;color:${color};background-color:${bg};padding:.7rem 1.5rem;font-weight:700;border-radius:.75rem;display:inline-block">${label}</a>`;
+        const button = document.createElement('a');
+        button.href = href;
+        button.target = target;
+        button.style.textDecoration = 'none';
+        button.style.color = color;
+        button.style.backgroundColor = bg;
+        button.style.padding = el.padding || '.7rem 1.5rem';
+        button.style.fontWeight = '700';
+        button.style.borderRadius = el.borderRadius || '.75rem';
+        button.style.display = 'inline-block';
+        button.style.fontSize = el.fontSize || '16px';
+        button.style.fontWeight = el.fontWeight || '700';
+        button.style.boxShadow = el.boxShadow || '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+        button.textContent = label;
+        wrap.appendChild(button);
         break;
       }
       case 'social': {
-        const iconMap = { facebook:'facebook', instagram:'instagram', tiktok:'tiktok', youtube:'youtube', telegram:'telegram', whatsapp:'whatsapp' };
+        const iconMap = { 
+          facebook:'facebook', 
+          instagram:'instagram', 
+          tiktok:'tiktok', 
+          youtube:'youtube', 
+          telegram:'telegram', 
+          whatsapp:'whatsapp' 
+        };
         const icon = iconMap[el.platform] || 'message-circle';
         const url = el.url || '#';
         const size = Number(el.size) || 24;
         const color = el.color || '#374151';
-        wrap.innerHTML = `
-          <a href="${url}" target="_blank" class="social-icon" style="--icon-size:${size}px; --icon-color:${color}">
-            <i data-lucide="${icon}" class="w-6 h-6"></i>
-          </a>
-        `;
+        const bgColor = el.backgroundColor || 'transparent';
+        const borderRadius = el.borderRadius || '50%';
+        const padding = el.padding || '8px';
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = '_blank';
+        link.className = 'social-icon';
+        link.style.setProperty('--icon-size', `${size}px`);
+        link.style.setProperty('--icon-color', color);
+        link.style.backgroundColor = bgColor;
+        link.style.borderRadius = borderRadius;
+        link.style.padding = padding;
+        link.style.display = 'inline-flex';
+        link.style.alignItems = 'center';
+        link.style.justifyContent = 'center';
+        
+        const iconEl = document.createElement('i');
+        iconEl.setAttribute('data-lucide', icon);
+        iconEl.className = 'w-6 h-6';
+        
+        link.appendChild(iconEl);
+        wrap.appendChild(link);
         break;
       }
       case 'link': {
         const url = el.url || '#';
         const target = el.target || '_blank';
         const text = el.text || 'Link';
-        wrap.innerHTML = `<a href="${url}" target="${target}" style="text-decoration:none;color:#374151;display:inline-block;font-weight:600">${text}</a>`;
+        const link = document.createElement('a');
+        link.href = url;
+        link.target = target;
+        link.style.textDecoration = el.textDecoration || 'none';
+        link.style.color = el.color || '#374151';
+        link.style.display = 'inline-block';
+        link.style.fontWeight = el.fontWeight || '600';
+        link.style.fontSize = el.fontSize || '16px';
+        link.textContent = text;
+        wrap.appendChild(link);
+        break;
+      }
+      case 'calculator': {
+        // Create calculator container
+        const calculatorContainer = document.createElement('div');
+        calculatorContainer.className = 'calculator-container';
+        calculatorContainer.style.backgroundColor = el.backgroundColor || '#ffffff';
+        calculatorContainer.style.color = el.color || '#000000';
+        calculatorContainer.style.borderRadius = el.borderRadius || '1rem';
+        calculatorContainer.style.padding = el.padding || '1.5rem';
+        calculatorContainer.style.boxShadow = el.boxShadow || '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+        
+        // Create title
+        const title = document.createElement('h3');
+        title.textContent = el.title || 'Kalkulator Cashback';
+        title.style.textAlign = 'center';
+        title.style.marginBottom = '1rem';
+        title.style.fontSize = '1.25rem';
+        title.style.fontWeight = '700';
+        calculatorContainer.appendChild(title);
+        
+        // Create input
+        const inputContainer = document.createElement('div');
+        inputContainer.style.marginBottom = '1rem';
+        
+        const inputLabel = document.createElement('label');
+        inputLabel.textContent = el.inputText || 'Jumlah Pembelian (RM)';
+        inputLabel.style.display = 'block';
+        inputLabel.style.marginBottom = '0.5rem';
+        inputLabel.style.fontSize = '0.875rem';
+        inputLabel.style.fontWeight = '500';
+        inputContainer.appendChild(inputLabel);
+        
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.placeholder = '0';
+        input.style.width = '100%';
+        input.style.padding = '0.75rem';
+        input.style.border = '1px solid #d1d5db';
+        input.style.borderRadius = '0.5rem';
+        input.style.fontSize = '1rem';
+        inputContainer.appendChild(input);
+        
+        calculatorContainer.appendChild(inputContainer);
+        
+        // Create button
+        const button = document.createElement('button');
+        button.textContent = el.buttonText || 'Kira Cashback';
+        button.style.backgroundColor = el.buttonColor || '#ef4444';
+        button.style.color = '#ffffff';
+        button.style.border = 'none';
+        button.style.borderRadius = '0.5rem';
+        button.style.padding = '0.75rem 1rem';
+        button.style.fontSize = '1rem';
+        button.style.fontWeight = '600';
+        button.style.cursor = 'pointer';
+        button.style.width = '100%';
+        button.style.marginBottom = '1rem';
+        
+        // Create result
+        const resultContainer = document.createElement('div');
+        resultContainer.style.textAlign = 'center';
+        resultContainer.style.fontSize = '1.125rem';
+        resultContainer.style.fontWeight = '600';
+        resultContainer.style.marginTop = '1rem';
+        
+        // Add click event to button
+        button.addEventListener('click', function() {
+          const amount = parseFloat(input.value) || 0;
+          // Get cashback percentage from settings (default 5-10%)
+          const minPercent = 5;
+          const maxPercent = 10;
+          const percent = minPercent + Math.random() * (maxPercent - minPercent);
+          const cashback = (amount * percent / 100).toFixed(2);
+          resultContainer.textContent = `${el.resultText || 'Cashback Anda: RM'} ${cashback}`;
+        });
+        
+        calculatorContainer.appendChild(button);
+        calculatorContainer.appendChild(resultContainer);
+        wrap.appendChild(calculatorContainer);
         break;
       }
       default: {
