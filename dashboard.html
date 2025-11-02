@@ -176,6 +176,12 @@
     .loading-indicator{ position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); display:flex; align-items:center; justify-content:center; z-index:100; }
     .loading-spinner{ width:40px; height:40px; border:4px solid #f3f4f6; border-top:4px solid var(--brand); border-radius:50%; animation:spin 1s linear infinite; }
     @keyframes spin{ 0%{ transform:rotate(0deg); } 100%{ transform:rotate(360deg); } }
+    
+    /* Optimized loading */
+    .skeleton{ background:linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size:200% 100%; animation:loading 1.5s infinite; }
+    @keyframes loading{ 0%{ background-position:200% 0; } 100%{ background-position:-200% 0; } }
+    .skeleton-text{ height:1rem; margin-bottom:0.5rem; border-radius:0.25rem; }
+    .skeleton-card{ height:120px; border-radius:0.5rem; margin-bottom:1rem; }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -289,17 +295,20 @@
             </button>
           </div>
           <div id="sectionList" class="space-y-2">
-            <!-- Senarai bahagian akan dimuatkan di sini -->
+            <!-- Skeleton loaders for initial load -->
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
+            <div class="skeleton skeleton-card"></div>
           </div>
         </div>
         
         <!-- Right column: Preview & Properties -->
         <div class="lg:col-span-3">
           <div class="preview-container">
-            <div id="loadingIndicator" class="loading-indicator hidden">
+            <div id="loadingIndicator" class="loading-indicator">
               <div class="loading-spinner"></div>
             </div>
-            <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
+            <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1" loading="lazy"></iframe>
             <!-- Zoom Controls -->
             <div class="zoom-controls">
               <button id="zoomInBtn"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
@@ -400,7 +409,14 @@
           <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
         </div>
       </div>
-      <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+      <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <!-- Skeleton loaders for media -->
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+        <div class="skeleton skeleton-card"></div>
+      </div>
     </div>
 
     <!-- ===== Tab: Partner ===== -->
@@ -455,7 +471,12 @@
               <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
             </tr>
           </thead>
-          <tbody id="regTableBody"></tbody>
+          <tbody id="regTableBody">
+            <!-- Skeleton rows -->
+            <tr><td colspan="5" class="skeleton skeleton-text"></td></tr>
+            <tr><td colspan="5" class="skeleton skeleton-text"></td></tr>
+            <tr><td colspan="5" class="skeleton skeleton-text"></td></tr>
+          </tbody>
         </table>
       </div>
       <div class="flex gap-2">
@@ -492,7 +513,12 @@
               <button id="btnClearAll" class="btn-ghost">Kosongkan</button>
             </div>
           </div>
-          <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
+          <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto">
+            <!-- Skeleton recipients -->
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text"></div>
+          </div>
         </div>
 
         <div class="p-4 border border-gray-200 rounded-xl">
@@ -514,7 +540,12 @@
       </div>
       <div id="orgWrap" class="relative overflow-x-auto">
         <svg id="orgSvg" class="absolute inset-0 pointer-events-none"></svg>
-        <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
+        <div id="orgGrid" class="relative grid gap-8 md:gap-10">
+          <!-- Skeleton org chart -->
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+          <div class="skeleton skeleton-card"></div>
+        </div>
       </div>
       <div class="mt-4 flex gap-2">
         <button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button>
@@ -662,7 +693,9 @@
     zoomLevel: 1,               // Current zoom level for preview
     draggedItem: null,          // Currently dragged item
     contextMenuTarget: null,    // Target for context menu
-    iframeReady: false          // Flag to check if iframe is ready
+    iframeReady: false,         // Flag to check if iframe is ready
+    queuedMessages: [],         // Queue messages until iframe is ready
+    loadingTimeout: null        // Timeout for loading indicator
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -689,16 +722,44 @@
   }
   function uid(){ return 'el_' + Math.random().toString(36).slice(2,9); }
 
-  async function callApi(path, payload) {
-    const res = await fetch(EXEC_URL, {
-      method:'POST',
-      headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
-      body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) })
-    });
-    const text = await res.text();
-    let json; try { json = JSON.parse(text); } catch(e){ throw new Error(text); }
-    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
-    return json;
+  // Optimized API call with timeout and retry
+  async function callApi(path, payload, retries = 2) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
+    try {
+      const res = await fetch(EXEC_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8' },
+        body: new URLSearchParams({ path, payload: JSON.stringify(payload||{}) }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const text = await res.text();
+      let json; 
+      try { 
+        json = JSON.parse(text); 
+      } catch(e){ 
+        throw new Error('Invalid response format'); 
+      }
+      
+      if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+      return json;
+    } catch(e) {
+      clearTimeout(timeoutId);
+      if (e.name === 'AbortError') {
+        throw new Error('Timeout - Sila cuba lagi');
+      }
+      if (retries > 0) {
+        console.warn(`Retrying API call, ${retries} attempts left`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return callApi(path, payload, retries - 1);
+      }
+      throw e;
+    }
   }
 
   // Tab management with proper event handling
@@ -716,7 +777,12 @@
     document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
-    if (name === 'org') renderOrg();
+    
+    // Lazy load tab content
+    if (name === 'org' && !store.orgLoaded) {
+      renderOrg();
+      store.orgLoaded = true;
+    }
   }
   
   // Tab event delegation
@@ -732,16 +798,106 @@
 
   // ====== INIT ======
   (async function init(){
-    try { await callApi('setup', {}); } catch(e){}
-    await reloadStats();
-    await reloadPartners();
-    await reloadMedia();
-    await reloadRegs();
-    await renderOrg();
-    await refreshSettings();     // untuk theme/typography dll + preview mini
-    initEditor();                // Initialize the Section-Based editor
-    initAdvancedEditor();        // Initialize advanced editor features
+    try { 
+      // Start loading indicator with timeout
+      showLoadingIndicator();
+      store.loadingTimeout = setTimeout(() => {
+        hideLoadingIndicator();
+        toast('Loading mengambil masa lebih lama dari biasa. Sesetengah fungsi mungkin terhad.');
+      }, 5000);
+      
+      // Parallel API calls for better performance
+      const [setupResult, statsResult, partnersResult, settingsResult] = await Promise.allSettled([
+        callApi('setup', {}),
+        callApi('stats', { leader_id: store.leader.leader_id }),
+        callApi('partner_list', { leader_id: store.leader.leader_id }),
+        callApi('settings_get', { leader_id: store.leader.leader_id })
+      ]);
+      
+      // Process results
+      if (statsResult.status === 'fulfilled') {
+        const t = statsResult.value.totals || {};
+        document.getElementById('statPartners').textContent = t.partners ?? '—';
+        document.getElementById('statCustomers').textContent = t.customers ?? '—';
+        document.getElementById('statPending').textContent = t.pending ?? '—';
+        document.getElementById('statPublished').textContent = t.published ?? '—';
+      }
+      
+      if (partnersResult.status === 'fulfilled') {
+        store.partners = partnersResult.value.items || [];
+        const partnerSelect = document.getElementById('customerPartner');
+        if (partnerSelect) {
+          partnerSelect.innerHTML = '<option value="">Pilih Partner</option>';
+          store.partners.forEach(p=>{ 
+            const opt=document.createElement('option'); 
+            opt.value=p.name; 
+            opt.textContent=p.name; 
+            partnerSelect.appendChild(opt); 
+          });
+        }
+      }
+      
+      if (settingsResult.status === 'fulfilled') {
+        const s = settingsResult.value.settings||{};
+        store.settings = s || {};
+        // Apply settings immediately
+        document.getElementById('setMin').value = s.cashback_min || 5; 
+        document.getElementById('setMax').value = s.cashback_max || 10; 
+        document.getElementById('setLeaderPhone').value = s.whatsapp || '';
+        document.getElementById('setFonnteApi').value = s.fonnte_api || ''; 
+        document.getElementById('setThemeColor').value = s.theme_color || '#ef4444'; 
+        document.getElementById('setContentWidth').value = s.content_width || '';
+        document.getElementById('setHeadingSize').value  = s.heading_size || ''; 
+        document.getElementById('setHeadingColor').value = s.heading_color || '#111111'; 
+        document.getElementById('setHeadingBold').checked = String(s.heading_bold||'false')==='true';
+        document.getElementById('setBodySize').value  = s.body_size || ''; 
+        document.getElementById('setBodyColor').value = s.body_color || '#374151'; 
+        document.getElementById('setBodyBold').checked = String(s.body_bold||'false')==='true';
+        document.documentElement.style.setProperty('--brand', s.theme_color || '#ef4444');
+      }
+      
+      // Load sections in background
+      loadDesign();
+      
+      // Initialize editors
+      initEditor();                
+      initAdvancedEditor();        
+      
+      // Clear loading timeout
+      clearTimeout(store.loadingTimeout);
+      hideLoadingIndicator();
+      
+      // Load remaining data in background
+      setTimeout(() => {
+        Promise.allSettled([
+          reloadMedia(),
+          reloadRegs(),
+          buildRecipientTree()
+        ]).catch(e => console.error('Background loading error:', e));
+      }, 100);
+      
+    } catch(e) {
+      clearTimeout(store.loadingTimeout);
+      hideLoadingIndicator();
+      console.error('Init error:', e);
+      toast('Ralat memuatkan data. Sila segar semula halaman.');
+    }
   })();
+
+  // Loading indicator functions
+  function showLoadingIndicator() {
+    const indicator = document.getElementById('loadingIndicator');
+    if (indicator) {
+      indicator.classList.remove('hidden');
+    }
+  }
+  
+  function hideLoadingIndicator() {
+    const indicator = document.getElementById('loadingIndicator');
+    if (indicator) {
+      indicator.classList.add('hidden');
+    }
+  }
 
   // ====== STATS ======
   async function reloadStats(){
@@ -753,7 +909,7 @@
       document.getElementById('statPending').textContent = t.pending ?? '—';
       document.getElementById('statPublished').textContent = t.published ?? '—';
     }catch(e){
-      document.getElementById('statPartners').textContent = document.getElementById('statCustomers').textContent = document.getElementById('statPending').textContent = document.getElementById('statPublished').textContent = '—';
+      console.error('Failed to reload stats:', e);
     }
   }
 
@@ -1236,8 +1392,14 @@
       store.iframeReady = true;
       console.log('Iframe loaded successfully');
       
-      // Load sections after iframe is ready
-      loadDesign();
+      // Process queued messages
+      if (store.queuedMessages && store.queuedMessages.length > 0) {
+        console.log('Processing queued messages:', store.queuedMessages.length);
+        store.queuedMessages.forEach(({ type, data }) => {
+          sendToIframeDirect(type, data);
+        });
+        store.queuedMessages = [];
+      }
     });
     
     // Handle iframe error event
@@ -1245,6 +1407,16 @@
       loadingIndicator.classList.add('hidden');
       toast('Gagal memuatkan halaman preview');
     });
+    
+    // Set timeout for iframe loading
+    setTimeout(() => {
+      if (!store.iframeReady) {
+        loadingIndicator.classList.add('hidden');
+        toast('Preview mengambil masa lama. Sesetengah fungsi mungkin terhad.');
+        // Continue anyway with limited functionality
+        store.iframeReady = true;
+      }
+    }, 8000); // 8 second timeout
     
     window.addEventListener('message', handleIframeMessage);
     
@@ -3317,17 +3489,21 @@
 
   // Pastikan fungsi sendToIframe diperbaiki
   function sendToIframe(type, data) {
-    const userPreview = document.getElementById('userPreview');
-    if (!userPreview) {
-      console.error('Iframe not found');
-      return;
-    }
-    
     if (!store.iframeReady) {
-      console.warn('Iframe not ready, queueing message:', type, data);
       // Queue the message to be sent when iframe is ready
       if (!store.queuedMessages) store.queuedMessages = [];
       store.queuedMessages.push({ type, data });
+      console.warn('Iframe not ready, queuing message:', type, data);
+      return;
+    }
+    
+    sendToIframeDirect(type, data);
+  }
+  
+  function sendToIframeDirect(type, data) {
+    const userPreview = document.getElementById('userPreview');
+    if (!userPreview) {
+      console.error('Iframe not found');
       return;
     }
     
