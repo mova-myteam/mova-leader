@@ -473,6 +473,12 @@
     .calculator-button.clear:hover {
       background: #dc2626;
     }
+    
+    <!-- PEMBAIKAN: Mencegah tab properties daripada mengganggu tab utama -->
+    .properties-panel {
+      position: relative;
+      z-index: 10;
+    }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -605,7 +611,7 @@
       </div>
 
       <!-- Properties Panel (will be shown when a section or element is selected) -->
-      <div id="propertiesPanel" class="card p-6 space-y-5 hidden">
+      <div id="propertiesPanel" class="card p-6 space-y-5 hidden properties-panel">
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold" id="propertiesTitle">Sifat</h3>
           <button id="btnCloseProperties" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
@@ -1800,7 +1806,7 @@
     
     panel.classList.remove('hidden');
 
-    // PENAMBAHAN BAHARU: Setup properties tabs
+    // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
     setupPropertiesTabs();
     
     // Add event listeners for properties
@@ -1954,13 +1960,15 @@
     }
   }
 
-  // PENAMBAHAN BAHARU: Setup properties tabs
+  // PEMBAIKAN: Fungsi untuk setup properties tabs dengan event handling yang betul
   function setupPropertiesTabs() {
     const tabs = document.querySelectorAll('.properties-tab');
     const contents = document.querySelectorAll('.properties-content');
     
     tabs.forEach(tab => {
-      tab.addEventListener('click', () => {
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent event bubbling to main tabs
+        
         const tabName = tab.dataset.tab;
         
         // Update active tab
@@ -2157,7 +2165,7 @@
         const animationDelayInput = content.querySelector('#prop-animationDelay');
         const animationDurationInput = content.querySelector('#prop-animationDuration');
 
-        // Setup properties tabs
+        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
         setupPropertiesTabs();
 
         // Toolbar functionality
@@ -2536,7 +2544,7 @@
           sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
         });
         
-        // Setup properties tabs
+        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
         setupPropertiesTabs();
         break;
 
@@ -2779,7 +2787,7 @@
           sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
         });
         
-        // Setup properties tabs
+        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
         setupPropertiesTabs();
         break;
 
@@ -3026,7 +3034,7 @@
           sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
         });
         
-        // Setup properties tabs
+        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
         setupPropertiesTabs();
         break;
 
@@ -3268,7 +3276,7 @@
           sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
         });
         
-        // Setup properties tabs
+        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
         setupPropertiesTabs();
         break;
 
@@ -3475,11 +3483,12 @@
           sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
         });
         
-        // Setup properties tabs
+        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
         setupPropertiesTabs();
         break;
 
       case 'calculator':
+        // PEMBAIKAN: Memastikan kalkulator dipaparkan dengan betul
         content.innerHTML = `
           <div class="properties-content active" data-tab="basic">
             <div class="space-y-4">
@@ -3714,7 +3723,7 @@
           sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
         });
         
-        // Setup properties tabs
+        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
         setupPropertiesTabs();
         break;
     }
@@ -3973,6 +3982,11 @@
           newElement.inputText = document.getElementById('modalCalculatorInputText').value || 'Jumlah Pembelian (RM)';
           newElement.buttonText = document.getElementById('modalCalculatorButtonText').value || 'Kira Cashback';
           newElement.resultText = document.getElementById('modalCalculatorResultText').value || 'Cashback Anda: RM';
+          // PEMBAIKAN: Pastikan kalkulator mempunyai semua sifat yang diperlukan
+          newElement.backgroundColor = '#ffffff';
+          newElement.color = '#000000';
+          newElement.buttonColor = '#ef4444';
+          newElement.borderRadius = '0.75rem';
           break;
       }
       
@@ -3982,6 +3996,7 @@
         renderElementListInSection(store.selectedSectionId);
         saveDesign();
         addToHistory(); // Add to history
+        // PEMBAIKAN: Pastikan mesej dihantar dengan betul untuk kalkulator
         sendToIframe('add-element', { sectionId: store.selectedSectionId, element: newElement });
       }
       
@@ -4605,6 +4620,10 @@
                 inputText: 'Jumlah Pembelian (RM)',
                 buttonText: 'Kira Cashback',
                 resultText: 'Cashback Anda: RM',
+                backgroundColor: '#ffffff',
+                color: '#000000',
+                buttonColor: '#ef4444',
+                borderRadius: '0.75rem',
                 gridColumn: 'span 12 / span 12'
               }
             ]
