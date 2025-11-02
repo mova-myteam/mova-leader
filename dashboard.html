@@ -171,6 +171,11 @@
     /* Modal overlay */
     .modal-overlay{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:40; display:flex; align-items:center; justify-content:center; }
     .modal-content{ background:white; border-radius:1rem; padding:1.5rem; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; position:relative; }
+    
+    /* Loading indicator */
+    .loading-indicator{ position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.8); display:flex; align-items:center; justify-content:center; z-index:100; }
+    .loading-spinner{ width:40px; height:40px; border:4px solid #f3f4f6; border-top:4px solid var(--brand); border-radius:50%; animation:spin 1s linear infinite; }
+    @keyframes spin{ 0%{ transform:rotate(0deg); } 100%{ transform:rotate(360deg); } }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -291,6 +296,9 @@
         <!-- Right column: Preview & Properties -->
         <div class="lg:col-span-3">
           <div class="preview-container">
+            <div id="loadingIndicator" class="loading-indicator hidden">
+              <div class="loading-spinner"></div>
+            </div>
             <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
             <!-- Zoom Controls -->
             <div class="zoom-controls">
@@ -653,7 +661,8 @@
     historyIndex: -1,           // Current position in history
     zoomLevel: 1,               // Current zoom level for preview
     draggedItem: null,          // Currently dragged item
-    contextMenuTarget: null     // Target for context menu
+    contextMenuTarget: null,    // Target for context menu
+    iframeReady: false          // Flag to check if iframe is ready
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -949,7 +958,7 @@
     try{
       const b64 = await toBase64NoPrefix(f);
       const json = await callApi('upload_media', { leader_id: store.leader.leader_id, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64 });
-      if (json.success){ addMediaTile(json.public_url, json.isVideo); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
+      if (json.success){ addMediaTile(json.public_url, /^video\//i.test(json.file_type||'')); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
     }catch(err){ toast('Ralat muat naik'); }
   });
   document.getElementById('btnInsertToContent').addEventListener('click', ()=>{ const count = store.selectedMedia.size; toast(count ? `Ditandakan ${count} media` : 'Tiada media dipilih'); updateChosenMediaHint(); });
@@ -1216,6 +1225,26 @@
 
   function initEditor() {
     const userPreview = document.getElementById('userPreview');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    
+    // Show loading indicator when iframe is loading
+    loadingIndicator.classList.remove('hidden');
+    
+    // Handle iframe load event
+    userPreview.addEventListener('load', () => {
+      loadingIndicator.classList.add('hidden');
+      store.iframeReady = true;
+      console.log('Iframe loaded successfully');
+      
+      // Load sections after iframe is ready
+      loadDesign();
+    });
+    
+    // Handle iframe error event
+    userPreview.addEventListener('error', () => {
+      loadingIndicator.classList.add('hidden');
+      toast('Gagal memuatkan halaman preview');
+    });
     
     window.addEventListener('message', handleIframeMessage);
     
@@ -1224,14 +1253,19 @@
     document.getElementById('btnSaveDesign').addEventListener('click', saveDesign);
     document.getElementById('btnCloseProperties').addEventListener('click', closePropertiesPanel);
     document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
-    
-    loadDesign();
   }
 
   function handleIframeMessage(event) {
+    // Verify origin for security
+    if (event.origin !== window.location.origin) return;
+    
     const { type, data } = event.data;
     
     switch (type) {
+      case 'ready':
+        store.iframeReady = true;
+        console.log('Iframe is ready');
+        break;
       case 'sections-loaded':
         store.sections = data.sections || [];
         renderSectionList();
@@ -1241,6 +1275,10 @@
         break;
       case 'element-selected':
         selectElement(data.id);
+        break;
+      case 'error':
+        toast(`Ralat: ${data.message}`);
+        console.error('Iframe error:', data);
         break;
     }
   }
@@ -1646,14 +1684,8 @@
 
   // Fungsi untuk menggunakan gaya
   function applySectionStyle(section) {
-    const mainElement = document.querySelector(`#userPreview`).contentWindow.document.querySelector(`[data-section-id="${section.id}"]`);
-    if (!mainElement) return;
-    
-    mainElement.className = mainElement.className.replace(/section-style-\S+/g, '');
-    
-    if (section.style && section.style !== 'default') {
-      mainElement.classList.add(`section-style-${section.style}`);
-    }
+    // This function will be handled by the iframe
+    sendToIframe('update-section', { id: section.id, properties: { style: section.style } });
   }
 
   // Fungsi untuk setup properties tabs dengan event handling yang betul
@@ -3256,12 +3288,15 @@
       if (settings.sections_json) {
         store.sections = JSON.parse(settings.sections_json);
       }
-      // Beritahu iframe untuk memuatkan bahagian
-      sendToIframe('load-sections', { sections: store.sections });
-      renderSectionList();
       // Initialize history
       store.history = [JSON.parse(JSON.stringify(store.sections))];
       store.historyIndex = 0;
+      
+      // Only send to iframe if it's ready
+      if (store.iframeReady) {
+        sendToIframe('load-sections', { sections: store.sections });
+      }
+      renderSectionList();
     } catch (e) {
       console.error('Failed to load design:', e);
     }
@@ -3280,18 +3315,27 @@
     }
   }
 
-  // Pastikan fungsi sendToIframe
+  // Pastikan fungsi sendToIframe diperbaiki
   function sendToIframe(type, data) {
     const userPreview = document.getElementById('userPreview');
-    if (userPreview && userPreview.contentWindow) {
-      const send = () => {
-        userPreview.contentWindow.postMessage({ type, data }, '*');
-      };
-      if (userPreview.contentDocument.readyState === 'complete') {
-        send();
-      } else {
-        userPreview.addEventListener('load', send, { once: true });
-      }
+    if (!userPreview) {
+      console.error('Iframe not found');
+      return;
+    }
+    
+    if (!store.iframeReady) {
+      console.warn('Iframe not ready, queueing message:', type, data);
+      // Queue the message to be sent when iframe is ready
+      if (!store.queuedMessages) store.queuedMessages = [];
+      store.queuedMessages.push({ type, data });
+      return;
+    }
+    
+    try {
+      userPreview.contentWindow.postMessage({ type, data }, '*');
+      console.log('Message sent to iframe:', type, data);
+    } catch (e) {
+      console.error('Failed to send message to iframe:', e);
     }
   }
 
