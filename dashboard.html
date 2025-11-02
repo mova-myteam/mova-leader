@@ -1320,6 +1320,8 @@
     
     // Send message to iframe to highlight the section
     sendToIframe('select-section', { id: sectionId });
+    
+    // Jangan tukar tab - kekal di tab "user"
   }
 
   function showSectionProperties(sectionId) {
@@ -1712,6 +1714,8 @@
     
     // Send message to iframe to highlight the element
     sendToIframe('select-element', { id: elementId });
+    
+    // Jangan tukar tab - kekal di tab "user"
   }
 
   function showElementProperties(element, parentSection) {
