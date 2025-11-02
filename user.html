@@ -7,19 +7,19 @@
 
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com /lucide@latest"></script>
 
   <style>
     :root { --brand:#ef4444; }
     html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa}
     .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.7rem 1rem;font-weight:700}
     .btn-primary{background:var(--brand);color:#fff}
-    .btn-ghost{background:#fff;border:1px solid #e5e7eb}
+    .btn-ghost{background:#fff;border:1px solid #e5e7eb;}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
-    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.7rem .9rem;background:#fff}
-    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
-    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
+    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.7rem .9rem;background:#fff;}
+    .input:focus{outline:none;box-shadow:0 0 0 0 2px #111;}
+    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151;}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999;}
     .section-title{font-weight:800;font-size:1.25rem}
     .muted{color:#6b7280}
 
@@ -55,6 +55,64 @@
       outline: 2px solid #10b981;
       outline-offset: 2px;
     }
+
+    /* Gaya untuk Rich Text Editor */
+    .rtbox {
+      min-height:120px;
+      border: 1px solid #d1d5db;
+      border-radius:.75rem;
+      padding:.6rem;
+      background:#fff;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .toolbar button {
+      border: 1px solid #e5e7eb;
+      border-radius: .5rem;
+      padding: .25rem .5rem;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+    .toolbar button:hover {
+      background: #f3f4f6;
+    }
+    .toolbar button.active {
+      background: #111;
+      color: #fff;
+      border-color: #111;
+    }
+    .toolbar select {
+      transition: all 0.2s ease;
+    }
+    .toolbar select:focus {
+      background: #f9fafb;
+    }
+    .toolbar select:focus {
+      background: #f9fafb;
+    }
+    .rtbox:focus {
+      outline: 2px solid #111;
+    }
+    .rtbox:focus {
+      outline: 2px solid #111;
+    }
+
+    /* Gaya untuk elemen 'social' */
+    .social-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: var(--icon-size, 24px);
+      color: var(--icon-color, #374151);
+      transition: transform 0.2s ease;
+    }
+    .social-icon:hover {
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body>
@@ -74,19 +132,18 @@
       <a href="#upgrade" class="hover:underline">Naik Taraf</a>
       <a href="#faq" class="hover:underline">FAQ</a>
     </div>
-  </div>
-</nav>
+  </nav>
 
 <!-- 
   BAHAGIAN UTAMA (MAIN)
   Kandungan sekarang akan dijana secara dinamik sebagai "Bahagian".
 -->
 <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-  <!-- Bahagian-bahagian halaman akan dimasukkan di sini oleh JavaScript -->
+  <!-- Bahagian-bahagian halaman akan dimuatkan di sini oleh JavaScript -->
 </main>
 
 <footer class="mt-10 py-10 text-center text-sm text-gray-500">
-  © <span id="year"></span> MOVA. Hak cipta terpelihara.
+  © <span id="year"></span> MOVA. <span class="text-gray-500">Hak cipta terpelihara terpelihara terkini. </span>
 </footer>
 
 <div id="toast" class="toast hidden"></div>
@@ -101,7 +158,7 @@
     const el = document.getElementById('toast');
     el.textContent = msg;
     el.classList.remove('hidden');
-    clearTimeout(el._t);
+    clearTimeout(toast._t);
     el._t = setTimeout(() => el.classList.add('hidden'), ms);
   }
 
@@ -111,51 +168,69 @@
       headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
       body: new URLSearchParams({ path, payload: JSON.stringify(payload || {}) })
     });
-    const text = await res.text();
+    const text = await res.text;
     let json;
-    try { json = JSON.parse(text) } catch (e) { throw new Error(text) }
+    try { json = JSON.parse(text); } catch (e) { throw new Error(text); }
     if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
     return json;
   }
 
   // --- LOGIK EDITOR BERMULA DI SINI ---
-
   const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
   let pageSections = []; // Simpan semua BAHAGIAN halaman di sini
 
   if (EDIT_MODE) {
-    window.addEventListener('message', (event) => {
-      if (event.data.type) {
-        switch (event.data.type) {
-          case 'toggle-edit':
-            document.body.classList.toggle('edit-mode', event.data.data.on);
-            break;
-          case 'load-sections':
-            pageSections = event.data.data.sections || [];
-            renderPage();
-            break;
-          case 'add-section':
-            addSection(event.data.data);
-            break;
-          case 'update-section':
-            updateSection(event.data.data.id, event.data.data.properties);
-            break;
-          case 'delete-section':
-            deleteSection(event.data.data.id);
-            break;
-          // Fungsi elemen kekal sama, tetapi sekarang merujuk kepada bahagian induk
-          case 'add-element':
-            addElement(event.data.data.sectionId, event.data.data.element);
-            break;
-          case 'update-element':
-            updateElement(event.data.data.id, event.data.data.properties);
-            break;
-          case 'delete-element':
-            deleteElement(event.data.data.id);
-            break;
+    window.addEventListener('message', handleIframeMessage);
+  }
+
+  function handleIframeMessage(event) {
+    const { type, data } = event.data;
+    
+    switch (type) {
+      case 'toggle-edit':
+        document.body.classList.toggle('edit-mode', event.data.on);
+        break;
+      case 'load-sections':
+        pageSections = data.sections || [];
+        renderPage();
+        break;
+      case 'select-section':
+        // Highlight selected section
+        document.querySelectorAll('.page-section.selected').forEach(el => el.classList.remove('selected'));
+        const sectionEl = document.querySelector(`[ data-section-id="${data.id}"]`);
+        if (sectionEl) {
+          sectionEl.classList.add('selected');
+          sectionEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         }
-      }
-    });
+        break;
+      case 'select-element':
+        // Highlight selected element
+        document.querySelectorAll('.page-element.selected').forEach(el => el.classList.remove('selected'));
+        const elementEl = document.querySelector(`#data-id="${data.id}"`);
+        if (elementEl) {
+          elementEl.classList.add('selected');
+          elementEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        }
+        break;
+      // PEMBAIKAN BAHARU: Tambah sokongan untuk mesejana arahan dari dashboard
+      case 'add-element':
+        addElement(event.data.sectionId, event.data.element);
+        break;
+      case 'update-element':
+        const elementEl = document.querySelector(`#data-id="${data.id}"`);
+        if (elementEl) {
+          Object.assign(elementEl.style, data.properties);
+        }
+        break;
+      case 'apply-command':
+        // Apply formatting command to the selected text element
+        const elementEl = document.querySelector('.page-element.selected');
+        if (elementEl && elementEl.querySelector('.rtbox')) {
+          const command = event.data.command;
+          document.execCommand(command, false, null);
+        }
+        break;
+    }
   }
 
   function renderPage() {
@@ -180,6 +255,7 @@
     const sectionDiv = document.createElement('div');
     sectionDiv.className = 'page-section';
     sectionDiv.dataset.id = section.id;
+    sectionDiv.dataset.sectionId = section.id;
     
     // Gaya untuk bahagian
     Object.assign(sectionDiv.style, {
@@ -209,12 +285,22 @@
     const wrapper = document.createElement('div');
     wrapper.className = 'page-element';
     wrapper.dataset.id = el.id;
-
-    // Gunakan CSS Grid untuk kedudukan
-    // Contoh: gridColumn: 'span 6 / span 6' bermaksud ambil 6 dari 12 lajur
+    wrapper.dataset.sectionId = el.sectionId;
     wrapper.style.gridColumn = el.gridColumn || 'span 12 / span 12';
     wrapper.style.textAlign = el.textAlign || 'left';
     wrapper.style.zIndex = el.zIndex || 1;
+    wrapper.style.opacity = (el.opacity || 100) / 100;
+
+    // Gaya latar belakang, border, dll
+    Object.assign(wrapper.style, {
+      backgroundColor: el.backgroundColor || 'transparent',
+      borderWidth: `${el.borderWidth || 0}px`,
+      borderStyle: 'solid',
+      borderColor: el.borderColor || '#000000',
+      borderRadius: `${el.borderRadius || 0}px`,
+      padding: '10px',
+      boxSizing: 'border-box'
+    });
 
     let innerHTML = '';
     switch (el.type) {
@@ -225,6 +311,7 @@
         wrapper.style.fontWeight = el.fontWeight || 'normal';
         wrapper.style.fontStyle = el.fontStyle || 'normal';
         wrapper.style.textDecoration = el.textDecoration || 'none';
+        // PEMBAIKAN BAHARU: Gunakan innerHTML untuk membenkan HTML yang dijana oleh RTE
         innerHTML = el.content || '';
         break;
       case 'image':
@@ -235,9 +322,26 @@
         break;
       case 'button':
         wrapper.style.display = 'flex';
-        wrapper.style.justifyContent = el.textAlign === 'center' ? 'center' : (el.textAlign === 'right' ? 'flex-end' : 'flex-start');
-        innerHTML = `<a href="${el.href || '#'}" class="inline-flex items-center gap-2" style="text-decoration:none; color:${el.color || '#fff'}; background-color:${el.backgroundColor || '#ef4444'}; padding: 0.7rem 1.5rem; font-weight: 700; border-radius: 0.75rem;">${el.content || 'Button'}</a>`;
+        wrapper.style.justifyContent = el.textAlign || 'center';
+        innerHTML = `<a href="${el.href || '#'}" target="${el.target || '_blank'}" style="text-decoration:none; color:${el.color || '#fff'}; background-color:${el.backgroundColor || '#ef4444'}; padding: 0.7rem 1.5rem; font-weight: 700; border-radius: 0.75rem;">${el.content || 'Button'}</a>`;
         break;
+      // PEMBAIKAN BAHARU: Tambah sokongan untuk jenis elemen baharu
+      case 'social':
+        const iconMap = {
+          facebook: 'facebook', instagram: 'instagram', tiktok: 'tiktok', youtube: 'youtube', telegram: 'telegram', whatsapp: 'whatsapp'
+        };
+        const icon = iconMap[el.platform] || 'message-circle';
+        innerHTML = `
+          <a href="${el.url || '#'}" target="_blank" style="text-decoration:none; color:${el.color || '#374151'; display:inline-flex; align-items:center; gap:0.5rem; font-size: ${el.size || 24}px;">
+            <i data-lucide="${icon}" class="w-6 h-6"></i>
+          </a>
+        `;
+        break;
+      case 'link':
+          innerHTML = `
+            <a href="${el.url || '#'}" target="${el.target || '_blank'}" style="text-decoration:none; color:#374151; display:inline-block; font-weight:600;">${el.text || 'Link'}</a>
+          `;
+          break;
     }
     
     wrapper.innerHTML = innerHTML;
@@ -285,9 +389,9 @@
         renderPage();
         return;
       }
-    }
   }
 
+  // Fungsi untuk menjadikan bahagian
   function makeSectionsSelectable() {
     document.querySelectorAll('.page-section').forEach(sec => {
       sec.addEventListener('click', (e) => {
@@ -328,11 +432,16 @@
 
         if (EDIT_MODE) {
           window.parent.postMessage({ type: 'sections-loaded', data: { sections: pageSections } }, '*');
+        } else {
+          renderPage();
+          if (EDIT_MODE) {
+            window.parent.postMessage({ type: 'sections-loaded', data: { sections: [] }, '*');
+          }
         }
       } else {
         renderPage();
         if (EDIT_MODE) {
-          window.parent.postMessage({ type: 'sections-loaded', data: { sections: [] } }, '*');
+          window.parent.postMessage({ type: 'sections-loaded', data: { sections: [] }, '*');
         }
       }
     } catch (error) {
