@@ -647,6 +647,7 @@
     settings: {},                // Settings terkini untuk preview mini
     selectedSectionId: null,    // ID of the currently selected section
     selectedElementId: null,    // ID of the currently selected element
+    isEditingText: false,       // Flag untuk track jika sedang edit text
     // Advanced editor features
     clipboard: null,            // For copy/paste functionality
     history: [],                // For undo/redo functionality
@@ -720,6 +721,88 @@
   
   // Initialize first tab
   setActiveTab('user');
+
+  // ====== FOCUS MANAGEMENT SOLUTION ======
+  // Fungsi untuk menghalang event bubbling dari input fields
+  function preventInputEventBubbling(container) {
+    const inputs = container.querySelectorAll('input, textarea, select, button, .rtbox');
+    inputs.forEach(input => {
+      // Halang event bubbling untuk semua events
+      ['click', 'mousedown', 'focus', 'input', 'change', 'keydown', 'keyup'].forEach(eventType => {
+        input.addEventListener(eventType, (e) => {
+          e.stopPropagation();
+          // Pastikan selection state kekal
+          if (store.selectedSectionId || store.selectedElementId) {
+            e.target.dataset.preserveSelection = 'true';
+          }
+        }, true); // Use capture phase
+      });
+      
+      // Special handling untuk contenteditable
+      if (input.contentEditable === 'true') {
+        input.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }, true);
+        
+        input.addEventListener('mousedown', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+        }, true);
+        
+        input.addEventListener('focus', (e) => {
+          e.stopPropagation();
+          store.isEditingText = true;
+        }, true);
+        
+        input.addEventListener('blur', (e) => {
+          e.stopPropagation();
+          store.isEditingText = false;
+        }, true);
+      }
+    });
+  }
+
+  // Global event listener untuk menghalang clear selection yang tidak diingini
+  document.addEventListener('click', (e) => {
+    // Jangan clear selection jika:
+    // 1. Click dalam properties panel
+    // 2. Click pada input field
+    // 3. Sedang edit text
+    // 4. Click pada toolbar buttons
+    // 5. Click pada tab buttons
+    
+    const isPropertiesPanel = e.target.closest('#propertiesPanel');
+    const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT';
+    const isContentEditable = e.target.contentEditable === 'true';
+    const isToolbar = e.target.closest('.editor-toolbar, .toolbar');
+    const isTab = e.target.closest('[data-tab]');
+    const hasPreserveSelection = e.target.dataset.preserveSelection === 'true';
+    
+    if (isPropertiesPanel || isInput || isContentEditable || isToolbar || isTab || hasPreserveSelection || store.isEditingText) {
+      return; // Jangan clear selection
+    }
+    
+    // Hanya clear selection jika click di luar area editor
+    const isSectionItem = e.target.closest('.section-item');
+    const isElementItem = e.target.closest('.element-item');
+    
+    if (!isSectionItem && !isElementItem) {
+      closePropertiesPanel();
+    }
+  });
+
+  // Context menu handling yang betul
+  document.addEventListener('contextmenu', (e) => {
+    const isInput = e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true';
+    const isPropertiesPanel = e.target.closest('#propertiesPanel');
+    
+    if (isInput && isPropertiesPanel) {
+      e.stopPropagation();
+      // Biarkan default context menu untuk input fields
+      return;
+    }
+  });
 
   // ====== INIT ======
   (async function init(){
@@ -1509,8 +1592,13 @@
     
     panel.classList.remove('hidden');
 
-    // Setup properties tabs with event handling
+    // Setup properties tabs dengan event handling yang betul
     setupPropertiesTabs();
+    
+    // **FOCUS MANAGEMENT SOLUTION - Halang event bubbling**
+    setTimeout(() => {
+      preventInputEventBubbling(panel);
+    }, 100);
     
     // Add event listeners for properties
     document.getElementById('prop-sectionName').addEventListener('input', (e) => {
@@ -1666,6 +1754,7 @@
     tabs.forEach(tab => {
       tab.addEventListener('click', (e) => {
         e.stopPropagation();
+        e.preventDefault();
         
         const tabName = tab.dataset.tab;
         
@@ -1679,6 +1768,14 @@
             content.classList.remove('active');
           }
         });
+        
+        // Halang event bubbling untuk tab content yang baru aktif
+        setTimeout(() => {
+          const activeContent = document.querySelector('.properties-content.active');
+          if (activeContent) {
+            preventInputEventBubbling(activeContent);
+          }
+        }, 50);
       });
     });
   }
@@ -2594,8 +2691,13 @@
     
     panel.classList.remove('hidden');
 
-    // Setup properties tabs with event handling
+    // Setup properties tabs dengan event handling yang betul
     setupPropertiesTabs();
+    
+    // **FOCUS MANAGEMENT SOLUTION - Halang event bubbling**
+    setTimeout(() => {
+      preventInputEventBubbling(panel);
+    }, 100);
     
     // Add event listeners for text element toolbar
     if (element.type === 'text') {
@@ -2619,16 +2721,8 @@
       const animationDelayInput = content.querySelector('#prop-animationDelay');
       const animationDurationInput = content.querySelector('#prop-animationDuration');
 
-      // Update content on input
-      rtbox.addEventListener('input', updateElementContent);
-      rtbox.addEventListener('paste', updateElementContent);
-
-      function updateElementContent() {
-        element.content = rtbox.innerHTML;
-        saveDesign();
-        addToHistory();
-        sendToIframe('update-element', { id: element.id, properties: { content: element.content } });
-      }
+      // Setup rich text editor dengan proper focus management
+      setupRichTextEditor(rtbox, element.id);
 
       // Sync color pickers
       textColorPicker.addEventListener('input', (e) => {
@@ -2858,14 +2952,81 @@
       });
     }
     
-    // Add similar event listeners for other element types (video, button, social, link, calculator)
-    // ... (code continues for other element types)
-    
     // Re-initialize Lucide icons for the new content
     lucide.createIcons();
   }
 
-  // Initialize text toolbar with proper icons
+  // **FOCUS MANAGEMENT SOLUTION - Rich Text Editor Setup**
+  function setupRichTextEditor(rtbox, elementId) {
+    if (!rtbox) return;
+    
+    // Simpan element ID untuk reference
+    rtbox.dataset.elementId = elementId;
+    
+    // Halang event bubbling dari contenteditable
+    rtbox.addEventListener('click', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+    }, true);
+    
+    rtbox.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+    }, true);
+    
+    rtbox.addEventListener('focus', (e) => {
+      e.stopPropagation();
+      store.isEditingText = true;
+    }, true);
+    
+    rtbox.addEventListener('blur', (e) => {
+      e.stopPropagation();
+      store.isEditingText = false;
+    }, true);
+    
+    rtbox.addEventListener('input', (e) => {
+      e.stopPropagation();
+      // Update content dengan serta-merta
+      if (elementId) {
+        for (const section of store.sections) {
+          const element = section.elements.find(el => el.id === elementId);
+          if (element) {
+            element.content = rtbox.innerHTML;
+            saveDesign();
+            addToHistory();
+            sendToIframe('update-element', { id: elementId, properties: { content: rtbox.innerHTML } });
+            break;
+          }
+        }
+      }
+    }, true);
+    
+    // Halang paste event bubbling
+    rtbox.addEventListener('paste', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      
+      // Handle paste
+      const text = e.clipboardData.getData('text/html') || e.clipboardData.getData('text/plain');
+      document.execCommand('insertHTML', false, text);
+      
+      // Update content
+      if (elementId) {
+        for (const section of store.sections) {
+          const element = section.elements.find(el => el.id === elementId);
+          if (element) {
+            element.content = rtbox.innerHTML;
+            saveDesign();
+            addToHistory();
+            sendToIframe('update-element', { id: elementId, properties: { content: rtbox.innerHTML } });
+            break;
+          }
+        }
+      }
+    }, true);
+  }
+
+  // Initialize text toolbar dengan proper event handling
   function initializeTextToolbar() {
     const toolbar = document.querySelector('.toolbar');
     if (!toolbar) return;
@@ -2877,15 +3038,23 @@
       }
     });
     
-    // Add event listeners to toolbar buttons
+    // Add event listeners to toolbar buttons dengan proper event handling
     toolbar.querySelectorAll('button[data-command]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        
         const command = btn.dataset.command;
         document.execCommand(command, false, null);
         
         // Update active state
         updateToolbarState();
-      });
+      }, true);
+      
+      btn.addEventListener('mousedown', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+      }, true);
     });
     
     // Initialize toolbar state
@@ -3191,6 +3360,7 @@
     document.getElementById('propertiesPanel').classList.add('hidden');
     store.selectedSectionId = null;
     store.selectedElementId = null;
+    store.isEditingText = false;
     sendToIframe('deselect-all', {});
   }
 
