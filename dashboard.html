@@ -1,3 +1,937 @@
+<!doctype html>
+<html lang="ms">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>MOVA Leader — Dashboard</title>
+
+  <!-- Fonts & Libraries -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Tailwind (CDN for simplicity; use CLI for production) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    :root { --brand:#ef4444; }
+    html,body{font-family:Inter,system-ui,ui-sans-serif,Segoe UI,Roboto,Helvetica,Arial}
+    .scroll-bar::-webkit-scrollbar{height:8px}
+    .scroll-bar::-webkit-scrollbar-thumb{background:#e5e7eb;border-radius:9999px}
+    .pill{ display:inline-flex; align-items:center; gap:.5rem; border-radius:9999px; padding:.5rem 1rem; font-weight:600; border:1px solid #e5e7eb; white-space:nowrap; transition: all 0.3s ease; cursor: pointer;}
+    .pill-active{ background:#111; color:#fff; border-color:#111; box-shadow:0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
+    .pill-idle{ background:#fff; color:#374151; }
+    .pill-idle:hover{ background:#f9fafb; border-color:#d1d5db; }
+    .card{ background:#fff; border:1px solid #e5e7eb; border-radius:1rem; box-shadow:0 6px 24px rgba(15,23,42,.06); }
+    .btn-primary{ background:var(--brand); color:#fff; border-radius:.75rem; padding:.55rem 1rem; font-weight:700; }
+    .btn-primary:hover{ filter:brightness(0.95); }
+    .btn-ghost{ background:#fff; border:1px solid #e5e7eb; border-radius:.75rem; padding:.5rem 1rem; }
+    .input{ width:100%; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem .9rem; background:#fff; }
+    .input:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .textarea{ width:100%; min-height:140px; border:1px solid #d1d5db; border-radius:.75rem; padding:.8rem 1rem; background:#fff; }
+    .textarea:focus{ outline:none; box-shadow:0 0 0 2px #111; }
+    .badge{ display:inline-flex; align-items:center; border-radius:9999px; padding:.15rem .6rem; font-size:.75rem; background:#f3f4f6; color:#374151; }
+    .media-tile{ position:relative; overflow:hidden; border:1px solid #e5e7eb; border-radius:.75rem; cursor:pointer; }
+    .media-tile.selected{ outline:2px solid #111; }
+    .toast{ position:fixed; left:50%; transform:translateX(-50%); bottom:24px; background:#111; color:#fff; padding:12px 16px; border-radius:12px; box-shadow:0 8px 24px rgba(0,0,0,.25); z-index:9999; }
+    .table{ width:100%; border-collapse:separate; border-spacing:0; }
+    .table th{ text-align:left; font-size:.85rem; color:#6b7280; padding:.6rem .8rem; border-bottom:1px solid #e5e7eb; }
+    .table td{ padding:.7rem .8rem; border-bottom:1px solid #f3f4f6; }
+    .chip{display:inline-flex;align-items:center;gap:.4rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.8rem}
+    .chip button{background:transparent;border:none;cursor:pointer}
+    .recip-row{display:flex;align-items:center;gap:.5rem;padding:.35rem .5rem;border-bottom:1px dashed #f1f5f9}
+    .switch{position:relative;width:44px;height:26px;border-radius:9999px;background:#e5e7eb;display:inline-block;vertical-align:middle;cursor:pointer}
+    .switch input{display:none}
+    .switch span{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:9999px;transition:.2s}
+    .switch input:checked + span{left:21px;background:#111}
+    .row-rep{border:1px solid #e5e7eb;border-radius:.75rem;padding:.75rem}
+    .row-rep + .row-rep{margin-top:.75rem}
+    .help{font-size:.75rem;color:#6b7280}
+    .block-row{border:1px dashed #e5e7eb;border-radius:.6rem;padding:.6rem;background:#fff}
+    .block-row + .block-row{margin-top:.5rem}
+    .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
+    /* Rich editor */
+    .toolbar button{border:1px solid #e5e7eb;border-radius:.5rem;padding:.25rem .5rem;background:#fff; transition: all 0.2s ease;}
+    .toolbar button:hover{background:#f3f4f6;}
+    .toolbar button.active{background:#111;color:#fff;border-color:#111;}
+    .toolbar select{transition: all 0.2s ease;}
+    .toolbar select:focus{background:#f9fafb;}
+    .rtbox{min-height:120px;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem;background:#fff}
+    
+    /* Preview container styles */
+    .preview-container {
+      position: relative;
+      background: #f9fafb;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    }
+    .preview-iframe {
+      width: 100%;
+      height: 90vh;
+      border: none;
+    }
+
+    <!-- PEMBAIKAN BAHARU: Gaya untuk Section Design -->
+    .section-style-card { background: #ffffff; border-radius: 1rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); padding: 3rem 1rem; }
+    .section-style-rounded { background: #f3f4f6; border-radius: 2rem; }
+    .section-style-dark { background: #1f2937; color: #f9fafb; }
+    .section-style-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; }
+    
+    <!-- PENAMBAHAN BAHARU: Gaya untuk Editor Advanced -->
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      border-radius: 0.75rem 0.75rem 0 0;
+    }
+    .editor-toolbar button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .editor-toolbar button:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+    }
+    .editor-toolbar button.active {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+    .editor-toolbar .separator {
+      width: 1px;
+      height: 1.5rem;
+      background: #e5e7eb;
+    }
+    .section-item {
+      position: relative;
+      padding: 0.75rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .section-item:hover {
+      border-color: #d1d5db;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .section-item.selected {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    .section-item.dragging {
+      opacity: 0.5;
+    }
+    .element-item {
+      position: relative;
+      padding: 0.5rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+    }
+    .element-item:hover {
+      border-color: #d1d5db;
+      background: #f9fafb;
+    }
+    .element-item.selected {
+      border-color: var(--brand);
+      background: rgba(239, 68, 68, 0.05);
+    }
+    .element-item.dragging {
+      opacity: 0.5;
+    }
+    .properties-tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 1rem;
+    }
+    .properties-tab {
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .properties-tab:hover {
+      color: #374151;
+    }
+    .properties-tab.active {
+      color: var(--brand);
+      border-bottom-color: var(--brand);
+    }
+    .properties-content {
+      display: none;
+    }
+    .properties-content.active {
+      display: block;
+    }
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+    .template-item {
+      aspect-ratio: 16 / 9;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .template-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .template-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .template-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.5rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    .color-palette {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-swatch {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .color-swatch:hover {
+      transform: scale(1.1);
+    }
+    .color-swatch.selected {
+      border-color: #111;
+      box-shadow: 0 0 0 2px white, 0 0 0 4px #111;
+    }
+    .history-panel {
+      position: fixed;
+      right: -300px;
+      top: 0;
+      width: 300px;
+      height: 100vh;
+      background: white;
+      box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 50;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+    }
+    .history-panel.open {
+      right: 0;
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .history-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .history-item:hover {
+      background: #f9fafb;
+    }
+    .history-item.active {
+      background: rgba(239, 68, 68, 0.05);
+      border-left: 3px solid var(--brand);
+    }
+    .zoom-controls {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      background: white;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .zoom-controls button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.25rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+    }
+    .zoom-controls button:hover {
+      background: #f3f4f6;
+    }
+    .context-menu {
+      position: fixed;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      padding: 0.5rem 0;
+      z-index: 100;
+      min-width: 150px;
+    }
+    .context-menu-item {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .context-menu-item:hover {
+      background: #f3f4f6;
+    }
+    .context-menu-separator {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 0.25rem 0;
+    }
+    
+    <!-- PENAMBAHAN BAHARU: Gaya untuk Visual Style Editor -->
+    .shape-selector {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+    }
+    .shape-option {
+      aspect-ratio: 1;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .shape-option:hover {
+      border-color: #d1d5db;
+      transform: translateY(-2px);
+    }
+    .shape-option.selected {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    .shape-square {
+      width: 40px;
+      height: 40px;
+      background: #e5e7eb;
+    }
+    .shape-circle {
+      width: 40px;
+      height: 40px;
+      background: #e5e7eb;
+      border-radius: 50%;
+    }
+    .shape-rounded {
+      width: 40px;
+      height: 40px;
+      background: #e5e7eb;
+      border-radius: 0.75rem;
+    }
+    .shape-pill {
+      width: 60px;
+      height: 30px;
+      background: #e5e7eb;
+      border-radius: 15px;
+    }
+    .shape-diamond {
+      width: 40px;
+      height: 40px;
+      background: #e5e7eb;
+      transform: rotate(45deg);
+    }
+    .background-patterns {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.5rem;
+    }
+    .pattern-option {
+      aspect-ratio: 1;
+      border: 2px solid #e5e7eb;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      overflow: hidden;
+    }
+    .pattern-option:hover {
+      border-color: #d1d5db;
+      transform: translateY(-2px);
+    }
+    .pattern-option.selected {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    .pattern-none {
+      background: white;
+    }
+    .pattern-dots {
+      background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+      background-size: 10px 10px;
+    }
+    .pattern-grid {
+      background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
+      background-size: 10px 10px;
+    }
+    .pattern-diagonal {
+      background-image: repeating-linear-gradient(45deg, #e5e7eb, #e5e7eb 1px, transparent 1px, transparent 10px);
+    }
+    .pattern-waves {
+      background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #e5e7eb 10px, #e5e7eb 20px);
+    }
+    .pattern-zigzag {
+      background-image: linear-gradient(135deg, #e5e7eb 25%, transparent 25%) -10px 0, linear-gradient(225deg, #e5e7eb 25%, transparent 25%) -10px 0, linear-gradient(315deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, #e5e7eb 25%, transparent 25%);
+      background-size: 20px 20px;
+    }
+    
+    <!-- PENAMBAHAN BAHARU: Gaya untuk Cashback Calculator -->
+    .calculator-container {
+      background: white;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .calculator-display {
+      background: #f9fafb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      text-align: center;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .calculator-input {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #d1d5db;
+      border-radius: 0.5rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+    }
+    .calculator-button {
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--brand);
+      color: white;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .calculator-button:hover {
+      background: #dc2626;
+    }
+    .calculator-result {
+      margin-top: 1rem;
+      padding: 1rem;
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 0.5rem;
+      text-align: center;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: #166534;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+
+<!-- ====== HEADER ====== -->
+<header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center shadow-sm">
+        <i data-lucide="rocket" class="w-5 h-5"></i>
+      </div>
+      <div>
+        <div class="text-lg font-semibold">MOVA Leader</div>
+        <div class="text-xs text-gray-500">Hai, <span id="leaderName">leader</span></div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button id="btnOpenUser" class="btn-ghost">Lihat Laman User</button>
+      <button id="btnLogout" class="btn-primary flex items-center gap-2">
+        <i data-lucide="log-out" class="w-4 h-4"></i> Log Keluar
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ====== CONTENT ====== -->
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+  <!-- KPI -->
+  <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPartners">—</div>
+      <div class="text-sm text-gray-600">Total Partners</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statCustomers">—</div>
+      <div class="text-sm text-gray-600">Total Customers</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPending">—</div>
+      <div class="text-sm text-gray-600">Pending Approvals</div>
+    </div>
+    <div class="card p-5">
+      <div class="text-3xl font-extrabold" id="statPublished">—</div>
+      <div class="text-sm text-gray-600">Published Content</div>
+    </div>
+  </section>
+
+  <!-- TABS -->
+  <section class="card p-3">
+    <div class="flex gap-2 overflow-x-auto scroll-bar">
+      <button data-tab="user" class="pill pill-active"><i data-lucide="layout-template" class="w-4 h-4"></i> User Sections</button>
+      <button data-tab="content" class="pill pill-idle"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
+      <button data-tab="media" class="pill pill-idle"><i data-lucide="image" class="w-4 h-4"></i> Media</button>
+      <button data-tab="partner" class="pill pill-idle"><i data-lucide="user-plus" class="w-4 h-4"></i> Partner</button>
+      <button data-tab="customer" class="pill pill-idle"><i data-lucide="users" class="w-4 h-4"></i> Customer</button>
+      <button data-tab="approve" class="pill pill-idle"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
+      <button data-tab="broadcast" class="pill pill-idle"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
+      <button data-tab="org" class="pill pill-idle"><i data-lucide="network" class="w-4 h-4"></i> Carta</button>
+      <button data-tab="settings" class="pill pill-idle"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
+    </div>
+  </section>
+
+  <!-- PANELS -->
+  <section class="space-y-6">
+
+    <!-- ===== Tab: User Sections (Struktur Bahagian) ===== -->
+    <div id="tab-user" class="card p-6 space-y-6">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2">
+          <i data-lucide="layout-template" class="w-5 h-5 text-gray-700"></i>
+          <h2 class="text-lg font-semibold">Halaman User — Editor Bahagian</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="btnSaveDesign" class="btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan Reka Bentuk</button>
+          <button id="btnPreviewUser" class="btn-ghost">Lihat Laman User</button>
+        </div>
+      </div>
+
+      <!-- PENAMBAHAN BAHARU: Editor Toolbar -->
+      <div class="editor-toolbar">
+        <button id="btnUndo" title="Undo"><i data-lucide="undo" class="w-4 h-4"></i></button>
+        <button id="btnRedo" title="Redo"><i data-lucide="redo" class="w-4 h-4"></i></button>
+        <div class="separator"></div>
+        <button id="btnCopy" title="Copy"><i data-lucide="copy" class="w-4 h-4"></i></button>
+        <button id="btnPaste" title="Paste"><i data-lucide="clipboard" class="w-4 h-4"></i></button>
+        <div class="separator"></div>
+        <button id="btnTemplates" title="Templates"><i data-lucide="layout" class="w-4 h-4"></i></button>
+        <button id="btnHistory" title="History"><i data-lucide="history" class="w-4 h-4"></i></button>
+        <div class="separator"></div>
+        <button id="btnZoomIn" title="Zoom In"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+        <button id="btnZoomOut" title="Zoom Out"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+        <button id="btnZoomReset" title="Reset Zoom"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+      </div>
+
+      <div class="grid gap-3 md:grid-cols-[1fr_auto]">
+        <div class="text-sm text-gray-600">
+          Susun halaman anda menggunakan "Bahagian". Setiap bahagian adalah blok yang boleh anda ubah warna latar, jarak, dan isinya.
+        </div>
+      </div>
+
+      <!-- Two column layout for section list and preview -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Left column: Section List -->
+        <div class="lg:col-span-1 space-y-3">
+          <div class="element-panel">
+            <h3>Senarai Bahagian</h3>
+            <button id="btnAddSection" class="btn-ghost w-full justify-center" style="margin-top: 12px;">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Bahagian Baru
+            </button>
+          </div>
+          <div id="sectionList" class="space-y-2">
+            <!-- Senarai bahagian akan dimuatkan di sini -->
+          </div>
+        </div>
+        
+        <!-- Right column: Preview & Properties -->
+        <div class="lg:col-span-3">
+          <div class="preview-container">
+            <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
+            <!-- PENAMBAHAN BAHARU: Zoom Controls -->
+            <div class="zoom-controls">
+              <button id="zoomInBtn"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+              <button id="zoomOutBtn"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+              <button id="zoomResetBtn"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Properties Panel (will be shown when a section or element is selected) -->
+      <div id="propertiesPanel" class="card p-6 space-y-5 hidden">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold" id="propertiesTitle">Sifat</h3>
+          <button id="btnCloseProperties" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        
+        <!-- PENAMBAHAN BAHARU: Properties Tabs -->
+        <div class="properties-tabs">
+          <div class="properties-tab active" data-tab="basic">Asas</div>
+          <div class="properties-tab" data-tab="style">Gaya</div>
+          <div class="properties-tab" data-tab="advanced">Advanced</div>
+        </div>
+        
+        <div id="propertiesContent">
+          <!-- Kandungan sifat akan dimuatkan di sini -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Kandungan ===== -->
+    <div id="tab-content" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Kandungan Umum</h2>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div>
+          <label class="text-sm font-medium text-gray-700">Tajuk</label>
+          <input id="title" class="input mt-1" placeholder="Contoh: Promosi MOVA" />
+        </div>
+        <div>
+          <label class="text-sm font-medium text-gray-700">Terbit?</label>
+          <select id="published" class="input mt-1">
+            <option value="yes">Ya</option>
+            <option value="no">Tidak</option>
+          </select>
+        </div>
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700">Isi Kandungan</label>
+        <textarea id="body" class="textarea mt-1" placeholder="Tulis pengumuman / panduan / promosi."></textarea>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="link" class="w-4 h-4 text-gray-700"></i>
+            <div class="font-semibold">Lampiran URL (gambar / video / pautan)</div>
+          </div>
+          <div class="grid gap-2">
+            <div class="flex items-center gap-2">
+              <input id="urlInput" class="input" placeholder="https://contoh.com/media.jpg atau https://youtube.com/...">
+              <button id="btnAddUrl" class="btn-ghost">Tambah</button>
+            </div>
+            <div id="urlList" class="grid gap-2"></div>
+          </div>
+        </div>
+        <div class="border border-gray-200 rounded-xl p-4">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="images" class="w-4 h-4 text-gray-700"></i>
+            <div class="font-semibold">Media Terpilih (dari Media Library)</div>
+          </div>
+          <div id="chosenMedia" class="text-sm text-gray-600">Tiada media dipilih. Pergi ke tab <b>Media</b> dan klik untuk memilih.</div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="btnSaveContent" class="btn-primary">Simpan / Kemas Kini</button>
+        <button id="btnRefreshContent" class="btn-ghost">Segar Semula</button>
+        <button id="btnLoadLatestContent" class="btn-ghost">Muat Terbaru</button>
+      </div>
+      <div id="contentListWrap" class="hidden">
+        <div class="mt-4 text-sm font-semibold">Kandungan Terkini</div>
+        <div id="contentList" class="mt-2 grid gap-3"></div>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Media ===== -->
+    <div id="tab-media" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="image" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Media Library</h2>
+      </div>
+      <div class="grid gap-3 md:grid-cols-[1fr_auto]">
+        <input id="fileInput" type="file" accept="image/*,video/*" class="input"/>
+        <div class="flex items-center gap-2">
+          <button id="btnUpload" class="btn-primary">Muat Naik</button>
+          <button id="btnInsertToContent" class="btn-ghost">Tandakan sebagai Lampiran</button>
+          <button id="btnReloadMedia" class="btn-ghost">Segar Semula</button>
+        </div>
+      </div>
+      <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
+    </div>
+
+    <!-- ===== Tab: Partner ===== -->
+    <div id="tab-partner" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah Partner</h2>
+      </div>
+      <div class="grid gap-3 md:grid-cols-4">
+        <input id="partnerName" class="input" placeholder="Nama penuh">
+        <input id="partnerEmail" class="input" placeholder="Email">
+        <input id="partnerPhone" class="input" placeholder="No. Telefon">
+        <select id="partnerPackage" class="input">
+          <option value="">Pakej</option>
+          <option>Silver</option>
+          <option>Gold</option>
+          <option>Diamond</option>
+        </select>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="btnCreatePartner" class="btn-primary">Cipta Partner</button>
+        <span class="text-xs text-gray-500">* partner akan dipaparkan dalam Carta Organisasi selepas ditambah.</span>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Customer ===== -->
+    <div id="tab-customer" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Tambah Customer</h2>
+      </div>
+      <div class="grid gap-3 md:grid-cols-3">
+        <input id="customerName" class="input" placeholder="Nama customer">
+        <input id="customerPhone" class="input" placeholder="+60XXXXXXXXX">
+        <select id="customerPartner" class="input"><option value="">Pilih Partner</option></select>
+      </div>
+      <div>
+        <button id="btnAddCustomer" class="btn-primary">Tambah Customer</button>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Approvals ====== -->
+    <div id="tab-approve" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Approve Pendaftaran</h2>
+      </div>
+      <div class="overflow-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>ID</th><th>Nama</th><th>Telefon</th><th>Status</th><th>Tindakan</th>
+            </tr>
+          </thead>
+          <tbody id="regTableBody"></tbody>
+        </table>
+      </div>
+      <div class="flex gap-2">
+        <button id="btnReloadReg" class="btn-ghost">Segar Semula</button>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Broadcast (WA) ===== -->
+    <div id="tab-broadcast" class="card p-6 space-y-5 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Broadcast WhatsApp</h2>
+        <span class="badge">log only</span>
+      </div>
+
+      <div class="grid gap-3">
+        <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
+        <div id="attachChips" class="flex flex-wrap gap-2"></div>
+        <div class="grid md:grid-cols-[1fr_auto] gap-3">
+          <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
+          <div class="flex items-center gap-2">
+            <button id="btnAttachUpload" class="btn-ghost"><i data-lucide="paperclip" class="w-4 h-4"></i> Upload & Lampirkan</button>
+            <button id="btnClearAttach" class="btn-ghost">Kosongkan Lampiran</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid lg:grid-cols-2 gap-6 mt-2">
+        <div class="p-4 border border-gray-200 rounded-xl">
+          <div class="flex items-center justify-between">
+            <div class="font-semibold">Penerima (ikut partner)</div>
+            <div class="flex gap-2">
+              <button id="btnSelectAll" class="btn-ghost">Pilih Semua</button>
+              <button id="btnClearAll" class="btn-ghost">Kosongkan</button>
+            </div>
+          </div>
+          <div id="recipientsWrap" class="mt-3 max-h-[380px] overflow-auto"></div>
+        </div>
+
+        <div class="p-4 border border-gray-200 rounded-xl">
+          <div class="font-semibold mb-2">Tindakan</div>
+          <div class="grid gap-2">
+            <button id="btnBroadcast" class="btn-primary">Log Broadcast (server)</button>
+            <button id="btnOpenWA" class="btn-ghost">Buka WhatsApp Tabs</button>
+            <button id="btnExportCSV" class="btn-ghost">Muat Turun CSV (Fonnte)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Carta Organisasi ===== -->
+    <div id="tab-org" class="card p-6 hidden">
+      <div class="flex items-center gap-2 mb-4">
+        <i data-lucide="network" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Carta Organisasi</h2>
+      </div>
+      <div id="orgWrap" class="relative overflow-x-auto">
+        <svg id="orgSvg" class="absolute inset-0 pointer-events-none"></svg>
+        <div id="orgGrid" class="relative grid gap-8 md:gap-10"></div>
+      </div>
+      <div class="mt-4 flex gap-2">
+        <button id="btnReloadOrg" class="btn-ghost">Segar Semula Carta</button>
+      </div>
+    </div>
+
+    <!-- ===== Tab: Settings ===== -->
+    <div id="tab-settings" class="card p-6 hidden">
+      <div class="flex items-center gap-2">
+        <i data-lucide="settings" class="w-5 h-5 text-gray-700"></i>
+        <h2 class="text-lg font-semibold">Settings — Laman User, Fonnte & Typography</h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4 mt-2">
+        <div>
+          <label class="text-sm font-medium">Cashback Min (%)</label>
+          <input id="setMin" class="input mt-1" placeholder="cth: 5">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Cashback Max (%)</label>
+          <input id="setMax" class="input mt-1" placeholder="cth: 10">
+        </div>
+        <div>
+          <label class="text-sm font-medium">WhatsApp Leader</label>
+          <input id="setLeaderPhone" class="input mt-1" placeholder="60123456789">
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-4 mt-2">
+        <div>
+          <label class="text-sm font-medium">Fonnte API Key</label>
+          <input id="setFonnteApi" type="password" class="input mt-1" placeholder="API Key Fonnte anda">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Warna Tema (Brand)</label>
+          <input id="setThemeColor" type="color" class="input mt-1 p-1" value="#ef4444">
+        </div>
+        <div>
+          <label class="text-sm font-medium">Lebar Kandungan (px)</label>
+          <input id="setContentWidth" class="input mt-1" placeholder="cth: 980">
+        </div>
+      </div>
+
+      <!-- Typography -->
+      <div class="border border-gray-200 rounded-xl p-4 mt-4">
+        <div class="flex items-center gap-2 mb-2">
+          <i data-lucide="type" class="w-4 h-4 text-gray-700"></i>
+          <div class="font-semibold">Typography (Global)</div>
+        </div>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium">Heading Size (px)</label>
+              <input id="setHeadingSize" class="input mt-1" placeholder="cth: 28">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Heading Color</label>
+              <input id="setHeadingColor" type="color" class="input mt-1 p-1" value="#111111">
+            </div>
+            <label class="text-sm font-medium flex items-center gap-2 mt-2">
+              <span class="switch"><input id="setHeadingBold" type="checkbox"><span></span></span>
+              <span>Heading Bold</span>
+            </label>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-sm font-medium">Body Size (px)</label>
+              <input id="setBodySize" class="input mt-1" placeholder="cth: 16">
+            </div>
+            <div>
+              <label class="text-sm font-medium">Body Color</label>
+              <input id="setBodyColor" type="color" class="input mt-1 p-1" value="#374151">
+            </div>
+            <label class="text-sm font-medium flex items-center gap-2 mt-2">
+              <span class="switch"><input id="setBodyBold" type="checkbox"><span></span></span>
+              <span>Body Bold</span>
+            </label>
+          </div>
+        </div>
+        </div>
+        <div class="text-xs text-gray-500 mt-2">user.html akan mematuhi tetapan ini setiap kali halaman dimuatkan.</div>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <button id="btnSaveSettings" class="btn-primary">Simpan</button>
+        <button id="btnReloadSettings" class="btn-ghost">Muat Semula</button>
+        <button id="btnPreviewUser2" class="btn-ghost">Preview Laman User</button>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<!-- PENAMBAHAN BAHARU: Templates Modal -->
+<div id="templatesModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold">Templates Bahagian</h3>
+      <button id="btnCloseTemplates" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="template-grid">
+      <!-- Template items will be dynamically inserted here -->
+    </div>
+  </div>
+</div>
+
+<!-- PENAMBAHAN BAHARU: History Panel -->
+<div id="historyPanel" class="history-panel">
+  <div class="history-header">
+    <h3 class="text-lg font-semibold">Sejarah Pengeditan</h3>
+    <button id="btnCloseHistory" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
+  </div>
+  <div id="historyList">
+    <!-- History items will be dynamically inserted here -->
+  </div>
+</div>
+
+<!-- PENAMBAHAN BAHARU: Context Menu -->
+<div id="contextMenu" class="context-menu hidden">
+  <!-- Context menu items will be dynamically inserted here -->
+</div>
+
 <script>
   // ====== KONFIG ======
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
@@ -3365,7 +4299,7 @@
         name: `${store.clipboard.data.name} (Salinan)`,
         elements: store.clipboard.data.elements.map(el => ({
           ...el,
-          id: `element-${Date.now()}-${Math.random()}`
+          id: `element-${Date.now()}`
         }))
       };
       store.sections.push(newSection);
@@ -3512,3 +4446,6 @@
   // Initialize history on load
   addToHistory();
 </script>
+
+</body>
+</html>
