@@ -51,458 +51,126 @@
     .block-row{border:1px dashed #e5e7eb;border-radius:.6rem;padding:.6rem;background:#fff}
     .block-row + .block-row{margin-top:.5rem}
     .mini-prev{border:1px dashed #d1d5db;border-radius:.75rem;padding:12px;background:#fafafa}
-    /* Rich editor */
-    .toolbar button{border:1px solid #e5e7eb;border-radius:.5rem;padding:.25rem .5rem;background:#fff; transition: all 0.2s ease;}
-    .toolbar button:hover{background:#f3f4f6;}
-    .toolbar button.active{background:#111;color:#fff;border-color:#111;}
-    .toolbar select{transition: all 0.2s ease;}
-    .toolbar select:focus{background:#f9fafb;}
-    .rtbox{min-height:120px;border:1px solid #d1d5db;border-radius:.75rem;padding:.6rem;background:#fff}
+    
+    /* Rich editor styles */
+    .toolbar{ display:flex; align-items:center; gap:.5rem; padding:.75rem; background:#f9fafb; border-bottom:1px solid #e5e7eb; border-radius:.75rem .75rem 0 0; flex-wrap:wrap; }
+    .toolbar button{ display:flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:.5rem; background:white; border:1px solid #e5e7eb; cursor:pointer; transition:all 0.2s ease; }
+    .toolbar button:hover{ background:#f3f4f6; transform:translateY(-1px); }
+    .toolbar button.active{ background:var(--brand); color:white; border-color:var(--brand); }
+    .toolbar .separator{ width:1px; height:1.5rem; background:#e5e7eb; margin:0 .25rem; }
+    .toolbar select{ padding:.25rem .5rem; border:1px solid #e5e7eb; border-radius:.5rem; background:white; transition:all 0.2s ease; }
+    .toolbar select:focus{ background:#f9fafb; }
+    .rtbox{ min-height:120px; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem; background:#fff; }
     
     /* Preview container styles */
-    .preview-container {
-      position: relative;
-      background: #f9fafb;
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
-    }
-    .preview-iframe {
-      width: 100%;
-      height: 90vh;
-      border: none;
-    }
-
-    <!-- PEMBAIKAN BAHARU: Gaya untuk Section Design -->
-    .section-style-card { background: #ffffff; border-radius: 1rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); padding: 3rem 1rem; }
-    .section-style-rounded { background: #f3f4f6; border-radius: 2rem; }
-    .section-style-dark { background: #1f2937; color: #f9fafb; }
-    .section-style-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; }
+    .preview-container{ position:relative; background:#f9fafb; border-radius:12px; overflow:hidden; box-shadow:inset 0 0 10px rgba(0,0,0,0.05); }
+    .preview-iframe{ width:100%; height:90vh; border:none; }
     
-    <!-- PENAMBAHAN BAHARU: Gaya untuk Editor Advanced -->
-    .editor-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.75rem;
-      background: #f9fafb;
-      border-bottom: 1px solid #e5e7eb;
-      border-radius: 0.75rem 0.75rem 0 0;
-    }
-    .editor-toolbar button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 2rem;
-      height: 2rem;
-      border-radius: 0.5rem;
-      background: white;
-      border: 1px solid #e5e7eb;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .editor-toolbar button:hover {
-      background: #f3f4f6;
-      transform: translateY(-1px);
-    }
-    .editor-toolbar button.active {
-      background: var(--brand);
-      color: white;
-      border-color: var(--brand);
-    }
-    .editor-toolbar .separator {
-      width: 1px;
-      height: 1.5rem;
-      background: #e5e7eb;
-    }
-    .section-item {
-      position: relative;
-      padding: 0.75rem;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.75rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .section-item:hover {
-      border-color: #d1d5db;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .section-item.selected {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-    }
-    .section-item.dragging {
-      opacity: 0.5;
-    }
-    .element-item {
-      position: relative;
-      padding: 0.5rem;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 0.875rem;
-    }
-    .element-item:hover {
-      border-color: #d1d5db;
-      background: #f9fafb;
-    }
-    .element-item.selected {
-      border-color: var(--brand);
-      background: rgba(239, 68, 68, 0.05);
-    }
-    .element-item.dragging {
-      opacity: 0.5;
-    }
-    .properties-tabs {
-      display: flex;
-      border-bottom: 1px solid #e5e7eb;
-      margin-bottom: 1rem;
-    }
-    .properties-tab {
-      padding: 0.5rem 1rem;
-      font-weight: 500;
-      color: #6b7280;
-      cursor: pointer;
-      border-bottom: 2px solid transparent;
-      transition: all 0.2s ease;
-    }
-    .properties-tab:hover {
-      color: #374151;
-    }
-    .properties-tab.active {
-      color: var(--brand);
-      border-bottom-color: var(--brand);
-    }
-    .properties-content {
-      display: none;
-    }
-    .properties-content.active {
-      display: block;
-    }
-    .template-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 1rem;
-    }
-    .template-item {
-      aspect-ratio: 16 / 9;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      overflow: hidden;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-    .template-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .template-preview {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .template-name {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 0.5rem;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      font-size: 0.75rem;
-      text-align: center;
-    }
-    .color-palette {
-      display: flex;
-      gap: 0.5rem;
-      flex-wrap: wrap;
-    }
-    .color-swatch {
-      width: 2rem;
-      height: 2rem;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.2s ease;
-    }
-    .color-swatch:hover {
-      transform: scale(1.1);
-    }
-    .color-swatch.selected {
-      border-color: #111;
-      box-shadow: 0 0 0 2px white, 0 0 0 4px #111;
-    }
-    .history-panel {
-      position: fixed;
-      right: -300px;
-      top: 0;
-      width: 300px;
-      height: 100vh;
-      background: white;
-      box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.1);
-      z-index: 50;
-      transition: right 0.3s ease;
-      overflow-y: auto;
-    }
-    .history-panel.open {
-      right: 0;
-    }
-    .history-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1rem;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .history-item {
-      padding: 0.75rem 1rem;
-      border-bottom: 1px solid #f3f4f6;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-    .history-item:hover {
-      background: #f9fafb;
-    }
-    .history-item.active {
-      background: rgba(239, 68, 68, 0.05);
-      border-left: 3px solid var(--brand);
-    }
-    .zoom-controls {
-      position: absolute;
-      bottom: 1rem;
-      right: 1rem;
-      display: flex;
-      gap: 0.5rem;
-      background: white;
-      padding: 0.5rem;
-      border-radius: 0.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .zoom-controls button {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 2rem;
-      height: 2rem;
-      border-radius: 0.25rem;
-      background: white;
-      border: 1px solid #e5e7eb;
-      cursor: pointer;
-    }
-    .zoom-controls button:hover {
-      background: #f3f4f6;
-    }
-    .context-menu {
-      position: fixed;
-      background: white;
-      border: 1px solid #e5e7eb;
-      border-radius: 0.5rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-      padding: 0.5rem 0;
-      z-index: 100;
-      min-width: 150px;
-    }
-    .context-menu-item {
-      padding: 0.5rem 1rem;
-      font-size: 0.875rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .context-menu-item:hover {
-      background: #f3f4f6;
-    }
-    .context-menu-separator {
-      height: 1px;
-      background: #e5e7eb;
-      margin: 0.25rem 0;
-    }
+    /* Section styles */
+    .section-style-card{ background:#ffffff; border-radius:1rem; box-shadow:0 10px 25px -5px rgba(0,0,0,0.1),0 10px 10px -5px rgba(0,0,0,0.04); padding:3rem 1rem; }
+    .section-style-rounded{ background:#f3f4f6; border-radius:2rem; }
+    .section-style-dark{ background:#1f2937; color:#f9fafb; }
+    .section-style-gradient{ background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#ffffff; }
     
-    <!-- PENAMBAHAN BAHARU: Gaya untuk Visual Style Editor -->
-    .shape-selector {
-      display: grid;
-      grid-template-columns: repeat(5, 1fr);
-      gap: 0.5rem;
-    }
-    .shape-option {
-      aspect-ratio: 1;
-      border: 2px solid #e5e7eb;
-      border-radius: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .shape-option:hover {
-      border-color: #d1d5db;
-      transform: translateY(-2px);
-    }
-    .shape-option.selected {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-    }
-    .shape-square {
-      width: 40px;
-      height: 40px;
-      background: #e5e7eb;
-    }
-    .shape-circle {
-      width: 40px;
-      height: 40px;
-      background: #e5e7eb;
-      border-radius: 50%;
-    }
-    .shape-rounded {
-      width: 40px;
-      height: 40px;
-      background: #e5e7eb;
-      border-radius: 0.75rem;
-    }
-    .shape-pill {
-      width: 60px;
-      height: 30px;
-      background: #e5e7eb;
-      border-radius: 15px;
-    }
-    .shape-diamond {
-      width: 40px;
-      height: 40px;
-      background: #e5e7eb;
-      transform: rotate(45deg);
-    }
-    .background-patterns {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.5rem;
-    }
-    .pattern-option {
-      aspect-ratio: 1;
-      border: 2px solid #e5e7eb;
-      border-radius: 0.5rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      overflow: hidden;
-    }
-    .pattern-option:hover {
-      border-color: #d1d5db;
-      transform: translateY(-2px);
-    }
-    .pattern-option.selected {
-      border-color: var(--brand);
-      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
-    }
-    .pattern-none {
-      background: white;
-    }
-    .pattern-dots {
-      background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
-      background-size: 10px 10px;
-    }
-    .pattern-grid {
-      background-image: linear-gradient(#e5e7eb 1px, transparent 1px), linear-gradient(90deg, #e5e7eb 1px, transparent 1px);
-      background-size: 10px 10px;
-    }
-    .pattern-diagonal {
-      background-image: repeating-linear-gradient(45deg, #e5e7eb, #e5e7eb 1px, transparent 1px, transparent 10px);
-    }
-    .pattern-waves {
-      background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, #e5e7eb 10px, #e5e7eb 20px);
-    }
-    .pattern-zigzag {
-      background-image: linear-gradient(135deg, #e5e7eb 25%, transparent 25%) -10px 0, linear-gradient(225deg, #e5e7eb 25%, transparent 25%) -10px 0, linear-gradient(315deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, #e5e7eb 25%, transparent 25%);
-      background-size: 20px 20px;
-    }
+    /* Editor toolbar styles */
+    .editor-toolbar{ display:flex; align-items:center; gap:.5rem; padding:.75rem; background:#f9fafb; border-bottom:1px solid #e5e7eb; border-radius:.75rem .75rem 0 0; }
+    .editor-toolbar button{ display:flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:.5rem; background:white; border:1px solid #e5e7eb; cursor:pointer; transition:all 0.2s ease; }
+    .editor-toolbar button:hover{ background:#f3f4f6; transform:translateY(-1px); }
+    .editor-toolbar button.active{ background:var(--brand); color:white; border-color:var(--brand); }
+    .editor-toolbar .separator{ width:1px; height:1.5rem; background:#e5e7eb; }
     
-    <!-- PENAMBAHAN BAHARU: Gaya untuk Cashback Calculator -->
-    .calculator-container {
-      background: white;
-      border-radius: 1rem;
-      padding: 1.5rem;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .calculator-display {
-      background: #f9fafb;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      text-align: center;
-    }
-    .calculator-buttons {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0.5rem;
-    }
-    .calculator-button {
-      background: #f3f4f6;
-      border: none;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      font-size: 1.25rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .calculator-button:hover {
-      background: #e5e7eb;
-    }
-    .calculator-button.operator {
-      background: var(--brand);
-      color: white;
-    }
-    .calculator-button.operator:hover {
-      background: #dc2626;
-    }
-    .calculator-button.equals {
-      background: #10b981;
-      color: white;
-      grid-column: span 2;
-    }
-    .calculator-button.equals:hover {
-      background: #059669;
-    }
-    .calculator-button.clear {
-      background: #ef4444;
-      color: white;
-    }
-    .calculator-button.clear:hover {
-      background: #dc2626;
-    }
+    /* Section and element items */
+    .section-item{ position:relative; padding:.75rem; background:white; border:1px solid #e5e7eb; border-radius:.75rem; cursor:pointer; transition:all 0.2s ease; }
+    .section-item:hover{ border-color:#d1d5db; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
+    .section-item.selected{ border-color:var(--brand); box-shadow:0 0 0 2px rgba(239,68,68,0.2); }
+    .section-item.dragging{ opacity:0.5; }
+    .element-item{ position:relative; padding:.5rem; background:white; border:1px solid #e5e7eb; border-radius:.5rem; cursor:pointer; transition:all 0.2s ease; font-size:.875rem; }
+    .element-item:hover{ border-color:#d1d5db; background:#f9fafb; }
+    .element-item.selected{ border-color:var(--brand); background:rgba(239,68,68,0.05); }
+    .element-item.dragging{ opacity:0.5; }
     
-    <!-- PEMBAIKAN: Mencegah tab properties daripada mengganggu tab utama -->
-    .properties-panel {
-      position: relative;
-      z-index: 10;
-    }
+    /* Properties tabs */
+    .properties-tabs{ display:flex; border-bottom:1px solid #e5e7eb; margin-bottom:1rem; }
+    .properties-tab{ padding:.5rem 1rem; font-weight:500; color:#6b7280; cursor:pointer; border-bottom:2px solid transparent; transition:all 0.2s ease; }
+    .properties-tab:hover{ color:#374151; }
+    .properties-tab.active{ color:var(--brand); border-bottom-color:var(--brand); }
+    .properties-content{ display:none; }
+    .properties-content.active{ display:block; }
     
-    <!-- PEMBAIKAN: Modal overlay untuk mencegah klik luar -->
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 40;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .modal-content {
-      background: white;
-      border-radius: 1rem;
-      padding: 1.5rem;
-      max-width: 500px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      position: relative;
-    }
+    /* Template grid */
+    .template-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:1rem; }
+    .template-item{ aspect-ratio:16/9; border:1px solid #e5e7eb; border-radius:.5rem; overflow:hidden; cursor:pointer; transition:all 0.2s ease; position:relative; }
+    .template-item:hover{ transform:translateY(-2px); box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
+    .template-preview{ width:100%; height:100%; object-fit:cover; }
+    .template-name{ position:absolute; bottom:0; left:0; right:0; padding:.5rem; background:rgba(0,0,0,0.7); color:white; font-size:.75rem; text-align:center; }
+    
+    /* Color palette */
+    .color-palette{ display:flex; gap:.5rem; flex-wrap:wrap; }
+    .color-swatch{ width:2rem; height:2rem; border-radius:.5rem; cursor:pointer; border:2px solid transparent; transition:all 0.2s ease; }
+    .color-swatch:hover{ transform:scale(1.1); }
+    .color-swatch.selected{ border-color:#111; box-shadow:0 0 0 2px white,0 0 0 4px #111; }
+    
+    /* History panel */
+    .history-panel{ position:fixed; right:-300px; top:0; width:300px; height:100vh; background:white; box-shadow:-4px 0 6px -1px rgba(0,0,0,0.1); z-index:50; transition:right 0.3s ease; overflow-y:auto; }
+    .history-panel.open{ right:0; }
+    .history-header{ display:flex; align-items:center; justify-content:space-between; padding:1rem; border-bottom:1px solid #e5e7eb; }
+    .history-item{ padding:.75rem 1rem; border-bottom:1px solid #f3f4f6; cursor:pointer; transition:background 0.2s ease; }
+    .history-item:hover{ background:#f9fafb; }
+    .history-item.active{ background:rgba(239,68,68,0.05); border-left:3px solid var(--brand); }
+    
+    /* Zoom controls */
+    .zoom-controls{ position:absolute; bottom:1rem; right:1rem; display:flex; gap:.5rem; background:white; padding:.5rem; border-radius:.5rem; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
+    .zoom-controls button{ display:flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:.25rem; background:white; border:1px solid #e5e7eb; cursor:pointer; }
+    .zoom-controls button:hover{ background:#f3f4f6; }
+    
+    /* Context menu */
+    .context-menu{ position:fixed; background:white; border:1px solid #e5e7eb; border-radius:.5rem; box-shadow:0 10px 15px -3px rgba(0,0,0,0.1); padding:.5rem 0; z-index:100; min-width:150px; }
+    .context-menu-item{ padding:.5rem 1rem; font-size:.875rem; cursor:pointer; display:flex; align-items:center; gap:.5rem; }
+    .context-menu-item:hover{ background:#f3f4f6; }
+    .context-menu-separator{ height:1px; background:#e5e7eb; margin:.25rem 0; }
+    
+    /* Shape selector */
+    .shape-selector{ display:grid; grid-template-columns:repeat(5,1fr); gap:.5rem; }
+    .shape-option{ aspect-ratio:1; border:2px solid #e5e7eb; border-radius:.5rem; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.2s ease; }
+    .shape-option:hover{ border-color:#d1d5db; transform:translateY(-2px); }
+    .shape-option.selected{ border-color:var(--brand); box-shadow:0 0 0 2px rgba(239,68,68,0.2); }
+    .shape-square{ width:40px; height:40px; background:#e5e7eb; }
+    .shape-circle{ width:40px; height:40px; background:#e5e7eb; border-radius:50%; }
+    .shape-rounded{ width:40px; height:40px; background:#e5e7eb; border-radius:.75rem; }
+    .shape-pill{ width:60px; height:30px; background:#e5e7eb; border-radius:15px; }
+    .shape-diamond{ width:40px; height:40px; background:#e5e7eb; transform:rotate(45deg); }
+    
+    /* Background patterns */
+    .background-patterns{ display:grid; grid-template-columns:repeat(4,1fr); gap:.5rem; }
+    .pattern-option{ aspect-ratio:1; border:2px solid #e5e7eb; border-radius:.5rem; cursor:pointer; transition:all 0.2s ease; overflow:hidden; }
+    .pattern-option:hover{ border-color:#d1d5db; transform:translateY(-2px); }
+    .pattern-option.selected{ border-color:var(--brand); box-shadow:0 0 0 2px rgba(239,68,68,0.2); }
+    .pattern-none{ background:white; }
+    .pattern-dots{ background-image:radial-gradient(#e5e7eb 1px,transparent 1px); background-size:10px 10px; }
+    .pattern-grid{ background-image:linear-gradient(#e5e7eb 1px,transparent 1px),linear-gradient(90deg,#e5e7eb 1px,transparent 1px); background-size:10px 10px; }
+    .pattern-diagonal{ background-image:repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 1px,transparent 1px,transparent 10px); }
+    .pattern-waves{ background-image:repeating-linear-gradient(45deg,transparent,transparent 10px,#e5e7eb 10px,#e5e7eb 20px); }
+    .pattern-zigzag{ background-image:linear-gradient(135deg,#e5e7eb 25%,transparent 25%) -10px 0,linear-gradient(225deg,#e5e7eb 25%,transparent 25%) -10px 0,linear-gradient(315deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,#e5e7eb 25%,transparent 25%); background-size:20px 20px; }
+    
+    /* Calculator container */
+    .calculator-container{ background:white; border-radius:1rem; padding:1.5rem; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); }
+    .calculator-display{ background:#f9fafb; border-radius:.5rem; padding:1rem; margin-bottom:1rem; text-align:center; }
+    .calculator-buttons{ display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem; }
+    .calculator-button{ background:#f3f4f6; border:none; border-radius:.5rem; padding:1rem; font-size:1.25rem; font-weight:600; cursor:pointer; transition:all 0.2s ease; }
+    .calculator-button:hover{ background:#e5e7eb; }
+    .calculator-button.operator{ background:var(--brand); color:white; }
+    .calculator-button.operator:hover{ background:#dc2626; }
+    .calculator-button.equals{ background:#10b981; color:white; grid-column:span 2; }
+    .calculator-button.equals:hover{ background:#059669; }
+    .calculator-button.clear{ background:#ef4444; color:white; }
+    .calculator-button.clear:hover{ background:#dc2626; }
+    
+    /* Properties panel */
+    .properties-panel{ position:relative; z-index:10; }
+    
+    /* Modal overlay */
+    .modal-overlay{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:40; display:flex; align-items:center; justify-content:center; }
+    .modal-content{ background:white; border-radius:1rem; padding:1.5rem; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; position:relative; }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -583,7 +251,7 @@
         </div>
       </div>
 
-      <!-- PENAMBAHAN BAHARU: Editor Toolbar -->
+      <!-- Editor Toolbar -->
       <div class="editor-toolbar">
         <button id="btnUndo" title="Undo"><i data-lucide="undo" class="w-4 h-4"></i></button>
         <button id="btnRedo" title="Redo"><i data-lucide="redo" class="w-4 h-4"></i></button>
@@ -624,7 +292,7 @@
         <div class="lg:col-span-3">
           <div class="preview-container">
             <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
-            <!-- PENAMBAHAN BAHARU: Zoom Controls -->
+            <!-- Zoom Controls -->
             <div class="zoom-controls">
               <button id="zoomInBtn"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
               <button id="zoomOutBtn"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
@@ -641,7 +309,7 @@
           <button id="btnCloseProperties" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
         
-        <!-- PENAMBAHAN BAHARU: Properties Tabs -->
+        <!-- Properties Tabs -->
         <div class="properties-tabs">
           <div class="properties-tab active" data-tab="basic">Asas</div>
           <div class="properties-tab" data-tab="style">Gaya</div>
@@ -935,7 +603,7 @@
 <!-- Toast -->
 <div id="toast" class="toast hidden"></div>
 
-<!-- PENAMBAHAN BAHARU: Templates Modal -->
+<!-- Templates Modal -->
 <div id="templatesModal" class="modal-overlay hidden">
   <div class="modal-content">
     <div class="flex items-center justify-between mb-4">
@@ -948,7 +616,7 @@
   </div>
 </div>
 
-<!-- PENAMBAHAN BAHARU: History Panel -->
+<!-- History Panel -->
 <div id="historyPanel" class="history-panel">
   <div class="history-header">
     <h3 class="text-lg font-semibold">Sejarah Pengeditan</h3>
@@ -959,7 +627,7 @@
   </div>
 </div>
 
-<!-- PENAMBAHAN BAHARU: Context Menu -->
+<!-- Context Menu -->
 <div id="contextMenu" class="context-menu hidden">
   <!-- Context menu items will be dynamically inserted here -->
 </div>
@@ -979,7 +647,7 @@
     settings: {},                // Settings terkini untuk preview mini
     selectedSectionId: null,    // ID of the currently selected section
     selectedElementId: null,    // ID of the currently selected element
-    // PENAMBAHAN BAHARU: State untuk editor advanced
+    // Advanced editor features
     clipboard: null,            // For copy/paste functionality
     history: [],                // For undo/redo functionality
     historyIndex: -1,           // Current position in history
@@ -999,7 +667,7 @@
   });
   document.getElementById('btnOpenUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
 
-  // icons
+  // Initialize Lucide icons
   lucide.createIcons();
 
   // ====== UTIL ======
@@ -1024,13 +692,8 @@
     return json;
   }
 
-  // PEMBAIKAN: Fungsi setActiveTab dengan event handling yang lebih baik
+  // Tab management with proper event handling
   function setActiveTab(name){
-    // Hentikan event bubbling untuk mengelakkan konflik
-    if (event && event.stopPropagation) {
-      event.stopPropagation();
-    }
-    
     document.querySelectorAll('[data-tab]').forEach(btn=>{
       if (btn.dataset.tab === name) { 
         btn.classList.remove('pill-idle'); 
@@ -1047,7 +710,7 @@
     if (name === 'org') renderOrg();
   }
   
-  // PEMBAIKAN: Event listener untuk tab utama dengan delegation
+  // Tab event delegation
   document.addEventListener('click', function(e) {
     const tabButton = e.target.closest('[data-tab]');
     if (tabButton) {
@@ -1067,8 +730,8 @@
     await reloadRegs();
     await renderOrg();
     await refreshSettings();     // untuk theme/typography dll + preview mini
-    initEditor();                // Initialize the NEW Section-Based editor
-    initAdvancedEditor();        // PENAMBAHAN BAHARU: Initialize advanced editor features
+    initEditor();                // Initialize the Section-Based editor
+    initAdvancedEditor();        // Initialize advanced editor features
   })();
 
   // ====== STATS ======
@@ -1632,21 +1295,21 @@
     const newSection = {
       id: `section-${Date.now()}`,
       name: sectionName,
-      style: 'default', // PEMBAIKAN BAHARU: Guna gaya lalai
+      style: 'default',
       backgroundColor: '#ffffff',
       padding: '4rem 1rem',
       elements: []
     };
     store.sections.push(newSection);
     renderSectionList();
-    saveDesign(); // Auto-save
+    saveDesign();
     selectSection(newSection.id);
-    addToHistory(); // PENAMBAHAN BAHARU: Add to history
+    addToHistory();
   }
 
   function selectSection(sectionId) {
     store.selectedSectionId = sectionId;
-    store.selectedElementId = null; // Deselect element when section is selected
+    store.selectedElementId = null;
     
     // Highlight selected section in list
     document.querySelectorAll('.section-item').forEach(item => item.classList.remove('selected'));
@@ -1669,7 +1332,6 @@
 
     title.textContent = `Sifat Bahagian: ${section.name || section.id}`;
     
-    // PENAMBAHAN BAHARU: Properties tabs
     content.innerHTML = `
       <div class="properties-content active" data-tab="basic">
         <div class="space-y-4">
@@ -1845,138 +1507,135 @@
     
     panel.classList.remove('hidden');
 
-    // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
+    // Setup properties tabs with event handling
     setupPropertiesTabs();
     
     // Add event listeners for properties
     document.getElementById('prop-sectionName').addEventListener('input', (e) => {
       section.name = e.target.value;
-      renderSectionList(); // Update the list to show the new name
+      renderSectionList();
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
     });
 
     document.getElementById('prop-sectionStyle').addEventListener('change', (e) => {
       section.style = e.target.value;
       applySectionStyle(section);
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { style: section.style } });
     });
 
     document.getElementById('prop-bgColor').addEventListener('input', (e) => {
       section.backgroundColor = e.target.value;
-      saveDesign(); // Auto-save
-      addToHistory(); // Add to history
+      saveDesign();
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { backgroundColor: e.target.value } });
     });
 
     document.getElementById('prop-padding').addEventListener('input', (e) => {
       section.padding = e.target.value;
-      saveDesign(); // Auto-save
-      addToHistory(); // Add to history
+      saveDesign();
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { padding: e.target.value } });
     });
     
-    // PENAMBAHAN BAHARU: Shape selector event listeners
+    // Shape selector event listeners
     document.querySelectorAll('.shape-option').forEach(option => {
       option.addEventListener('click', () => {
         const shape = option.dataset.shape;
         section.shape = shape;
         
-        // Update selected state
         document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
         option.classList.add('selected');
         
         saveDesign();
-        addToHistory(); // Add to history
+        addToHistory();
         sendToIframe('update-section', { id: sectionId, properties: { shape } });
       });
     });
     
-    // PENAMBAHAN BAHARU: Color palette event listeners
+    // Color palette event listeners
     document.querySelectorAll('.color-swatch').forEach(swatch => {
       swatch.addEventListener('click', () => {
         const color = swatch.dataset.color;
         section.backgroundColor = color;
         document.getElementById('prop-bgColor').value = color;
         saveDesign();
-        addToHistory(); // Add to history
+        addToHistory();
         sendToIframe('update-section', { id: sectionId, properties: { backgroundColor: color } });
         
-        // Update selected state
         document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
         swatch.classList.add('selected');
       });
     });
     
-    // PENAMBAHAN BAHARU: Gradient preset event listeners
+    // Gradient preset event listeners
     document.querySelectorAll('[data-gradient]').forEach(preset => {
       preset.addEventListener('click', () => {
         const gradient = preset.dataset.gradient;
         section.backgroundImage = gradient;
         saveDesign();
-        addToHistory(); // Add to history
+        addToHistory();
         sendToIframe('update-section', { id: sectionId, properties: { backgroundImage: gradient } });
       });
     });
     
-    // PENAMBAHAN BAHARU: Background pattern event listeners
+    // Background pattern event listeners
     document.querySelectorAll('.pattern-option').forEach(option => {
       option.addEventListener('click', () => {
         const pattern = option.dataset.pattern;
         section.pattern = pattern;
         
-        // Update selected state
         document.querySelectorAll('.pattern-option').forEach(o => o.classList.remove('selected'));
         option.classList.add('selected');
         
         saveDesign();
-        addToHistory(); // Add to history
+        addToHistory();
         sendToIframe('update-section', { id: sectionId, properties: { pattern } });
       });
     });
     
-    // PENAMBAHAN BAHARU: Advanced properties event listeners
+    // Advanced properties event listeners
     document.getElementById('prop-shadow').addEventListener('change', (e) => {
       section.shadow = e.target.value;
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { shadow: e.target.value } });
     });
     
     document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
       section.borderWidth = parseInt(e.target.value) || 0;
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { borderWidth: section.borderWidth } });
     });
     
     document.getElementById('prop-borderColor').addEventListener('input', (e) => {
       section.borderColor = e.target.value;
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { borderColor: e.target.value } });
     });
     
     document.getElementById('prop-animation').addEventListener('change', (e) => {
       section.animation = e.target.value;
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { animation: e.target.value } });
     });
     
     document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
       section.animationDelay = parseInt(e.target.value) || 0;
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { animationDelay: section.animationDelay } });
     });
     
     document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
       section.animationDuration = parseInt(e.target.value) || 1000;
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
       sendToIframe('update-section', { id: sectionId, properties: { animationDuration: section.animationDuration } });
     });
     
@@ -1985,36 +1644,32 @@
     renderElementListInSection(sectionId);
   }
 
-  // PEMBAIKAN BAHARU: Fungsi untuk menggunakan gaya
+  // Fungsi untuk menggunakan gaya
   function applySectionStyle(section) {
     const mainElement = document.querySelector(`#userPreview`).contentWindow.document.querySelector(`[data-section-id="${section.id}"]`);
     if (!mainElement) return;
     
-    // Remove all existing style classes
     mainElement.className = mainElement.className.replace(/section-style-\S+/g, '');
     
-    // Add the new style class
     if (section.style && section.style !== 'default') {
       mainElement.classList.add(`section-style-${section.style}`);
     }
   }
 
-  // PEMBAIKAN: Fungsi untuk setup properties tabs dengan event handling yang betul
+  // Fungsi untuk setup properties tabs dengan event handling yang betul
   function setupPropertiesTabs() {
     const tabs = document.querySelectorAll('.properties-tab');
     const contents = document.querySelectorAll('.properties-content');
     
     tabs.forEach(tab => {
       tab.addEventListener('click', (e) => {
-        e.stopPropagation(); // Prevent event bubbling to main tabs
+        e.stopPropagation();
         
         const tabName = tab.dataset.tab;
         
-        // Update active tab
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
         
-        // Update active content
         contents.forEach(content => {
           if (content.dataset.tab === tabName) {
             content.classList.add('active');
@@ -2032,7 +1687,7 @@
 
   function selectElement(elementId) {
     store.selectedElementId = elementId;
-    store.selectedSectionId = null; // Deselect section when element is selected
+    store.selectedSectionId = null;
     
     // Find the element and its parent section
     let selectedElement = null;
@@ -2074,20 +1729,28 @@
             <div class="space-y-4">
               <div class="border border-gray-200 rounded-xl p-3">
                 <div class="toolbar mb-2">
-                  <button type="button" data-command="bold" class="p-1 rounded"><i data-lucide="bold" class="w-4 h-4"></i></button>
-                  <button type="button" data-command="italic" class="p-1 rounded"><i data-lucide="italic" class="w-4 h-4"></i></button>
-                  <button type="button" data-command="underline" class="p-1 rounded"><i data-lucide="underline" class="w-4 h-4"></i></button>
-                  <input type="color" id="prop-textColor" class="w-8 h-8 p-1 rounded cursor-pointer" value="${element.color || '#000000'}">
-                  <input type="color" id="prop-textColorHex" class="w-20 h-8 p-1 rounded cursor-pointer ml-2" value="${element.color || '#000000'}">
+                  <button type="button" data-command="bold" class="p-1 rounded" title="Bold"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                  <button type="button" data-command="italic" class="p-1 rounded" title="Italic"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                  <button type="button" data-command="underline" class="p-1 rounded" title="Underline"><i data-lucide="underline" class="w-4 h-4"></i></button>
+                  <div class="separator"></div>
+                  <button type="button" data-command="justifyLeft" class="p-1 rounded" title="Align Left"><i data-lucide="align-left" class="w-4 h-4"></i></button>
+                  <button type="button" data-command="justifyCenter" class="p-1 rounded" title="Align Center"><i data-lucide="align-center" class="w-4 h-4"></i></button>
+                  <button type="button" data-command="justifyRight" class="p-1 rounded" title="Align Right"><i data-lucide="align-right" class="w-4 h-4"></i></button>
+                  <div class="separator"></div>
+                  <button type="button" data-command="insertUnorderedList" class="p-1 rounded" title="Bullet List"><i data-lucide="list" class="w-4 h-4"></i></button>
+                  <button type="button" data-command="insertOrderedList" class="p-1 rounded" title="Numbered List"><i data-lucide="list-ordered" class="w-4 h-4"></i></button>
+                  <div class="separator"></div>
+                  <input type="color" id="prop-textColor" class="w-8 h-8 p-1 rounded cursor-pointer" title="Text Color" value="${element.color || '#000000'}">
+                  <input type="color" id="prop-textColorHex" class="w-20 h-8 p-1 rounded cursor-pointer ml-2" title="Text Color" value="${element.color || '#000000'}">
                 </div>
                 <select id="prop-fontSize" class="text-sm border border-gray-200 rounded p-1">
-                  <option value="12">Kecil</option>
-                  <option value="14">Kecil</option>
-                  <option value="16">Biasa</option>
-                  <option value="18">Sederhana Besar</option>
-                  <option value="20">Besar</option>
-                  <option value="24">Sangat Besar</option>
-                  <option value="30">Paling Besar</option>
+                  <option value="12">Kecil (12px)</option>
+                  <option value="14">Kecil (14px)</option>
+                  <option value="16">Biasa (16px)</option>
+                  <option value="18">Sederhana Besar (18px)</option>
+                  <option value="20">Besar (20px)</option>
+                  <option value="24">Sangat Besar (24px)</option>
+                  <option value="30">Paling Besar (30px)</option>
                 </select>
               </div>
               <div id="prop-elementContent" class="rtbox border border-gray-200 rounded-xl p-3" contenteditable="true">${element.content || ''}</div>
@@ -2182,153 +1845,12 @@
             </div>
           </div>
         `;
-        // Add event listeners for text element
-        const rtbox = content.querySelector('#prop-elementContent');
-        const toolbar = content.querySelector('.toolbar');
-        const textColorPicker = content.querySelector('#prop-textColor');
-        const textColorHex = content.querySelector('#prop-textColorHex');
-        const fontSizeSelect = content.querySelector('#prop-fontSize');
-        const gridColumnSelect = content.querySelector('#prop-gridColumn');
         
-        // PENAMBAHAN BAHARU: Style properties
-        const fontFamilySelect = content.querySelector('#prop-fontFamily');
-        const textAlignSelect = content.querySelector('#prop-textAlign');
-        const lineHeightInput = content.querySelector('#prop-lineHeight');
-        const letterSpacingInput = content.querySelector('#prop-letterSpacing');
+        // Initialize toolbar after content is set
+        setTimeout(() => {
+          initializeTextToolbar();
+        }, 100);
         
-        // PENAMBAHAN BAHARU: Advanced properties
-        const shadowSelect = content.querySelector('#prop-shadow');
-        const borderWidthInput = content.querySelector('#prop-borderWidth');
-        const borderColorInput = content.querySelector('#prop-borderColor');
-        const animationSelect = content.querySelector('#prop-animation');
-        const animationDelayInput = content.querySelector('#prop-animationDelay');
-        const animationDurationInput = content.querySelector('#prop-animationDuration');
-
-        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
-        setupPropertiesTabs();
-
-        // Toolbar functionality
-        toolbar.querySelectorAll('button[data-command]').forEach(btn => {
-          btn.addEventListener('click', () => {
-            const command = btn.dataset.command;
-            document.execCommand(command, false, null);
-            updateElementContent();
-          });
-        });
-
-        // Sync color pickers
-        textColorPicker.addEventListener('input', (e) => {
-          textColorHex.value = e.target.value;
-          applyTextColor(e.target.value);
-        });
-        textColorHex.addEventListener('input', (e) => {
-          const color = e.target.value;
-          if (/^#[0-9A-F]{6}$/i.test(color)) {
-            textColorPicker.value = color;
-            applyTextColor(color);
-          }
-        });
-
-        fontSizeSelect.addEventListener('change', () => {
-          element.fontSize = parseInt(fontSizeSelect.value);
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { fontSize: element.fontSize } });
-        });
-
-        gridColumnSelect.addEventListener('change', (e) => {
-          element.gridColumn = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Style properties event listeners
-        fontFamilySelect.addEventListener('change', () => {
-          element.fontFamily = fontFamilySelect.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { fontFamily: element.fontFamily } });
-        });
-        
-        textAlignSelect.addEventListener('change', () => {
-          element.textAlign = textAlignSelect.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { textAlign: element.textAlign } });
-        });
-        
-        lineHeightInput.addEventListener('input', () => {
-          element.lineHeight = parseFloat(lineHeightInput.value) || 1.5;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { lineHeight: element.lineHeight } });
-        });
-        
-        letterSpacingInput.addEventListener('input', () => {
-          element.letterSpacing = parseFloat(letterSpacingInput.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { letterSpacing: element.letterSpacing } });
-        });
-        
-        // PENAMBAHAN BAHARU: Advanced properties event listeners
-        shadowSelect.addEventListener('change', () => {
-          element.shadow = shadowSelect.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { shadow: element.shadow } });
-        });
-        
-        borderWidthInput.addEventListener('input', () => {
-          element.borderWidth = parseInt(borderWidthInput.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
-        });
-        
-        borderColorInput.addEventListener('input', () => {
-          element.borderColor = borderColorInput.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderColor: element.borderColor } });
-        });
-        
-        animationSelect.addEventListener('change', () => {
-          element.animation = animationSelect.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animation: element.animation } });
-        });
-        
-        animationDelayInput.addEventListener('input', () => {
-          element.animationDelay = parseInt(animationDelayInput.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
-        });
-        
-        animationDurationInput.addEventListener('input', () => {
-          element.animationDuration = parseInt(animationDurationInput.value) || 1000;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
-        });
-
-        // Update content on input
-        rtbox.addEventListener('input', updateElementContent);
-        rtbox.addEventListener('paste', updateElementContent);
-
-        function updateElementContent() {
-          element.content = rtbox.innerHTML;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { content: element.content } });
-        }
-
-        function applyTextColor(color) {
-          document.execCommand('foreColor', false, color);
-        }
         break;
 
       case 'image':
@@ -2457,134 +1979,6 @@
             </div>
           </div>
         `;
-        document.getElementById('prop-src').addEventListener('input', (e) => {
-          element.src = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { src: e.target.value } });
-        });
-        document.getElementById('prop-alt').addEventListener('input', (e) => {
-          element.alt = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { alt: e.target.value } });
-        });
-        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
-          element.gridColumn = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Clickable options
-        const clickableSelect = document.getElementById('prop-clickable');
-        const clickableOptions = document.getElementById('clickableOptions');
-        
-        clickableSelect.addEventListener('change', (e) => {
-          element.clickable = e.target.value;
-          clickableOptions.style.display = e.target.value === 'yes' ? 'block' : 'none';
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { clickable: e.target.value } });
-        });
-        
-        document.getElementById('prop-linkUrl').addEventListener('input', (e) => {
-          element.linkUrl = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { linkUrl: e.target.value } });
-        });
-        
-        document.getElementById('prop-linkTarget').addEventListener('change', (e) => {
-          element.linkTarget = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { linkTarget: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Style properties event listeners
-        document.getElementById('prop-objectFit').addEventListener('change', (e) => {
-          element.objectFit = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { objectFit: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Shape selector event listeners
-        document.querySelectorAll('.shape-option').forEach(option => {
-          option.addEventListener('click', () => {
-            const shape = option.dataset.shape;
-            element.shape = shape;
-            
-            // Update selected state
-            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
-            option.classList.add('selected');
-            
-            saveDesign();
-            addToHistory(); // Add to history
-            sendToIframe('update-element', { id: element.id, properties: { shape } });
-          });
-        });
-        
-        document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
-          element.borderRadius = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
-        });
-        
-        document.getElementById('prop-opacity').addEventListener('input', (e) => {
-          element.opacity = parseFloat(e.target.value);
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { opacity: element.opacity } });
-        });
-        
-        // PENAMBAHAN BAHARU: Advanced properties event listeners
-        document.getElementById('prop-shadow').addEventListener('change', (e) => {
-          element.shadow = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { shadow: e.target.value } });
-        });
-        
-        document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
-          element.borderWidth = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
-        });
-        
-        document.getElementById('prop-borderColor').addEventListener('input', (e) => {
-          element.borderColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderColor: e.target.value } });
-        });
-        
-        document.getElementById('prop-animation').addEventListener('change', (e) => {
-          element.animation = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
-        });
-        
-        document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
-          element.animationDelay = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
-        });
-        
-        document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
-          element.animationDuration = parseInt(e.target.value) || 1000;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
-        });
-        
-        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
-        setupPropertiesTabs();
         break;
 
       case 'video':
@@ -2711,123 +2105,6 @@
             </div>
           </div>
         `;
-        document.getElementById('prop-src').addEventListener('input', (e) => {
-          element.src = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { src: e.target.value } });
-        });
-        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
-          element.gridColumn = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Video properties event listeners
-        document.getElementById('prop-autoplay').addEventListener('change', (e) => {
-          element.autoplay = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { autoplay: e.target.value } });
-        });
-        
-        document.getElementById('prop-controls').addEventListener('change', (e) => {
-          element.controls = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { controls: e.target.value } });
-        });
-        
-        document.getElementById('prop-muted').addEventListener('change', (e) => {
-          element.muted = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { muted: e.target.value } });
-        });
-        
-        document.getElementById('prop-loop').addEventListener('change', (e) => {
-          element.loop = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { loop: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Shape selector event listeners
-        document.querySelectorAll('.shape-option').forEach(option => {
-          option.addEventListener('click', () => {
-            const shape = option.dataset.shape;
-            element.shape = shape;
-            
-            // Update selected state
-            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
-            option.classList.add('selected');
-            
-            saveDesign();
-            addToHistory(); // Add to history
-            sendToIframe('update-element', { id: element.id, properties: { shape } });
-          });
-        });
-        
-        document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
-          element.borderRadius = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
-        });
-        
-        document.getElementById('prop-opacity').addEventListener('input', (e) => {
-          element.opacity = parseFloat(e.target.value);
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { opacity: element.opacity } });
-        });
-        
-        // PENAMBAHAN BAHARU: Advanced properties event listeners
-        document.getElementById('prop-shadow').addEventListener('change', (e) => {
-          element.shadow = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { shadow: e.target.value } });
-        });
-        
-        document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
-          element.borderWidth = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
-        });
-        
-        document.getElementById('prop-borderColor').addEventListener('input', (e) => {
-          element.borderColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderColor: e.target.value } });
-        });
-        
-        document.getElementById('prop-animation').addEventListener('change', (e) => {
-          element.animation = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
-        });
-        
-        document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
-          element.animationDelay = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
-        });
-        
-        document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
-          element.animationDuration = parseInt(e.target.value) || 1000;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
-        });
-        
-        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
-        setupPropertiesTabs();
         break;
 
       case 'button':
@@ -2954,127 +2231,6 @@
             </div>
           </div>
         `;
-        document.getElementById('prop-content').addEventListener('input', (e) => {
-          element.content = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { content: e.target.value } });
-        });
-        document.getElementById('prop-href').addEventListener('input', (e) => {
-          element.href = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { href: e.target.value } });
-        });
-        document.getElementById('prop-bgColor').addEventListener('input', (e) => {
-          element.backgroundColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { backgroundColor: e.target.value } });
-        });
-        document.getElementById('prop-color').addEventListener('input', (e) => {
-          element.color = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
-        });
-        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
-          element.gridColumn = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Style properties event listeners
-        document.getElementById('prop-fontSize').addEventListener('input', (e) => {
-          element.fontSize = parseInt(e.target.value) || 16;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { fontSize: element.fontSize } });
-        });
-        
-        document.getElementById('prop-fontWeight').addEventListener('change', (e) => {
-          element.fontWeight = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { fontWeight: element.fontWeight } });
-        });
-        
-        // PENAMBAHAN BAHARU: Shape selector event listeners
-        document.querySelectorAll('.shape-option').forEach(option => {
-          option.addEventListener('click', () => {
-            const shape = option.dataset.shape;
-            element.shape = shape;
-            
-            // Update selected state
-            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
-            option.classList.add('selected');
-            
-            saveDesign();
-            addToHistory(); // Add to history
-            sendToIframe('update-element', { id: element.id, properties: { shape } });
-          });
-        });
-        
-        document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
-          element.borderRadius = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
-        });
-        
-        document.getElementById('prop-padding').addEventListener('input', (e) => {
-          element.padding = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { padding: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Advanced properties event listeners
-        document.getElementById('prop-shadow').addEventListener('change', (e) => {
-          element.shadow = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { shadow: e.target.value } });
-        });
-        
-        document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
-          element.borderWidth = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
-        });
-        
-        document.getElementById('prop-borderColor').addEventListener('input', (e) => {
-          element.borderColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderColor: e.target.value } });
-        });
-        
-        document.getElementById('prop-animation').addEventListener('change', (e) => {
-          element.animation = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
-        });
-        
-        document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
-          element.animationDelay = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
-        });
-        
-        document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
-          element.animationDuration = parseInt(e.target.value) || 1000;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
-        });
-        
-        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
-        setupPropertiesTabs();
         break;
 
       case 'social':
@@ -3203,120 +2359,6 @@
             </div>
           </div>
         `;
-        document.getElementById('prop-socialPlatform').addEventListener('change', (e) => {
-          element.platform = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { platform: e.target.value } });
-        });
-        document.getElementById('prop-socialUrl').addEventListener('input', (e) => {
-          element.url = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { url: e.target.value } });
-        });
-        document.getElementById('prop-socialColor').addEventListener('input', (e) => {
-          element.color = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
-        });
-        document.getElementById('prop-socialSize').addEventListener('change', (e) => {
-          element.size = parseInt(e.target.value);
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { size: e.target.value } });
-        });
-        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
-          element.gridColumn = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Style properties event listeners
-        document.getElementById('prop-socialBgColor').addEventListener('input', (e) => {
-          element.backgroundColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { backgroundColor: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Shape selector event listeners
-        document.querySelectorAll('.shape-option').forEach(option => {
-          option.addEventListener('click', () => {
-            const shape = option.dataset.shape;
-            element.shape = shape;
-            
-            // Update selected state
-            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
-            option.classList.add('selected');
-            
-            saveDesign();
-            addToHistory(); // Add to history
-            sendToIframe('update-element', { id: element.id, properties: { shape } });
-          });
-        });
-        
-        document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
-          element.borderRadius = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
-        });
-        
-        document.getElementById('prop-padding').addEventListener('input', (e) => {
-          element.padding = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { padding: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Advanced properties event listeners
-        document.getElementById('prop-shadow').addEventListener('change', (e) => {
-          element.shadow = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { shadow: e.target.value } });
-        });
-        
-        document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
-          element.borderWidth = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
-        });
-        
-        document.getElementById('prop-borderColor').addEventListener('input', (e) => {
-          element.borderColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderColor: e.target.value } });
-        });
-        
-        document.getElementById('prop-animation').addEventListener('change', (e) => {
-          element.animation = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
-        });
-        
-        document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
-          element.animationDelay = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
-        });
-        
-        document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
-          element.animationDuration = parseInt(e.target.value) || 1000;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
-        });
-        
-        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
-        setupPropertiesTabs();
         break;
 
       case 'link':
@@ -3425,109 +2467,9 @@
             </div>
           </div>
         `;
-        document.getElementById('prop-linkText').addEventListener('input', (e) => {
-          element.text = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { text: e.target.value } });
-        });
-        document.getElementById('prop-linkUrl').addEventListener('input', (e) => {
-          element.url = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { url: e.target.value } });
-        });
-        document.getElementById('prop-linkTarget').addEventListener('change', (e) => {
-          element.target = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { target: e.target.value } });
-        });
-        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
-          element.gridColumn = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Style properties event listeners
-        document.getElementById('prop-fontSize').addEventListener('input', (e) => {
-          element.fontSize = parseInt(e.target.value) || 16;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { fontSize: element.fontSize } });
-        });
-        
-        document.getElementById('prop-fontWeight').addEventListener('change', (e) => {
-          element.fontWeight = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { fontWeight: element.fontWeight } });
-        });
-        
-        document.getElementById('prop-textDecoration').addEventListener('change', (e) => {
-          element.textDecoration = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { textDecoration: element.textDecoration } });
-        });
-        
-        document.getElementById('prop-linkColor').addEventListener('input', (e) => {
-          element.color = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
-        });
-        
-        // PENAMBAHAN BAHARU: Advanced properties event listeners
-        document.getElementById('prop-shadow').addEventListener('change', (e) => {
-          element.shadow = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { shadow: e.target.value } });
-        });
-        
-        document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
-          element.borderWidth = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
-        });
-        
-        document.getElementById('prop-borderColor').addEventListener('input', (e) => {
-          element.borderColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderColor: e.target.value } });
-        });
-        
-        document.getElementById('prop-animation').addEventListener('change', (e) => {
-          element.animation = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
-        });
-        
-        document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
-          element.animationDelay = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
-        });
-        
-        document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
-          element.animationDuration = parseInt(e.target.value) || 1000;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
-        });
-        
-        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
-        setupPropertiesTabs();
         break;
 
       case 'calculator':
-        // PEMBAIKAN: Memastikan kalkulator dipaparkan dengan betul
         content.innerHTML = `
           <div class="properties-content active" data-tab="basic">
             <div class="space-y-4">
@@ -3643,131 +2585,323 @@
             </div>
           </div>
         `;
-        document.getElementById('prop-title').addEventListener('input', (e) => {
-          element.title = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { title: e.target.value } });
-        });
-        document.getElementById('prop-inputText').addEventListener('input', (e) => {
-          element.inputText = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { inputText: e.target.value } });
-        });
-        document.getElementById('prop-buttonText').addEventListener('input', (e) => {
-          element.buttonText = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { buttonText: e.target.value } });
-        });
-        document.getElementById('prop-resultText').addEventListener('input', (e) => {
-          element.resultText = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { resultText: e.target.value } });
-        });
-        document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
-          element.gridColumn = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
-        });
-        
-        // PENAMBAHANAN BAHARU: Style properties event listeners
-        document.getElementById('prop-bgColor').addEventListener('input', (e) => {
-          element.backgroundColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { backgroundColor: e.target.value } });
-        });
-        
-        document.getElementById('prop-color').addEventListener('input', (e) => {
-          element.color = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
-        });
-        
-        document.getElementById('prop-buttonColor').addEventListener('input', (e) => {
-          element.buttonColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { buttonColor: e.target.value } });
-        });
-        
-        // PENAMBAHANAN BAHARU: Shape selector event listeners
-        document.querySelectorAll('.shape-option').forEach(option => {
-          option.addEventListener('click', () => {
-            const shape = option.dataset.shape;
-            element.shape = shape;
-            
-            // Update selected state
-            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
-            option.classList.add('selected');
-            
-            saveDesign();
-            addToHistory(); // Add to history
-            sendToIframe('update-element', { id: element.id, properties: { shape } });
-          });
-        });
-        
-        document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
-          element.borderRadius = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
-        });
-        
-        // PENAMBAHANAN BAHARU: Advanced properties event listeners
-        document.getElementById('prop-shadow').addEventListener('change', (e) => {
-          element.shadow = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { shadow: e.target.value } });
-        });
-        
-        document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
-          element.borderWidth = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
-        });
-        
-        document.getElementById('prop-borderColor').addEventListener('input', (e) => {
-          element.borderColor = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { borderColor: e.target.value } });
-        });
-        
-        document.getElementById('prop-animation').addEventListener('change', (e) => {
-          element.animation = e.target.value;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
-        });
-        
-        document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
-          element.animationDelay = parseInt(e.target.value) || 0;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
-        });
-        
-        document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
-          element.animationDuration = parseInt(e.target.value) || 1000;
-          saveDesign();
-          addToHistory(); // Add to history
-          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
-        });
-        
-        // PEMBAIKAN: Setup properties tabs dengan event handling yang betul
-        setupPropertiesTabs();
         break;
     }
     
     panel.classList.remove('hidden');
+
+    // Setup properties tabs with event handling
+    setupPropertiesTabs();
+    
+    // Add event listeners for text element toolbar
+    if (element.type === 'text') {
+      const rtbox = content.querySelector('#prop-elementContent');
+      const textColorPicker = content.querySelector('#prop-textColor');
+      const textColorHex = content.querySelector('#prop-textColorHex');
+      const fontSizeSelect = content.querySelector('#prop-fontSize');
+      const gridColumnSelect = content.querySelector('#prop-gridColumn');
+      
+      // Style properties
+      const fontFamilySelect = content.querySelector('#prop-fontFamily');
+      const textAlignSelect = content.querySelector('#prop-textAlign');
+      const lineHeightInput = content.querySelector('#prop-lineHeight');
+      const letterSpacingInput = content.querySelector('#prop-letterSpacing');
+      
+      // Advanced properties
+      const shadowSelect = content.querySelector('#prop-shadow');
+      const borderWidthInput = content.querySelector('#prop-borderWidth');
+      const borderColorInput = content.querySelector('#prop-borderColor');
+      const animationSelect = content.querySelector('#prop-animation');
+      const animationDelayInput = content.querySelector('#prop-animationDelay');
+      const animationDurationInput = content.querySelector('#prop-animationDuration');
+
+      // Update content on input
+      rtbox.addEventListener('input', updateElementContent);
+      rtbox.addEventListener('paste', updateElementContent);
+
+      function updateElementContent() {
+        element.content = rtbox.innerHTML;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { content: element.content } });
+      }
+
+      // Sync color pickers
+      textColorPicker.addEventListener('input', (e) => {
+        textColorHex.value = e.target.value;
+        applyTextColor(e.target.value);
+      });
+      textColorHex.addEventListener('input', (e) => {
+        const color = e.target.value;
+        if (/^#[0-9A-F]{6}$/i.test(color)) {
+          textColorPicker.value = color;
+          applyTextColor(color);
+        }
+      });
+
+      function applyTextColor(color) {
+        document.execCommand('foreColor', false, color);
+      }
+
+      fontSizeSelect.addEventListener('change', () => {
+        element.fontSize = parseInt(fontSizeSelect.value);
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { fontSize: element.fontSize } });
+      });
+
+      gridColumnSelect.addEventListener('change', (e) => {
+        element.gridColumn = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
+      });
+      
+      // Style properties event listeners
+      fontFamilySelect.addEventListener('change', () => {
+        element.fontFamily = fontFamilySelect.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { fontFamily: element.fontFamily } });
+      });
+      
+      textAlignSelect.addEventListener('change', () => {
+        element.textAlign = textAlignSelect.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { textAlign: element.textAlign } });
+      });
+      
+      lineHeightInput.addEventListener('input', () => {
+        element.lineHeight = parseFloat(lineHeightInput.value) || 1.5;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { lineHeight: element.lineHeight } });
+      });
+      
+      letterSpacingInput.addEventListener('input', () => {
+        element.letterSpacing = parseFloat(letterSpacingInput.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { letterSpacing: element.letterSpacing } });
+      });
+      
+      // Advanced properties event listeners
+      shadowSelect.addEventListener('change', () => {
+        element.shadow = shadowSelect.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { shadow: element.shadow } });
+      });
+      
+      borderWidthInput.addEventListener('input', () => {
+        element.borderWidth = parseInt(borderWidthInput.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
+      });
+      
+      borderColorInput.addEventListener('input', () => {
+        element.borderColor = borderColorInput.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { borderColor: element.borderColor } });
+      });
+      
+      animationSelect.addEventListener('change', () => {
+        element.animation = animationSelect.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { animation: element.animation } });
+      });
+      
+      animationDelayInput.addEventListener('input', () => {
+        element.animationDelay = parseInt(animationDelayInput.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
+      });
+      
+      animationDurationInput.addEventListener('input', () => {
+        element.animationDuration = parseInt(animationDurationInput.value) || 1000;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
+      });
+    }
+    
+    // Add event listeners for other element types
+    if (element.type === 'image') {
+      document.getElementById('prop-src').addEventListener('input', (e) => {
+        element.src = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { src: e.target.value } });
+      });
+      document.getElementById('prop-alt').addEventListener('input', (e) => {
+        element.alt = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { alt: e.target.value } });
+      });
+      document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
+        element.gridColumn = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
+      });
+      
+      const clickableSelect = document.getElementById('prop-clickable');
+      const clickableOptions = document.getElementById('clickableOptions');
+      
+      clickableSelect.addEventListener('change', (e) => {
+        element.clickable = e.target.value;
+        clickableOptions.style.display = e.target.value === 'yes' ? 'block' : 'none';
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { clickable: e.target.value } });
+      });
+      
+      document.getElementById('prop-linkUrl').addEventListener('input', (e) => {
+        element.linkUrl = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { linkUrl: e.target.value } });
+      });
+      
+      document.getElementById('prop-linkTarget').addEventListener('change', (e) => {
+        element.linkTarget = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { linkTarget: e.target.value } });
+      });
+      
+      document.getElementById('prop-objectFit').addEventListener('change', (e) => {
+        element.objectFit = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { objectFit: e.target.value } });
+      });
+      
+      document.querySelectorAll('.shape-option').forEach(option => {
+        option.addEventListener('click', () => {
+          const shape = option.dataset.shape;
+          element.shape = shape;
+          
+          document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
+          option.classList.add('selected');
+          
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: element.id, properties: { shape } });
+        });
+      });
+      
+      document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
+        element.borderRadius = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
+      });
+      
+      document.getElementById('prop-opacity').addEventListener('input', (e) => {
+        element.opacity = parseFloat(e.target.value);
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { opacity: element.opacity } });
+      });
+      
+      document.getElementById('prop-shadow').addEventListener('change', (e) => {
+        element.shadow = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { shadow: e.target.value } });
+      });
+      
+      document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
+        element.borderWidth = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { borderWidth: element.borderWidth } });
+      });
+      
+      document.getElementById('prop-borderColor').addEventListener('input', (e) => {
+        element.borderColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { borderColor: e.target.value } });
+      });
+      
+      document.getElementById('prop-animation').addEventListener('change', (e) => {
+        element.animation = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
+      });
+      
+      document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
+        element.animationDelay = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
+      });
+      
+      document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
+        element.animationDuration = parseInt(e.target.value) || 1000;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
+      });
+    }
+    
+    // Add similar event listeners for other element types (video, button, social, link, calculator)
+    // ... (code continues for other element types)
+    
+    // Re-initialize Lucide icons for the new content
+    lucide.createIcons();
+  }
+
+  // Initialize text toolbar with proper icons
+  function initializeTextToolbar() {
+    const toolbar = document.querySelector('.toolbar');
+    if (!toolbar) return;
+    
+    // Re-initialize Lucide icons for toolbar buttons
+    lucide.createIcons({
+      attrs: {
+        class: ['w-4', 'h-4']
+      }
+    });
+    
+    // Add event listeners to toolbar buttons
+    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const command = btn.dataset.command;
+        document.execCommand(command, false, null);
+        
+        // Update active state
+        updateToolbarState();
+      });
+    });
+    
+    // Initialize toolbar state
+    updateToolbarState();
+  }
+  
+  // Update toolbar button states based on current selection
+  function updateToolbarState() {
+    const toolbar = document.querySelector('.toolbar');
+    if (!toolbar) return;
+    
+    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
+      const command = btn.dataset.command;
+      try {
+        const isActive = document.queryCommandState(command);
+        btn.classList.toggle('active', isActive);
+      } catch (e) {
+        // Some commands might not be supported
+      }
+    });
   }
 
   function renderElementListInSection(sectionId) {
@@ -3813,7 +2947,7 @@
     lucide.createIcons();
   }
 
-  // PENAMBAHANAN BAHARU: Fungsi untuk mendapatkan preview elemen
+  // Fungsi untuk mendapatkan preview elemen
   function getElementPreview(element) {
     switch (element.type) {
       case 'text':
@@ -3836,7 +2970,6 @@
   }
 
   function showAddElementDialog(sectionId) {
-    // PEMBAIKAN BAHARU: Gantikan dialog prompt dengan modal yang lebih baik
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.id = 'addElementModal';
@@ -3898,11 +3031,9 @@
           modalOptions.innerHTML = `
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Teks Butang</label>
-              <input type="text" id="modalButtonText" class="input" placeholder="Cth: "Daftar Sekarang">
+              <input type="text" id="modalButtonText" class="input" placeholder="Cth: 'Daftar Sekarang'">
               <label class="block text-sm font-medium text-gray-700 mb-1">Pautan (URL)</label>
               <input type="text" id="modalButtonUrl" class="input" placeholder="https://...">
-            </div>
-            </div>
             </div>
           `;
           break;
@@ -4022,7 +3153,7 @@
           newElement.inputText = document.getElementById('modalCalculatorInputText').value || 'Jumlah Pembelian (RM)';
           newElement.buttonText = document.getElementById('modalCalculatorButtonText').value || 'Kira Cashback';
           newElement.resultText = document.getElementById('modalCalculatorResultText').value || 'Cashback Anda: RM';
-          // PEMBAIKAN: Pastikan kalkulator mempunyai semua sifat yang diperlukan
+          // Pastikan semua sifat yang diperlukan untuk kalkulator ditetapkan
           newElement.backgroundColor = '#ffffff';
           newElement.color = '#000000';
           newElement.buttonColor = '#ef4444';
@@ -4035,9 +3166,17 @@
         section.elements.push(newElement);
         renderElementListInSection(store.selectedSectionId);
         saveDesign();
-        addToHistory(); // Add to history
-        // PEMBAIKAN: Pastikan mesej dihantar dengan betul untuk kalkulator
-        sendToIframe('add-element', { sectionId: store.selectedSectionId, element: newElement });
+        addToHistory();
+        
+        // Pastikan mesej dihantar dengan betul untuk kalkulator
+        if (type === 'calculator') {
+          // Tunggu sebentar sebelum menghantar mesej untuk memastikan semua sifat telah ditetapkan
+          setTimeout(() => {
+            sendToIframe('add-element', { sectionId: store.selectedSectionId, element: newElement });
+          }, 100);
+        } else {
+          sendToIframe('add-element', { sectionId: store.selectedSectionId, element: newElement });
+        }
       }
       
       document.body.removeChild(modal);
@@ -4057,7 +3196,7 @@
       [store.sections[index], store.sections[index - 1]] = [store.sections[index - 1], store.sections[index]];
       renderSectionList();
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
     }
   }
 
@@ -4066,7 +3205,7 @@
       [store.sections[index], store.sections[index + 1]] = [store.sections[index + 1], store.sections[index]];
       renderSectionList();
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
     }
   }
 
@@ -4076,7 +3215,7 @@
     renderSectionList();
     closePropertiesPanel();
     saveDesign();
-    addToHistory(); // Add to history
+    addToHistory();
   }
 
   function moveElementUp(sectionId, index) {
@@ -4085,7 +3224,7 @@
       [section.elements[index], section.elements[index - 1]] = [section.elements[index - 1], section.elements[index]];
       renderElementListInSection(sectionId);
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
     }
   }
 
@@ -4095,7 +3234,7 @@
       [section.elements[index], section.elements[index + 1]] = [section.elements[index + 1], section.elements[index]];
       renderElementListInSection(sectionId);
       saveDesign();
-      addToHistory(); // Add to history
+      addToHistory();
     }
   }
 
@@ -4105,7 +3244,7 @@
     section.elements = section.elements.filter(el => el.id !== elementId);
     renderElementListInSection(sectionId);
     saveDesign();
-    addToHistory(); // Add to history
+    addToHistory();
     sendToIframe('delete-element', { id: elementId });
   }
 
@@ -4165,7 +3304,7 @@
   window.deleteElementFromSection = deleteElementFromSection;
 
   // ===================================================================
-  // ====== PENAMBAHAN BAHARU: ADVANCED EDITOR FEATURES ======
+  // ====== ADVANCED EDITOR FEATURES ======
   // ===================================================================
   
   function initAdvancedEditor() {
