@@ -78,6 +78,250 @@
     .section-style-rounded { background: #f3f4f6; border-radius: 2rem; }
     .section-style-dark { background: #1f2937; color: #f9fafb; }
     .section-style-gradient { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; }
+    
+    <!-- PENAMBAHAN BAHARU: Gaya untuk Editor Advanced -->
+    .editor-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem;
+      background: #f9fafb;
+      border-bottom: 1px solid #e5e7eb;
+      border-radius: 0.75rem 0.75rem 0 0;
+    }
+    .editor-toolbar button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .editor-toolbar button:hover {
+      background: #f3f4f6;
+      transform: translateY(-1px);
+    }
+    .editor-toolbar button.active {
+      background: var(--brand);
+      color: white;
+      border-color: var(--brand);
+    }
+    .editor-toolbar .separator {
+      width: 1px;
+      height: 1.5rem;
+      background: #e5e7eb;
+    }
+    .section-item {
+      position: relative;
+      padding: 0.75rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .section-item:hover {
+      border-color: #d1d5db;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .section-item.selected {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+    }
+    .section-item.dragging {
+      opacity: 0.5;
+    }
+    .element-item {
+      position: relative;
+      padding: 0.5rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.875rem;
+    }
+    .element-item:hover {
+      border-color: #d1d5db;
+      background: #f9fafb;
+    }
+    .element-item.selected {
+      border-color: var(--brand);
+      background: rgba(239, 68, 68, 0.05);
+    }
+    .element-item.dragging {
+      opacity: 0.5;
+    }
+    .properties-tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e7eb;
+      margin-bottom: 1rem;
+    }
+    .properties-tab {
+      padding: 0.5rem 1rem;
+      font-weight: 500;
+      color: #6b7280;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .properties-tab:hover {
+      color: #374151;
+    }
+    .properties-tab.active {
+      color: var(--brand);
+      border-bottom-color: var(--brand);
+    }
+    .properties-content {
+      display: none;
+    }
+    .properties-content.active {
+      display: block;
+    }
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+    .template-item {
+      aspect-ratio: 16 / 9;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      position: relative;
+    }
+    .template-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .template-preview {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .template-name {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 0.5rem;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      font-size: 0.75rem;
+      text-align: center;
+    }
+    .color-palette {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .color-swatch {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .color-swatch:hover {
+      transform: scale(1.1);
+    }
+    .color-swatch.selected {
+      border-color: #111;
+      box-shadow: 0 0 0 2px white, 0 0 0 4px #111;
+    }
+    .history-panel {
+      position: fixed;
+      right: -300px;
+      top: 0;
+      width: 300px;
+      height: 100vh;
+      background: white;
+      box-shadow: -4px 0 6px -1px rgba(0, 0, 0, 0.1);
+      z-index: 50;
+      transition: right 0.3s ease;
+      overflow-y: auto;
+    }
+    .history-panel.open {
+      right: 0;
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .history-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #f3f4f6;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .history-item:hover {
+      background: #f9fafb;
+    }
+    .history-item.active {
+      background: rgba(239, 68, 68, 0.05);
+      border-left: 3px solid var(--brand);
+    }
+    .zoom-controls {
+      position: absolute;
+      bottom: 1rem;
+      right: 1rem;
+      display: flex;
+      gap: 0.5rem;
+      background: white;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .zoom-controls button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.25rem;
+      background: white;
+      border: 1px solid #e5e7eb;
+      cursor: pointer;
+    }
+    .zoom-controls button:hover {
+      background: #f3f4f6;
+    }
+    .context-menu {
+      position: fixed;
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      padding: 0.5rem 0;
+      z-index: 100;
+      min-width: 150px;
+    }
+    .context-menu-item {
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .context-menu-item:hover {
+      background: #f3f4f6;
+    }
+    .context-menu-separator {
+      height: 1px;
+      background: #e5e7eb;
+      margin: 0.25rem 0;
+    }
   </style>
 </head>
 <body class="bg-gray-50">
@@ -158,6 +402,22 @@
         </div>
       </div>
 
+      <!-- PENAMBAHAN BAHARU: Editor Toolbar -->
+      <div class="editor-toolbar">
+        <button id="btnUndo" title="Undo"><i data-lucide="undo" class="w-4 h-4"></i></button>
+        <button id="btnRedo" title="Redo"><i data-lucide="redo" class="w-4 h-4"></i></button>
+        <div class="separator"></div>
+        <button id="btnCopy" title="Copy"><i data-lucide="copy" class="w-4 h-4"></i></button>
+        <button id="btnPaste" title="Paste"><i data-lucide="clipboard" class="w-4 h-4"></i></button>
+        <div class="separator"></div>
+        <button id="btnTemplates" title="Templates"><i data-lucide="layout" class="w-4 h-4"></i></button>
+        <button id="btnHistory" title="History"><i data-lucide="history" class="w-4 h-4"></i></button>
+        <div class="separator"></div>
+        <button id="btnZoomIn" title="Zoom In"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+        <button id="btnZoomOut" title="Zoom Out"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+        <button id="btnZoomReset" title="Reset Zoom"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+      </div>
+
       <div class="grid gap-3 md:grid-cols-[1fr_auto]">
         <div class="text-sm text-gray-600">
           Susun halaman anda menggunakan "Bahagian". Setiap bahagian adalah blok yang boleh anda ubah warna latar, jarak, dan isinya.
@@ -183,6 +443,12 @@
         <div class="lg:col-span-3">
           <div class="preview-container">
             <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
+            <!-- PENAMBAHAN BAHARU: Zoom Controls -->
+            <div class="zoom-controls">
+              <button id="zoomInBtn"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
+              <button id="zoomOutBtn"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
+              <button id="zoomResetBtn"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -193,6 +459,14 @@
           <h3 class="text-lg font-semibold" id="propertiesTitle">Sifat</h3>
           <button id="btnCloseProperties" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
+        
+        <!-- PENAMBAHAN BAHARU: Properties Tabs -->
+        <div class="properties-tabs">
+          <div class="properties-tab active" data-tab="basic">Asas</div>
+          <div class="properties-tab" data-tab="style">Gaya</div>
+          <div class="properties-tab" data-tab="advanced">Advanced</div>
+        </div>
+        
         <div id="propertiesContent">
           <!-- Kandungan sifat akan dimuatkan di sini -->
         </div>
@@ -480,6 +754,35 @@
 <!-- Toast -->
 <div id="toast" class="toast hidden"></div>
 
+<!-- PENAMBAHAN BAHARU: Templates Modal -->
+<div id="templatesModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+  <div class="bg-white rounded-xl p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold">Templates Bahagian</h3>
+      <button id="btnCloseTemplates" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
+    </div>
+    <div class="template-grid">
+      <!-- Template items will be dynamically inserted here -->
+    </div>
+  </div>
+</div>
+
+<!-- PENAMBAHAN BAHARU: History Panel -->
+<div id="historyPanel" class="history-panel">
+  <div class="history-header">
+    <h3 class="text-lg font-semibold">Sejarah Pengeditan</h3>
+    <button id="btnCloseHistory" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
+  </div>
+  <div id="historyList">
+    <!-- History items will be dynamically inserted here -->
+  </div>
+</div>
+
+<!-- PENAMBAHAN BAHARU: Context Menu -->
+<div id="contextMenu" class="context-menu hidden">
+  <!-- Context menu items will be dynamically inserted here -->
+</div>
+
 <script>
   // ====== KONFIG ======
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
@@ -494,7 +797,14 @@
     sections: [],               // Section Builder
     settings: {},                // Settings terkini untuk preview mini
     selectedSectionId: null,    // ID of the currently selected section
-    selectedElementId: null     // ID of the currently selected element
+    selectedElementId: null,    // ID of the currently selected element
+    // PENAMBAHAN BAHARU: State untuk editor advanced
+    clipboard: null,            // For copy/paste functionality
+    history: [],                // For undo/redo functionality
+    historyIndex: -1,           // Current position in history
+    zoomLevel: 1,               // Current zoom level for preview
+    draggedItem: null,          // Currently dragged item
+    contextMenuTarget: null     // Target for context menu
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -562,6 +872,7 @@
     await renderOrg();
     await refreshSettings();     // untuk theme/typography dll + preview mini
     initEditor();                // Initialize the NEW Section-Based editor
+    initAdvancedEditor();        // PENAMBAHAN BAHARU: Initialize advanced editor features
   })();
 
   // ====== STATS ======
@@ -1087,15 +1398,31 @@
 
     store.sections.forEach((section, index) => {
       const sectionItem = document.createElement('div');
-      sectionItem.className = 'p-3 border border-gray-200 rounded-xl cursor-pointer hover:bg-gray-50 flex justify-between items-center';
+      sectionItem.className = 'section-item';
+      sectionItem.dataset.sectionId = section.id;
+      sectionItem.draggable = true;
       sectionItem.innerHTML = `
-        <span>${section.name || section.id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
-        <div class="flex gap-1">
-          <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveSectionUp(${index})" title="Naik"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
-          <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveSectionDown(${index})" title="Turun"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
-          <button class="p-1 hover:bg-red-100 rounded text-red-600" onclick="event.stopPropagation(); deleteSection('${section.id}')" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+        <div class="flex justify-between items-center">
+          <span>${section.name || section.id.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+          <div class="flex gap-1">
+            <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveSectionUp(${index})" title="Naik"><i data-lucide="chevron-up" class="w-4 h-4"></i></button>
+            <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveSectionDown(${index})" title="Turun"><i data-lucide="chevron-down" class="w-4 h-4"></i></button>
+            <button class="p-1 hover:bg-red-100 rounded text-red-600" onclick="event.stopPropagation(); deleteSection('${section.id}')" title="Padam"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+          </div>
         </div>
       `;
+      
+      // Add drag and drop event listeners
+      sectionItem.addEventListener('dragstart', handleDragStart);
+      sectionItem.addEventListener('dragover', handleDragOver);
+      sectionItem.addEventListener('drop', handleDrop);
+      sectionItem.addEventListener('dragend', handleDragEnd);
+      sectionItem.addEventListener('dragenter', handleDragEnter);
+      sectionItem.addEventListener('dragleave', handleDragLeave);
+      
+      // Add context menu event listener
+      sectionItem.addEventListener('contextmenu', handleContextMenu);
+      
       sectionItem.addEventListener('click', () => selectSection(section.id));
       listContainer.appendChild(sectionItem);
     });
@@ -1118,6 +1445,7 @@
     renderSectionList();
     saveDesign(); // Auto-save
     selectSection(newSection.id);
+    addToHistory(); // PENAMBAHAN BAHARU: Add to history
   }
 
   function selectSection(sectionId) {
@@ -1125,8 +1453,8 @@
     store.selectedElementId = null; // Deselect element when section is selected
     
     // Highlight selected section in list
-    document.querySelectorAll('#sectionList > div').forEach(item => item.classList.remove('bg-blue-50', 'border-blue-300'));
-    event.currentTarget.classList.add('bg-blue-50', 'border-blue-300');
+    document.querySelectorAll('.section-item').forEach(item => item.classList.remove('selected'));
+    document.querySelector(`[data-section-id="${sectionId}"]`)?.classList.add('selected');
 
     // Show properties panel for the section
     showSectionProperties(sectionId);
@@ -1144,69 +1472,214 @@
     const content = document.getElementById('propertiesContent');
 
     title.textContent = `Sifat Bahagian: ${section.name || section.id}`;
+    
+    // PENAMBAHAN BAHARU: Properties tabs
     content.innerHTML = `
-      <div class="space-y-4">
-        <div>
-          <label class="text-sm font-medium">Nama Bahagian</label>
-          <input type="text" id="prop-sectionName" class="input mt-1" value="${section.name || ''}">
-        </div>
-        <div>
-          <label class="text-sm font-medium">Gaya / Design</label>
-          <select id="prop-sectionStyle" class="input mt-1">
-            <option value="default" ${section.style === 'default' ? 'selected' : ''}>Default</option>
-            <option value="card" ${section.style === 'card' ? 'selected' : ''}>Kad</option>
-            <option value="rounded" ${section.style === 'rounded' ? 'selected' : ''}>Bulatan</option>
-            <option value="dark" ${section.style === 'dark' ? 'selected' : ''}>Latar Gelap</option>
-            <option value="gradient" ${section.style === 'gradient' ? 'selected' : ''}>Gradien</option>
-          </select>
-        </div>
-        <div>
-          <label class="text-sm font-medium">Warna Latar Belakang</label>
-          <input type="color" id="prop-bgColor" class="input mt-1 p-1" value="${section.backgroundColor || '#ffffff'}">
-        </div>
-        <div>
-          <label class="text-sm font-medium">Jarak (Padding)</label>
-          <input type="text" id="prop-padding" class="input mt-1" value="${section.padding || '4rem 1rem'}" placeholder="cth: 2rem 1rem">
-        </div>
-        <hr>
-        <div>
-          <h4 class="font-semibold mb-2">Elemen dalam Bahagian Ini</h4>
-          <div id="elementListInSection" class="space-y-2">
-            <!-- Element list will be rendered here -->
+      <div class="properties-content active" data-tab="basic">
+        <div class="space-y-4">
+          <div>
+            <label class="text-sm font-medium">Nama Bahagian</label>
+            <input type="text" id="prop-sectionName" class="input mt-1" value="${section.name || ''}">
           </div>
-          <button id="btnAddElementInSection" class="btn-ghost w-full justify-center" style="margin-top: 12px;">
-            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Elemen
-          </button>
+          <div>
+            <label class="text-sm font-medium">Gaya / Design</label>
+            <select id="prop-sectionStyle" class="input mt-1">
+              <option value="default" ${section.style === 'default' ? 'selected' : ''}>Default</option>
+              <option value="card" ${section.style === 'card' ? 'selected' : ''}>Kad</option>
+              <option value="rounded" ${section.style === 'rounded' ? 'selected' : ''}>Bulatan</option>
+              <option value="dark" ${section.style === 'dark' ? 'selected' : ''}>Latar Gelap</option>
+              <option value="gradient" ${section.style === 'gradient' ? 'selected' : ''}>Gradien</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium">Warna Latar Belakang</label>
+            <input type="color" id="prop-bgColor" class="input mt-1 p-1" value="${section.backgroundColor || '#ffffff'}">
+          </div>
+          <div>
+            <label class="text-sm font-medium">Jarak (Padding)</label>
+            <input type="text" id="prop-padding" class="input mt-1" value="${section.padding || '4rem 1rem'}" placeholder="cth: 2rem 1rem">
+          </div>
         </div>
+      </div>
+      
+      <div class="properties-content" data-tab="style">
+        <div class="space-y-4">
+          <div>
+            <label class="text-sm font-medium">Warna Palet</label>
+            <div class="color-palette">
+              <div class="color-swatch" style="background-color: #ffffff" data-color="#ffffff"></div>
+              <div class="color-swatch" style="background-color: #f3f4f6" data-color="#f3f4f6"></div>
+              <div class="color-swatch" style="background-color: #e5e7eb" data-color="#e5e7eb"></div>
+              <div class="color-swatch" style="background-color: #d1d5db" data-color="#d1d5db"></div>
+              <div class="color-swatch" style="background-color: #9ca3af" data-color="#9ca3af"></div>
+              <div class="color-swatch" style="background-color: #6b7280" data-color="#6b7280"></div>
+              <div class="color-swatch" style="background-color: #4b5563" data-color="#4b5563"></div>
+              <div class="color-swatch" style="background-color: #374151" data-color="#374151"></div>
+              <div class="color-swatch" style="background-color: #1f2937" data-color="#1f2937"></div>
+              <div class="color-swatch" style="background-color: #111827" data-color="#111827"></div>
+              <div class="color-swatch" style="background-color: #ef4444" data-color="#ef4444"></div>
+              <div class="color-swatch" style="background-color: #f97316" data-color="#f97316"></div>
+              <div class="color-swatch" style="background-color: #f59e0b" data-color="#f59e0b"></div>
+              <div class="color-swatch" style="background-color: #eab308" data-color="#eab308"></div>
+              <div class="color-swatch" style="background-color: #84cc16" data-color="#84cc16"></div>
+              <div class="color-swatch" style="background-color: #22c55e" data-color="#22c55e"></div>
+              <div class="color-swatch" style="background-color: #10b981" data-color="#10b981"></div>
+              <div class="color-swatch" style="background-color: #14b8a6" data-color="#14b8a6"></div>
+              <div class="color-swatch" style="background-color: #06b6d4" data-color="#06b6d4"></div>
+              <div class="color-swatch" style="background-color: #0ea5e9" data-color="#0ea5e9"></div>
+              <div class="color-swatch" style="background-color: #3b82f6" data-color="#3b82f6"></div>
+              <div class="color-swatch" style="background-color: #6366f1" data-color="#6366f1"></div>
+              <div class="color-swatch" style="background-color: #8b5cf6" data-color="#8b5cf6"></div>
+              <div class="color-swatch" style="background-color: #a855f7" data-color="#a855f7"></div>
+              <div class="color-swatch" style="background-color: #d946ef" data-color="#d946ef"></div>
+              <div class="color-swatch" style="background-color: #ec4899" data-color="#ec4899"></div>
+            </div>
+          </div>
+          <div>
+            <label class="text-sm font-medium">Gradien Preset</label>
+            <div class="grid grid-cols-3 gap-2 mt-2">
+              <div class="h-12 rounded cursor-pointer" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)" data-gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"></div>
+              <div class="h-12 rounded cursor-pointer" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%)" data-gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"></div>
+              <div class="h-12 rounded cursor-pointer" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)" data-gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"></div>
+              <div class="h-12 rounded cursor-pointer" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)" data-gradient="linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)"></div>
+              <div class="h-12 rounded cursor-pointer" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%)" data-gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"></div>
+              <div class="h-12 rounded cursor-pointer" style="background: linear-gradient(135deg, #30cfd0 0%, #330867 100%)" data-gradient="linear-gradient(135deg, #30cfd0 0%, #330867 100%)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="properties-content" data-tab="advanced">
+        <div class="space-y-4">
+          <div>
+            <label class="text-sm font-medium">Custom CSS</label>
+            <textarea id="prop-customCss" class="textarea mt-1" placeholder="Masukkan CSS custom...">${section.customCss || ''}</textarea>
+          </div>
+          <div>
+            <label class="text-sm font-medium">Animation</label>
+            <select id="prop-animation" class="input mt-1">
+              <option value="none" ${section.animation === 'none' ? 'selected' : ''}>None</option>
+              <option value="fade-in" ${section.animation === 'fade-in' ? 'selected' : ''}>Fade In</option>
+              <option value="slide-up" ${section.animation === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+              <option value="slide-down" ${section.animation === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+              <option value="slide-left" ${section.animation === 'slide-left' ? 'selected' : ''}>Slide Left</option>
+              <option value="slide-right" ${section.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
+              <option value="zoom-in" ${section.animation === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
+              <option value="zoom-out" ${section.animation === 'zoom-out' ? 'selected' : ''}>Zoom Out</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-sm font-medium">Animation Delay (ms)</label>
+            <input type="number" id="prop-animationDelay" class="input mt-1" value="${section.animationDelay || 0}" min="0">
+          </div>
+          <div>
+            <label class="text-sm font-medium">Animation Duration (ms)</label>
+            <input type="number" id="prop-animationDuration" class="input mt-1" value="${section.animationDuration || 1000}" min="100">
+          </div>
+        </div>
+      </div>
+      
+      <hr>
+      <div>
+        <h4 class="font-semibold mb-2">Elemen dalam Bahagian Ini</h4>
+        <div id="elementListInSection" class="space-y-2">
+          <!-- Element list will be rendered here -->
+        </div>
+        <button id="btnAddElementInSection" class="btn-ghost w-full justify-center" style="margin-top: 12px;">
+          <i data-lucide="plus" class="w-4 h-4"></i> Tambah Elemen
+        </button>
       </div>
     `;
     
     panel.classList.remove('hidden');
 
+    // PENAMBAHAN BAHARU: Setup properties tabs
+    setupPropertiesTabs();
+    
     // Add event listeners for properties
     document.getElementById('prop-sectionName').addEventListener('input', (e) => {
       section.name = e.target.value;
       renderSectionList(); // Update the list to show the new name
       saveDesign();
+      addToHistory(); // Add to history
     });
 
     document.getElementById('prop-sectionStyle').addEventListener('change', (e) => {
       section.style = e.target.value;
       applySectionStyle(section);
       saveDesign();
+      addToHistory(); // Add to history
       sendToIframe('update-section', { id: sectionId, properties: { style: section.style } });
     });
 
     document.getElementById('prop-bgColor').addEventListener('input', (e) => {
       section.backgroundColor = e.target.value;
       saveDesign(); // Auto-save
+      addToHistory(); // Add to history
       sendToIframe('update-section', { id: sectionId, properties: { backgroundColor: e.target.value } });
     });
 
     document.getElementById('prop-padding').addEventListener('input', (e) => {
       section.padding = e.target.value;
       saveDesign(); // Auto-save
+      addToHistory(); // Add to history
       sendToIframe('update-section', { id: sectionId, properties: { padding: e.target.value } });
+    });
+    
+    // PENAMBAHAN BAHARU: Color palette event listeners
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        const color = swatch.dataset.color;
+        section.backgroundColor = color;
+        document.getElementById('prop-bgColor').value = color;
+        saveDesign();
+        addToHistory(); // Add to history
+        sendToIframe('update-section', { id: sectionId, properties: { backgroundColor: color } });
+        
+        // Update selected state
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        swatch.classList.add('selected');
+      });
+    });
+    
+    // PENAMBAHAN BAHARU: Gradient preset event listeners
+    document.querySelectorAll('[data-gradient]').forEach(preset => {
+      preset.addEventListener('click', () => {
+        const gradient = preset.dataset.gradient;
+        section.backgroundImage = gradient;
+        saveDesign();
+        addToHistory(); // Add to history
+        sendToIframe('update-section', { id: sectionId, properties: { backgroundImage: gradient } });
+      });
+    });
+    
+    // PENAMBAHAN BAHARU: Advanced properties event listeners
+    document.getElementById('prop-customCss').addEventListener('input', (e) => {
+      section.customCss = e.target.value;
+      saveDesign();
+      addToHistory(); // Add to history
+      sendToIframe('update-section', { id: sectionId, properties: { customCss: e.target.value } });
+    });
+    
+    document.getElementById('prop-animation').addEventListener('change', (e) => {
+      section.animation = e.target.value;
+      saveDesign();
+      addToHistory(); // Add to history
+      sendToIframe('update-section', { id: sectionId, properties: { animation: e.target.value } });
+    });
+    
+    document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
+      section.animationDelay = parseInt(e.target.value) || 0;
+      saveDesign();
+      addToHistory(); // Add to history
+      sendToIframe('update-section', { id: sectionId, properties: { animationDelay: section.animationDelay } });
+    });
+    
+    document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
+      section.animationDuration = parseInt(e.target.value) || 1000;
+      saveDesign();
+      addToHistory(); // Add to history
+      sendToIframe('update-section', { id: sectionId, properties: { animationDuration: section.animationDuration } });
     });
     
     document.getElementById('btnAddElementInSection').onclick = () => showAddElementDialog(sectionId);
@@ -1226,6 +1699,31 @@
     if (section.style && section.style !== 'default') {
       mainElement.classList.add(`section-style-${section.style}`);
     }
+  }
+
+  // PENAMBAHAN BAHARU: Setup properties tabs
+  function setupPropertiesTabs() {
+    const tabs = document.querySelectorAll('.properties-tab');
+    const contents = document.querySelectorAll('.properties-content');
+    
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+        
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        // Update active content
+        contents.forEach(content => {
+          if (content.dataset.tab === tabName) {
+            content.classList.add('active');
+          } else {
+            content.classList.remove('active');
+          }
+        });
+      });
+    });
   }
 
   // ===================================================================
@@ -1272,35 +1770,101 @@
     switch (element.type) {
       case 'text':
         content.innerHTML = `
-          <div class="space-y-4">
-            <div class="border border-gray-200 rounded-xl p-3">
-              <div class="toolbar mb-2">
-                <button type="button" data-command="bold" class="p-1 rounded"><i data-lucide="bold" class="w-4 h-4"></i></button>
-                <button type="button" data-command="italic" class="p-1 rounded"><i data-lucide="italic" class="w-4 h-4"></i></button>
-                <button type="button" data-command="underline" class="p-1 rounded"><i data-lucide="underline" class="w-4 h-4"></i></button>
-                <input type="color" id="prop-textColor" class="w-8 h-8 p-1 rounded cursor-pointer" value="${element.color || '#000000'}">
-                <input type="color" id="prop-textColorHex" class="w-20 h-8 p-1 rounded cursor-pointer ml-2" value="${element.color || '#000000'}">
-              </div>
-              <select id="prop-fontSize" class="text-sm border border-gray-200 rounded p-1">
-                <option value="12">Kecil</option>
-                <option value="14">Kecil</option>
-                <option value="16">Biasa</option>
-                <option value="18">Sederhana Besar</option>
-                <option value="20">Besar</option>
-                <option value="24">Sangat Besar</option>
-                <option value="30">Paling Besar</option>
-              </select>
-            </div>
-            <div id="prop-elementContent" class="rtbox border border-gray-200 rounded-xl p-3" contenteditable="true">${element.content || ''}</div>
-            <div class="grid grid-cols-2 gap-4 mt-3">
-              <div>
-                <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
-                <select id="prop-gridColumn" class="input mt-1">
-                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+          <div class="properties-content active" data-tab="basic">
+            <div class="space-y-4">
+              <div class="border border-gray-200 rounded-xl p-3">
+                <div class="toolbar mb-2">
+                  <button type="button" data-command="bold" class="p-1 rounded"><i data-lucide="bold" class="w-4 h-4"></i></button>
+                  <button type="button" data-command="italic" class="p-1 rounded"><i data-lucide="italic" class="w-4 h-4"></i></button>
+                  <button type="button" data-command="underline" class="p-1 rounded"><i data-lucide="underline" class="w-4 h-4"></i></button>
+                  <input type="color" id="prop-textColor" class="w-8 h-8 p-1 rounded cursor-pointer" value="${element.color || '#000000'}">
+                  <input type="color" id="prop-textColorHex" class="w-20 h-8 p-1 rounded cursor-pointer ml-2" value="${element.color || '#000000'}">
+                </div>
+                <select id="prop-fontSize" class="text-sm border border-gray-200 rounded p-1">
+                  <option value="12">Kecil</option>
+                  <option value="14">Kecil</option>
+                  <option value="16">Biasa</option>
+                  <option value="18">Sederhana Besar</option>
+                  <option value="20">Besar</option>
+                  <option value="24">Sangat Besar</option>
+                  <option value="30">Paling Besar</option>
                 </select>
+              </div>
+              <div id="prop-elementContent" class="rtbox border border-gray-200 rounded-xl p-3" contenteditable="true">${element.content || ''}</div>
+              <div class="grid grid-cols-2 gap-4 mt-3">
+                <div>
+                  <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+                  <select id="prop-gridColumn" class="input mt-1">
+                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="properties-content" data-tab="style">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Font Family</label>
+                <select id="prop-fontFamily" class="input mt-1">
+                  <option value="Inter" ${element.fontFamily === 'Inter' ? 'selected' : ''}>Inter</option>
+                  <option value="Poppins" ${element.fontFamily === 'Poppins' ? 'selected' : ''}>Poppins</option>
+                  <option value="Playfair Display" ${element.fontFamily === 'Playfair Display' ? 'selected' : ''}>Playfair Display</option>
+                  <option value="system-ui" ${element.fontFamily === 'system-ui' ? 'selected' : ''}>System UI</option>
+                  <option value="serif" ${element.fontFamily === 'serif' ? 'selected' : ''}>Serif</option>
+                  <option value="sans-serif" ${element.fontFamily === 'sans-serif' ? 'selected' : ''}>Sans Serif</option>
+                  <option value="monospace" ${element.fontFamily === 'monospace' ? 'selected' : ''}>Monospace</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Text Align</label>
+                <select id="prop-textAlign" class="input mt-1">
+                  <option value="left" ${element.textAlign === 'left' ? 'selected' : ''}>Left</option>
+                  <option value="center" ${element.textAlign === 'center' ? 'selected' : ''}>Center</option>
+                  <option value="right" ${element.textAlign === 'right' ? 'selected' : ''}>Right</option>
+                  <option value="justify" ${element.textAlign === 'justify' ? 'selected' : ''}>Justify</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Line Height</label>
+                <input type="number" id="prop-lineHeight" class="input mt-1" value="${element.lineHeight || 1.5}" min="1" max="3" step="0.1">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Letter Spacing</label>
+                <input type="number" id="prop-letterSpacing" class="input mt-1" value="${element.letterSpacing || 0}" min="-2" max="10" step="0.1">
+              </div>
+            </div>
+          </div>
+          
+          <div class="properties-content" data-tab="advanced">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Custom CSS</label>
+                <textarea id="prop-elementCustomCss" class="textarea mt-1" placeholder="Masukkan CSS custom...">${element.customCss || ''}</textarea>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation</label>
+                <select id="prop-elementAnimation" class="input mt-1">
+                  <option value="none" ${element.animation === 'none' ? 'selected' : ''}>None</option>
+                  <option value="fade-in" ${element.animation === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                  <option value="slide-up" ${element.animation === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                  <option value="slide-down" ${element.animation === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+                  <option value="slide-left" ${element.animation === 'slide-left' ? 'selected' : ''}>Slide Left</option>
+                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
+                  <option value="zoom-in" ${element.animation === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
+                  <option value="zoom-out" ${element.animation === 'zoom-out' ? 'selected' : ''}>Zoom Out</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Delay (ms)</label>
+                <input type="number" id="prop-elementAnimationDelay" class="input mt-1" value="${element.animationDelay || 0}" min="0">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Duration (ms)</label>
+                <input type="number" id="prop-elementAnimationDuration" class="input mt-1" value="${element.animationDuration || 1000}" min="100">
               </div>
             </div>
           </div>
@@ -1312,6 +1876,21 @@
         const textColorHex = content.querySelector('#prop-textColorHex');
         const fontSizeSelect = content.querySelector('#prop-fontSize');
         const gridColumnSelect = content.querySelector('#prop-gridColumn');
+        
+        // PENAMBAHAN BAHARU: Style properties
+        const fontFamilySelect = content.querySelector('#prop-fontFamily');
+        const textAlignSelect = content.querySelector('#prop-textAlign');
+        const lineHeightInput = content.querySelector('#prop-lineHeight');
+        const letterSpacingInput = content.querySelector('#prop-letterSpacing');
+        
+        // PENAMBAHAN BAHARU: Advanced properties
+        const customCssTextarea = content.querySelector('#prop-elementCustomCss');
+        const animationSelect = content.querySelector('#prop-elementAnimation');
+        const animationDelayInput = content.querySelector('#prop-elementAnimationDelay');
+        const animationDurationInput = content.querySelector('#prop-elementAnimationDuration');
+
+        // Setup properties tabs
+        setupPropertiesTabs();
 
         // Toolbar functionality
         toolbar.querySelectorAll('button[data-command]').forEach(btn => {
@@ -1338,13 +1917,73 @@
         fontSizeSelect.addEventListener('change', () => {
           element.fontSize = parseInt(fontSizeSelect.value);
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { fontSize: element.fontSize } });
         });
 
         gridColumnSelect.addEventListener('change', (e) => {
           element.gridColumn = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
+        });
+        
+        // PENAMBAHAN BAHARU: Style properties event listeners
+        fontFamilySelect.addEventListener('change', () => {
+          element.fontFamily = fontFamilySelect.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { fontFamily: element.fontFamily } });
+        });
+        
+        textAlignSelect.addEventListener('change', () => {
+          element.textAlign = textAlignSelect.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { textAlign: element.textAlign } });
+        });
+        
+        lineHeightInput.addEventListener('input', () => {
+          element.lineHeight = parseFloat(lineHeightInput.value) || 1.5;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { lineHeight: element.lineHeight } });
+        });
+        
+        letterSpacingInput.addEventListener('input', () => {
+          element.letterSpacing = parseFloat(letterSpacingInput.value) || 0;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { letterSpacing: element.letterSpacing } });
+        });
+        
+        // PENAMBAHAN BAHARU: Advanced properties event listeners
+        customCssTextarea.addEventListener('input', () => {
+          element.customCss = customCssTextarea.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { customCss: element.customCss } });
+        });
+        
+        animationSelect.addEventListener('change', () => {
+          element.animation = animationSelect.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animation: element.animation } });
+        });
+        
+        animationDelayInput.addEventListener('input', () => {
+          element.animationDelay = parseInt(animationDelayInput.value) || 0;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
+        });
+        
+        animationDurationInput.addEventListener('input', () => {
+          element.animationDuration = parseInt(animationDurationInput.value) || 1000;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
         });
 
         // Update content on input
@@ -1354,6 +1993,7 @@
         function updateElementContent() {
           element.content = rtbox.innerHTML;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { content: element.content } });
         }
 
@@ -1364,213 +2004,696 @@
 
       case 'image':
         content.innerHTML = `
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm font-medium">URL Imej</label>
-              <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://...">
+          <div class="properties-content active" data-tab="basic">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">URL Imej</label>
+                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://...">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Alt Text</label>
+                <input type="text" id="prop-alt" class="input mt-1" value="${element.alt || ''}" placeholder="Deskripsi imej">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+                <select id="prop-gridColumn" class="input mt-1">
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
-              <select id="prop-gridColumn" class="input mt-1">
-                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-              </select>
+          </div>
+          
+          <div class="properties-content" data-tab="style">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Object Fit</label>
+                <select id="prop-objectFit" class="input mt-1">
+                  <option value="cover" ${element.objectFit === 'cover' ? 'selected' : ''}>Cover</option>
+                  <option value="contain" ${element.objectFit === 'contain' ? 'selected' : ''}>Contain</option>
+                  <option value="fill" ${element.objectFit === 'fill' ? 'selected' : ''}>Fill</option>
+                  <option value="none" ${element.objectFit === 'none' ? 'selected' : ''}>None</option>
+                  <option value="scale-down" ${element.objectFit === 'scale-down' ? 'selected' : ''}>Scale Down</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Border Radius</label>
+                <input type="text" id="prop-borderRadius" class="input mt-1" value="${element.borderRadius || '0'}" placeholder="cth: 8px atau 50%">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Opacity</label>
+                <input type="range" id="prop-opacity" class="input mt-1" min="0" max="1" step="0.1" value="${element.opacity || 1}">
+              </div>
+            </div>
+          </div>
+          
+          <div class="properties-content" data-tab="advanced">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Custom CSS</label>
+                <textarea id="prop-elementCustomCss" class="textarea mt-1" placeholder="Masukkan CSS custom...">${element.customCss || ''}</textarea>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation</label>
+                <select id="prop-elementAnimation" class="input mt-1">
+                  <option value="none" ${element.animation === 'none' ? 'selected' : ''}>None</option>
+                  <option value="fade-in" ${element.animation === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                  <option value="slide-up" ${element.animation === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                  <option value="slide-down" ${element.animation === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+                  <option value="slide-left" ${element.animation === 'slide-left' ? 'selected' : ''}>Slide Left</option>
+                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
+                  <option value="zoom-in" ${element.animation === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
+                  <option value="zoom-out" ${element.animation === 'zoom-out' ? 'selected' : ''}>Zoom Out</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Delay (ms)</label>
+                <input type="number" id="prop-elementAnimationDelay" class="input mt-1" value="${element.animationDelay || 0}" min="0">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Duration (ms)</label>
+                <input type="number" id="prop-elementAnimationDuration" class="input mt-1" value="${element.animationDuration || 1000}" min="100">
+              </div>
             </div>
           </div>
         `;
         document.getElementById('prop-src').addEventListener('input', (e) => {
           element.src = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { src: e.target.value } });
+        });
+        document.getElementById('prop-alt').addEventListener('input', (e) => {
+          element.alt = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { alt: e.target.value } });
         });
         document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
           element.gridColumn = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
         });
+        
+        // PENAMBAHAN BAHARU: Style properties event listeners
+        document.getElementById('prop-objectFit').addEventListener('change', (e) => {
+          element.objectFit = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { objectFit: e.target.value } });
+        });
+        
+        document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
+          element.borderRadius = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
+        });
+        
+        document.getElementById('prop-opacity').addEventListener('input', (e) => {
+          element.opacity = parseFloat(e.target.value);
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { opacity: element.opacity } });
+        });
+        
+        // PENAMBAHAN BAHARU: Advanced properties event listeners
+        document.getElementById('prop-elementCustomCss').addEventListener('input', (e) => {
+          element.customCss = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { customCss: e.target.value } });
+        });
+        
+        document.getElementById('prop-elementAnimation').addEventListener('change', (e) => {
+          element.animation = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
+        });
+        
+        document.getElementById('prop-elementAnimationDelay').addEventListener('input', (e) => {
+          element.animationDelay = parseInt(e.target.value) || 0;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
+        });
+        
+        document.getElementById('prop-elementAnimationDuration').addEventListener('input', (e) => {
+          element.animationDuration = parseInt(e.target.value) || 1000;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
+        });
+        
+        // Setup properties tabs
+        setupPropertiesTabs();
         break;
 
       case 'button':
         content.innerHTML = `
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm font-medium">Teks Butang</label>
-              <input type="text" id="prop-content" class="input mt-1" value="${element.content || ''}">
-            </div>
-            <div>
-              <label class="text-sm font-medium">Pautan (URL)</label>
-              <input type="text" id="prop-href" class="input mt-1" value="${element.href || '#'}">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
+          <div class="properties-content active" data-tab="basic">
+            <div class="space-y-4">
               <div>
-                <label class="text-sm font-medium">Warna Latar</label>
-                <input type="color" id="prop-bgColor" class="input mt-1 p-1" value="${element.backgroundColor || '#ef4444'}">
+                <label class="text-sm font-medium">Teks Butang</label>
+                <input type="text" id="prop-content" class="input mt-1" value="${element.content || ''}">
               </div>
               <div>
-                <label class="text-sm font-medium">Warna Teks</label>
-                <input type="color" id="prop-color" class="input mt-1 p-1" value="${element.color || '#ffffff'}">
+                <label class="text-sm font-medium">Pautan (URL)</label>
+                <input type="text" id="prop-href" class="input mt-1" value="${element.href || '#'}">
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm font-medium">Warna Latar</label>
+                  <input type="color" id="prop-bgColor" class="input mt-1 p-1" value="${element.backgroundColor || '#ef4444'}">
+                </div>
+                <div>
+                  <label class="text-sm font-medium">Warna Teks</label>
+                  <input type="color" id="prop-color" class="input mt-1 p-1" value="${element.color || '#ffffff'}">
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+                <select id="prop-gridColumn" class="input mt-1">
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
               </div>
             </div>
-            <div>
-              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
-              <select id="prop-gridColumn" class="input mt-1">
-                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-              </select>
+          </div>
+          
+          <div class="properties-content" data-tab="style">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Font Size</label>
+                <input type="number" id="prop-fontSize" class="input mt-1" value="${element.fontSize || 16}" min="8" max="48">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Font Weight</label>
+                <select id="prop-fontWeight" class="input mt-1">
+                  <option value="normal" ${element.fontWeight === 'normal' ? 'selected' : ''}>Normal</option>
+                  <option value="medium" ${element.fontWeight === 'medium' ? 'selected' : ''}>Medium</option>
+                  <option value="semibold" ${element.fontWeight === 'semibold' ? 'selected' : ''}>Semibold</option>
+                  <option value="bold" ${element.fontWeight === 'bold' ? 'selected' : ''}>Bold</option>
+                  <option value="extrabold" ${element.fontWeight === 'extrabold' ? 'selected' : ''}>Extra Bold</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Border Radius</label>
+                <input type="text" id="prop-borderRadius" class="input mt-1" value="${element.borderRadius || '0.75rem'}" placeholder="cth: 8px atau 50%">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Padding</label>
+                <input type="text" id="prop-padding" class="input mt-1" value="${element.padding || '0.55rem 1rem'}" placeholder="cth: 12px 24px">
+              </div>
+            </div>
+          </div>
+          
+          <div class="properties-content" data-tab="advanced">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Custom CSS</label>
+                <textarea id="prop-elementCustomCss" class="textarea mt-1" placeholder="Masukkan CSS custom...">${element.customCss || ''}</textarea>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation</label>
+                <select id="prop-elementAnimation" class="input mt-1">
+                  <option value="none" ${element.animation === 'none' ? 'selected' : ''}>None</option>
+                  <option value="fade-in" ${element.animation === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                  <option value="slide-up" ${element.animation === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                  <option value="slide-down" ${element.animation === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+                  <option value="slide-left" ${element.animation === 'slide-left' ? 'selected' : ''}>Slide Left</option>
+                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
+                  <option value="zoom-in" ${element.animation === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
+                  <option value="zoom-out" ${element.animation === 'zoom-out' ? 'selected' : ''}>Zoom Out</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Delay (ms)</label>
+                <input type="number" id="prop-elementAnimationDelay" class="input mt-1" value="${element.animationDelay || 0}" min="0">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Duration (ms)</label>
+                <input type="number" id="prop-elementAnimationDuration" class="input mt-1" value="${element.animationDuration || 1000}" min="100">
+              </div>
             </div>
           </div>
         `;
         document.getElementById('prop-content').addEventListener('input', (e) => {
           element.content = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { content: e.target.value } });
         });
         document.getElementById('prop-href').addEventListener('input', (e) => {
           element.href = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { href: e.target.value } });
         });
         document.getElementById('prop-bgColor').addEventListener('input', (e) => {
           element.backgroundColor = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { backgroundColor: e.target.value } });
         });
         document.getElementById('prop-color').addEventListener('input', (e) => {
           element.color = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
         });
         document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
           element.gridColumn = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
         });
+        
+        // PENAMBAHAN BAHARU: Style properties event listeners
+        document.getElementById('prop-fontSize').addEventListener('input', (e) => {
+          element.fontSize = parseInt(e.target.value) || 16;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { fontSize: element.fontSize } });
+        });
+        
+        document.getElementById('prop-fontWeight').addEventListener('change', (e) => {
+          element.fontWeight = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { fontWeight: element.fontWeight } });
+        });
+        
+        document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
+          element.borderRadius = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
+        });
+        
+        document.getElementById('prop-padding').addEventListener('input', (e) => {
+          element.padding = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { padding: e.target.value } });
+        });
+        
+        // PENAMBAHAN BAHARU: Advanced properties event listeners
+        document.getElementById('prop-elementCustomCss').addEventListener('input', (e) => {
+          element.customCss = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { customCss: e.target.value } });
+        });
+        
+        document.getElementById('prop-elementAnimation').addEventListener('change', (e) => {
+          element.animation = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
+        });
+        
+        document.getElementById('prop-elementAnimationDelay').addEventListener('input', (e) => {
+          element.animationDelay = parseInt(e.target.value) || 0;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
+        });
+        
+        document.getElementById('prop-elementAnimationDuration').addEventListener('input', (e) => {
+          element.animationDuration = parseInt(e.target.value) || 1000;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
+        });
+        
+        // Setup properties tabs
+        setupPropertiesTabs();
         break;
 
       case 'social':
         content.innerHTML = `
-          <div class="space-y-4">
-            <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm font-medium">Platform</label>
-                <select id="prop-socialPlatform" class="input mt-1">
-                  <option value="facebook" ${element.platform === 'facebook' ? 'selected' : ''}>Facebook</option>
-                  <option value="instagram" ${element.platform === 'instagram' ? 'selected' : ''}>Instagram</option>
-                  <option value="twitter" ${element.platform === 'twitter' ? 'selected' : ''}>Twitter</option>
-                  <option value="tiktok" ${element.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
-                  <option value="youtube" ${element.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
-                  <option value="telegram" ${element.platform === 'telegram' ? 'selected' : ''}>Telegram</option>
-                  <option value="whatsapp" ${element.platform === 'whatsapp' ? 'selected' : ''}>WhatsApp</option>
-                </select>
+          <div class="properties-content active" data-tab="basic">
+            <div class="space-y-4">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm font-medium">Platform</label>
+                  <select id="prop-socialPlatform" class="input mt-1">
+                    <option value="facebook" ${element.platform === 'facebook' ? 'selected' : ''}>Facebook</option>
+                    <option value="instagram" ${element.platform === 'instagram' ? 'selected' : ''}>Instagram</option>
+                    <option value="twitter" ${element.platform === 'twitter' ? 'selected' : ''}>Twitter</option>
+                    <option value="tiktok" ${element.platform === 'tiktok' ? 'selected' : ''}>TikTok</option>
+                    <option value="youtube" ${element.platform === 'youtube' ? 'selected' : ''}>YouTube</option>
+                    <option value="telegram" ${element.platform === 'telegram' ? 'selected' : ''}>Telegram</option>
+                    <option value="whatsapp" ${element.platform === 'whatsapp' ? 'selected' : ''}>WhatsApp</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="text-sm font-medium">URL Profil</label>
+                  <input type="text" id="prop-socialUrl" class="input mt-1" value="${element.url || ''}" placeholder="https://...">
+                </div>
+                <div>
+                  <label class="text-sm font-medium">Warna Ikon</label>
+                  <input type="color" id="prop-socialColor" class="input mt-1 p-1" value="${element.color || '#374151'}">
+                </div>
+                <div>
+                  <label class="text-sm font-medium">Saiz Ikon</label>
+                  <select id="prop-socialSize" class="input mt-1">
+                    <option value="24" ${element.size === 24 ? 'selected' : ''}>Kecil</option>
+                    <option value="32" ${element.size === 32 ? 'selected' : ''}>Biasa</option>
+                    <option value="48" ${element.size === 48 ? 'selected' : ''}>Besar</option>
+                  </select>
+                </div>
               </div>
               <div>
-                <label class="text-sm font-medium">URL Profil</label>
-                <input type="text" id="prop-socialUrl" class="input mt-1" value="${element.url || ''}" placeholder="https://...">
-              </div>
-              <div>
-                <label class="text-sm font-medium">Warna Ikon</label>
-                <input type="color" id="prop-socialColor" class="input mt-1 p-1" value="${element.color || '#374151'}">
-              </div>
-              <div>
-                <label class="text-sm font-medium">Saiz Ikon</label>
-                <select id="prop-socialSize" class="input mt-1">
-                  <option value="24" ${element.size === 24 ? 'selected' : ''}>Kecil</option>
-                  <option value="32" ${element.size === 32 ? 'selected' : ''}>Biasa</option>
-                  <option value="48" ${element.size === 48 ? 'selected' : ''}>Besar</option>
+                <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+                <select id="prop-gridColumn" class="input mt-1">
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
                 </select>
               </div>
             </div>
-            <div>
-              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
-              <select id="prop-gridColumn" class="input mt-1">
-                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-              </select>
+          </div>
+          
+          <div class="properties-content" data-tab="style">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Background Color</label>
+                <input type="color" id="prop-socialBgColor" class="input mt-1 p-1" value="${element.backgroundColor || 'transparent'}">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Border Radius</label>
+                <input type="text" id="prop-borderRadius" class="input mt-1" value="${element.borderRadius || '50%'}" placeholder="cth: 8px atau 50%">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Padding</label>
+                <input type="text" id="prop-padding" class="input mt-1" value="${element.padding || '8px'}" placeholder="cth: 8px atau 0.5rem">
+              </div>
+            </div>
+          </div>
+          
+          <div class="properties-content" data-tab="advanced">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Custom CSS</label>
+                <textarea id="prop-elementCustomCss" class="textarea mt-1" placeholder="Masukkan CSS custom...">${element.customCss || ''}</textarea>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation</label>
+                <select id="prop-elementAnimation" class="input mt-1">
+                  <option value="none" ${element.animation === 'none' ? 'selected' : ''}>None</option>
+                  <option value="fade-in" ${element.animation === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                  <option value="slide-up" ${element.animation === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                  <option value="slide-down" ${element.animation === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+                  <option value="slide-left" ${element.animation === 'slide-left' ? 'selected' : ''}>Slide Left</option>
+                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
+                  <option value="zoom-in" ${element.animation === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
+                  <option value="zoom-out" ${element.animation === 'zoom-out' ? 'selected' : ''}>Zoom Out</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Delay (ms)</label>
+                <input type="number" id="prop-elementAnimationDelay" class="input mt-1" value="${element.animationDelay || 0}" min="0">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Duration (ms)</label>
+                <input type="number" id="prop-elementAnimationDuration" class="input mt-1" value="${element.animationDuration || 1000}" min="100">
+              </div>
             </div>
           </div>
         `;
         document.getElementById('prop-socialPlatform').addEventListener('change', (e) => {
           element.platform = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { platform: e.target.value } });
         });
         document.getElementById('prop-socialUrl').addEventListener('input', (e) => {
           element.url = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { url: e.target.value } });
         });
         document.getElementById('prop-socialColor').addEventListener('input', (e) => {
           element.color = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
         });
         document.getElementById('prop-socialSize').addEventListener('change', (e) => {
           element.size = parseInt(e.target.value);
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { size: e.target.value } });
         });
         document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
           element.gridColumn = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
         });
+        
+        // PENAMBAHAN BAHARU: Style properties event listeners
+        document.getElementById('prop-socialBgColor').addEventListener('input', (e) => {
+          element.backgroundColor = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { backgroundColor: e.target.value } });
+        });
+        
+        document.getElementById('prop-borderRadius').addEventListener('input', (e) => {
+          element.borderRadius = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { borderRadius: e.target.value } });
+        });
+        
+        document.getElementById('prop-padding').addEventListener('input', (e) => {
+          element.padding = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { padding: e.target.value } });
+        });
+        
+        // PENAMBAHAN BAHARU: Advanced properties event listeners
+        document.getElementById('prop-elementCustomCss').addEventListener('input', (e) => {
+          element.customCss = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { customCss: e.target.value } });
+        });
+        
+        document.getElementById('prop-elementAnimation').addEventListener('change', (e) => {
+          element.animation = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
+        });
+        
+        document.getElementById('prop-elementAnimationDelay').addEventListener('input', (e) => {
+          element.animationDelay = parseInt(e.target.value) || 0;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
+        });
+        
+        document.getElementById('prop-elementAnimationDuration').addEventListener('input', (e) => {
+          element.animationDuration = parseInt(e.target.value) || 1000;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
+        });
+        
+        // Setup properties tabs
+        setupPropertiesTabs();
         break;
 
       case 'link':
         content.innerHTML = `
-          <div class="space-y-4">
-            <div>
-              <label class="text-sm font-medium">Teks Pautan</label>
-              <input type="text" id="prop-linkText" class="input mt-1" value="${element.text || 'Pautan di sini'}">
+          <div class="properties-content active" data-tab="basic">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Teks Pautan</label>
+                <input type="text" id="prop-linkText" class="input mt-1" value="${element.text || 'Pautan di sini'}">
+              </div>
+              <div>
+                <label class="text-sm font-medium">URL Pautan</label>
+                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.url || '#'}" placeholder="https://...">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Buka di Tab Baharu?</label>
+                <select id="prop-linkTarget" class="input mt-1">
+                  <option value="_blank" ${element.target === '_blank' ? 'selected' : ''}>Ya</option>
+                  <option value="_self" ${element.target === '_self' ? 'selected' : ''}>Tidak</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
+                <select id="prop-gridColumn" class="input mt-1">
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
+              </div>
             </div>
-            <div>
-              <label class="text-sm font-medium">URL Pautan</label>
-              <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.url || '#'}" placeholder="https://...">
+          </div>
+          
+          <div class="properties-content" data-tab="style">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Font Size</label>
+                <input type="number" id="prop-fontSize" class="input mt-1" value="${element.fontSize || 16}" min="8" max="48">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Font Weight</label>
+                <select id="prop-fontWeight" class="input mt-1">
+                  <option value="normal" ${element.fontWeight === 'normal' ? 'selected' : ''}>Normal</option>
+                  <option value="medium" ${element.fontWeight === 'medium' ? 'selected' : ''}>Medium</option>
+                  <option value="semibold" ${element.fontWeight === 'semibold' ? 'selected' : ''}>Semibold</option>
+                  <option value="bold" ${element.fontWeight === 'bold' ? 'selected' : ''}>Bold</option>
+                  <option value="extrabold" ${element.fontWeight === 'extrabold' ? 'selected' : ''}>Extra Bold</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Text Decoration</label>
+                <select id="prop-textDecoration" class="input mt-1">
+                  <option value="none" ${element.textDecoration === 'none' ? 'selected' : ''}>None</option>
+                  <option value="underline" ${element.textDecoration === 'underline' ? 'selected' : ''}>Underline</option>
+                  <option value="overline" ${element.textDecoration === 'overline' ? 'selected' : ''}>Overline</option>
+                  <option value="line-through" ${element.textDecoration === 'line-through' ? 'selected' : ''}>Line Through</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Link Color</label>
+                <input type="color" id="prop-linkColor" class="input mt-1 p-1" value="${element.color || '#3b82f6'}">
+              </div>
             </div>
-            <div>
-              <label class="text-sm font-medium">Buka di Tab Baharu?</label>
-              <select id="prop-linkTarget" class="input mt-1">
-                <option value="_blank" ${element.target === '_blank' ? 'selected' : ''}>Ya</option>
-                <option value="_self" ${element.target === '_self' ? 'selected' : ''}>Tidak</option>
-              </select>
-            </div>
-            <div>
-              <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
-              <select id="prop-gridColumn" class="input mt-1">
-                <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-              </select>
+          </div>
+          
+          <div class="properties-content" data-tab="advanced">
+            <div class="space-y-4">
+              <div>
+                <label class="text-sm font-medium">Custom CSS</label>
+                <textarea id="prop-elementCustomCss" class="textarea mt-1" placeholder="Masukkan CSS custom...">${element.customCss || ''}</textarea>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation</label>
+                <select id="prop-elementAnimation" class="input mt-1">
+                  <option value="none" ${element.animation === 'none' ? 'selected' : ''}>None</option>
+                  <option value="fade-in" ${element.animation === 'fade-in' ? 'selected' : ''}>Fade In</option>
+                  <option value="slide-up" ${element.animation === 'slide-up' ? 'selected' : ''}>Slide Up</option>
+                  <option value="slide-down" ${element.animation === 'slide-down' ? 'selected' : ''}>Slide Down</option>
+                  <option value="slide-left" ${element.animation === 'slide-left' ? 'selected' : ''}>Slide Left</option>
+                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
+                  <option value="zoom-in" ${element.animation === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
+                  <option value="zoom-out" ${element.animation === 'zoom-out' ? 'selected' : ''}>Zoom Out</option>
+                </select>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Delay (ms)</label>
+                <input type="number" id="prop-elementAnimationDelay" class="input mt-1" value="${element.animationDelay || 0}" min="0">
+              </div>
+              <div>
+                <label class="text-sm font-medium">Animation Duration (ms)</label>
+                <input type="number" id="prop-elementAnimationDuration" class="input mt-1" value="${element.animationDuration || 1000}" min="100">
+              </div>
             </div>
           </div>
         `;
         document.getElementById('prop-linkText').addEventListener('input', (e) => {
           element.text = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { text: e.target.value } });
         });
         document.getElementById('prop-linkUrl').addEventListener('input', (e) => {
           element.url = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { url: e.target.value } });
         });
         document.getElementById('prop-linkTarget').addEventListener('change', (e) => {
           element.target = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { target: e.target.value } });
         });
         document.getElementById('prop-gridColumn').addEventListener('change', (e) => {
           element.gridColumn = e.target.value;
           saveDesign();
+          addToHistory(); // Add to history
           sendToIframe('update-element', { id: element.id, properties: { gridColumn: e.target.value } });
         });
+        
+        // PENAMBAHAN BAHARU: Style properties event listeners
+        document.getElementById('prop-fontSize').addEventListener('input', (e) => {
+          element.fontSize = parseInt(e.target.value) || 16;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { fontSize: element.fontSize } });
+        });
+        
+        document.getElementById('prop-fontWeight').addEventListener('change', (e) => {
+          element.fontWeight = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { fontWeight: element.fontWeight } });
+        });
+        
+        document.getElementById('prop-textDecoration').addEventListener('change', (e) => {
+          element.textDecoration = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { textDecoration: element.textDecoration } });
+        });
+        
+        document.getElementById('prop-linkColor').addEventListener('input', (e) => {
+          element.color = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
+        });
+        
+        // PENAMBAHAN BAHARU: Advanced properties event listeners
+        document.getElementById('prop-elementCustomCss').addEventListener('input', (e) => {
+          element.customCss = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { customCss: e.target.value } });
+        });
+        
+        document.getElementById('prop-elementAnimation').addEventListener('change', (e) => {
+          element.animation = e.target.value;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animation: e.target.value } });
+        });
+        
+        document.getElementById('prop-elementAnimationDelay').addEventListener('input', (e) => {
+          element.animationDelay = parseInt(e.target.value) || 0;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDelay: element.animationDelay } });
+        });
+        
+        document.getElementById('prop-elementAnimationDuration').addEventListener('input', (e) => {
+          element.animationDuration = parseInt(e.target.value) || 1000;
+          saveDesign();
+          addToHistory(); // Add to history
+          sendToIframe('update-element', { id: element.id, properties: { animationDuration: element.animationDuration } });
+        });
+        
+        // Setup properties tabs
+        setupPropertiesTabs();
         break;
     }
     
@@ -1589,15 +2712,31 @@
 
     section.elements.forEach((element, index) => {
       const elementItem = document.createElement('div');
-      elementItem.className = 'p-2 border border-gray-200 rounded flex justify-between items-center text-sm cursor-pointer hover:bg-gray-50'; // Added cursor-pointer and hover effect
+      elementItem.className = 'element-item';
+      elementItem.dataset.elementId = element.id;
+      elementItem.draggable = true;
       elementItem.innerHTML = `
-        <span>${element.type} - ${element.content ? element.content.replace(/<[^>]*>/g, '').substring(0, 20) + '...' : ''}</span>
-        <div class="flex gap-1">
-          <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveElementUp('${sectionId}', ${index})" title="Naik"><i data-lucide="chevron-up" class="w-3 h-3"></i></button>
-          <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveElementDown('${sectionId}', ${index})" title="Turun"><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
-          <button class="p-1 hover:bg-red-100 rounded text-red-600" onclick="event.stopPropagation(); deleteElementFromSection('${sectionId}', '${element.id}')" title="Padam"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+        <div class="flex justify-between items-center">
+          <span>${element.type} - ${element.content ? element.content.replace(/<[^>]*>/g, '').substring(0, 20) + '...' : ''}</span>
+          <div class="flex gap-1">
+            <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveElementUp('${sectionId}', ${index})" title="Naik"><i data-lucide="chevron-up" class="w-3 h-3"></i></button>
+            <button class="p-1 hover:bg-gray-200 rounded" onclick="event.stopPropagation(); moveElementDown('${sectionId}', ${index})" title="Turun"><i data-lucide="chevron-down" class="w-3 h-3"></i></button>
+            <button class="p-1 hover:bg-red-100 rounded text-red-600" onclick="event.stopPropagation(); deleteElementFromSection('${sectionId}', '${element.id}')" title="Padam"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+          </div>
         </div>
       `;
+      
+      // Add drag and drop event listeners
+      elementItem.addEventListener('dragstart', handleDragStart);
+      elementItem.addEventListener('dragover', handleDragOver);
+      elementItem.addEventListener('drop', handleDrop);
+      elementItem.addEventListener('dragend', handleDragEnd);
+      elementItem.addEventListener('dragenter', handleDragEnter);
+      elementItem.addEventListener('dragleave', handleDragLeave);
+      
+      // Add context menu event listener
+      elementItem.addEventListener('contextmenu', handleContextMenu);
+      
       elementItem.addEventListener('click', () => selectElement(element.id));
       listContainer.appendChild(elementItem);
     });
@@ -1777,6 +2916,7 @@
         section.elements.push(newElement);
         renderElementListInSection(store.selectedSectionId);
         saveDesign();
+        addToHistory(); // Add to history
         sendToIframe('add-element', { sectionId: store.selectedSectionId, element: newElement });
       }
       
@@ -1797,6 +2937,7 @@
       [store.sections[index], store.sections[index - 1]] = [store.sections[index - 1], store.sections[index]];
       renderSectionList();
       saveDesign();
+      addToHistory(); // Add to history
     }
   }
 
@@ -1805,6 +2946,7 @@
       [store.sections[index], store.sections[index + 1]] = [store.sections[index + 1], store.sections[index]];
       renderSectionList();
       saveDesign();
+      addToHistory(); // Add to history
     }
   }
 
@@ -1814,6 +2956,7 @@
     renderSectionList();
     closePropertiesPanel();
     saveDesign();
+    addToHistory(); // Add to history
   }
 
   function moveElementUp(sectionId, index) {
@@ -1822,6 +2965,7 @@
       [section.elements[index], section.elements[index - 1]] = [section.elements[index - 1], section.elements[index]];
       renderElementListInSection(sectionId);
       saveDesign();
+      addToHistory(); // Add to history
     }
   }
 
@@ -1831,6 +2975,7 @@
       [section.elements[index], section.elements[index + 1]] = [section.elements[index + 1], section.elements[index]];
       renderElementListInSection(sectionId);
       saveDesign();
+      addToHistory(); // Add to history
     }
   }
 
@@ -1840,6 +2985,7 @@
     section.elements = section.elements.filter(el => el.id !== elementId);
     renderElementListInSection(sectionId);
     saveDesign();
+    addToHistory(); // Add to history
     sendToIframe('delete-element', { id: elementId });
   }
 
@@ -1854,6 +3000,9 @@
       // Beritahu iframe untuk memuatkan bahagian
       sendToIframe('load-sections', { sections: store.sections });
       renderSectionList();
+      // Initialize history
+      store.history = [JSON.parse(JSON.stringify(store.sections))];
+      store.historyIndex = 0;
     } catch (e) {
       console.error('Failed to load design:', e);
     }
@@ -1894,6 +3043,804 @@
   window.moveElementUp = moveElementUp;
   window.moveElementDown = moveElementDown;
   window.deleteElementFromSection = deleteElementFromSection;
+
+  // ===================================================================
+  // ====== PENAMBAHAN BAHARU: ADVANCED EDITOR FEATURES ======
+  // ===================================================================
+  
+  function initAdvancedEditor() {
+    // Setup toolbar buttons
+    document.getElementById('btnUndo').addEventListener('click', undo);
+    document.getElementById('btnRedo').addEventListener('click', redo);
+    document.getElementById('btnCopy').addEventListener('click', copy);
+    document.getElementById('btnPaste').addEventListener('click', paste);
+    document.getElementById('btnTemplates').addEventListener('click', showTemplatesModal);
+    document.getElementById('btnHistory').addEventListener('click', toggleHistoryPanel);
+    
+    // Setup zoom controls
+    document.getElementById('btnZoomIn').addEventListener('click', () => zoom(0.1));
+    document.getElementById('btnZoomOut').addEventListener('click', () => zoom(-0.1));
+    document.getElementById('btnZoomReset').addEventListener('click', () => {
+      store.zoomLevel = 1;
+      applyZoom();
+    });
+    
+    document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
+    document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
+    document.getElementById('zoomResetBtn').addEventListener('click', () => {
+      store.zoomLevel = 1;
+      applyZoom();
+    });
+    
+    // Setup templates modal
+    document.getElementById('btnCloseTemplates').addEventListener('click', () => {
+      document.getElementById('templatesModal').classList.add('hidden');
+    });
+    
+    // Setup history panel
+    document.getElementById('btnCloseHistory').addEventListener('click', () => {
+      document.getElementById('historyPanel').classList.remove('open');
+    });
+    
+    // Setup context menu
+    document.addEventListener('click', () => {
+      document.getElementById('contextMenu').classList.add('hidden');
+    });
+    
+    // Setup keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+    
+    // Initialize templates
+    loadTemplates();
+  }
+  
+  // History management
+  function addToHistory() {
+    // Remove any history after current index
+    store.history = store.history.slice(0, store.historyIndex + 1);
+    
+    // Add current state to history
+    store.history.push(JSON.parse(JSON.stringify(store.sections)));
+    store.historyIndex++;
+    
+    // Limit history size
+    if (store.history.length > 50) {
+      store.history.shift();
+      store.historyIndex--;
+    }
+    
+    updateHistoryPanel();
+  }
+  
+  function undo() {
+    if (store.historyIndex > 0) {
+      store.historyIndex--;
+      store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
+      renderSectionList();
+      sendToIframe('load-sections', { sections: store.sections });
+      updateHistoryPanel();
+    }
+  }
+  
+  function redo() {
+    if (store.historyIndex < store.history.length - 1) {
+      store.historyIndex++;
+      store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
+      renderSectionList();
+      sendToIframe('load-sections', { sections: store.sections });
+      updateHistoryPanel();
+    }
+  }
+  
+  function updateHistoryPanel() {
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = '';
+    
+    store.history.forEach((state, index) => {
+      const historyItem = document.createElement('div');
+      historyItem.className = 'history-item';
+      if (index === store.historyIndex) {
+        historyItem.classList.add('active');
+      }
+      
+      const date = new Date();
+      date.setTime(date.getTime() - (store.history.length - index - 1) * 60000);
+      const timeString = date.toLocaleTimeString();
+      
+      historyItem.textContent = `Versi ${index + 1} - ${timeString}`;
+      historyItem.addEventListener('click', () => {
+        store.historyIndex = index;
+        store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
+        renderSectionList();
+        sendToIframe('load-sections', { sections: store.sections });
+        updateHistoryPanel();
+      });
+      
+      historyList.appendChild(historyItem);
+    });
+  }
+  
+  function toggleHistoryPanel() {
+    document.getElementById('historyPanel').classList.toggle('open');
+  }
+  
+  // Copy/Paste functionality
+  function copy() {
+    if (store.selectedSectionId) {
+      const section = store.sections.find(s => s.id === store.selectedSectionId);
+      if (section) {
+        store.clipboard = {
+          type: 'section',
+          data: JSON.parse(JSON.stringify(section))
+        };
+        toast('Bahagian disalin');
+      }
+    } else if (store.selectedElementId) {
+      for (const section of store.sections) {
+        const element = section.elements.find(e => e.id === store.selectedElementId);
+        if (element) {
+          store.clipboard = {
+            type: 'element',
+            data: JSON.parse(JSON.stringify(element))
+          };
+          toast('Elemen disalin');
+          break;
+        }
+      }
+    }
+  }
+  
+  function paste() {
+    if (!store.clipboard) {
+      toast('Tiada item untuk ditampal');
+      return;
+    }
+    
+    if (store.clipboard.type === 'section') {
+      const newSection = JSON.parse(JSON.stringify(store.clipboard.data));
+      newSection.id = `section-${Date.now()}`;
+      newSection.name = `${newSection.name} (Salinan)`;
+      
+      // Generate new IDs for elements
+      newSection.elements.forEach(element => {
+        element.id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      });
+      
+      store.sections.push(newSection);
+      renderSectionList();
+      saveDesign();
+      addToHistory();
+      toast('Bahagian ditampal');
+    } else if (store.clipboard.type === 'element' && store.selectedSectionId) {
+      const section = store.sections.find(s => s.id === store.selectedSectionId);
+      if (section) {
+        const newElement = JSON.parse(JSON.stringify(store.clipboard.data));
+        newElement.id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+        
+        section.elements.push(newElement);
+        renderElementListInSection(store.selectedSectionId);
+        saveDesign();
+        addToHistory();
+        sendToIframe('add-element', { sectionId: store.selectedSectionId, element: newElement });
+        toast('Elemen ditampal');
+      }
+    }
+  }
+  
+  // Templates
+  function loadTemplates() {
+    const templates = [
+      {
+        id: 'hero',
+        name: 'Hero Section',
+        preview: 'https://picsum.photos/seed/hero/300/170.jpg',
+        sections: [
+          {
+            id: `section-${Date.now()}-1`,
+            name: 'Hero',
+            style: 'gradient',
+            backgroundColor: '#667eea',
+            backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '6rem 1rem',
+            elements: [
+              {
+                id: `el-${Date.now()}-1`,
+                type: 'text',
+                content: '<h1 style="font-size: 3rem; font-weight: bold; color: white; text-align: center; margin-bottom: 1rem">Tajuk Utama Anda</h1>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-2`,
+                type: 'text',
+                content: '<p style="font-size: 1.25rem; color: white; text-align: center; margin-bottom: 2rem">Ini adalah subjudul yang menerangkan produk atau perkhidmatan anda dengan lebih terperinci.</p>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-3`,
+                type: 'button',
+                content: 'Mulakan Sekarang',
+                href: '#',
+                backgroundColor: '#ffffff',
+                color: '#667eea',
+                gridColumn: 'span 12 / span 12'
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'features',
+        name: 'Features Section',
+        preview: 'https://picsum.photos/seed/features/300/170.jpg',
+        sections: [
+          {
+            id: `section-${Date.now()}-1`,
+            name: 'Features',
+            style: 'default',
+            backgroundColor: '#ffffff',
+            padding: '4rem 1rem',
+            elements: [
+              {
+                id: `el-${Date.now()}-1`,
+                type: 'text',
+                content: '<h2 style="font-size: 2.5rem; font-weight: bold; text-align: center; margin-bottom: 1rem">Ciri-ciri Utama</h2>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-2`,
+                type: 'text',
+                content: '<p style="text-align: center; margin-bottom: 3rem">Kami menawarkan pelbagai ciri untuk membantu anda berjaya.</p>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-3`,
+                type: 'image',
+                src: 'https://picsum.photos/seed/feature1/400/300.jpg',
+                alt: 'Feature 1',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-4`,
+                type: 'text',
+                content: '<h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem">Ciri 1</h3><p>Penerangan ringkas tentang ciri pertama dan manfaatnya.</p>',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-5`,
+                type: 'image',
+                src: 'https://picsum.photos/seed/feature2/400/300.jpg',
+                alt: 'Feature 2',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-6`,
+                type: 'text',
+                content: '<h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem">Ciri 2</h3><p>Penerangan ringkas tentang ciri kedua dan manfaatnya.</p>',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-7`,
+                type: 'image',
+                src: 'https://picsum.photos/seed/feature3/400/300.jpg',
+                alt: 'Feature 3',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-8`,
+                type: 'text',
+                content: '<h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem">Ciri 3</h3><p>Penerangan ringkas tentang ciri ketiga dan manfaatnya.</p>',
+                gridColumn: 'span 4 / span 4'
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'testimonials',
+        name: 'Testimonials Section',
+        preview: 'https://picsum.photos/seed/testimonials/300/170.jpg',
+        sections: [
+          {
+            id: `section-${Date.now()}-1`,
+            name: 'Testimonials',
+            style: 'card',
+            backgroundColor: '#f9fafb',
+            padding: '4rem 1rem',
+            elements: [
+              {
+                id: `el-${Date.now()}-1`,
+                type: 'text',
+                content: '<h2 style="font-size: 2.5rem; font-weight: bold; text-align: center; margin-bottom: 1rem">Apa Kata Pelanggan</h2>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-2`,
+                type: 'text',
+                content: '<p style="text-align: center; margin-bottom: 3rem">Kami sangat menghargai maklum balas dari pelanggan setia kami.</p>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-3`,
+                type: 'text',
+                content: '<blockquote style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1rem">"Produk ini telah mengubah cara saya bekerja. Sangat disyorkan!"</blockquote><p style="text-align: right; font-weight: bold">- Ahmad, Pengurus</p>',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-4`,
+                type: 'text',
+                content: '<blockquote style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1rem">"Kualiti yang sangat baik dan perkhidmatan pelanggan yang cemerlang."</blockquote><p style="text-align: right; font-weight: bold">- Siti, Usahawan</p>',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-5`,
+                type: 'text',
+                content: '<blockquote style="background: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 1rem">"Saya telah menggunakan produk ini selama 6 bulan dan sangat berpuas hati."</blockquote><p style="text-align: right; font-weight: bold">- Razak, Profesional</p>',
+                gridColumn: 'span 4 / span 4'
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'cta',
+        name: 'Call to Action',
+        preview: 'https://picsum.photos/seed/cta/300/170.jpg',
+        sections: [
+          {
+            id: `section-${Date.now()}-1`,
+            name: 'Call to Action',
+            style: 'dark',
+            backgroundColor: '#1f2937',
+            padding: '4rem 1rem',
+            elements: [
+              {
+                id: `el-${Date.now()}-1`,
+                type: 'text',
+                content: '<h2 style="font-size: 2.5rem; font-weight: bold; color: white; text-align: center; margin-bottom: 1rem">Bersedia Untuk Bermula?</h2>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-2`,
+                type: 'text',
+                content: '<p style="color: #d1d5db; text-align: center; margin-bottom: 2rem">Daftar sekarang dan dapatkan diskaun 20% untuk pembelian pertama anda.</p>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-3`,
+                type: 'button',
+                content: 'Daftar Sekarang',
+                href: '#',
+                backgroundColor: '#ef4444',
+                color: '#ffffff',
+                gridColumn: 'span 6 / span 6'
+              },
+              {
+                id: `el-${Date.now()}-4`,
+                type: 'button',
+                content: 'Learn More',
+                href: '#',
+                backgroundColor: 'transparent',
+                color: '#ffffff',
+                gridColumn: 'span 6 / span 6'
+              }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'contact',
+        name: 'Contact Section',
+        preview: 'https://picsum.photos/seed/contact/300/170.jpg',
+        sections: [
+          {
+            id: `section-${Date.now()}-1`,
+            name: 'Contact',
+            style: 'default',
+            backgroundColor: '#ffffff',
+            padding: '4rem 1rem',
+            elements: [
+              {
+                id: `el-${Date.now()}-1`,
+                type: 'text',
+                content: '<h2 style="font-size: 2.5rem; font-weight: bold; text-align: center; margin-bottom: 1rem">Hubungi Kami</h2>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-2`,
+                type: 'text',
+                content: '<p style="text-align: center; margin-bottom: 3rem">Kami sedia membantu anda. Sila hubungi kami melalui maklumat di bawah.</p>',
+                gridColumn: 'span 12 / span 12'
+              },
+              {
+                id: `el-${Date.now()}-3`,
+                type: 'text',
+                content: '<h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem">Alamat</h3><p>123 Jalan Utama, Bandaraya, 12345</p>',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-4`,
+                type: 'text',
+                content: '<h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem">Telefon</h3><p>+60 123 456 789</p>',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-5`,
+                type: 'text',
+                content: '<h3 style="font-size: 1.5rem; font-weight: bold; margin-bottom: 0.5rem">Email</h3><p>info@contoh.com</p>',
+                gridColumn: 'span 4 / span 4'
+              },
+              {
+                id: `el-${Date.now()}-6`,
+                type: 'social',
+                platform: 'facebook',
+                url: 'https://facebook.com',
+                color: '#1877f2',
+                size: 32,
+                gridColumn: 'span 3 / span 3'
+              },
+              {
+                id: `el-${Date.now()}-7`,
+                type: 'social',
+                platform: 'instagram',
+                url: 'https://instagram.com',
+                color: '#e4405f',
+                size: 32,
+                gridColumn: 'span 3 / span 3'
+              },
+              {
+                id: `el-${Date.now()}-8`,
+                type: 'social',
+                platform: 'twitter',
+                url: 'https://twitter.com',
+                color: '#1da1f2',
+                size: 32,
+                gridColumn: 'span 3 / span 3'
+              },
+              {
+                id: `el-${Date.now()}-9`,
+                type: 'social',
+                platform: 'whatsapp',
+                url: 'https://wa.me/60123456789',
+                color: '#25d366',
+                size: 32,
+                gridColumn: 'span 3 / span 3'
+              }
+            ]
+          }
+        ]
+      }
+    ];
+    
+    const templateGrid = document.querySelector('.template-grid');
+    templateGrid.innerHTML = '';
+    
+    templates.forEach(template => {
+      const templateItem = document.createElement('div');
+      templateItem.className = 'template-item';
+      templateItem.innerHTML = `
+        <img src="${template.preview}" alt="${template.name}" class="template-preview">
+        <div class="template-name">${template.name}</div>
+      `;
+      
+      templateItem.addEventListener('click', () => {
+        if (confirm(`Adakah anda pasti ingin menambah template "${template.name}"? Ini akan menambah bahagian baru pada halaman anda.`)) {
+          // Add template sections to the current design
+          template.sections.forEach(section => {
+            store.sections.push(section);
+          });
+          
+          renderSectionList();
+          saveDesign();
+          addToHistory();
+          sendToIframe('load-sections', { sections: store.sections });
+          
+          document.getElementById('templatesModal').classList.add('hidden');
+          toast(`Template "${template.name}" ditambah`);
+        }
+      });
+      
+      templateGrid.appendChild(templateItem);
+    });
+  }
+  
+  function showTemplatesModal() {
+    document.getElementById('templatesModal').classList.remove('hidden');
+  }
+  
+  // Zoom functionality
+  function zoom(delta) {
+    store.zoomLevel = Math.max(0.5, Math.min(2, store.zoomLevel + delta));
+    applyZoom();
+  }
+  
+  function applyZoom() {
+    const userPreview = document.getElementById('userPreview');
+    userPreview.style.transform = `scale(${store.zoomLevel})`;
+    userPreview.style.transformOrigin = 'top center';
+  }
+  
+  // Drag and drop functionality
+  function handleDragStart(e) {
+    store.draggedItem = {
+      type: e.currentTarget.classList.contains('section-item') ? 'section' : 'element',
+      element: e.currentTarget,
+      index: Array.from(e.currentTarget.parentNode.children).indexOf(e.currentTarget)
+    };
+    
+    e.currentTarget.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.currentTarget.innerHTML);
+  }
+  
+  function handleDragOver(e) {
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    
+    e.dataTransfer.dropEffect = 'move';
+    
+    const afterElement = getDragAfterElement(e.currentTarget.parentNode, e.clientY);
+    const dragging = document.querySelector('.dragging');
+    
+    if (afterElement == null) {
+      e.currentTarget.parentNode.appendChild(dragging);
+    } else {
+      e.currentTarget.parentNode.insertBefore(dragging, afterElement);
+    }
+    
+    return false;
+  }
+  
+  function handleDrop(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+    
+    if (store.draggedItem.type === 'section') {
+      const newIndex = Array.from(e.currentTarget.parentNode.children).indexOf(store.draggedItem.element);
+      
+      if (store.draggedItem.index !== newIndex) {
+        const section = store.sections.splice(store.draggedItem.index, 1)[0];
+        store.sections.splice(newIndex, 0, section);
+        
+        renderSectionList();
+        saveDesign();
+        addToHistory();
+        sendToIframe('load-sections', { sections: store.sections });
+      }
+    } else if (store.draggedItem.type === 'element') {
+      const sectionId = e.currentTarget.closest('[data-section-id]').dataset.sectionId;
+      const section = store.sections.find(s => s.id === sectionId);
+      
+      if (section) {
+        const newIndex = Array.from(e.currentTarget.parentNode.children).indexOf(store.draggedItem.element);
+        
+        if (store.draggedItem.index !== newIndex) {
+          const element = section.elements.splice(store.draggedItem.index, 1)[0];
+          section.elements.splice(newIndex, 0, element);
+          
+          renderElementListInSection(sectionId);
+          saveDesign();
+          addToHistory();
+          sendToIframe('load-sections', { sections: store.sections });
+        }
+      }
+    }
+    
+    return false;
+  }
+  
+  function handleDragEnd(e) {
+    e.currentTarget.classList.remove('dragging');
+    store.draggedItem = null;
+  }
+  
+  function handleDragEnter(e) {
+    if (e.currentTarget.classList.contains('section-item') || e.currentTarget.classList.contains('element-item')) {
+      e.currentTarget.style.borderTop = '2px solid var(--brand)';
+    }
+  }
+  
+  function handleDragLeave(e) {
+    if (e.currentTarget.classList.contains('section-item') || e.currentTarget.classList.contains('element-item')) {
+      e.currentTarget.style.borderTop = '';
+    }
+  }
+  
+  function getDragAfterElement(container, y) {
+    const draggableElements = [...container.querySelectorAll('.section-item:not(.dragging), .element-item:not(.dragging)')];
+    
+    return draggableElements.reduce((closest, child) => {
+      const box = child.getBoundingClientRect();
+      const offset = y - box.top - box.height / 2;
+      
+      if (offset < 0 && offset > closest.offset) {
+        return { offset: offset, element: child };
+      } else {
+        return closest;
+      }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+  }
+  
+  // Context menu functionality
+  function handleContextMenu(e) {
+    e.preventDefault();
+    
+    const contextMenu = document.getElementById('contextMenu');
+    contextMenu.innerHTML = '';
+    
+    if (e.currentTarget.classList.contains('section-item')) {
+      const sectionId = e.currentTarget.dataset.sectionId;
+      
+      contextMenu.innerHTML = `
+        <div class="context-menu-item" data-action="duplicate">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          <span>Duplicate</span>
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="delete">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>Delete</span>
+        </div>
+      `;
+      
+      store.contextMenuTarget = { type: 'section', id: sectionId };
+    } else if (e.currentTarget.classList.contains('element-item')) {
+      const elementId = e.currentTarget.dataset.elementId;
+      const sectionId = e.currentTarget.closest('[data-section-id]').dataset.sectionId;
+      
+      contextMenu.innerHTML = `
+        <div class="context-menu-item" data-action="duplicate">
+          <i data-lucide="copy" class="w-4 h-4"></i>
+          <span>Duplicate</span>
+        </div>
+        <div class="context-menu-separator"></div>
+        <div class="context-menu-item" data-action="delete">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+          <span>Delete</span>
+        </div>
+      `;
+      
+      store.contextMenuTarget = { type: 'element', id: elementId, sectionId };
+    }
+    
+    // Position the context menu
+    contextMenu.style.left = `${e.pageX}px`;
+    contextMenu.style.top = `${e.pageY}px`;
+    contextMenu.classList.remove('hidden');
+    
+    // Add event listeners to context menu items
+    contextMenu.querySelectorAll('.context-menu-item').forEach(item => {
+      item.addEventListener('click', handleContextMenuItemClick);
+    });
+    
+    // Re-initialize lucide icons
+    lucide.createIcons();
+  }
+  
+  function handleContextMenuItemClick(e) {
+    const action = e.currentTarget.dataset.action;
+    
+    if (action === 'duplicate') {
+      if (store.contextMenuTarget.type === 'section') {
+        const section = store.sections.find(s => s.id === store.contextMenuTarget.id);
+        if (section) {
+          const newSection = JSON.parse(JSON.stringify(section));
+          newSection.id = `section-${Date.now()}`;
+          newSection.name = `${section.name} (Salinan)`;
+          
+          // Generate new IDs for elements
+          newSection.elements.forEach(element => {
+            element.id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+          });
+          
+          const index = store.sections.findIndex(s => s.id === store.contextMenuTarget.id);
+          store.sections.splice(index + 1, 0, newSection);
+          
+          renderSectionList();
+          saveDesign();
+          addToHistory();
+          sendToIframe('load-sections', { sections: store.sections });
+          toast('Bahagian digandakan');
+        }
+      } else if (store.contextMenuTarget.type === 'element') {
+        const section = store.sections.find(s => s.id === store.contextMenuTarget.sectionId);
+        if (section) {
+          const element = section.elements.find(e => e.id === store.contextMenuTarget.id);
+          if (element) {
+            const newElement = JSON.parse(JSON.stringify(element));
+            newElement.id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+            
+            const index = section.elements.findIndex(e => e.id === store.contextMenuTarget.id);
+            section.elements.splice(index + 1, 0, newElement);
+            
+            renderElementListInSection(store.contextMenuTarget.sectionId);
+            saveDesign();
+            addToHistory();
+            sendToIframe('load-sections', { sections: store.sections });
+            toast('Elemen digandakan');
+          }
+        }
+      }
+    } else if (action === 'delete') {
+      if (store.contextMenuTarget.type === 'section') {
+        if (confirm('Adakah anda pasti ingin memadam bahagian ini?')) {
+          store.sections = store.sections.filter(s => s.id !== store.contextMenuTarget.id);
+          renderSectionList();
+          saveDesign();
+          addToHistory();
+          sendToIframe('load-sections', { sections: store.sections });
+          toast('Bahagian dipadam');
+        }
+      } else if (store.contextMenuTarget.type === 'element') {
+        if (confirm('Adakah anda pasti ingin memadam elemen ini?')) {
+          const section = store.sections.find(s => s.id === store.contextMenuTarget.sectionId);
+          if (section) {
+            section.elements = section.elements.filter(e => e.id !== store.contextMenuTarget.id);
+            renderElementListInSection(store.contextMenuTarget.sectionId);
+            saveDesign();
+            addToHistory();
+            sendToIframe('load-sections', { sections: store.sections });
+            toast('Elemen dipadam');
+          }
+        }
+      }
+    }
+    
+    document.getElementById('contextMenu').classList.add('hidden');
+  }
+  
+  // Keyboard shortcuts
+  function handleKeyboardShortcuts(e) {
+    // Only handle shortcuts when not in an input field
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.contentEditable === 'true') {
+      return;
+    }
+    
+    // Ctrl/Cmd + Z: Undo
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      e.preventDefault();
+      undo();
+    }
+    
+    // Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y: Redo
+    if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
+      e.preventDefault();
+      redo();
+    }
+    
+    // Ctrl/Cmd + C: Copy
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+      e.preventDefault();
+      copy();
+    }
+    
+    // Ctrl/Cmd + V: Paste
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+      e.preventDefault();
+      paste();
+    }
+    
+    // Delete: Delete selected item
+    if (e.key === 'Delete') {
+      if (store.selectedSectionId) {
+        deleteSection(store.selectedSectionId);
+      } else if (store.selectedElementId) {
+        for (const section of store.sections) {
+          if (section.elements.find(e => e.id === store.selectedElementId)) {
+            deleteElementFromSection(section.id, store.selectedElementId);
+            break;
+          }
+        }
+      }
+    }
+    
+    // Ctrl/Cmd + S: Save
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      saveDesign();
+    }
+  }
 
 </script>
 </body>
