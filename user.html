@@ -5,9 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MOVA — Untuk Pengguna (Free Users)</title>
 
+  <!-- Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com /lucide@latest"></script>
+  <!-- Lucide (fixed src spacing) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     :root { --brand:#ef4444; }
@@ -17,107 +20,40 @@
     .btn-ghost{background:#fff;border:1px solid #e5e7eb;}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
     .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.7rem .9rem;background:#fff;}
-    .input:focus{outline:none;box-shadow:0 0 0 0 2px #111;}
-    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151;}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999;}
+    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
+    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
     .section-title{font-weight:800;font-size:1.25rem}
     .muted{color:#6b7280}
 
     /* --- Gaya Untuk Mod Edit & Bahagian --- */
-    .edit-mode .page-section {
-      outline: 1px dashed #d1d5db;
-      outline-offset: -1px;
-      transition: outline 0.2s ease;
-    }
-    .edit-mode .page-section:hover {
-      outline: 1px dashed #9ca3af;
-    }
-    .page-section.selected {
-      outline: 2px solid #3b82f6 !important;
-      outline-offset: -2px;
-    }
+    .edit-mode .page-section { outline: 1px dashed #d1d5db; outline-offset: -1px; transition: outline 0.2s ease }
+    .edit-mode .page-section:hover { outline: 1px dashed #9ca3af }
+    .page-section.selected { outline: 2px solid #3b82f6 !important; outline-offset: -2px }
 
-    /* Gaya untuk grid di dalam bahagian */
-    .section-grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr); /* Grid 12 lajur */
-      gap: 1rem; /* Jarak antara elemen */
-    }
+    /* Grid 12 lajur untuk susun elemen */
+    .section-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem }
 
-    /* Gaya untuk setiap elemen yang boleh diedit */
-    .page-element {
-      cursor: pointer;
-      transition: box-shadow 0.2s ease;
-    }
-    
-    /* Berikan outline apabila elemen dipilih dalam editor */
-    .page-element.selected {
-      outline: 2px solid #10b981;
-      outline-offset: 2px;
-    }
+    .page-element { cursor: pointer; transition: box-shadow 0.2s ease }
+    .page-element.selected { outline: 2px solid #10b981; outline-offset: 2px }
 
-    /* Gaya untuk Rich Text Editor */
-    .rtbox {
-      min-height:120px;
-      border: 1px solid #d1d5db;
-      border-radius:.75rem;
-      padding:.6rem;
-      background:#fff;
-    }
-    .toolbar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.25rem;
-      margin-bottom: 0.5rem;
-    }
-    .toolbar button {
-      border: 1px solid #e5e7eb;
-      border-radius: .5rem;
-      padding: .25rem .5rem;
-      background: #fff;
-      transition: all 0.2s ease;
-    }
-    .toolbar button:hover {
-      background: #f3f4f6;
-    }
-    .toolbar button.active {
-      background: #111;
-      color: #fff;
-      border-color: #111;
-    }
-    .toolbar select {
-      transition: all 0.2s ease;
-    }
-    .toolbar select:focus {
-      background: #f9fafb;
-    }
-    .toolbar select:focus {
-      background: #f9fafb;
-    }
-    .rtbox:focus {
-      outline: 2px solid #111;
-    }
-    .rtbox:focus {
-      outline: 2px solid #111;
-    }
+    /* RTE */
+    .rtbox { min-height:120px; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem; background:#fff }
+    .toolbar { display:flex; flex-wrap:wrap; gap:.25rem; margin-bottom:.5rem }
+    .toolbar button { border:1px solid #e5e7eb; border-radius:.5rem; padding:.25rem .5rem; background:#fff; transition: all .2s ease }
+    .toolbar button:hover { background:#f3f4f6 }
+    .toolbar button.active { background:#111; color:#fff; border-color:#111 }
+    .toolbar select { transition: all .2s ease }
+    .toolbar select:focus { background:#f9fafb }
 
-    /* Gaya untuk elemen 'social' */
-    .social-icon {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: var(--icon-size, 24px);
-      color: var(--icon-color, #374151);
-      transition: transform 0.2s ease;
-    }
-    .social-icon:hover {
-      transform: translateY(-2px);
-    }
+    /* Sosial */
+    .social-icon { display:inline-flex; align-items:center; gap:.5rem; font-size: var(--icon-size, 24px); color: var(--icon-color, #374151); transition: transform .2s ease }
+    .social-icon:hover { transform: translateY(-2px) }
   </style>
 </head>
 <body>
 
-<!-- NAV -->
+<!-- NAV (fixed structure + closing tags) -->
 <nav class="bg-white border-b border-gray-200">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
@@ -132,33 +68,28 @@
       <a href="#upgrade" class="hover:underline">Naik Taraf</a>
       <a href="#faq" class="hover:underline">FAQ</a>
     </div>
-  </nav>
+  </div>
+</nav>
 
-<!-- 
-  BAHAGIAN UTAMA (MAIN)
-  Kandungan sekarang akan dijana secara dinamik sebagai "Bahagian".
--->
-<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<!-- MAIN — bahagian dijana dinamik -->
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8" id="main">
   <!-- Bahagian-bahagian halaman akan dimuatkan di sini oleh JavaScript -->
 </main>
 
 <footer class="mt-10 py-10 text-center text-sm text-gray-500">
-  © <span id="year"></span> MOVA. <span class="text-gray-500">Hak cipta terpelihara terpelihara terkini. </span>
+  © <span id="year"></span> MOVA. <span class="text-gray-500">Hak cipta terpelihara terkini.</span>
 </footer>
 
 <div id="toast" class="toast hidden"></div>
 
-<!-- 
-  SKRIP UNTUK EDITOR HALAMAN (SISTEM BAHAGIAN)
--->
 <script>
-  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec"; // dikekalkan
 
   function toast(msg, ms = 2200) {
     const el = document.getElementById('toast');
     el.textContent = msg;
     el.classList.remove('hidden');
-    clearTimeout(toast._t);
+    clearTimeout(el._t);
     el._t = setTimeout(() => el.classList.add('hidden'), ms);
   }
 
@@ -168,115 +99,103 @@
       headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
       body: new URLSearchParams({ path, payload: JSON.stringify(payload || {}) })
     });
-    const text = await res.text;
+    const text = await res.text(); // (fixed: invoke .text())
     let json;
     try { json = JSON.parse(text); } catch (e) { throw new Error(text); }
     if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
     return json;
   }
 
-  // --- LOGIK EDITOR BERMULA DI SINI ---
+  // --- LOGIK EDITOR ---
   const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
-  let pageSections = []; // Simpan semua BAHAGIAN halaman di sini
+  let pageSections = []; // semua BAHAGIAN disimpan di sini
 
   if (EDIT_MODE) {
     window.addEventListener('message', handleIframeMessage);
+    document.body.classList.add('edit-mode');
   }
 
   function handleIframeMessage(event) {
-    const { type, data } = event.data;
-    
+    const { type, data, on } = event.data || {};
     switch (type) {
       case 'toggle-edit':
-        document.body.classList.toggle('edit-mode', event.data.on);
+        document.body.classList.toggle('edit-mode', !!on);
         break;
       case 'load-sections':
-        pageSections = data.sections || [];
+        pageSections = (data && data.sections) || [];
         renderPage();
         break;
-      case 'select-section':
-        // Highlight selected section
+      case 'select-section': {
         document.querySelectorAll('.page-section.selected').forEach(el => el.classList.remove('selected'));
-        const sectionEl = document.querySelector(`[ data-section-id="${data.id}"]`);
+        const sectionEl = document.querySelector(`[data-section-id="${data.id}"]`);
         if (sectionEl) {
           sectionEl.classList.add('selected');
           sectionEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         }
-        break;
-      case 'select-element':
-        // Highlight selected element
+        break; }
+      case 'select-element': {
         document.querySelectorAll('.page-element.selected').forEach(el => el.classList.remove('selected'));
-        const elementEl = document.querySelector(`#data-id="${data.id}"`);
-        if (elementEl) {
-          elementEl.classList.add('selected');
-          elementEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+        const elSel = document.querySelector(`[data-id="${data.id}"]`);
+        if (elSel) {
+          elSel.classList.add('selected');
+          elSel.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
         }
-        break;
-      // PEMBAIKAN BAHARU: Tambah sokongan untuk mesejana arahan dari dashboard
+        break; }
       case 'add-element':
-        addElement(event.data.sectionId, event.data.element);
+        addElement(data.sectionId, data.element);
         break;
-      case 'update-element':
-        const elementEl = document.querySelector(`#data-id="${data.id}"`);
-        if (elementEl) {
-          Object.assign(elementEl.style, data.properties);
-        }
-        break;
-      case 'apply-command':
-        // Apply formatting command to the selected text element
-        const elementEl = document.querySelector('.page-element.selected');
-        if (elementEl && elementEl.querySelector('.rtbox')) {
-          const command = event.data.command;
-          document.execCommand(command, false, null);
-        }
-        break;
+      case 'update-element': {
+        const elUpd = document.querySelector(`[data-id="${data.id}"]`);
+        if (elUpd && data.properties) Object.assign(elUpd.style, data.properties);
+        break; }
+      case 'apply-command': {
+        const elRte = document.querySelector('.page-element.selected .rtbox');
+        if (elRte && data && data.command) document.execCommand(data.command, false, null);
+        break; }
     }
   }
 
   function renderPage() {
-    const mainContent = document.querySelector('main');
+    const mainContent = document.getElementById('main');
     if (!mainContent) return;
     mainContent.innerHTML = '';
 
     pageSections.forEach(section => {
       const sectionNode = createSectionNode(section);
-      if (sectionNode) {
-        mainContent.appendChild(sectionNode);
-      }
+      if (sectionNode) mainContent.appendChild(sectionNode);
     });
 
     if (EDIT_MODE) {
       makeSectionsSelectable();
       makeElementsSelectable();
     }
+
+    // refresh ikon lucide selepas render
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
   }
-  
+
   function createSectionNode(section) {
-    const sectionDiv = document.createElement('div');
+    const sectionDiv = document.createElement('section');
     sectionDiv.className = 'page-section';
     sectionDiv.dataset.id = section.id;
     sectionDiv.dataset.sectionId = section.id;
-    
-    // Gaya untuk bahagian
+
     Object.assign(sectionDiv.style, {
       backgroundColor: section.backgroundColor || 'transparent',
       padding: section.padding || '4rem 1rem',
       borderRadius: `${section.borderRadius || 0}px`
     });
 
-    // Gunakan grid untuk susun elemen di dalamnya
     const grid = document.createElement('div');
     grid.className = 'section-grid';
 
-    if (section.elements && section.elements.length > 0) {
-      section.elements.forEach(el => {
-        const elementNode = createElementNode(el);
-        if (elementNode) {
-          grid.appendChild(elementNode);
-        }
-      });
-    }
-    
+    (section.elements || []).forEach(el => {
+      const elementNode = createElementNode(el);
+      if (elementNode) grid.appendChild(elementNode);
+    });
+
     sectionDiv.appendChild(grid);
     return sectionDiv;
   }
@@ -285,13 +204,12 @@
     const wrapper = document.createElement('div');
     wrapper.className = 'page-element';
     wrapper.dataset.id = el.id;
-    wrapper.dataset.sectionId = el.sectionId;
+    wrapper.dataset.sectionId = el.sectionId || '';
     wrapper.style.gridColumn = el.gridColumn || 'span 12 / span 12';
     wrapper.style.textAlign = el.textAlign || 'left';
     wrapper.style.zIndex = el.zIndex || 1;
-    wrapper.style.opacity = (el.opacity || 100) / 100;
+    wrapper.style.opacity = (el.opacity == null ? 100 : el.opacity) / 100;
 
-    // Gaya latar belakang, border, dll
     Object.assign(wrapper.style, {
       backgroundColor: el.backgroundColor || 'transparent',
       borderWidth: `${el.borderWidth || 0}px`,
@@ -304,55 +222,60 @@
 
     let innerHTML = '';
     switch (el.type) {
-      case 'text':
-        wrapper.style.fontFamily = el.fontFamily || 'Inter';
-        wrapper.style.fontSize = `${el.fontSize || 16}px`;
-        wrapper.style.color = el.color || '#000000';
-        wrapper.style.fontWeight = el.fontWeight || 'normal';
-        wrapper.style.fontStyle = el.fontStyle || 'normal';
-        wrapper.style.textDecoration = el.textDecoration || 'none';
-        // PEMBAIKAN BAHARU: Gunakan innerHTML untuk membenkan HTML yang dijana oleh RTE
+      case 'text': {
+        Object.assign(wrapper.style, {
+          fontFamily: el.fontFamily || 'Inter',
+          fontSize: `${el.fontSize || 16}px`,
+          color: el.color || '#000000',
+          fontWeight: el.fontWeight || 'normal',
+          fontStyle: el.fontStyle || 'normal',
+          textDecoration: el.textDecoration || 'none'
+        });
         innerHTML = el.content || '';
-        break;
-      case 'image':
-        innerHTML = `<img src="${el.src || ''}" style="max-width:100%; height:auto; display:block; border-radius: 0.75rem;">`;
-        break;
-      case 'video':
-        innerHTML = `<video src="${el.src || ''}" controls playsinline style="width:100%; border-radius: 0.75rem;"></video>`;
-        break;
-      case 'button':
+        break; }
+      case 'image': {
+        const radius = el.borderRadius == null ? 12 : Number(el.borderRadius);
+        innerHTML = `<img src="${el.src || ''}" alt="" style="max-width:100%;height:auto;display:block;border-radius:${radius}px">`;
+        break; }
+      case 'video': {
+        const radius = el.borderRadius == null ? 12 : Number(el.borderRadius);
+        innerHTML = `<video src="${el.src || ''}" controls playsinline style="width:100%;border-radius:${radius}px"></video>`;
+        break; }
+      case 'button': {
+        const txt = el.content || 'Button';
+        const href = el.href || '#';
+        const target = el.target || '_blank';
+        const color = el.color || '#ffffff';
+        const bg = el.backgroundColor || '#ef4444';
         wrapper.style.display = 'flex';
         wrapper.style.justifyContent = el.textAlign || 'center';
-        innerHTML = `<a href="${el.href || '#'}" target="${el.target || '_blank'}" style="text-decoration:none; color:${el.color || '#fff'}; background-color:${el.backgroundColor || '#ef4444'}; padding: 0.7rem 1.5rem; font-weight: 700; border-radius: 0.75rem;">${el.content || 'Button'}</a>`;
-        break;
-      // PEMBAIKAN BAHARU: Tambah sokongan untuk jenis elemen baharu
-      case 'social':
-        const iconMap = {
-          facebook: 'facebook', instagram: 'instagram', tiktok: 'tiktok', youtube: 'youtube', telegram: 'telegram', whatsapp: 'whatsapp'
-        };
+        innerHTML = `<a href="${href}" target="${target}" style="text-decoration:none;color:${color};background-color:${bg};padding:.7rem 1.5rem;font-weight:700;border-radius:.75rem;display:inline-block">${txt}</a>`;
+        break; }
+      case 'social': {
+        const iconMap = { facebook:'facebook', instagram:'instagram', tiktok:'tiktok', youtube:'youtube', telegram:'telegram', whatsapp:'phone' };
         const icon = iconMap[el.platform] || 'message-circle';
-        innerHTML = `
-          <a href="${el.url || '#'}" target="_blank" style="text-decoration:none; color:${el.color || '#374151'; display:inline-flex; align-items:center; gap:0.5rem; font-size: ${el.size || 24}px;">
-            <i data-lucide="${icon}" class="w-6 h-6"></i>
-          </a>
-        `;
-        break;
-      case 'link':
-          innerHTML = `
-            <a href="${el.url || '#'}" target="${el.target || '_blank'}" style="text-decoration:none; color:#374151; display:inline-block; font-weight:600;">${el.text || 'Link'}</a>
-          `;
-          break;
+        const url = el.url || '#';
+        const size = el.size || 24;
+        const color = el.color || '#374151';
+        innerHTML = `<a class="social-icon" href="${url}" target="_blank" style="text-decoration:none;color:${color};display:inline-flex;align-items:center;gap:.5rem;font-size:${size}px"><i data-lucide="${icon}" class="w-6 h-6"></i></a>`;
+        break; }
+      case 'link': {
+        const url = el.url || '#';
+        const target = el.target || '_blank';
+        const text = el.text || 'Link';
+        innerHTML = `<a href="${url}" target="${target}" style="text-decoration:none;color:#374151;display:inline-block;font-weight:600">${text}</a>`;
+        break; }
+      default: {
+        innerHTML = '';
+      }
     }
-    
+
     wrapper.innerHTML = innerHTML;
     return wrapper;
   }
 
-  // Fungsi untuk menguruskan bahagian
-  function addSection(section) {
-    pageSections.push(section);
-    renderPage();
-  }
+  // --- API pengurusan bahagian/elemen ---
+  function addSection(section) { pageSections.push(section); renderPage(); }
   function updateSection(id, properties) {
     const sec = pageSections.find(s => s.id === id);
     if (sec) { Object.assign(sec, properties); renderPage(); }
@@ -362,42 +285,28 @@
     renderPage();
   }
 
-  // Fungsi untuk menguruskan elemen
   function addElement(sectionId, element) {
     const sec = pageSections.find(s => s.id === sectionId);
-    if (sec) {
-      sec.elements = sec.elements || [];
-      sec.elements.push(element);
-      renderPage();
-    }
+    if (sec) { (sec.elements = sec.elements || []).push(element); renderPage(); }
   }
   function updateElement(id, properties) {
     for (const sec of pageSections) {
-      const el = sec.elements.find(e => e.id === id);
-      if (el) {
-        Object.assign(el, properties);
-        renderPage();
-        return;
-      }
+      const el = (sec.elements || []).find(e => e.id === id);
+      if (el) { Object.assign(el, properties); renderPage(); return; }
     }
   }
   function deleteElement(id) {
     for (const sec of pageSections) {
-      const index = sec.elements.findIndex(e => e.id === id);
-      if (index > -1) {
-        sec.elements.splice(index, 1);
-        renderPage();
-        return;
-      }
+      const idx = (sec.elements || []).findIndex(e => e.id === id);
+      if (idx > -1) { sec.elements.splice(idx, 1); renderPage(); return; }
+    }
   }
 
-  // Fungsi untuk menjadikan bahagian
+  // Pilihan & mesej balik ke parent dashboard
   function makeSectionsSelectable() {
     document.querySelectorAll('.page-section').forEach(sec => {
       sec.addEventListener('click', (e) => {
-        // Jangan pilih bahagian jika elemen di dalamnya diklik
         if (e.target.closest('.page-element')) return;
-        
         e.stopPropagation();
         document.querySelectorAll('.page-section.selected').forEach(s => s.classList.remove('selected'));
         sec.classList.add('selected');
@@ -418,35 +327,43 @@
   }
 
   // Inisialisasi
-  lucide.createIcons();
   document.getElementById('year').textContent = new Date().getFullYear();
 
   (async function init() {
     try {
       const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
-      const response = await api('settings_get', { leader_id: leader_id });
-      
-      if (response.success && response.settings.sections_json) {
-        pageSections = JSON.parse(response.settings.sections_json);
-        renderPage();
+      const response = await api('settings_get', { leader_id });
 
-        if (EDIT_MODE) {
-          window.parent.postMessage({ type: 'sections-loaded', data: { sections: pageSections } }, '*');
-        } else {
-          renderPage();
-          if (EDIT_MODE) {
-            window.parent.postMessage({ type: 'sections-loaded', data: { sections: [] }, '*');
-          }
-        }
+      if (response && response.success && response.settings && response.settings.sections_json) {
+        try { pageSections = JSON.parse(response.settings.sections_json) || []; }
+        catch { pageSections = []; }
       } else {
-        renderPage();
-        if (EDIT_MODE) {
-          window.parent.postMessage({ type: 'sections-loaded', data: { sections: [] }, '*');
-        }
+        // keadaan kosong: sediakan beberapa bahagian default asas untuk Free Users
+        pageSections = [
+          {
+            id: 'hero',
+            backgroundColor: '#ffffff',
+            padding: '4rem 1rem',
+            borderRadius: 0,
+            elements: [
+              { id: 'h1', type: 'text', sectionId: 'hero', gridColumn: 'span 12 / span 12', content: '<h1 style="font-size:2rem;font-weight:800;margin:0 0 .5rem">Selamat datang ke MOVA</h1><p class="muted" style="margin:0">Platform untuk pengguna percuma. Naik taraf bila-bila masa.</p>' },
+              { id: 'cta', type: 'button', sectionId: 'hero', gridColumn: 'span 12 / span 12', content: 'Naik Taraf Sekarang', href: '#upgrade', backgroundColor: '#ef4444', color:'#ffffff' }
+            ]
+          }
+        ];
+      }
+
+      renderPage();
+
+      if (EDIT_MODE) {
+        window.parent.postMessage({ type: 'sections-loaded', data: { sections: pageSections } }, '*');
       }
     } catch (error) {
-      console.error("Gagal memuat data halaman:", error);
-      toast("Gagal memuatkan kandungan halaman.");
+      console.error('Gagal memuat data halaman:', error);
+      toast('Gagal memuatkan kandungan halaman.');
+      // fallback supaya UI tetap boleh dilihat
+      pageSections = pageSections || [];
+      renderPage();
     }
   })();
 </script>
