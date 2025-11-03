@@ -653,8 +653,7 @@
     historyIndex: -1,           // Current position in history
     zoomLevel: 1,               // Current zoom level for preview
     draggedItem: null,          // Currently dragged item
-    contextMenuTarget: null,    // Target for context menu
-    iframeReady: false          // Flag to check if iframe is ready
+    contextMenuTarget: null     // Target for context menu
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -1218,8 +1217,12 @@
   function initEditor() {
     const userPreview = document.getElementById('userPreview');
     
-    // Tambahkan event listener untuk memeriksa apakah iframe sudah sedia
-    window.addEventListener('message', handleIframeMessage);
+    // Ensure iframe is loaded before setting up message handler
+    userPreview.addEventListener('load', () => {
+      window.addEventListener('message', handleIframeMessage);
+      // Send initial message to iframe to check if it's ready
+      sendToIframe('check-ready', {});
+    });
     
     // Setup event listeners for the new UI
     document.getElementById('btnAddSection').addEventListener('click', addNewSection);
@@ -1227,19 +1230,18 @@
     document.getElementById('btnCloseProperties').addEventListener('click', closePropertiesPanel);
     document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
     
-    // Tunggu sehingga iframe sedia sebelum memuatkan reka bentuk
-    userPreview.addEventListener('load', () => {
-      store.iframeReady = true;
-      loadDesign();
-    });
+    loadDesign();
   }
 
   function handleIframeMessage(event) {
+    // Verify message origin for security
+    if (event.origin !== window.location.origin) return;
+    
     const { type, data } = event.data;
     
     switch (type) {
-      case 'iframe-ready':
-        store.iframeReady = true;
+      case 'ready':
+        // If iframe is ready, load sections
         loadDesign();
         break;
       case 'sections-loaded':
@@ -3293,7 +3295,7 @@
   // Pastikan fungsi sendToIframe
   function sendToIframe(type, data) {
     const userPreview = document.getElementById('userPreview');
-    if (userPreview && userPreview.contentWindow && store.iframeReady) {
+    if (userPreview && userPreview.contentWindow) {
       const send = () => {
         userPreview.contentWindow.postMessage({ type, data }, '*');
       };
