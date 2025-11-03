@@ -1308,6 +1308,11 @@
   }
 
   function selectSection(sectionId) {
+    // Don't change tabs if already on the user tab
+    if (document.getElementById('tab-user').classList.contains('hidden')) {
+      setActiveTab('user');
+    }
+    
     store.selectedSectionId = sectionId;
     store.selectedElementId = null;
     
@@ -1686,6 +1691,11 @@
   // ===================================================================
 
   function selectElement(elementId) {
+    // Don't change tabs if already on the user tab
+    if (document.getElementById('tab-user').classList.contains('hidden')) {
+      setActiveTab('user');
+    }
+    
     store.selectedElementId = elementId;
     store.selectedSectionId = null;
     
