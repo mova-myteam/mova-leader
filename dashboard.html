@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
 
-  <!-- Tailwind -->
+  <!-- Tailwind CSS - Perhatian: Untuk produksi, gunakan Tailwind CLI atau PostCSS plugin -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -676,46 +676,46 @@
         sectionData.forEach((item, idx) => {
           const div = document.createElement("div");
           div.className = "section-block";
-          div.innerHTML = \`
+          div.innerHTML = `
             <div class="flex items-start justify-between gap-2">
               <div>
-                <p class="text-[.65rem] text-slate-500">Bahagian \${idx+1}</p>
-                <input data-idx="\${idx}" data-field="title" class="input mt-1 text-sm" value="\${item.title||""}" placeholder="Tajuk bahagian"/>
-                <textarea data-idx="\${idx}" data-field="body" class="input mt-2 text-[.7rem] min-h-[70px]" placeholder="Teks (boleh HTML ringkas)">\${item.body||""}</textarea>
+                <p class="text-[.65rem] text-slate-500">Bahagian ${idx+1}</p>
+                <input data-idx="${idx}" data-field="title" class="input mt-1 text-sm" value="${item.title||""}" placeholder="Tajuk bahagian"/>
+                <textarea data-idx="${idx}" data-field="body" class="input mt-2 text-[.7rem] min-h-[70px]" placeholder="Teks (boleh HTML ringkas)">${item.body||""}</textarea>
                 <div class="grid grid-cols-2 gap-2 mt-2">
-                  <input data-idx="\${idx}" data-field="image" class="input text-[.66rem]" placeholder="URL Gambar" value="\${item.image||""}"/>
-                  <input data-idx="\${idx}" data-field="video" class="input text-[.66rem]" placeholder="URL Video" value="\${item.video||""}"/>
+                  <input data-idx="${idx}" data-field="image" class="input text-[.66rem]" placeholder="URL Gambar" value="${item.image||""}"/>
+                  <input data-idx="${idx}" data-field="video" class="input text-[.66rem]" placeholder="URL Video" value="${item.video||""}"/>
                 </div>
                 <div class="grid grid-cols-2 gap-2 mt-2">
-                  <input data-idx="\${idx}" data-field="link_text" class="input text-[.66rem]" placeholder="Teks Butang" value="\${item.link_text||""}"/>
-                  <input data-idx="\${idx}" data-field="link_url" class="input text-[.66rem]" placeholder="URL Butang" value="\${item.link_url||""}"/>
+                  <input data-idx="${idx}" data-field="link_text" class="input text-[.66rem]" placeholder="Teks Butang" value="${item.link_text||""}"/>
+                  <input data-idx="${idx}" data-field="link_url" class="input text-[.66rem]" placeholder="URL Butang" value="${item.link_url||""}"/>
                 </div>
                 <div class="grid grid-cols-3 gap-2 mt-2">
-                  <input data-idx="\${idx}" data-field="color" class="input text-[.66rem]" placeholder="Warna (#ef4444)" value="\${item.color||""}"/>
-                  <input data-idx="\${idx}" data-field="font_size" class="input text-[.66rem]" placeholder="Saiz font (1rem)" value="\${item.font_size||""}"/>
-                  <select data-idx="\${idx}" data-field="bold" class="input text-[.66rem]">
+                  <input data-idx="${idx}" data-field="color" class="input text-[.66rem]" placeholder="Warna (#ef4444)" value="${item.color||""}"/>
+                  <input data-idx="${idx}" data-field="font_size" class="input text-[.66rem]" placeholder="Saiz font (1rem)" value="${item.font_size||""}"/>
+                  <select data-idx="${idx}" data-field="bold" class="input text-[.66rem]">
                     <option value="">Normal</option>
-                    <option value="1" \${item.bold ? "selected" : ""}>Bold</option>
+                    <option value="1" ${item.bold ? "selected" : ""}>Bold</option>
                   </select>
                 </div>
               </div>
               <div class="flex flex-col gap-1">
-                <button data-action="up" data-idx="\${idx}" class="btn btn-ghost text-[.6rem] px-2 py-1"><i data-lucide="arrow-up" class="w-3 h-3"></i></button>
-                <button data-action="down" data-idx="\${idx}" class="btn btn-ghost text-[.6rem] px-2 py-1"><i data-lucide="arrow-down" class="w-3 h-3"></i></button>
-                <button data-action="delete" data-idx="\${idx}" class="btn btn-ghost text-[.6rem] px-2 py-1 text-red-500"><i data-lucide="trash" class="w-3 h-3"></i></button>
+                <button data-action="up" data-idx="${idx}" class="btn btn-ghost text-[.6rem] px-2 py-1"><i data-lucide="arrow-up" class="w-3 h-3"></i></button>
+                <button data-action="down" data-idx="${idx}" class="btn btn-ghost text-[.6rem] px-2 py-1"><i data-lucide="arrow-down" class="w-3 h-3"></i></button>
+                <button data-action="delete" data-idx="${idx}" class="btn btn-ghost text-[.6rem] px-2 py-1 text-red-500"><i data-lucide="trash" class="w-3 h-3"></i></button>
               </div>
             </div>
-          \`;
+          `;
           sectionListEl.appendChild(div);
 
           const pv = document.createElement("div");
           pv.className = "preview-card";
-          pv.innerHTML = \`
-            <p class="text-xs font-semibold mb-1">\${item.title||"Tiada tajuk"}</p>
-            <p class="text-[.6rem] text-slate-500 line-clamp-3">\${item.body||""}</p>
-            \${item.image ? \`<img src="\${item.image}" class="mt-2 rounded-md border object-cover max-h-[90px] w-full"/>\` : ""}
-            \${item.link_text ? \`<button class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-[#ef4444]/90 text-white rounded-md text-[.55rem]">\${item.link_text}<i data-lucide="arrow-right" class="w-3 h-3"></i></button>\`:""}
-          \`;
+          pv.innerHTML = `
+            <p class="text-xs font-semibold mb-1">${item.title||"Tiada tajuk"}</p>
+            <p class="text-[.6rem] text-slate-500 line-clamp-3">${item.body||""}</p>
+            ${item.image ? `<img src="${item.image}" class="mt-2 rounded-md border object-cover max-h-[90px] w-full"/>` : ""}
+            ${item.link_text ? `<button class="mt-2 inline-flex items-center gap-1 px-2 py-1 bg-[#ef4444]/90 text-white rounded-md text-[.55rem]">${item.link_text}<i data-lucide="arrow-right" class="w-3 h-3"></i></button>`:""}
+          `;
           miniPreviewEl.appendChild(pv);
         });
       }
@@ -784,13 +784,13 @@
       sectionData.forEach(item => {
         const wrap = document.createElement("div");
         wrap.className = "mb-4 border border-slate-100 rounded-xl p-4 bg-white";
-        wrap.innerHTML = \`
-          <h4 class="text-sm font-semibold mb-2" style="\${item.color?`color:\${item.color};`:''}">\${item.title||""}</h4>
-          <div class="text-[.68rem] leading-relaxed" style="\${item.font_size?`font-size:\${item.font_size};`:''}\${item.bold?';font-weight:700;':''}">\${item.body||""}</div>
-          \${item.image ? \`<img src="\${item.image}" class="mt-3 rounded-lg border"/> \` : ""}
-          \${item.video ? \`<div class="mt-3"><iframe src="\${item.video}" class="w-full aspect-video rounded-lg border"></iframe></div>\` : ""}
-          \${item.link_text ? \`<a href="\${item.link_url||"#"}" class="inline-flex items-center gap-1 mt-3 px-3 py-1.5 bg-[#ef4444] text-white text-[.65rem] rounded-lg">\${item.link_text}<i data-lucide="arrow-right" class="w-3 h-3"></i></a>\` : ""}
-        \`;
+        wrap.innerHTML = `
+          <h4 class="text-sm font-semibold mb-2" style="${item.color?`color:${item.color};`:''}">${item.title||""}</h4>
+          <div class="text-[.68rem] leading-relaxed" style="${item.font_size?`font-size:${item.font_size};`:''}${item.bold?';font-weight:700;':''}">${item.body||""}</div>
+          ${item.image ? `<img src="${item.image}" class="mt-3 rounded-lg border"/> ` : ""}
+          ${item.video ? `<div class="mt-3"><iframe src="${item.video}" class="w-full aspect-video rounded-lg border"></iframe></div>` : ""}
+          ${item.link_text ? `<a href="${item.link_url||"#"}" class="inline-flex items-center gap-1 mt-3 px-3 py-1.5 bg-[#ef4444] text-white text-[.65rem] rounded-lg">${item.link_text}<i data-lucide="arrow-right" class="w-3 h-3"></i></a>` : ""}
+        `;
         body.appendChild(wrap);
       });
       if (window.lucide) lucide.createIcons();
@@ -813,14 +813,14 @@
       tbl.innerHTML = "";
       rows.forEach(row => {
         const tr = document.createElement("tr");
-        tr.innerHTML = \`
-          <td>\${row.title||""}</td>
-          <td>\${row.category||""}</td>
-          <td>\${row.date||""}</td>
+        tr.innerHTML = `
+          <td>${row.title||""}</td>
+          <td>${row.category||""}</td>
+          <td>${row.date||""}</td>
           <td>
             <button class="btn btn-ghost text-[.6rem] px-2 py-1">Lihat</button>
           </td>
-        \`;
+        `;
         tbl.appendChild(tr);
       });
     }
@@ -840,13 +840,13 @@
       rows.forEach(it => {
         const card = document.createElement("div");
         card.className = "bg-white rounded-xl border p-2 flex flex-col gap-2";
-        card.innerHTML = \`
+        card.innerHTML = `
           <div class="aspect-video bg-slate-100 rounded-lg overflow-hidden flex items-center justify-center text-[.6rem] text-slate-400">
-            \${it.type && it.type.startsWith("video") ? "<span>VIDEO</span>" : "<img src='"+(it.url||"")+"' class='w-full h-full object-cover'/>"}
+            ${it.type && it.type.startsWith("video") ? "<span>VIDEO</span>" : "<img src='"+(it.url||"")+"' class='w-full h-full object-cover'/>"}
           </div>
-          <p class="text-[.6rem] truncate">\${it.name||"media"}</p>
-          <button class="btn btn-ghost text-[.6rem] px-2 py-1" onclick="navigator.clipboard.writeText('\${it.url||""}')">Salin URL</button>
-        \`;
+          <p class="text-[.6rem] truncate">${it.name||"media"}</p>
+          <button class="btn btn-ghost text-[.6rem] px-2 py-1" onclick="navigator.clipboard.writeText('${it.url||""}')">Salin URL</button>
+        `;
         grd.appendChild(card);
       });
     }
@@ -880,12 +880,12 @@
       tbl.innerHTML = "";
       (res.data || []).forEach(p => {
         const tr = document.createElement("tr");
-        tr.innerHTML = \`
-          <td>\${p.name||""}</td>
-          <td>\${p.package||""}</td>
-          <td>\${p.phone||""}</td>
-          <td>\${p.date||""}</td>
-        \`;
+        tr.innerHTML = `
+          <td>${p.name||""}</td>
+          <td>${p.package||""}</td>
+          <td>${p.phone||""}</td>
+          <td>${p.date||""}</td>
+        `;
         tbl.appendChild(tr);
       });
     }
@@ -922,15 +922,15 @@
       tbl.innerHTML = "";
       (res.data || []).forEach(r => {
         const tr = document.createElement("tr");
-        tr.innerHTML = \`
-          <td>\${r.name||""}</td>
-          <td>\${r.phone||""}</td>
-          <td>\${r.package||""}</td>
-          <td>\${r.partner||""}</td>
+        tr.innerHTML = `
+          <td>${r.name||""}</td>
+          <td>${r.phone||""}</td>
+          <td>${r.package||""}</td>
+          <td>${r.partner||""}</td>
           <td>
-            <button class="btn btn-primary text-[.6rem] px-2 py-1" onclick="approveReg('\${r.id||""}')">Lulus</button>
+            <button class="btn btn-primary text-[.6rem] px-2 py-1" onclick="approveReg('${r.id||""}')">Lulus</button>
           </td>
-        \`;
+        `;
         tbl.appendChild(tr);
       });
     }
@@ -955,12 +955,12 @@
       tbl.innerHTML = "";
       (res.data || []).forEach(b => {
         const tr = document.createElement("tr");
-        tr.innerHTML = \`
-          <td>\${b.date||""}</td>
-          <td>\${b.to||""}</td>
-          <td class="max-w-xs truncate">\${b.message||""}</td>
-          <td>\${b.status||""}</td>
-        \`;
+        tr.innerHTML = `
+          <td>${b.date||""}</td>
+          <td>${b.to||""}</td>
+          <td class="max-w-xs truncate">${b.message||""}</td>
+          <td>${b.status||""}</td>
+        `;
         tbl.appendChild(tr);
       });
     }
