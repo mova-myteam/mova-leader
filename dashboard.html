@@ -653,7 +653,8 @@
     historyIndex: -1,           // Current position in history
     zoomLevel: 1,               // Current zoom level for preview
     draggedItem: null,          // Currently dragged item
-    contextMenuTarget: null     // Target for context menu
+    contextMenuTarget: null,    // Target for context menu
+    iframeReady: false          // Flag to check if iframe is ready
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -949,7 +950,7 @@
     try{
       const b64 = await toBase64NoPrefix(f);
       const json = await callApi('upload_media', { leader_id: store.leader.leader_id, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64 });
-      if (json.success){ addMediaTile(json.public_url, json.isVideo); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
+      if (json.success){ addMediaTile(json.public_url, /^video\//i.test(json.file_type||'')); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
     }catch(err){ toast('Ralat muat naik'); }
   });
   document.getElementById('btnInsertToContent').addEventListener('click', ()=>{ const count = store.selectedMedia.size; toast(count ? `Ditandakan ${count} media` : 'Tiada media dipilih'); updateChosenMediaHint(); });
@@ -1217,6 +1218,7 @@
   function initEditor() {
     const userPreview = document.getElementById('userPreview');
     
+    // Tambahkan event listener untuk memeriksa apakah iframe sudah sedia
     window.addEventListener('message', handleIframeMessage);
     
     // Setup event listeners for the new UI
@@ -1225,13 +1227,21 @@
     document.getElementById('btnCloseProperties').addEventListener('click', closePropertiesPanel);
     document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
     
-    loadDesign();
+    // Tunggu sehingga iframe sedia sebelum memuatkan reka bentuk
+    userPreview.addEventListener('load', () => {
+      store.iframeReady = true;
+      loadDesign();
+    });
   }
 
   function handleIframeMessage(event) {
     const { type, data } = event.data;
     
     switch (type) {
+      case 'iframe-ready':
+        store.iframeReady = true;
+        loadDesign();
+        break;
       case 'sections-loaded':
         store.sections = data.sections || [];
         renderSectionList();
@@ -1308,11 +1318,6 @@
   }
 
   function selectSection(sectionId) {
-    // Don't change tabs if already on the user tab
-    if (document.getElementById('tab-user').classList.contains('hidden')) {
-      setActiveTab('user');
-    }
-    
     store.selectedSectionId = sectionId;
     store.selectedElementId = null;
     
@@ -1691,11 +1696,6 @@
   // ===================================================================
 
   function selectElement(elementId) {
-    // Don't change tabs if already on the user tab
-    if (document.getElementById('tab-user').classList.contains('hidden')) {
-      setActiveTab('user');
-    }
-    
     store.selectedElementId = elementId;
     store.selectedSectionId = null;
     
@@ -3293,7 +3293,7 @@
   // Pastikan fungsi sendToIframe
   function sendToIframe(type, data) {
     const userPreview = document.getElementById('userPreview');
-    if (userPreview && userPreview.contentWindow) {
+    if (userPreview && userPreview.contentWindow && store.iframeReady) {
       const send = () => {
         userPreview.contentWindow.postMessage({ type, data }, '*');
       };
