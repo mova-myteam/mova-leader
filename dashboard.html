@@ -949,7 +949,7 @@
     try{
       const b64 = await toBase64NoPrefix(f);
       const json = await callApi('upload_media', { leader_id: store.leader.leader_id, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64 });
-      if (json.success){ addMediaTile(json.public_url, /^video\//i.test(json.file_type||'')); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
+      if (json.success){ addMediaTile(json.public_url, json.isVideo); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
     }catch(err){ toast('Ralat muat naik'); }
   });
   document.getElementById('btnInsertToContent').addEventListener('click', ()=>{ const count = store.selectedMedia.size; toast(count ? `Ditandakan ${count} media` : 'Tiada media dipilih'); updateChosenMediaHint(); });
@@ -1217,12 +1217,7 @@
   function initEditor() {
     const userPreview = document.getElementById('userPreview');
     
-    // Ensure iframe is loaded before setting up message handler
-    userPreview.addEventListener('load', () => {
-      window.addEventListener('message', handleIframeMessage);
-      // Send initial message to iframe to check if it's ready
-      sendToIframe('check-ready', {});
-    });
+    window.addEventListener('message', handleIframeMessage);
     
     // Setup event listeners for the new UI
     document.getElementById('btnAddSection').addEventListener('click', addNewSection);
@@ -1234,16 +1229,9 @@
   }
 
   function handleIframeMessage(event) {
-    // Verify message origin for security
-    if (event.origin !== window.location.origin) return;
-    
     const { type, data } = event.data;
     
     switch (type) {
-      case 'ready':
-        // If iframe is ready, load sections
-        loadDesign();
-        break;
       case 'sections-loaded':
         store.sections = data.sections || [];
         renderSectionList();
