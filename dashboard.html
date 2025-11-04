@@ -1221,7 +1221,7 @@
     // 修复: 添加iframe加载状态监听
     userPreview.addEventListener('load', () => {
       store.iframeReady = true;
-      console.log('Iframe loaded successfully');
+      console.log('iframe loaded successfully');
     }, { once: true });
     
     window.addEventListener('message', handleIframeMessage);
@@ -4628,6 +4628,27 @@
       saveDesign();
     }
   }
+
+  // =========================
+  // 修复: 添加iframe加载监听和sections-loaded消息处理
+  // =========================
+  
+  // 修复: 监听iframe的load事件，确保iframe加载完成后自动刷新预览内容
+  const userPreview = document.getElementById('userPreview');
+  if (userPreview) {
+    userPreview.addEventListener('load', () => {
+      console.log('iframe onload → refresh sections'); // 修复: 添加日志便于调试
+      sendToIframe('load-sections', store.sections);
+    });
+  }
+  
+  // 修复: 监听来自iframe的"sections-loaded"消息，确保双向同步
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'sections-loaded') {
+      console.log('sections-loaded signal diterima dari iframe'); // 修复: 添加日志便于调试
+      sendToIframe('load-sections', store.sections);
+    }
+  });
 
 </script>
 </body>
