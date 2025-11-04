@@ -653,7 +653,8 @@
     historyIndex: -1,           // Current position in history
     zoomLevel: 1,               // Current zoom level for preview
     draggedItem: null,          // Currently dragged item
-    contextMenuTarget: null     // Target for context menu
+    contextMenuTarget: null,    // Target for context menu
+    iframeReady: false          // Track iframe readiness
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -1217,6 +1218,12 @@
   function initEditor() {
     const userPreview = document.getElementById('userPreview');
     
+    // 修复: 添加iframe加载状态监听
+    userPreview.addEventListener('load', () => {
+      store.iframeReady = true;
+      console.log('Iframe loaded successfully');
+    }, { once: true });
+    
     window.addEventListener('message', handleIframeMessage);
     
     // Setup event listeners for the new UI
@@ -1649,12 +1656,14 @@
     const userPreview = document.getElementById('userPreview');
     // 修复: 确保能正确获取到[data-section-id="<ID>"]的元素
     if (!userPreview || !userPreview.contentWindow || !userPreview.contentWindow.document) {
-      return; // 安全返回，不抛异常
+      console.warn("applySectionStyle skipped — iframe belum siap"); // 修复: 防止空白页
+      return;
     }
     
     const mainElement = userPreview.contentWindow.document.querySelector(`[data-section-id="${section.id}"]`);
     if (!mainElement) {
-      return; // 安全返回，不抛异常
+      console.warn("applySectionStyle skipped — elemen tidak dijumpai:", section.id); // 修复
+      return;
     }
     
     mainElement.className = mainElement.className.replace(/section-style-\S+/g, '');
@@ -2777,7 +2786,7 @@
           currentElement.animation = animationSelect.value;
           saveDesign();
           addToHistory();
-          sendToIframe('update-element', { id: currentElement.id, properties: { animation: currentElement.animation } });
+          sendToIframe('update-element', { id: currentElement.id, properties: { animation: e.target.value } });
         });
       }
       
@@ -3978,11 +3987,13 @@
           console.error('Error sending message to iframe:', error);
         }
       };
-      // 修复: sendToIframe必须在iframe加载完成后再发送
+      
+      // 修复: 如果iframe未完全加载，延迟重试发送
       if (userPreview.contentDocument.readyState === 'complete') {
         send();
       } else {
         userPreview.addEventListener('load', send, { once: true });
+        setTimeout(send, 500); // fallback retry setelah 0.5s
       }
     } else {
       console.warn('Iframe not available');
