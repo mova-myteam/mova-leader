@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MOVA — Untuk Pengguna (Free Users)</title>
 
+  <!-- Fonts & Libraries -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -16,155 +17,157 @@
     .btn-primary{background:var(--brand);color:#fff}
     .btn-ghost{background:#fff;border:1px solid #e5e7eb;}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
+    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.7rem .9rem;background:#fff;}
+    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
+    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
+    .section-title{font-weight:800;font-size:1.25rem}
+    .muted{color:#6b7280}
+    .edit-mode .page-section { outline: 1px dashed #d1d5db; outline-offset: -1px; transition: outline .2s ease }
+    .edit-mode .page-section:hover { outline: 1px dashed #9ca3af }
+    .page-section.selected { outline: 2px solid #3b82f6 !important; outline-offset: -2px }
+    .section-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem }
+    .page-element { cursor: pointer; transition: box-shadow .2s ease }
+    .page-element.selected { outline: 2px solid #10b981; outline-offset: 2px }
+    .rtbox { min-height:120px; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem; background:#fff }
+    .toolbar { display:flex; flex-wrap:wrap; gap:.25rem; margin-bottom:.5rem }
+    .toolbar button { border:1px solid #e5e7eb; border-radius:.5rem; padding:.25rem .5rem; background:#fff; transition:all .2s ease }
+    .toolbar button:hover { background:#f3f4f6 }
+    .toolbar button.active { background:#111; color:#fff; border-color:#111 }
+    .toolbar select { transition:all .2s ease }
+    .toolbar select:focus { background:#f9fafb }
+    .rtbox:focus { outline:2px solid #111 }
+    .social-icon { display:inline-flex; align-items:center; gap:.5rem; font-size:var(--icon-size,24px); color:var(--icon-color,#374151); transition:transform .2s ease }
+    .social-icon:hover { transform: translateY(-2px) }
   </style>
 </head>
+<body>
 
-<body class="min-h-screen">
+<nav class="bg-white border-b border-gray-200">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
+        <i data-lucide="rocket" class="w-5 h-5"></i>
+      </div>
+      <div class="font-extrabold">MOVA</div>
+    </div>
+  </div>
+</nav>
 
-  <main id="page" class="space-y-6 p-4 md:p-8 max-w-5xl mx-auto"></main>
+<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8" id="main"></main>
 
-  <script>
-    const EDIT_MODE = window.location.search.includes('edit=1');
-    let pageSections = [];
+<footer class="mt-10 py-10 text-center text-sm text-gray-500">
+  © <span id="year"></span> MOVA. <span class="text-gray-500">Hak cipta terpelihara.</span>
+</footer>
 
-    // -----------------------------
-    // Bina elemen bahagian
-    // -----------------------------
-    function createSectionElement(section) {
-      const el = document.createElement("section");
-      el.dataset.sectionId = section.id;
-      el.className = "card p-6";
-      if (section.style && section.style !== 'default') {
-        el.classList.add(`section-style-${section.style}`);
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
+
+function toast(msg, ms = 2200) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.add('hidden'), ms);
+}
+
+async function api(path, payload) {
+  const res = await fetch(EXEC_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+    body: new URLSearchParams({ path, payload: JSON.stringify(payload || {}) })
+  });
+  const text = await res.text();
+  let json;
+  try { json = JSON.parse(text); } catch (e) { throw new Error(text); }
+  if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
+  return json;
+}
+
+const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
+let pageSections = [];
+
+if (EDIT_MODE) {
+  window.addEventListener('message', handleIframeMessage);
+  document.body.classList.add('edit-mode');
+}
+
+// 修复: tambahan untuk menghantar data semasa ke dashboard selepas setiap update
+function syncSectionsToParent(reason) {
+  if (EDIT_MODE && pageSections.length) {
+    window.parent?.postMessage({ type: 'sections-updated', data: { sections: pageSections, reason } }, '*');
+    console.log("sections-updated dihantar:", reason);
+  }
+}
+
+function handleIframeMessage(event) {
+  const { type, data } = event.data || {};
+  switch (type) {
+    case 'load-sections':
+      pageSections = Array.isArray(data?.sections) ? data.sections : [];
+      renderPage();
+      syncSectionsToParent('load-sections');
+      break;
+    case 'update-section':
+      const sec = pageSections.find(s => s.id === data.id);
+      if (sec) Object.assign(sec, data);
+      renderPage();
+      syncSectionsToParent('update-section');
+      break;
+    case 'update-element':
+      for (const sec of pageSections) {
+        const el = (sec.elements || []).find(e => e.id === data.id);
+        if (el) Object.assign(el, data);
       }
-
-      if (section.blocks) {
-        for (const block of section.blocks) {
-          const blockEl = document.createElement(block.tag || "div");
-          blockEl.textContent = block.text || "";
-          if (block.type === "image") {
-            const img = document.createElement("img");
-            img.src = block.src || "";
-            img.alt = block.alt || "";
-            img.className = "w-full rounded-xl mb-3";
-            blockEl.appendChild(img);
-          } else if (block.type === "video") {
-            const vid = document.createElement("iframe");
-            vid.src = block.src || "";
-            vid.className = "w-full aspect-video rounded-xl mb-3";
-            vid.allowFullscreen = true;
-            blockEl.appendChild(vid);
-          }
-          el.appendChild(blockEl);
-        }
+      renderPage();
+      syncSectionsToParent('update-element');
+      break;
+    case 'add-element':
+      const t = pageSections.find(s => s.id === data.sectionId);
+      if (t && t.elements) {
+        t.elements.push(data.element);
+        renderPage();
+        syncSectionsToParent('add-element');
       }
-      return el;
+      break;
+    default: break;
+  }
+}
+
+function renderPage() {
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  pageSections.forEach(section => {
+    const sec = document.createElement('section');
+    sec.className = 'page-section';
+    sec.dataset.sectionId = section.id;
+    sec.textContent = section.title || '';
+    main.appendChild(sec);
+  });
+  if (window.lucide?.createIcons) lucide.createIcons();
+  syncSectionsToParent('renderPage');
+}
+
+// 修复: Pantau perubahan DOM secara langsung untuk sync automatik
+const observer = new MutationObserver(() => syncSectionsToParent('mutation'));
+observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+
+document.addEventListener('DOMContentLoaded', async () => {
+  if (window.lucide?.createIcons) lucide.createIcons();
+  document.getElementById('year').textContent = new Date().getFullYear();
+  try {
+    const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
+    const res = await api('settings_get', { leader_id });
+    if (res?.success && res?.settings?.sections_json) {
+      try { pageSections = JSON.parse(res.settings.sections_json) || []; } catch { pageSections = []; }
     }
-
-    // -----------------------------
-    // Render semula halaman
-    // -----------------------------
-    function renderPage() {
-      const page = document.getElementById("page");
-      page.innerHTML = "";
-      for (const section of pageSections) {
-        const sectionEl = createSectionElement(section);
-        page.appendChild(sectionEl);
-      }
-
-      // 修复: Hantar isyarat setiap kali halaman siap render semula
-      if (EDIT_MODE) {
-        window.parent?.postMessage({
-          type: 'sections-loaded',
-          data: { sections: pageSections }
-        }, '*');
-        console.log("sections-loaded dihantar semula selepas renderPage()");
-      }
-    }
-
-    // -----------------------------
-    // Terima mesej dari dashboard.html
-    // -----------------------------
-    function handleIframeMessage(event) {
-      const { type, data } = event.data || {};
-      if (!type) return;
-
-      switch (type) {
-        case "load-sections":
-          pageSections = data.sections || [];
-          renderPage();
-          break;
-        case "update-section":
-          const sec = pageSections.find(s => s.id === data.id);
-          if (sec) Object.assign(sec, data);
-          renderPage();
-          break;
-        case "add-element":
-          const target = pageSections.find(s => s.id === data.sectionId);
-          if (target && target.blocks) {
-            target.blocks.push(data.block);
-            renderPage();
-          }
-          break;
-        case "update-element":
-          const tgt = pageSections.find(s => s.id === data.sectionId);
-          if (tgt && tgt.blocks) {
-            const blk = tgt.blocks.find(b => b.id === data.block.id);
-            if (blk) Object.assign(blk, data.block);
-            renderPage();
-          }
-          break;
-        case "delete-element":
-          const delSec = pageSections.find(s => s.id === data.sectionId);
-          if (delSec && delSec.blocks) {
-            delSec.blocks = delSec.blocks.filter(b => b.id !== data.blockId);
-            renderPage();
-          }
-          break;
-        case "deselect-all":
-          document.querySelectorAll(".selected").forEach(el => el.classList.remove("selected"));
-          break;
-        case "apply-command":
-          document.execCommand(data.command, false, data.value || null);
-          break;
-      }
-
-      // 修复: Setiap kali terima mesej dari dashboard (kecuali load-sections kosong),
-      // hantar balik sections semasa untuk sync dua hala
-      if (EDIT_MODE && pageSections.length) {
-        window.parent?.postMessage({
-          type: 'sections-updated',
-          data: { sections: pageSections }
-        }, '*');
-      }
-    }
-
-    window.addEventListener("message", handleIframeMessage);
-
-    // -----------------------------
-    // Hantar isyarat pertama selepas siap load
-    // -----------------------------
-    document.addEventListener("DOMContentLoaded", () => {
-      if (EDIT_MODE) {
-        window.parent?.postMessage({
-          type: 'sections-loaded',
-          data: { sections: pageSections }
-        }, '*');
-        console.log("sections-loaded dihantar pada DOMContentLoaded");
-      }
-    });
-
-    // 修复: Hantar isyarat setiap kali perubahan berlaku dalam DOM (input atau style)
-    const observer = new MutationObserver(() => {
-      if (EDIT_MODE && pageSections.length) {
-        window.parent?.postMessage({
-          type: 'sections-updated',
-          data: { sections: pageSections }
-        }, '*');
-      }
-    });
-    observer.observe(document.getElementById('page'), { childList: true, subtree: true, characterData: true });
-  </script>
+  } catch (e) { console.error(e); }
+  renderPage();
+  window.parent?.postMessage({ type: 'sections-loaded', data: { sections: pageSections } }, '*');
+});
+</script>
 
 </body>
 </html>
