@@ -4705,7 +4705,12 @@ if (store.sections && store.sections.length) {
   // 修复: 监听来自iframe的"sections-loaded"消息，确保双向同步
   window.addEventListener('message', (e) => {
     if (e.data && e.data.type === 'sections-loaded') {
-      console.log('sections-loaded signal diterima dari iframe'); // 修复: 添加日志便于调试
+      // 修复: ambil sections dari iframe bila tersedia (bootstrap store)
+    if (e.data && e.data.data && Array.isArray(e.data.data.sections) && e.data.data.sections.length) {
+      try { store.sections = e.data.data.sections; console.log('bootstrap store.sections dari iframe', store.sections.length); }
+      catch (err) { console.warn('gagal set store.sections dari iframe', err); }
+    }
+console.log('sections-loaded signal diterima dari iframe'); // 修复: 添加日志便于调试
       // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
 if (store.sections && store.sections.length) {
   sendToIframe('load-sections', store.sections);
