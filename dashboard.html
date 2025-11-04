@@ -3953,7 +3953,12 @@
         store.sections = JSON.parse(settings.sections_json);
       }
       // Beritahu iframe untuk memuatkan bahagian
-      sendToIframe('load-sections', { sections: store.sections });
+      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
       renderSectionList();
       // Initialize history
       store.history = [JSON.parse(JSON.stringify(store.sections))];
@@ -4100,7 +4105,12 @@
       store.historyIndex--;
       store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
       renderSectionList();
-      sendToIframe('load-sections', { sections: store.sections });
+      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
       updateHistoryPanel();
     }
   }
@@ -4110,7 +4120,12 @@
       store.historyIndex++;
       store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
       renderSectionList();
-      sendToIframe('load-sections', { sections: store.sections });
+      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
       updateHistoryPanel();
     }
   }
@@ -4135,7 +4150,12 @@
         store.historyIndex = index;
         store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
         renderSectionList();
-        sendToIframe('load-sections', { sections: store.sections });
+        // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
         updateHistoryPanel();
       });
       
@@ -4315,7 +4335,12 @@
           renderSectionList();
           saveDesign();
           addToHistory();
-          sendToIframe('load-sections', { sections: store.sections });
+          // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
           
           document.getElementById('templatesModal').classList.add('hidden');
           toast(`Template "${template.name}" ditambah`);
@@ -4391,7 +4416,12 @@
         renderSectionList();
         saveDesign();
         addToHistory();
-        sendToIframe('load-sections', { sections: store.sections });
+        // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
       }
     } else if (store.draggedItem.type === 'element') {
       const sectionId = e.currentTarget.closest('[data-section-id]').dataset.sectionId;
@@ -4407,7 +4437,12 @@
           renderElementListInSection(sectionId);
           saveDesign();
           addToHistory();
-          sendToIframe('load-sections', { sections: store.sections });
+          // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
         }
       }
     }
@@ -4527,7 +4562,12 @@
           renderSectionList();
           saveDesign();
           addToHistory();
-          sendToIframe('load-sections', { sections: store.sections });
+          // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
           toast('Bahagian digandakan');
         }
       } else if (store.contextMenuTarget.type === 'element') {
@@ -4544,7 +4584,12 @@
             renderElementListInSection(store.contextMenuTarget.sectionId);
             saveDesign();
             addToHistory();
-            sendToIframe('load-sections', { sections: store.sections });
+            // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
             toast('Elemen digandakan');
           }
         }
@@ -4556,7 +4601,12 @@
           renderSectionList();
           saveDesign();
           addToHistory();
-          sendToIframe('load-sections', { sections: store.sections });
+          // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
           toast('Bahagian dipadam');
         }
       } else if (store.contextMenuTarget.type === 'element') {
@@ -4567,7 +4617,12 @@
             renderElementListInSection(store.contextMenuTarget.sectionId);
             saveDesign();
             addToHistory();
-            sendToIframe('load-sections', { sections: store.sections });
+            // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', { sections: store.sections });
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
             toast('Elemen dipadam');
           }
         }
@@ -4638,7 +4693,12 @@
   if (userPreview) {
     userPreview.addEventListener('load', () => {
       console.log('iframe onload → refresh sections'); // 修复: 添加日志便于调试
-      sendToIframe('load-sections', store.sections);
+      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', store.sections);
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
     });
   }
   
@@ -4646,7 +4706,12 @@
   window.addEventListener('message', (e) => {
     if (e.data && e.data.type === 'sections-loaded') {
       console.log('sections-loaded signal diterima dari iframe'); // 修复: 添加日志便于调试
-      sendToIframe('load-sections', store.sections);
+      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
+if (store.sections && store.sections.length) {
+  sendToIframe('load-sections', store.sections);
+} else {
+  console.warn('skip load-sections — store.sections kosong');
+}
     }
   });
 
