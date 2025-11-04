@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>MOVA — Untuk Pengguna (Free Users)</title>
 
-  <!-- Fonts & Libraries -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Fixed: removed stray space in unpkg URL -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -18,785 +16,126 @@
     .btn-primary{background:var(--brand);color:#fff}
     .btn-ghost{background:#fff;border:1px solid #e5e7eb;}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
-    .input{width:100%;border:1px solid #d1d5db;border-radius:.75rem;padding:.7rem .9rem;background:#fff;}
-    .input:focus{outline:none;box-shadow:0 0 0 2px #111}
-    .badge{display:inline-flex;align-items:center;border-radius:9999px;padding:.15rem .6rem;font-size:.75rem;background:#f3f4f6;color:#374151}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:24px;background:#111;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:9999}
-    .section-title{font-weight:800;font-size:1.25rem}
-    .muted{color:#6b7280}
-
-    /* --- Edit Mode & Sections --- */
-    .edit-mode .page-section { outline: 1px dashed #d1d5db; outline-offset: -1px; transition: outline .2s ease }
-    .edit-mode .page-section:hover { outline: 1px dashed #9ca3af }
-    .page-section.selected { outline: 2px solid #3b82f6 !important; outline-offset: -2px }
-
-    /* Grid inside a section */
-    .section-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem }
-
-    /* Editable element */
-    .page-element { cursor: pointer; transition: box-shadow .2s ease }
-    .page-element.selected { outline: 2px solid #10b981; outline-offset: 2px }
-
-    /* Rich Text Editor styles (if used in child iframes) */
-    .rtbox { min-height:120px; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem; background:#fff }
-    .toolbar { display:flex; flex-wrap:wrap; gap:.25rem; margin-bottom:.5rem }
-    .toolbar button { border:1px solid #e5e7eb; border-radius:.5rem; padding:.25rem .5rem; background:#fff; transition:all .2s ease }
-    .toolbar button:hover { background:#f3f4f6 }
-    .toolbar button.active { background:#111; color:#fff; border-color:#111 }
-    .toolbar select { transition:all .2s ease }
-    .toolbar select:focus { background:#f9fafb }
-    .rtbox:focus { outline:2px solid #111 }
-
-    /* Social icons */
-    .social-icon { display:inline-flex; align-items:center; gap:.5rem; font-size:var(--icon-size,24px); color:var(--icon-color,#374151); transition:transform .2s ease }
-    .social-icon:hover { transform: translateY(-2px) }
-    
-    /* Calculator styles */
-    .calculator-container { 
-      background: white; 
-      border-radius: 1rem; 
-      padding: 1.5rem; 
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
-      max-width: 400px; 
-      margin: 0 auto; 
-    }
-    .calculator-display { 
-      background: #f9fafb; 
-      border-radius: 0.5rem; 
-      padding: 1rem; 
-      margin-bottom: 1rem; 
-      text-align: center; 
-      font-size: 1.25rem; 
-      font-weight: 600; 
-    }
-    .calculator-buttons { 
-      display: grid; 
-      grid-template-columns: repeat(3, 1fr); 
-      gap: 0.5rem; 
-    }
-    .calculator-button { 
-      background: #f3f4f6; 
-      border: none; 
-      border-radius: 0.5rem; 
-      padding: 1rem; 
-      font-size: 1.25rem; 
-      font-weight: 600; 
-      cursor: pointer; 
-      transition: all 0.2s ease; 
-    }
-    .calculator-button:hover { 
-      background: #e5e7eb; 
-    }
-    .calculator-button.operator { 
-      background: var(--brand); 
-      color: white; 
-    }
-    .calculator-button.operator:hover { 
-      background: #dc2626; 
-    }
-    .calculator-button.equals { 
-      background: #10b981; 
-      color: white; 
-      grid-column: span 2; 
-    }
-    .calculator-button.equals:hover { 
-      background: #059669; 
-    }
-    .calculator-button.clear { 
-      background: #ef4444; 
-      color: white; 
-    }
-    .calculator-button.clear:hover { 
-      background: #dc2626; 
-    }
   </style>
 </head>
-<body>
 
-<!-- NAV -->
-<nav class="bg-white border-b border-gray-200">
-  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      <div class="h-9 w-9 rounded-xl bg-[color:var(--brand)] text-white grid place-items-center">
-        <i data-lucide="rocket" class="w-5 h-5"></i>
-      </div>
-      <div class="font-extrabold">MOVA</div>
-    </div>
-    <div class="hidden sm:flex items-center gap-6 text-sm">
-      <a href="#intro" class="hover:underline">Apa itu MOVA</a>
-      <a href="#calc" class="hover:underline">Anggaran Cashback</a>
-      <a href="#upgrade" class="hover:underline">Naik Taraf</a>
-      <a href="#faq" class="hover:underline">FAQ</a>
-    </div>
-  </div>
-</nav>
+<body class="min-h-screen">
 
-<!-- MAIN -->
-<main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8" id="main">
-  <!-- Sections will be rendered here -->
-</main>
+  <main id="page" class="space-y-6 p-4 md:p-8 max-w-5xl mx-auto"></main>
 
-<footer class="mt-10 py-10 text-center text-sm text-gray-500">
-  © <span id="year"></span> MOVA. <span class="text-gray-500">Hak cipta terpelihara.</span>
-</footer>
+  <script>
+    const EDIT_MODE = window.location.search.includes('edit=1');
+    let pageSections = [];
 
-<div id="toast" class="toast hidden"></div>
-
-<script>
-  // IMPORTANT: Keeping EXEC_URL as provided (do not modify without instruction)
-  const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
-
-  function toast(msg, ms = 2200) {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.classList.remove('hidden');
-    clearTimeout(el._t);
-    el._t = setTimeout(() => el.classList.add('hidden'), ms);
-  }
-
-  async function api(path, payload) {
-    const res = await fetch(EXEC_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-      body: new URLSearchParams({ path, payload: JSON.stringify(payload || {}) })
-    });
-    const text = await res.text(); // Fixed: call text()
-    let json;
-    try { json = JSON.parse(text); } catch (e) { throw new Error(text); }
-    if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
-    return json;
-  }
-
-  const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
-  let pageSections = [];
-
-  if (EDIT_MODE) {
-    window.addEventListener('message', handleIframeMessage);
-    document.body.classList.add('edit-mode');
-  }
-
-  function handleIframeMessage(event) {
-    const { type, data } = event.data || {};
-    switch (type) {
-      case 'toggle-edit': {
-        document.body.classList.toggle('edit-mode', event.data.on);
-        break;
+    function createSectionElement(section) {
+      const el = document.createElement("section");
+      el.dataset.sectionId = section.id;
+      el.className = "card p-6";
+      if (section.style && section.style !== 'default') {
+        el.classList.add(`section-style-${section.style}`);
       }
-      case 'load-sections': {
-        pageSections = Array.isArray(data?.sections) ? data.sections : [];
-        renderPage();
-        break;
-      }
-      case 'select-section': {
-        document.querySelectorAll('.page-section.selected').forEach(el => el.classList.remove('selected'));
-        const sectionEl = document.querySelector(`[data-section-id="${data.id}"]`); // Fixed selector
-        if (sectionEl) {
-          sectionEl.classList.add('selected');
-          sectionEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+
+      if (section.blocks) {
+        for (const block of section.blocks) {
+          const blockEl = document.createElement(block.tag || "div");
+          blockEl.textContent = block.text || "";
+          if (block.type === "image") {
+            const img = document.createElement("img");
+            img.src = block.src || "";
+            img.alt = block.alt || "";
+            img.className = "w-full rounded-xl mb-3";
+            blockEl.appendChild(img);
+          } else if (block.type === "video") {
+            const vid = document.createElement("iframe");
+            vid.src = block.src || "";
+            vid.className = "w-full aspect-video rounded-xl mb-3";
+            vid.allowFullscreen = true;
+            blockEl.appendChild(vid);
+          }
+          el.appendChild(blockEl);
         }
-        break;
       }
-      case 'select-element': {
-        document.querySelectorAll('.page-element.selected').forEach(el => el.classList.remove('selected'));
-        const el = document.querySelector(`[data-id="${data.id}"]`); // Fixed selector
-        if (el) {
-          el.classList.add('selected');
-          el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
-        }
-        break;
-      }
-      case 'add-element': {
-        addElement(event.data.sectionId, event.data.element);
-        break;
-      }
-      case 'update-element': {
-        const el = document.querySelector(`[data-id="${data.id}"]`); // unique var name
-        if (el && data?.properties) {
-          // Apply style properties directly to the element
-          Object.keys(data.properties).forEach(prop => {
-            if (prop === 'content') {
-              el.innerHTML = data.properties[prop];
-            } else if (prop === 'fontSize') {
-              el.style.fontSize = `${data.properties[prop]}px`;
-            } else if (prop === 'color') {
-              el.style.color = data.properties[prop];
-            } else if (prop === 'fontFamily') {
-              el.style.fontFamily = data.properties[prop];
-            } else if (prop === 'textAlign') {
-              el.style.textAlign = data.properties[prop];
-            } else if (prop === 'lineHeight') {
-              el.style.lineHeight = data.properties[prop];
-            } else if (prop === 'letterSpacing') {
-              el.style.letterSpacing = data.properties[prop];
-            } else if (prop === 'fontWeight') {
-              el.style.fontWeight = data.properties[prop];
-            } else if (prop === 'fontStyle') {
-              el.style.fontStyle = data.properties[prop];
-            } else if (prop === 'textDecoration') {
-              el.style.textDecoration = data.properties[prop];
-            } else if (prop === 'backgroundColor') {
-              el.style.backgroundColor = data.properties[prop];
-            } else if (prop === 'borderWidth') {
-              el.style.borderWidth = `${data.properties[prop]}px`;
-            } else if (prop === 'borderColor') {
-              el.style.borderColor = data.properties[prop];
-            } else if (prop === 'borderRadius') {
-              el.style.borderRadius = `${data.properties[prop]}px`;
-            } else if (prop === 'padding') {
-              el.style.padding = data.properties[prop];
-            } else if (prop === 'opacity') {
-              el.style.opacity = data.properties[prop];
-            } else if (prop === 'gridColumn') {
-              el.style.gridColumn = data.properties[prop];
-            } else if (prop === 'zIndex') {
-              el.style.zIndex = data.properties[prop];
-            } else if (prop === 'boxShadow') {
-              el.style.boxShadow = data.properties[prop];
-            } else if (prop === 'transform') {
-              el.style.transform = data.properties[prop];
-            } else if (prop === 'transition') {
-              el.style.transition = data.properties[prop];
-            } else if (prop === 'animation') {
-              el.style.animation = data.properties[prop];
-            } else if (prop === 'animationDelay') {
-              el.style.animationDelay = `${data.properties[prop]}ms`;
-            } else if (prop === 'animationDuration') {
-              el.style.animationDuration = `${data.properties[prop]}ms`;
-            } else if (prop === 'animationDirection') {
-              el.style.animationDirection = data.properties[prop];
-            } else if (prop === 'animationFillMode') {
-              el.style.animationFillMode = data.properties[prop];
-            } else if (prop === 'animationIterationCount') {
-              el.style.animationIterationCount = data.properties[prop];
-            } else if (prop === 'animationName') {
-              el.style.animationName = data.properties[prop];
-            } else if (prop === 'animationPlayState') {
-              el.style.animationPlayState = data.properties[prop];
-            } else if (prop === 'animationTimingFunction') {
-              el.style.animationTimingFunction = data.properties[prop];
-            } else {
-              el.style[prop] = data.properties[prop];
-            }
-          });
-        }
-        break;
-      }
-      case 'update-section': {
-        const section = document.querySelector(`[data-section-id="${data.id}"]`);
-        if (section && data?.properties) {
-          // Apply style properties directly to the section
-          Object.keys(data.properties).forEach(prop => {
-            if (prop === 'backgroundColor') {
-              section.style.backgroundColor = data.properties[prop];
-            } else if (prop === 'padding') {
-              section.style.padding = data.properties[prop];
-            } else if (prop === 'borderRadius') {
-              section.style.borderRadius = `${data.properties[prop]}px`;
-            } else if (prop === 'borderWidth') {
-              section.style.borderWidth = `${data.properties[prop]}px`;
-            } else if (prop === 'borderColor') {
-              section.style.borderColor = data.properties[prop];
-            } else if (prop === 'borderStyle') {
-              section.style.borderStyle = data.properties[prop];
-            } else if (prop === 'boxShadow') {
-              section.style.boxShadow = data.properties[prop];
-            } else if (prop === 'opacity') {
-              section.style.opacity = data.properties[prop];
-            } else if (prop === 'transform') {
-              section.style.transform = data.properties[prop];
-            } else if (prop === 'transition') {
-              section.style.transition = data.properties[prop];
-            } else if (prop === 'animation') {
-              section.style.animation = data.properties[prop];
-            } else if (prop === 'animationDelay') {
-              section.style.animationDelay = `${data.properties[prop]}ms`;
-            } else if (prop === 'animationDuration') {
-              section.style.animationDuration = `${data.properties[prop]}ms`;
-            } else if (prop === 'animationDirection') {
-              section.style.animationDirection = data.properties[prop];
-            } else if (prop === 'animationFillMode') {
-              section.style.animationFillMode = data.properties[prop];
-            } else if (prop === 'animationIterationCount') {
-              section.style.animationIterationCount = data.properties[prop];
-            } else if (prop === 'animationName') {
-              section.style.animationName = data.properties[prop];
-            } else if (prop === 'animationPlayState') {
-              section.style.animationPlayState = data.properties[prop];
-            } else if (prop === 'animationTimingFunction') {
-              section.style.animationTimingFunction = data.properties[prop];
-            } else if (prop === 'backgroundImage') {
-              section.style.backgroundImage = data.properties[prop];
-            } else if (prop === 'backgroundSize') {
-              section.style.backgroundSize = data.properties[prop];
-            } else if (prop === 'backgroundPosition') {
-              section.style.backgroundPosition = data.properties[prop];
-            } else if (prop === 'backgroundRepeat') {
-              section.style.backgroundRepeat = data.properties[prop];
-            } else if (prop === 'backgroundAttachment') {
-              section.style.backgroundAttachment = data.properties[prop];
-            } else if (prop === 'backgroundClip') {
-              section.style.backgroundClip = data.properties[prop];
-            } else if (prop === 'backgroundOrigin') {
-              section.style.backgroundOrigin = data.properties[prop];
-            } else {
-              section.style[prop] = data.properties[prop];
-            }
-          });
-        }
-        break;
-      }
-      case 'delete-element': {
-        deleteElement(event.data.id);
-        break;
-      }
-      case 'deselect-all': {
-        document.querySelectorAll('.page-section.selected, .page-element.selected').forEach(el => el.classList.remove('selected'));
-        break;
-      }
-      case 'apply-command': {
-        const selected = document.querySelector('.page-element.selected .rtbox');
-        if (selected && data?.command) document.execCommand(data.command, false, null);
-        break;
-      }
-      default: break;
-    }
-  }
-
-  function renderPage() {
-    const mainContent = document.getElementById('main');
-    if (!mainContent) return;
-    mainContent.innerHTML = '';
-
-    pageSections.forEach(section => {
-      const sectionNode = createSectionNode(section);
-      if (sectionNode) mainContent.appendChild(sectionNode);
-    });
-
-    if (EDIT_MODE) {
-      makeSectionsSelectable();
-      makeElementsSelectable();
+      return el;
     }
 
-    // Repaint Lucide icons
-    if (window.lucide?.createIcons) lucide.createIcons();
-  }
-
-  function createSectionNode(section) {
-    const sectionDiv = document.createElement('section');
-    sectionDiv.className = 'page-section';
-    sectionDiv.dataset.id = section.id;
-    sectionDiv.dataset.sectionId = section.id;
-
-    // Apply section styles
-    Object.assign(sectionDiv.style, {
-      backgroundColor: section.backgroundColor || 'transparent',
-      padding: section.padding || '4rem 1rem',
-      borderRadius: `${section.borderRadius || 0}px`
-    });
-
-    // Apply section style classes
-    if (section.style && section.style !== 'default') {
-      sectionDiv.classList.add(`section-style-${section.style}`);
-    }
-
-    // Apply background image if exists
-    if (section.backgroundImage) {
-      sectionDiv.style.backgroundImage = section.backgroundImage;
-    }
-
-    // Apply background pattern if exists
-    if (section.pattern && section.pattern !== 'none') {
-      switch (section.pattern) {
-        case 'dots':
-          sectionDiv.style.backgroundImage = 'radial-gradient(#e5e7eb 1px,transparent 1px)';
-          sectionDiv.style.backgroundSize = '10px 10px';
-          break;
-        case 'grid':
-          sectionDiv.style.backgroundImage = 'linear-gradient(#e5e7eb 1px,transparent 1px),linear-gradient(90deg,#e5e7eb 1px,transparent 1px)';
-          sectionDiv.style.backgroundSize = '10px 10px';
-          break;
-        case 'diagonal':
-          sectionDiv.style.backgroundImage = 'repeating-linear-gradient(45deg,#e5e7eb,#e5e7eb 1px,transparent 1px,transparent 10px)';
-          break;
-        case 'waves':
-          sectionDiv.style.backgroundImage = 'repeating-linear-gradient(45deg,transparent,transparent 10px,#e5e7eb 10px,#e5e7eb 20px)';
-          break;
-        case 'zigzag':
-          sectionDiv.style.backgroundImage = 'linear-gradient(135deg,#e5e7eb 25%,transparent 25%) -10px 0,linear-gradient(225deg,#e5e7eb 25%,transparent 25%) -10px 0,linear-gradient(315deg,#e5e7eb 25%,transparent 25%),linear-gradient(45deg,#e5e7eb 25%,transparent 25%)';
-          sectionDiv.style.backgroundSize = '20px 20px';
-          break;
-      }
-    }
-
-    const grid = document.createElement('div');
-    grid.className = 'section-grid';
-
-    (section.elements || []).forEach(el => {
-      const node = createElementNode(el);
-      if (node) grid.appendChild(node);
-    });
-
-    sectionDiv.appendChild(grid);
-    return sectionDiv;
-  }
-
-  function createElementNode(el) {
-    const wrap = document.createElement('div');
-    wrap.className = 'page-element';
-    wrap.dataset.id = el.id;
-    wrap.dataset.sectionId = el.sectionId;
-
-    // layout
-    wrap.style.gridColumn = el.gridColumn || 'span 12 / span 12';
-    wrap.style.textAlign = el.textAlign || 'left';
-    wrap.style.zIndex = el.zIndex || 1;
-    wrap.style.opacity = (el.opacity ?? 100) / 100;
-
-    // box styles
-    Object.assign(wrap.style, {
-      backgroundColor: el.backgroundColor || 'transparent',
-      borderWidth: `${el.borderWidth || 0}px`,
-      borderStyle: (el.borderWidth ? 'solid' : 'none'),
-      borderColor: el.borderColor || '#000000',
-      borderRadius: `${el.borderRadius || 0}px`,
-      padding: el.padding ?? '10px',
-      boxSizing: 'border-box'
-    });
-
-    // Apply shape styles
-    if (el.shape) {
-      switch (el.shape) {
-        case 'circle':
-          wrap.style.borderRadius = '50%';
-          break;
-        case 'rounded':
-          wrap.style.borderRadius = '0.75rem';
-          break;
-        case 'pill':
-          wrap.style.borderRadius = '9999px';
-          break;
-        case 'diamond':
-          wrap.style.transform = 'rotate(45deg)';
-          break;
-      }
-    }
-
-    // Apply shadow styles
-    if (el.shadow) {
-      switch (el.shadow) {
-        case 'sm':
-          wrap.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
-          break;
-        case 'md':
-          wrap.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-          break;
-        case 'lg':
-          wrap.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
-          break;
-        case 'xl':
-          wrap.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-          break;
-      }
-    }
-
-    // Apply animation styles
-    if (el.animation && el.animation !== 'none') {
-      wrap.style.animation = `${el.animation} ${el.animationDuration || 1000}ms ${el.animationDelay || 0}ms ease forwards`;
-    }
-
-    switch (el.type) {
-      case 'text': {
-        wrap.style.fontFamily = el.fontFamily || 'Inter';
-        wrap.style.fontSize = `${el.fontSize || 16}px`;
-        wrap.style.color = el.color || '#000000';
-        wrap.style.fontWeight = el.fontWeight || 'normal';
-        wrap.style.fontStyle = el.fontStyle || 'normal';
-        wrap.style.textDecoration = el.textDecoration || 'none';
-        wrap.style.lineHeight = el.lineHeight || '1.5';
-        wrap.style.letterSpacing = el.letterSpacing || '0';
-        wrap.innerHTML = el.content || '';
-        break;
-      }
-      case 'image': {
-        const img = document.createElement('img');
-        img.src = el.src || '';
-        img.alt = el.alt || '';
-        img.style.maxWidth = '100%';
-        img.style.height = 'auto';
-        img.style.display = 'block';
-        img.style.borderRadius = '0.75rem';
-        img.style.objectFit = el.objectFit || 'cover';
-        
-        // Make image clickable if needed
-        if (el.clickable === 'yes' && el.linkUrl) {
-          const link = document.createElement('a');
-          link.href = el.linkUrl;
-          link.target = el.linkTarget || '_blank';
-          link.appendChild(img);
-          wrap.appendChild(link);
-        } else {
-          wrap.appendChild(img);
-        }
-        break;
-      }
-      case 'video': {
-        const video = document.createElement('video');
-        video.src = el.src || '';
-        video.controls = el.controls !== 'no';
-        video.autoplay = el.autoplay === 'yes';
-        video.muted = el.muted === 'yes';
-        video.loop = el.loop === 'yes';
-        video.playsInline = true;
-        video.style.width = '100%';
-        video.style.borderRadius = '0.75rem';
-        wrap.appendChild(video);
-        break;
-      }
-      case 'button': {
-        wrap.style.display = 'flex';
-        wrap.style.justifyContent = (el.textAlign || 'center');
-        const color = el.color || '#ffffff';
-        const bg = el.backgroundColor || '#ef4444';
-        const label = el.content || 'Button';
-        const href = el.href || '#';
-        const target = el.target || '_blank';
-        const button = document.createElement('a');
-        button.href = href;
-        button.target = target;
-        button.style.textDecoration = 'none';
-        button.style.color = color;
-        button.style.backgroundColor = bg;
-        button.style.padding = el.padding || '.7rem 1.5rem';
-        button.style.fontWeight = '700';
-        button.style.borderRadius = el.borderRadius || '.75rem';
-        button.style.display = 'inline-block';
-        button.style.fontSize = el.fontSize || '16px';
-        button.style.fontWeight = el.fontWeight || '700';
-        button.style.boxShadow = el.boxShadow || '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-        button.textContent = label;
-        wrap.appendChild(button);
-        break;
-      }
-      case 'social': {
-        const iconMap = { 
-          facebook:'facebook', 
-          instagram:'instagram', 
-          tiktok:'tiktok', 
-          youtube:'youtube', 
-          telegram:'telegram', 
-          whatsapp:'whatsapp' 
-        };
-        const icon = iconMap[el.platform] || 'message-circle';
-        const url = el.url || '#';
-        const size = Number(el.size) || 24;
-        const color = el.color || '#374151';
-        const bgColor = el.backgroundColor || 'transparent';
-        const borderRadius = el.borderRadius || '50%';
-        const padding = el.padding || '8px';
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.target = '_blank';
-        link.className = 'social-icon';
-        link.style.setProperty('--icon-size', `${size}px`);
-        link.style.setProperty('--icon-color', color);
-        link.style.backgroundColor = bgColor;
-        link.style.borderRadius = borderRadius;
-        link.style.padding = padding;
-        link.style.display = 'inline-flex';
-        link.style.alignItems = 'center';
-        link.style.justifyContent = 'center';
-        
-        const iconEl = document.createElement('i');
-        iconEl.setAttribute('data-lucide', icon);
-        iconEl.className = 'w-6 h-6';
-        
-        link.appendChild(iconEl);
-        wrap.appendChild(link);
-        break;
-      }
-      case 'link': {
-        const url = el.url || '#';
-        const target = el.target || '_blank';
-        const text = el.text || 'Link';
-        const link = document.createElement('a');
-        link.href = url;
-        link.target = target;
-        link.style.textDecoration = el.textDecoration || 'none';
-        link.style.color = el.color || '#374151';
-        link.style.display = 'inline-block';
-        link.style.fontWeight = el.fontWeight || '600';
-        link.style.fontSize = el.fontSize || '16px';
-        link.textContent = text;
-        wrap.appendChild(link);
-        break;
-      }
-      case 'calculator': {
-        // Create calculator container
-        const calculatorContainer = document.createElement('div');
-        calculatorContainer.className = 'calculator-container';
-        calculatorContainer.style.backgroundColor = el.backgroundColor || '#ffffff';
-        calculatorContainer.style.color = el.color || '#000000';
-        calculatorContainer.style.borderRadius = el.borderRadius || '1rem';
-        calculatorContainer.style.padding = el.padding || '1.5rem';
-        calculatorContainer.style.boxShadow = el.boxShadow || '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
-        
-        // Create title
-        const title = document.createElement('h3');
-        title.textContent = el.title || 'Kalkulator Cashback';
-        title.style.textAlign = 'center';
-        title.style.marginBottom = '1rem';
-        title.style.fontSize = '1.25rem';
-        title.style.fontWeight = '700';
-        calculatorContainer.appendChild(title);
-        
-        // Create input
-        const inputContainer = document.createElement('div');
-        inputContainer.style.marginBottom = '1rem';
-        
-        const inputLabel = document.createElement('label');
-        inputLabel.textContent = el.inputText || 'Jumlah Pembelian (RM)';
-        inputLabel.style.display = 'block';
-        inputLabel.style.marginBottom = '0.5rem';
-        inputLabel.style.fontSize = '0.875rem';
-        inputLabel.style.fontWeight = '500';
-        inputContainer.appendChild(inputLabel);
-        
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.placeholder = '0';
-        input.style.width = '100%';
-        input.style.padding = '0.75rem';
-        input.style.border = '1px solid #d1d5db';
-        input.style.borderRadius = '0.5rem';
-        input.style.fontSize = '1rem';
-        inputContainer.appendChild(input);
-        
-        calculatorContainer.appendChild(inputContainer);
-        
-        // Create button
-        const button = document.createElement('button');
-        button.textContent = el.buttonText || 'Kira Cashback';
-        button.style.backgroundColor = el.buttonColor || '#ef4444';
-        button.style.color = '#ffffff';
-        button.style.border = 'none';
-        button.style.borderRadius = '0.5rem';
-        button.style.padding = '0.75rem 1rem';
-        button.style.fontSize = '1rem';
-        button.style.fontWeight = '600';
-        button.style.cursor = 'pointer';
-        button.style.width = '100%';
-        button.style.marginBottom = '1rem';
-        
-        // Create result
-        const resultContainer = document.createElement('div');
-        resultContainer.style.textAlign = 'center';
-        resultContainer.style.fontSize = '1.125rem';
-        resultContainer.style.fontWeight = '600';
-        resultContainer.style.marginTop = '1rem';
-        
-        // Add click event to button
-        button.addEventListener('click', function() {
-          const amount = parseFloat(input.value) || 0;
-          // Get cashback percentage from settings (default 5-10%)
-          const minPercent = 5;
-          const maxPercent = 10;
-          const percent = minPercent + Math.random() * (maxPercent - minPercent);
-          const cashback = (amount * percent / 100).toFixed(2);
-          resultContainer.textContent = `${el.resultText || 'Cashback Anda: RM'} ${cashback}`;
-        });
-        
-        calculatorContainer.appendChild(button);
-        calculatorContainer.appendChild(resultContainer);
-        wrap.appendChild(calculatorContainer);
-        break;
-      }
-      default: {
-        wrap.textContent = '';
-      }
-    }
-
-    return wrap;
-  }
-
-  // Section CRUD
-  function addSection(section) { pageSections.push(section); renderPage(); }
-  function updateSection(id, properties) {
-    const sec = pageSections.find(s => s.id === id);
-    if (sec) { Object.assign(sec, properties); renderPage(); }
-  }
-  function deleteSection(id) {
-    pageSections = pageSections.filter(s => s.id !== id);
-    renderPage();
-  }
-
-  // Element CRUD
-  function addElement(sectionId, element) {
-    const sec = pageSections.find(s => s.id === sectionId);
-    if (sec) { (sec.elements ||= []).push(element); renderPage(); }
-  }
-  function updateElement(id, properties) {
-    for (const sec of pageSections) {
-      const el = (sec.elements || []).find(e => e.id === id);
-      if (el) { Object.assign(el, properties); renderPage(); return; }
-    }
-  }
-  function deleteElement(id) {
-    for (const sec of pageSections) {
-      const idx = (sec.elements || []).findIndex(e => e.id === id);
-      if (idx > -1) { sec.elements.splice(idx, 1); renderPage(); return; }
-    }
-  }
-
-  function makeSectionsSelectable() {
-    document.querySelectorAll('.page-section').forEach(sec => {
-      sec.addEventListener('click', (e) => {
-        if (e.target.closest('.page-element')) return; // do not select section when clicking element
-        e.stopPropagation();
-        document.querySelectorAll('.page-section.selected').forEach(s => s.classList.remove('selected'));
-        sec.classList.add('selected');
-        window.parent?.postMessage({ type: 'section-selected', data: { id: sec.dataset.id } }, '*');
-      });
-    });
-  }
-
-  function makeElementsSelectable() {
-    document.querySelectorAll('.page-element').forEach(el => {
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        document.querySelectorAll('.page-element.selected').forEach(elem => elem.classList.remove('selected'));
-        el.classList.add('selected');
-        window.parent?.postMessage({ type: 'element-selected', data: { id: el.dataset.id } }, '*');
-      });
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    if (window.lucide?.createIcons) lucide.createIcons();
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    try {
-      const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
-      const response = await api('settings_get', { leader_id });
-
-      if (response?.success && response?.settings?.sections_json) {
-        try { pageSections = JSON.parse(response.settings.sections_json) || []; } catch { pageSections = []; }
+    function renderPage() {
+      const page = document.getElementById("page");
+      page.innerHTML = "";
+      for (const section of pageSections) {
+        const sectionEl = createSectionElement(section);
+        page.appendChild(sectionEl);
       }
 
-      renderPage();
-
+      // 修复: Hantar isyarat setiap kali halaman siap render semula
       if (EDIT_MODE) {
-        window.parent?.postMessage({ type: 'sections-loaded', data: { sections: pageSections } }, '*');
-      }
-    } catch (error) {
-      console.error('Gagal memuat data halaman:', error);
-      toast('Gagal memuatkan kandungan halaman.');
-      renderPage();
-      if (EDIT_MODE) {
-        window.parent?.postMessage({ type: 'sections-loaded', data: { sections: [] } }, '*');
+        window.parent?.postMessage({
+          type: 'sections-loaded',
+          data: { sections: pageSections }
+        }, '*');
+        console.log("sections-loaded dihantar semula selepas renderPage()");
       }
     }
-  });
-</script>
+
+    // ===============================
+    // Mesej dari dashboard.html
+    // ===============================
+    function handleIframeMessage(event) {
+      const { type, data } = event.data || {};
+      if (!type) return;
+
+      switch (type) {
+        case "load-sections":
+          pageSections = data.sections || [];
+          renderPage();
+          break;
+        case "update-section":
+          const sec = pageSections.find(s => s.id === data.id);
+          if (sec) Object.assign(sec, data);
+          renderPage();
+          break;
+        case "add-element":
+          const target = pageSections.find(s => s.id === data.sectionId);
+          if (target && target.blocks) {
+            target.blocks.push(data.block);
+            renderPage();
+          }
+          break;
+        case "update-element":
+          const tgt = pageSections.find(s => s.id === data.sectionId);
+          if (tgt && tgt.blocks) {
+            const blk = tgt.blocks.find(b => b.id === data.block.id);
+            if (blk) Object.assign(blk, data.block);
+            renderPage();
+          }
+          break;
+        case "delete-element":
+          const delSec = pageSections.find(s => s.id === data.sectionId);
+          if (delSec && delSec.blocks) {
+            delSec.blocks = delSec.blocks.filter(b => b.id !== data.blockId);
+            renderPage();
+          }
+          break;
+        case "deselect-all":
+          document.querySelectorAll(".selected").forEach(el => el.classList.remove("selected"));
+          break;
+        case "apply-command":
+          document.execCommand(data.command, false, data.value || null);
+          break;
+      }
+    }
+
+    window.addEventListener("message", handleIframeMessage);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      if (EDIT_MODE) {
+        window.parent?.postMessage({
+          type: 'sections-loaded',
+          data: { sections: pageSections }
+        }, '*');
+        console.log("sections-loaded dihantar pada DOMContentLoaded");
+      }
+    });
+  </script>
+
 </body>
 </html>
