@@ -4733,5 +4733,46 @@ if (store.sections && store.sections.length) {
   });
 
 </script>
+
+<script>
+// 修复: Fallback "revive preview" — jika iframe menjadi kosong selepas edit, muat semula sections yang ada
+(function(){
+  const userPreview = document.getElementById('userPreview');
+
+  function iframeHasContent(){
+    try {
+      const d = userPreview && userPreview.contentWindow && userPreview.contentWindow.document;
+      return !!(d && d.body && d.body.children && d.body.children.length > 0);
+    } catch(e){ return false; }
+  }
+
+  function revivePreview(reason){
+    try {
+      if (window.store && Array.isArray(store.sections) && store.sections.length && !iframeHasContent()){
+        console.warn('revive preview — force load-sections (reason:', reason, ')');
+        sendToIframe('load-sections', { sections: store.sections });
+      }
+    } catch(e){ /* noop */ }
+  }
+
+  // Debounce helper
+  function debounce(fn, wait){
+    let t; return function(){ clearTimeout(t); t = setTimeout(()=>fn.apply(this, arguments), wait); };
+  }
+
+  // Peristiwa kritikal yang boleh menyebabkan preview kosong
+  if (userPreview){
+    userPreview.addEventListener('load', function(){ setTimeout(()=>revivePreview('iframe.onload'), 0); }, { once:false });
+  }
+  window.addEventListener('message', function(e){
+    if (e && e.data && e.data.type === 'sections-loaded'){
+      setTimeout(()=>revivePreview('sections-loaded'), 0);
+    }
+  });
+  document.addEventListener('input', debounce(()=>revivePreview('input-change'), 180), true);
+  document.addEventListener('change', debounce(()=>revivePreview('change'), 120), true);
+})();
+</script>
+
 </body>
 </html>
