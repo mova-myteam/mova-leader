@@ -4705,7 +4705,19 @@ if (store.sections && store.sections.length) {
   // 修复: 监听来自iframe的"sections-loaded"消息，确保双向同步
   window.addEventListener('message', (e) => {
     if (e.data && e.data.type === 'sections-loaded') {
-      // 修复: ambil sections dari iframe bila tersedia (bootstrap store)
+      // 修复: ambil sections dan terus hantar load-sections kepada iframe
+    var _secs = e && e.data && e.data.data && e.data.data.sections;
+    if (Array.isArray(_secs) && _secs.length) {
+      try {
+        store.sections = _secs;
+        console.log('bootstrap store.sections dari iframe', store.sections.length);
+        // hantar semula ke iframe supaya preview tak kosong
+        sendToIframe('load-sections', { sections: store.sections });
+      } catch (err) {
+        console.warn('gagal set/hantar store.sections dari iframe', err);
+      }
+    }
+// 修复: ambil sections dari iframe bila tersedia (bootstrap store)
     if (e.data && e.data.data && Array.isArray(e.data.data.sections) && e.data.data.sections.length) {
       try { store.sections = e.data.data.sections; console.log('bootstrap store.sections dari iframe', store.sections.length); }
       catch (err) { console.warn('gagal set store.sections dari iframe', err); }
