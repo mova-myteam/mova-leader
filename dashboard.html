@@ -653,10 +653,7 @@
     historyIndex: -1,           // Current position in history
     zoomLevel: 1,               // Current zoom level for preview
     draggedItem: null,          // Currently dragged item
-    contextMenuTarget: null,    // Target for context menu
-    // Store current element reference to prevent losing it
-    currentEditingElement: null,
-    currentEditingSection: null
+    contextMenuTarget: null     // Target for context menu
   };
 
   if (!store.leader || !store.leader.leader_id) {
@@ -1314,10 +1311,6 @@
     store.selectedSectionId = sectionId;
     store.selectedElementId = null;
     
-    // Store current editing section
-    store.currentEditingSection = store.sections.find(s => s.id === sectionId);
-    store.currentEditingElement = null;
-    
     // Highlight selected section in list
     document.querySelectorAll('.section-item').forEach(item => item.classList.remove('selected'));
     document.querySelector(`[data-section-id="${sectionId}"]`)?.classList.add('selected');
@@ -1517,183 +1510,138 @@
     // Setup properties tabs with event handling
     setupPropertiesTabs();
     
-    // Add event listeners for properties with proper error handling
-    setupSectionPropertyListeners(sectionId, section);
+    // Add event listeners for properties
+    document.getElementById('prop-sectionName').addEventListener('input', (e) => {
+      section.name = e.target.value;
+      renderSectionList();
+      saveDesign();
+      addToHistory();
+    });
+
+    document.getElementById('prop-sectionStyle').addEventListener('change', (e) => {
+      section.style = e.target.value;
+      applySectionStyle(section);
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { style: section.style } });
+    });
+
+    document.getElementById('prop-bgColor').addEventListener('input', (e) => {
+      section.backgroundColor = e.target.value;
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { backgroundColor: e.target.value } });
+    });
+
+    document.getElementById('prop-padding').addEventListener('input', (e) => {
+      section.padding = e.target.value;
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { padding: e.target.value } });
+    });
+    
+    // Shape selector event listeners
+    document.querySelectorAll('.shape-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const shape = option.dataset.shape;
+        section.shape = shape;
+        
+        document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-section', { id: sectionId, properties: { shape } });
+      });
+    });
+    
+    // Color palette event listeners
+    document.querySelectorAll('.color-swatch').forEach(swatch => {
+      swatch.addEventListener('click', () => {
+        const color = swatch.dataset.color;
+        section.backgroundColor = color;
+        document.getElementById('prop-bgColor').value = color;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-section', { id: sectionId, properties: { backgroundColor: color } });
+        
+        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+        swatch.classList.add('selected');
+      });
+    });
+    
+    // Gradient preset event listeners
+    document.querySelectorAll('[data-gradient]').forEach(preset => {
+      preset.addEventListener('click', () => {
+        const gradient = preset.dataset.gradient;
+        section.backgroundImage = gradient;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-section', { id: sectionId, properties: { backgroundImage: gradient } });
+      });
+    });
+    
+    // Background pattern event listeners
+    document.querySelectorAll('.pattern-option').forEach(option => {
+      option.addEventListener('click', () => {
+        const pattern = option.dataset.pattern;
+        section.pattern = pattern;
+        
+        document.querySelectorAll('.pattern-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-section', { id: sectionId, properties: { pattern } });
+      });
+    });
+    
+    // Advanced properties event listeners
+    document.getElementById('prop-shadow').addEventListener('change', (e) => {
+      section.shadow = e.target.value;
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { shadow: e.target.value } });
+    });
+    
+    document.getElementById('prop-borderWidth').addEventListener('input', (e) => {
+      section.borderWidth = parseInt(e.target.value) || 0;
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { borderWidth: section.borderWidth } });
+    });
+    
+    document.getElementById('prop-borderColor').addEventListener('input', (e) => {
+      section.borderColor = e.target.value;
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { borderColor: e.target.value } });
+    });
+    
+    document.getElementById('prop-animation').addEventListener('change', (e) => {
+      section.animation = e.target.value;
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { animation: e.target.value } });
+    });
+    
+    document.getElementById('prop-animationDelay').addEventListener('input', (e) => {
+      section.animationDelay = parseInt(e.target.value) || 0;
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { animationDelay: section.animationDelay } });
+    });
+    
+    document.getElementById('prop-animationDuration').addEventListener('input', (e) => {
+      section.animationDuration = parseInt(e.target.value) || 1000;
+      saveDesign();
+      addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { animationDuration: section.animationDuration } });
+    });
     
     document.getElementById('btnAddElementInSection').onclick = () => showAddElementDialog(sectionId);
     
     renderElementListInSection(sectionId);
-  }
-
-  // Setup section property listeners with proper error handling
-  function setupSectionPropertyListeners(sectionId, section) {
-    // Use event delegation to ensure listeners persist
-    const panel = document.getElementById('propertiesPanel');
-    
-    // Remove existing listeners if any
-    panel.removeEventListener('input', handleSectionInput);
-    panel.removeEventListener('change', handleSectionChange);
-    
-    // Add new listeners
-    panel.addEventListener('input', handleSectionInput);
-    panel.addEventListener('change', handleSectionChange);
-    
-    function handleSectionInput(e) {
-      if (!e.target.matches('#prop-sectionName, #prop-padding')) return;
-      
-      try {
-        if (e.target.id === 'prop-sectionName') {
-          section.name = e.target.value;
-          renderSectionList();
-        } else if (e.target.id === 'prop-padding') {
-          section.padding = e.target.value;
-        }
-        saveDesign();
-        addToHistory();
-        sendToIframe('update-section', { id: sectionId, properties: { [e.target.id.replace('prop-', '')]: e.target.value } });
-      } catch (error) {
-        console.error('Error updating section property:', error);
-        toast('Ralat mengemas kini sifat bahagian');
-      }
-    }
-    
-    function handleSectionChange(e) {
-      if (!e.target.matches('#prop-sectionStyle, #prop-bgColor, #prop-shadow, #prop-borderWidth, #prop-borderColor, #prop-animation, #prop-animationDelay, #prop-animationDuration')) return;
-      
-      try {
-        const propName = e.target.id.replace('prop-', '');
-        let value = e.target.value;
-        
-        if (propName === 'borderWidth') {
-          value = parseInt(value) || 0;
-        } else if (propName === 'animationDelay' || propName === 'animationDuration') {
-          value = parseInt(value) || 0;
-        }
-        
-        section[propName] = value;
-        
-        if (propName === 'sectionStyle') {
-          applySectionStyle(section);
-        }
-        
-        saveDesign();
-        addToHistory();
-        sendToIframe('update-section', { id: sectionId, properties: { [propName]: value } });
-      } catch (error) {
-        console.error('Error updating section property:', error);
-        toast('Ralat mengemas kini sifat bahagian');
-      }
-    }
-    
-    // Shape selector event listeners
-    const setupShapeSelectors = () => {
-      document.querySelectorAll('.shape-option').forEach(option => {
-        // Remove existing listeners
-        option.removeEventListener('click', handleShapeClick);
-        // Add new listener
-        option.addEventListener('click', handleShapeClick);
-      });
-      
-      function handleShapeClick() {
-        try {
-          const shape = this.dataset.shape;
-          section.shape = shape;
-          
-          document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
-          this.classList.add('selected');
-          
-          saveDesign();
-          addToHistory();
-          sendToIframe('update-section', { id: sectionId, properties: { shape } });
-        } catch (error) {
-          console.error('Error updating section shape:', error);
-          toast('Ralat mengemas kini bentuk bahagian');
-        }
-      }
-    };
-    
-    // Color palette event listeners
-    const setupColorPalette = () => {
-      document.querySelectorAll('.color-swatch').forEach(swatch => {
-        // Remove existing listeners
-        swatch.removeEventListener('click', handleColorClick);
-        // Add new listener
-        swatch.addEventListener('click', handleColorClick);
-      });
-      
-      function handleColorClick() {
-        try {
-          const color = this.dataset.color;
-          section.backgroundColor = color;
-          document.getElementById('prop-bgColor').value = color;
-          saveDesign();
-          addToHistory();
-          sendToIframe('update-section', { id: sectionId, properties: { backgroundColor: color } });
-          
-          document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-          this.classList.add('selected');
-        } catch (error) {
-          console.error('Error updating section color:', error);
-          toast('Ralat mengemas kini warna bahagian');
-        }
-      }
-    };
-    
-    // Gradient preset event listeners
-    const setupGradientPresets = () => {
-      document.querySelectorAll('[data-gradient]').forEach(preset => {
-        // Remove existing listeners
-        preset.removeEventListener('click', handleGradientClick);
-        // Add new listener
-        preset.addEventListener('click', handleGradientClick);
-      });
-      
-      function handleGradientClick() {
-        try {
-          const gradient = this.dataset.gradient;
-          section.backgroundImage = gradient;
-          saveDesign();
-          addToHistory();
-          sendToIframe('update-section', { id: sectionId, properties: { backgroundImage: gradient } });
-        } catch (error) {
-          console.error('Error updating section gradient:', error);
-          toast('Ralat mengemas kini gradien bahagian');
-        }
-      }
-    };
-    
-    // Background pattern event listeners
-    const setupBackgroundPatterns = () => {
-      document.querySelectorAll('.pattern-option').forEach(option => {
-        // Remove existing listeners
-        option.removeEventListener('click', handlePatternClick);
-        // Add new listener
-        option.addEventListener('click', handlePatternClick);
-      });
-      
-      function handlePatternClick() {
-        try {
-          const pattern = this.dataset.pattern;
-          section.pattern = pattern;
-          
-          document.querySelectorAll('.pattern-option').forEach(o => o.classList.remove('selected'));
-          this.classList.add('selected');
-          
-          saveDesign();
-          addToHistory();
-          sendToIframe('update-section', { id: sectionId, properties: { pattern } });
-        } catch (error) {
-          console.error('Error updating section pattern:', error);
-          toast('Ralat mengemas kini corak latar bahagian');
-        }
-      }
-    };
-    
-    // Setup all selectors
-    setupShapeSelectors();
-    setupColorPalette();
-    setupGradientPresets();
-    setupBackgroundPatterns();
   }
 
   // Fungsi untuk menggunakan gaya
@@ -1714,28 +1662,23 @@
     const contents = document.querySelectorAll('.properties-content');
     
     tabs.forEach(tab => {
-      // Remove existing listeners
-      tab.removeEventListener('click', handleTabClick);
-      // Add new listener
-      tab.addEventListener('click', handleTabClick);
-    });
-    
-    function handleTabClick(e) {
-      e.stopPropagation();
-      
-      const tabName = this.dataset.tab;
-      
-      tabs.forEach(t => t.classList.remove('active'));
-      this.classList.add('active');
-      
-      contents.forEach(content => {
-        if (content.dataset.tab === tabName) {
-          content.classList.add('active');
-        } else {
-          content.classList.remove('active');
-        }
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        const tabName = tab.dataset.tab;
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        
+        contents.forEach(content => {
+          if (content.dataset.tab === tabName) {
+            content.classList.add('active');
+          } else {
+            content.classList.remove('active');
+          }
+        });
       });
-    }
+    });
   }
 
   // ===================================================================
@@ -1763,10 +1706,6 @@
       console.error("Element not found:", elementId);
       return;
     }
-
-    // Store current editing element
-    store.currentEditingElement = selectedElement;
-    store.currentEditingSection = parentSection;
 
     // Show the correct properties panel based on element type
     showElementProperties(selectedElement, parentSection);
@@ -2654,189 +2593,949 @@
     // Setup properties tabs with event handling
     setupPropertiesTabs();
     
-    // Setup element property listeners with proper error handling
-    setupElementPropertyListeners(element, parentSection);
+    // Store current element reference for error handling
+    const currentElement = element;
+    
+    // Helper function to add property listeners with error handling
+    function addPropertyListener(id, event, handler) {
+      const element = document.getElementById(id);
+      if (element) {
+        element.addEventListener(event, (e) => {
+          try {
+            handler(e);
+          } catch (error) {
+            handleElementPropertyError(error, currentElement.id, id);
+          }
+        });
+      }
+    }
+    
+    // Add event listeners for text element toolbar
+    if (element.type === 'text') {
+      const rtbox = content.querySelector('#prop-elementContent');
+      const textColorPicker = content.querySelector('#prop-textColor');
+      const textColorHex = content.querySelector('#prop-textColorHex');
+      const fontSizeSelect = content.querySelector('#prop-fontSize');
+      const gridColumnSelect = content.querySelector('#prop-gridColumn');
+      
+      // Style properties
+      const fontFamilySelect = content.querySelector('#prop-fontFamily');
+      const textAlignSelect = content.querySelector('#prop-textAlign');
+      const lineHeightInput = content.querySelector('#prop-lineHeight');
+      const letterSpacingInput = content.querySelector('#prop-letterSpacing');
+      
+      // Advanced properties
+      const shadowSelect = content.querySelector('#prop-shadow');
+      const borderWidthInput = content.querySelector('#prop-borderWidth');
+      const borderColorInput = content.querySelector('#prop-borderColor');
+      const animationSelect = content.querySelector('#prop-animation');
+      const animationDelayInput = content.querySelector('#prop-animationDelay');
+      const animationDurationInput = content.querySelector('#prop-animationDuration');
+
+      // Update content on input
+      if (rtbox) {
+        rtbox.addEventListener('input', updateElementContent);
+        rtbox.addEventListener('paste', updateElementContent);
+      }
+
+      function updateElementContent() {
+        try {
+          currentElement.content = rtbox.innerHTML;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { content: currentElement.content } });
+        } catch (error) {
+          handleElementPropertyError(error, currentElement.id, 'content');
+        }
+      }
+
+      // Sync color pickers
+      if (textColorPicker && textColorHex) {
+        textColorPicker.addEventListener('input', (e) => {
+          try {
+            textColorHex.value = e.target.value;
+            applyTextColor(e.target.value);
+          } catch (error) {
+            handleElementPropertyError(error, currentElement.id, 'textColor');
+          }
+        });
+        
+        textColorHex.addEventListener('input', (e) => {
+          try {
+            const color = e.target.value;
+            if (/^#[0-9A-F]{6}$/i.test(color)) {
+              textColorPicker.value = color;
+              applyTextColor(color);
+            }
+          } catch (error) {
+            handleElementPropertyError(error, currentElement.id, 'textColorHex');
+          }
+        });
+      }
+
+      function applyTextColor(color) {
+        try {
+          document.execCommand('foreColor', false, color);
+        } catch (error) {
+          handleElementPropertyError(error, currentElement.id, 'applyTextColor');
+        }
+      }
+
+      if (fontSizeSelect) {
+        addPropertyListener('prop-fontSize', 'change', (e) => {
+          currentElement.fontSize = parseInt(fontSizeSelect.value);
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { fontSize: currentElement.fontSize } });
+        });
+      }
+
+      if (gridColumnSelect) {
+        addPropertyListener('prop-gridColumn', 'change', (e) => {
+          currentElement.gridColumn = e.target.value;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { gridColumn: e.target.value } });
+        });
+      }
+      
+      // Style properties event listeners
+      if (fontFamilySelect) {
+        addPropertyListener('prop-fontFamily', 'change', (e) => {
+          currentElement.fontFamily = fontFamilySelect.value;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { fontFamily: currentElement.fontFamily } });
+        });
+      }
+      
+      if (textAlignSelect) {
+        addPropertyListener('prop-textAlign', 'change', (e) => {
+          currentElement.textAlign = textAlignSelect.value;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { textAlign: currentElement.textAlign } });
+        });
+      }
+      
+      if (lineHeightInput) {
+        addPropertyListener('prop-lineHeight', 'input', (e) => {
+          currentElement.lineHeight = parseFloat(lineHeightInput.value) || 1.5;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { lineHeight: currentElement.lineHeight } });
+        });
+      }
+      
+      if (letterSpacingInput) {
+        addPropertyListener('prop-letterSpacing', 'input', (e) => {
+          currentElement.letterSpacing = parseFloat(letterSpacingInput.value) || 0;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { letterSpacing: currentElement.letterSpacing } });
+        });
+      }
+      
+      // Advanced properties event listeners
+      if (shadowSelect) {
+        addPropertyListener('prop-shadow', 'change', (e) => {
+          currentElement.shadow = shadowSelect.value;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { shadow: currentElement.shadow } });
+        });
+      }
+      
+      if (borderWidthInput) {
+        addPropertyListener('prop-borderWidth', 'input', (e) => {
+          currentElement.borderWidth = parseInt(borderWidthInput.value) || 0;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { borderWidth: currentElement.borderWidth } });
+        });
+      }
+      
+      if (borderColorInput) {
+        addPropertyListener('prop-borderColor', 'input', (e) => {
+          currentElement.borderColor = borderColorInput.value;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: currentElement.borderColor } });
+        });
+      }
+      
+      if (animationSelect) {
+        addPropertyListener('prop-animation', 'change', (e) => {
+          currentElement.animation = animationSelect.value;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { animation: currentElement.animation } });
+        });
+      }
+      
+      if (animationDelayInput) {
+        addPropertyListener('prop-animationDelay', 'input', (e) => {
+          currentElement.animationDelay = parseInt(animationDelayInput.value) || 0;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { animationDelay: currentElement.animationDelay } });
+        });
+      }
+      
+      if (animationDurationInput) {
+        addPropertyListener('prop-animationDuration', 'input', (e) => {
+          currentElement.animationDuration = parseInt(animationDurationInput.value) || 1000;
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { animationDuration: currentElement.animationDuration } });
+        });
+      }
+    }
+    
+    // Add event listeners for image element
+    if (element.type === 'image') {
+      addPropertyListener('prop-src', 'input', (e) => {
+        currentElement.src = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { src: e.target.value } });
+      });
+      
+      addPropertyListener('prop-alt', 'input', (e) => {
+        currentElement.alt = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { alt: e.target.value } });
+      });
+      
+      addPropertyListener('prop-gridColumn', 'change', (e) => {
+        currentElement.gridColumn = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { gridColumn: e.target.value } });
+      });
+      
+      const clickableSelect = document.getElementById('prop-clickable');
+      const clickableOptions = document.getElementById('clickableOptions');
+      
+      if (clickableSelect) {
+        addPropertyListener('prop-clickable', 'change', (e) => {
+          currentElement.clickable = e.target.value;
+          if (clickableOptions) {
+            clickableOptions.style.display = e.target.value === 'yes' ? 'block' : 'none';
+          }
+          saveDesign();
+          addToHistory();
+          sendToIframe('update-element', { id: currentElement.id, properties: { clickable: e.target.value } });
+        });
+      }
+      
+      addPropertyListener('prop-linkUrl', 'input', (e) => {
+        currentElement.linkUrl = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { linkUrl: e.target.value } });
+      });
+      
+      addPropertyListener('prop-linkTarget', 'change', (e) => {
+        currentElement.linkTarget = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { linkTarget: e.target.value } });
+      });
+      
+      addPropertyListener('prop-objectFit', 'change', (e) => {
+        currentElement.objectFit = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { objectFit: e.target.value } });
+      });
+      
+      // Shape selector event listeners
+      document.querySelectorAll('.shape-option').forEach(option => {
+        option.addEventListener('click', () => {
+          try {
+            const shape = option.dataset.shape;
+            currentElement.shape = shape;
+            
+            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            
+            saveDesign();
+            addToHistory();
+            sendToIframe('update-element', { id: currentElement.id, properties: { shape } });
+          } catch (error) {
+            handleElementPropertyError(error, currentElement.id, 'shape');
+          }
+        });
+      });
+      
+      addPropertyListener('prop-borderRadius', 'input', (e) => {
+        currentElement.borderRadius = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderRadius: e.target.value } });
+      });
+      
+      addPropertyListener('prop-opacity', 'input', (e) => {
+        currentElement.opacity = parseFloat(e.target.value);
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { opacity: currentElement.opacity } });
+      });
+      
+      addPropertyListener('prop-shadow', 'change', (e) => {
+        currentElement.shadow = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { shadow: e.target.value } });
+      });
+      
+      addPropertyListener('prop-borderWidth', 'input', (e) => {
+        currentElement.borderWidth = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderWidth: currentElement.borderWidth } });
+      });
+      
+      addPropertyListener('prop-borderColor', 'input', (e) => {
+        currentElement.borderColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animation', 'change', (e) => {
+        currentElement.animation = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animation: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animationDelay', 'input', (e) => {
+        currentElement.animationDelay = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDelay: currentElement.animationDelay } });
+      });
+      
+      addPropertyListener('prop-animationDuration', 'input', (e) => {
+        currentElement.animationDuration = parseInt(e.target.value) || 1000;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDuration: currentElement.animationDuration } });
+      });
+    }
+    
+    // Add event listeners for video element
+    if (element.type === 'video') {
+      addPropertyListener('prop-src', 'input', (e) => {
+        currentElement.src = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { src: e.target.value } });
+      });
+      
+      addPropertyListener('prop-gridColumn', 'change', (e) => {
+        currentElement.gridColumn = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { gridColumn: e.target.value } });
+      });
+      
+      addPropertyListener('prop-autoplay', 'change', (e) => {
+        currentElement.autoplay = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { autoplay: e.target.value } });
+      });
+      
+      addPropertyListener('prop-controls', 'change', (e) => {
+        currentElement.controls = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { controls: e.target.value } });
+      });
+      
+      addPropertyListener('prop-muted', 'change', (e) => {
+        currentElement.muted = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { muted: e.target.value } });
+      });
+      
+      addPropertyListener('prop-loop', 'change', (e) => {
+        currentElement.loop = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { loop: e.target.value } });
+      });
+      
+      // Shape selector event listeners
+      document.querySelectorAll('.shape-option').forEach(option => {
+        option.addEventListener('click', () => {
+          try {
+            const shape = option.dataset.shape;
+            currentElement.shape = shape;
+            
+            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            
+            saveDesign();
+            addToHistory();
+            sendToIframe('update-element', { id: currentElement.id, properties: { shape } });
+          } catch (error) {
+            handleElementPropertyError(error, currentElement.id, 'shape');
+          }
+        });
+      });
+      
+      addPropertyListener('prop-borderRadius', 'input', (e) => {
+        currentElement.borderRadius = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderRadius: e.target.value } });
+      });
+      
+      addPropertyListener('prop-opacity', 'input', (e) => {
+        currentElement.opacity = parseFloat(e.target.value);
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { opacity: currentElement.opacity } });
+      });
+      
+      addPropertyListener('prop-shadow', 'change', (e) => {
+        currentElement.shadow = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { shadow: e.target.value } });
+      });
+      
+      addPropertyListener('prop-borderWidth', 'input', (e) => {
+        currentElement.borderWidth = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderWidth: currentElement.borderWidth } });
+      });
+      
+      addPropertyListener('prop-borderColor', 'input', (e) => {
+        currentElement.borderColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animation', 'change', (e) => {
+        currentElement.animation = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animation: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animationDelay', 'input', (e) => {
+        currentElement.animationDelay = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDelay: currentElement.animationDelay } });
+      });
+      
+      addPropertyListener('prop-animationDuration', 'input', (e) => {
+        currentElement.animationDuration = parseInt(e.target.value) || 1000;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDuration: currentElement.animationDuration } });
+      });
+    }
+    
+    // Add event listeners for button element
+    if (element.type === 'button') {
+      addPropertyListener('prop-content', 'input', (e) => {
+        currentElement.content = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { content: e.target.value } });
+      });
+      
+      addPropertyListener('prop-href', 'input', (e) => {
+        currentElement.href = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { href: e.target.value } });
+      });
+      
+      addPropertyListener('prop-bgColor', 'input', (e) => {
+        currentElement.backgroundColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { backgroundColor: e.target.value } });
+      });
+      
+      addPropertyListener('prop-color', 'input', (e) => {
+        currentElement.color = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { color: e.target.value } });
+      });
+      
+      addPropertyListener('prop-gridColumn', 'change', (e) => {
+        currentElement.gridColumn = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { gridColumn: e.target.value } });
+      });
+      
+      addPropertyListener('prop-fontSize', 'input', (e) => {
+        currentElement.fontSize = parseInt(e.target.value);
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { fontSize: currentElement.fontSize } });
+      });
+      
+      addPropertyListener('prop-fontWeight', 'change', (e) => {
+        currentElement.fontWeight = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { fontWeight: e.target.value } });
+      });
+      
+      // Shape selector event listeners
+      document.querySelectorAll('.shape-option').forEach(option => {
+        option.addEventListener('click', () => {
+          try {
+            const shape = option.dataset.shape;
+            currentElement.shape = shape;
+            
+            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            
+            saveDesign();
+            addToHistory();
+            sendToIframe('update-element', { id: currentElement.id, properties: { shape } });
+          } catch (error) {
+            handleElementPropertyError(error, currentElement.id, 'shape');
+          }
+        });
+      });
+      
+      addPropertyListener('prop-borderRadius', 'input', (e) => {
+        currentElement.borderRadius = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderRadius: e.target.value } });
+      });
+      
+      addPropertyListener('prop-padding', 'input', (e) => {
+        currentElement.padding = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { padding: e.target.value } });
+      });
+      
+      addPropertyListener('prop-shadow', 'change', (e) => {
+        currentElement.shadow = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { shadow: e.target.value } });
+      });
+      
+      addPropertyListener('prop-borderWidth', 'input', (e) => {
+        currentElement.borderWidth = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderWidth: currentElement.borderWidth } });
+      });
+      
+      addPropertyListener('prop-borderColor', 'input', (e) => {
+        currentElement.borderColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animation', 'change', (e) => {
+        currentElement.animation = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animation: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animationDelay', 'input', (e) => {
+        currentElement.animationDelay = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDelay: currentElement.animationDelay } });
+      });
+      
+      addPropertyListener('prop-animationDuration', 'input', (e) => {
+        currentElement.animationDuration = parseInt(e.target.value) || 1000;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDuration: currentElement.animationDuration } });
+      });
+    }
+    
+    // Add event listeners for social element
+    if (element.type === 'social') {
+      addPropertyListener('prop-socialPlatform', 'change', (e) => {
+        currentElement.platform = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { platform: e.target.value } });
+      });
+      
+      addPropertyListener('prop-socialUrl', 'input', (e) => {
+        currentElement.url = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { url: e.target.value } });
+      });
+      
+      addPropertyListener('prop-socialColor', 'input', (e) => {
+        currentElement.color = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { color: e.target.value } });
+      });
+      
+      addPropertyListener('prop-socialSize', 'change', (e) => {
+        currentElement.size = parseInt(e.target.value);
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { size: currentElement.size } });
+      });
+      
+      addPropertyListener('prop-gridColumn', 'change', (e) => {
+        currentElement.gridColumn = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { gridColumn: e.target.value } });
+      });
+      
+      addPropertyListener('prop-socialBgColor', 'input', (e) => {
+        currentElement.backgroundColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { backgroundColor: e.target.value } });
+      });
+      
+      // Shape selector event listeners
+      document.querySelectorAll('.shape-option').forEach(option => {
+        option.addEventListener('click', () => {
+          try {
+            const shape = option.dataset.shape;
+            currentElement.shape = shape;
+            
+            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            
+            saveDesign();
+            addToHistory();
+            sendToIframe('update-element', { id: currentElement.id, properties: { shape } });
+          } catch (error) {
+            handleElementPropertyError(error, currentElement.id, 'shape');
+          }
+        });
+      });
+      
+      addPropertyListener('prop-borderRadius', 'input', (e) => {
+        currentElement.borderRadius = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderRadius: e.target.value } });
+      });
+      
+      addPropertyListener('prop-padding', 'input', (e) => {
+        currentElement.padding = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { padding: e.target.value } });
+      });
+      
+      addPropertyListener('prop-shadow', 'change', (e) => {
+        currentElement.shadow = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { shadow: e.target.value } });
+      });
+      
+      addPropertyListener('prop-borderWidth', 'input', (e) => {
+        currentElement.borderWidth = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderWidth: currentElement.borderWidth } });
+      });
+      
+      addPropertyListener('prop-borderColor', 'input', (e) => {
+        currentElement.borderColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animation', 'change', (e) => {
+        currentElement.animation = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animation: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animationDelay', 'input', (e) => {
+        currentElement.animationDelay = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDelay: currentElement.animationDelay } });
+      });
+      
+      addPropertyListener('prop-animationDuration', 'input', (e) => {
+        currentElement.animationDuration = parseInt(e.target.value) || 1000;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDuration: currentElement.animationDuration } });
+      });
+    }
+    
+    // Add event listeners for link element
+    if (element.type === 'link') {
+      addPropertyListener('prop-linkText', 'input', (e) => {
+        currentElement.text = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { text: e.target.value } });
+      });
+      
+      addPropertyListener('prop-linkUrl', 'input', (e) => {
+        currentElement.url = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { url: e.target.value } });
+      });
+      
+      addPropertyListener('prop-linkTarget', 'change', (e) => {
+        currentElement.target = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { target: e.target.value } });
+      });
+      
+      addPropertyListener('prop-gridColumn', 'change', (e) => {
+        currentElement.gridColumn = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { gridColumn: e.target.value } });
+      });
+      
+      addPropertyListener('prop-fontSize', 'input', (e) => {
+        currentElement.fontSize = parseInt(e.target.value);
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { fontSize: currentElement.fontSize } });
+      });
+      
+      addPropertyListener('prop-fontWeight', 'change', (e) => {
+        currentElement.fontWeight = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { fontWeight: e.target.value } });
+      });
+      
+      addPropertyListener('prop-textDecoration', 'change', (e) => {
+        currentElement.textDecoration = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { textDecoration: e.target.value } });
+      });
+      
+      addPropertyListener('prop-linkColor', 'input', (e) => {
+        currentElement.color = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { color: e.target.value } });
+      });
+      
+      addPropertyListener('prop-shadow', 'change', (e) => {
+        currentElement.shadow = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { shadow: e.target.value } });
+      });
+      
+      addPropertyListener('prop-borderWidth', 'input', (e) => {
+        currentElement.borderWidth = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderWidth: currentElement.borderWidth } });
+      });
+      
+      addPropertyListener('prop-borderColor', 'input', (e) => {
+        currentElement.borderColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animation', 'change', (e) => {
+        currentElement.animation = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animation: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animationDelay', 'input', (e) => {
+        currentElement.animationDelay = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDelay: currentElement.animationDelay } });
+      });
+      
+      addPropertyListener('prop-animationDuration', 'input', (e) => {
+        currentElement.animationDuration = parseInt(e.target.value) || 1000;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDuration: currentElement.animationDuration } });
+      });
+    }
+    
+    // Add event listeners for calculator element
+    if (element.type === 'calculator') {
+      addPropertyListener('prop-title', 'input', (e) => {
+        currentElement.title = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { title: e.target.value } });
+      });
+      
+      addPropertyListener('prop-inputText', 'input', (e) => {
+        currentElement.inputText = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { inputText: e.target.value } });
+      });
+      
+      addPropertyListener('prop-buttonText', 'input', (e) => {
+        currentElement.buttonText = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { buttonText: e.target.value } });
+      });
+      
+      addPropertyListener('prop-resultText', 'input', (e) => {
+        currentElement.resultText = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { resultText: e.target.value } });
+      });
+      
+      addPropertyListener('prop-gridColumn', 'change', (e) => {
+        currentElement.gridColumn = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { gridColumn: e.target.value } });
+      });
+      
+      addPropertyListener('prop-bgColor', 'input', (e) => {
+        currentElement.backgroundColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { backgroundColor: e.target.value } });
+      });
+      
+      addPropertyListener('prop-color', 'input', (e) => {
+        currentElement.color = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { color: e.target.value } });
+      });
+      
+      addPropertyListener('prop-buttonColor', 'input', (e) => {
+        currentElement.buttonColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { buttonColor: e.target.value } });
+      });
+      
+      // Shape selector event listeners
+      document.querySelectorAll('.shape-option').forEach(option => {
+        option.addEventListener('click', () => {
+          try {
+            const shape = option.dataset.shape;
+            currentElement.shape = shape;
+            
+            document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
+            option.classList.add('selected');
+            
+            saveDesign();
+            addToHistory();
+            sendToIframe('update-element', { id: currentElement.id, properties: { shape } });
+          } catch (error) {
+            handleElementPropertyError(error, currentElement.id, 'shape');
+          }
+        });
+      });
+      
+      addPropertyListener('prop-borderRadius', 'input', (e) => {
+        currentElement.borderRadius = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderRadius: e.target.value } });
+      });
+      
+      addPropertyListener('prop-shadow', 'change', (e) => {
+        currentElement.shadow = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { shadow: e.target.value } });
+      });
+      
+      addPropertyListener('prop-borderWidth', 'input', (e) => {
+        currentElement.borderWidth = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderWidth: currentElement.borderWidth } });
+      });
+      
+      addPropertyListener('prop-borderColor', 'input', (e) => {
+        currentElement.borderColor = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animation', 'change', (e) => {
+        currentElement.animation = e.target.value;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animation: e.target.value } });
+      });
+      
+      addPropertyListener('prop-animationDelay', 'input', (e) => {
+        currentElement.animationDelay = parseInt(e.target.value) || 0;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDelay: currentElement.animationDelay } });
+      });
+      
+      addPropertyListener('prop-animationDuration', 'input', (e) => {
+        currentElement.animationDuration = parseInt(e.target.value) || 1000;
+        saveDesign();
+        addToHistory();
+        sendToIframe('update-element', { id: currentElement.id, properties: { animationDuration: currentElement.animationDuration } });
+      });
+    }
     
     // Re-initialize Lucide icons for the new content
     lucide.createIcons();
   }
 
-  // Setup element property listeners with proper error handling
-  function setupElementPropertyListeners(element, parentSection) {
+  // Function to handle element property errors
+  function handleElementPropertyError(error, elementId, property) {
+    console.error(`Error updating ${property} for element ${elementId}:`, error);
+    toast(`Ralat mengemas kini ${property}: ${error.message || 'Ralat tidak diketahui'}`);
+    
+    // Ensure properties panel remains open even if an error occurs
     const panel = document.getElementById('propertiesPanel');
-    
-    // Remove existing listeners if any
-    panel.removeEventListener('input', handleElementInput);
-    panel.removeEventListener('change', handleElementChange);
-    
-    // Add new listeners
-    panel.addEventListener('input', handleElementInput);
-    panel.addEventListener('change', handleElementChange);
-    
-    function handleElementInput(e) {
-      // Only handle inputs that belong to element properties
-      if (!e.target.matches('[id^="prop-"]')) return;
-      
-      try {
-        const propName = e.target.id.replace('prop-', '');
-        let value = e.target.value;
-        
-        // Handle special cases
-        if (propName === 'elementContent' && element.type === 'text') {
-          element.content = e.target.innerHTML;
-        } else if (propName === 'textColorHex' && element.type === 'text') {
-          element.color = value;
-          document.getElementById('prop-textColor').value = value;
-        } else if (propName === 'borderWidth' || propName === 'animationDelay' || propName === 'animationDuration') {
-          value = parseInt(value) || 0;
-        } else if (propName === 'opacity') {
-          value = parseFloat(value);
-        }
-        
-        element[propName] = value;
-        
-        saveDesign();
-        addToHistory();
-        sendToIframe('update-element', { id: element.id, properties: { [propName]: value } });
-      } catch (error) {
-        console.error('Error updating element property:', error);
-        toast('Ralat mengemas kini sifat elemen');
-        // Ensure panel stays open
-        panel.classList.remove('hidden');
-      }
+    if (panel && panel.classList.contains('hidden')) {
+      panel.classList.remove('hidden');
     }
-    
-    function handleElementChange(e) {
-      // Only handle selects that belong to element properties
-      if (!e.target.matches('[id^="prop-"]')) return;
-      
-      try {
-        const propName = e.target.id.replace('prop-', '');
-        let value = e.target.value;
-        
-        // Handle special cases
-        if (propName === 'clickable' && element.type === 'image') {
-          const clickableOptions = document.getElementById('clickableOptions');
-          if (clickableOptions) {
-            clickableOptions.style.display = value === 'yes' ? 'block' : 'none';
-          }
-        } else if (propName === 'fontSize' || propName === 'borderWidth' || propName === 'animationDelay' || propName === 'animationDuration') {
-          value = parseInt(value) || 0;
-        } else if (propName === 'size' && element.type === 'social') {
-          value = parseInt(value);
-        }
-        
-        element[propName] = value;
-        
-        saveDesign();
-        addToHistory();
-        sendToIframe('update-element', { id: element.id, properties: { [propName]: value } });
-      } catch (error) {
-        console.error('Error updating element property:', error);
-        toast('Ralat mengemas kini sifat elemen');
-        // Ensure panel stays open
-        panel.classList.remove('hidden');
-      }
-    }
-    
-    // Special handling for text element toolbar
-    if (element.type === 'text') {
-      const rtbox = document.getElementById('prop-elementContent');
-      if (rtbox) {
-        // Remove existing listeners
-        rtbox.removeEventListener('input', handleTextContentInput);
-        rtbox.removeEventListener('paste', handleTextContentInput);
-        
-        // Add new listeners
-        rtbox.addEventListener('input', handleTextContentInput);
-        rtbox.addEventListener('paste', handleTextContentInput);
-        
-        function handleTextContentInput() {
-          try {
-            element.content = rtbox.innerHTML;
-            saveDesign();
-            addToHistory();
-            sendToIframe('update-element', { id: element.id, properties: { content: element.content } });
-          } catch (error) {
-            console.error('Error updating text content:', error);
-            toast('Ralat mengemas kini kandungan teks');
-          }
-        }
-      }
-      
-      // Setup color picker sync
-      const textColorPicker = document.getElementById('prop-textColor');
-      const textColorHex = document.getElementById('prop-textColorHex');
-      
-      if (textColorPicker && textColorHex) {
-        // Remove existing listeners
-        textColorPicker.removeEventListener('input', handleTextColorPickerInput);
-        textColorHex.removeEventListener('input', handleTextColorHexInput);
-        
-        // Add new listeners
-        textColorPicker.addEventListener('input', handleTextColorPickerInput);
-        textColorHex.addEventListener('input', handleTextColorHexInput);
-        
-        function handleTextColorPickerInput(e) {
-          try {
-            textColorHex.value = e.target.value;
-            element.color = e.target.value;
-            saveDesign();
-            addToHistory();
-            sendToIframe('update-element', { id: element.id, properties: { color: e.target.value } });
-          } catch (error) {
-            console.error('Error updating text color:', error);
-            toast('Ralat mengemas kini warna teks');
-          }
-        }
-        
-        function handleTextColorHexInput(e) {
-          try {
-            const color = e.target.value;
-            if (/^#[0-9A-F]{6}$/i.test(color)) {
-              textColorPicker.value = color;
-              element.color = color;
-              saveDesign();
-              addToHistory();
-              sendToIframe('update-element', { id: element.id, properties: { color } });
-            }
-          } catch (error) {
-            console.error('Error updating text color hex:', error);
-            toast('Ralat mengemas kini warna teks');
-          }
-        }
-      }
-    }
-    
-    // Setup shape selectors
-    const setupShapeSelectors = () => {
-      document.querySelectorAll('.shape-option').forEach(option => {
-        // Remove existing listeners
-        option.removeEventListener('click', handleShapeClick);
-        // Add new listener
-        option.addEventListener('click', handleShapeClick);
-      });
-      
-      function handleShapeClick() {
-        try {
-          const shape = this.dataset.shape;
-          element.shape = shape;
-          
-          document.querySelectorAll('.shape-option').forEach(o => o.classList.remove('selected'));
-          this.classList.add('selected');
-          
-          saveDesign();
-          addToHistory();
-          sendToIframe('update-element', { id: element.id, properties: { shape } });
-        } catch (error) {
-          console.error('Error updating element shape:', error);
-          toast('Ralat mengemas kini bentuk elemen');
-        }
-      }
-    };
-    
-    // Setup all selectors
-    setupShapeSelectors();
   }
 
   // Initialize text toolbar with proper icons
@@ -2853,21 +3552,16 @@
     
     // Add event listeners to toolbar buttons
     toolbar.querySelectorAll('button[data-command]').forEach(btn => {
-      // Remove existing listeners
-      btn.removeEventListener('click', handleToolbarClick);
-      // Add new listener
-      btn.addEventListener('click', handleToolbarClick);
+      btn.addEventListener('click', () => {
+        const command = btn.dataset.command;
+        try {
+          document.execCommand(command, false, null);
+          updateToolbarState();
+        } catch (error) {
+          console.error('Error executing command:', command, error);
+        }
+      });
     });
-    
-    function handleToolbarClick() {
-      const command = this.dataset.command;
-      try {
-        document.execCommand(command, false, null);
-        updateToolbarState();
-      } catch (error) {
-        console.error('Error executing command:', command, error);
-      }
-    }
     
     // Initialize toolbar state
     updateToolbarState();
@@ -3172,8 +3866,6 @@
     document.getElementById('propertiesPanel').classList.add('hidden');
     store.selectedSectionId = null;
     store.selectedElementId = null;
-    store.currentEditingElement = null;
-    store.currentEditingSection = null;
     sendToIframe('deselect-all', {});
   }
 
@@ -3317,6 +4009,7 @@
       applyZoom();
     });
     
+    // 修复: 统一缩放按钮的ID名称
     document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
     document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
     document.getElementById('zoomResetBtn').addEventListener('click', () => {
@@ -3631,13 +4324,15 @@
     
     e.dataTransfer.dropEffect = 'move';
     
-    const afterElement = getDragAfterElement(e.currentTarget.parentNode, e.clientY);
+    // 修复: 确保getDragAfterElement函数逻辑正确，不创建嵌套的NodeList
+    const container = e.currentTarget.parentNode;
+    const afterElement = getDragAfterElement(container, e.clientY);
     const dragging = document.querySelector('.dragging');
     
     if (afterElement == null) {
-      e.currentTarget.parentNode.appendChild(dragging);
+      container.appendChild(dragging);
     } else {
-      e.currentTarget.parentNode.insertBefore(dragging, afterElement);
+      container.insertBefore(dragging, afterElement);
     }
     
     return false;
@@ -3699,6 +4394,7 @@
     }
   }
   
+  // 修复: 确保getDragAfterElement函数逻辑正确，不创建嵌套的NodeList
   function getDragAfterElement(container, y) {
     const draggableElements = [...container.querySelectorAll('.section-item:not(.dragging), .element-item:not(.dragging)')];
     
