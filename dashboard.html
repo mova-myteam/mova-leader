@@ -949,7 +949,7 @@
     try{
       const b64 = await toBase64NoPrefix(f);
       const json = await callApi('upload_media', { leader_id: store.leader.leader_id, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64 });
-      if (json.success){ addMediaTile(json.public_url, json.isVideo); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
+      if (json.success){ addMediaTile(json.public_url, /^video\//i.test(json.file_type||'')); toast('Muat naik berjaya ✔️'); fileInput.value=''; } else { toast('Gagal: '+(json.error||'')); }
     }catch(err){ toast('Ralat muat naik'); }
   });
   document.getElementById('btnInsertToContent').addEventListener('click', ()=>{ const count = store.selectedMedia.size; toast(count ? `Ditandakan ${count} media` : 'Tiada media dipilih'); updateChosenMediaHint(); });
@@ -4423,7 +4423,8 @@
   
   // 修复: 确保getDragAfterElement函数逻辑正确，不创建嵌套的NodeList
   function getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll('.section-item:not(.dragging), .element-item:not(.dragging)')];
+    // 修复: 使用Array.from替代from，并去掉前面的点号
+    const draggableElements = Array.from(container.querySelectorAll('.section-item:not(.dragging), .element-item:not(.dragging)'));
     
     return draggableElements.reduce((closest, child) => {
       const box = child.getBoundingClientRect();
