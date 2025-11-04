@@ -3953,12 +3953,7 @@
         store.sections = JSON.parse(settings.sections_json);
       }
       // Beritahu iframe untuk memuatkan bahagian
-      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+      sendToIframe('load-sections', { sections: store.sections });
       renderSectionList();
       // Initialize history
       store.history = [JSON.parse(JSON.stringify(store.sections))];
@@ -4105,12 +4100,7 @@ if (store.sections && store.sections.length) {
       store.historyIndex--;
       store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
       renderSectionList();
-      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+      sendToIframe('load-sections', { sections: store.sections });
       updateHistoryPanel();
     }
   }
@@ -4120,12 +4110,7 @@ if (store.sections && store.sections.length) {
       store.historyIndex++;
       store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
       renderSectionList();
-      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+      sendToIframe('load-sections', { sections: store.sections });
       updateHistoryPanel();
     }
   }
@@ -4150,12 +4135,7 @@ if (store.sections && store.sections.length) {
         store.historyIndex = index;
         store.sections = JSON.parse(JSON.stringify(store.history[store.historyIndex]));
         renderSectionList();
-        // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+        sendToIframe('load-sections', { sections: store.sections });
         updateHistoryPanel();
       });
       
@@ -4335,12 +4315,7 @@ if (store.sections && store.sections.length) {
           renderSectionList();
           saveDesign();
           addToHistory();
-          // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+          sendToIframe('load-sections', { sections: store.sections });
           
           document.getElementById('templatesModal').classList.add('hidden');
           toast(`Template "${template.name}" ditambah`);
@@ -4416,12 +4391,7 @@ if (store.sections && store.sections.length) {
         renderSectionList();
         saveDesign();
         addToHistory();
-        // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+        sendToIframe('load-sections', { sections: store.sections });
       }
     } else if (store.draggedItem.type === 'element') {
       const sectionId = e.currentTarget.closest('[data-section-id]').dataset.sectionId;
@@ -4437,12 +4407,7 @@ if (store.sections && store.sections.length) {
           renderElementListInSection(sectionId);
           saveDesign();
           addToHistory();
-          // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+          sendToIframe('load-sections', { sections: store.sections });
         }
       }
     }
@@ -4562,12 +4527,7 @@ if (store.sections && store.sections.length) {
           renderSectionList();
           saveDesign();
           addToHistory();
-          // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+          sendToIframe('load-sections', { sections: store.sections });
           toast('Bahagian digandakan');
         }
       } else if (store.contextMenuTarget.type === 'element') {
@@ -4584,12 +4544,7 @@ if (store.sections && store.sections.length) {
             renderElementListInSection(store.contextMenuTarget.sectionId);
             saveDesign();
             addToHistory();
-            // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+            sendToIframe('load-sections', { sections: store.sections });
             toast('Elemen digandakan');
           }
         }
@@ -4601,12 +4556,7 @@ if (store.sections && store.sections.length) {
           renderSectionList();
           saveDesign();
           addToHistory();
-          // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+          sendToIframe('load-sections', { sections: store.sections });
           toast('Bahagian dipadam');
         }
       } else if (store.contextMenuTarget.type === 'element') {
@@ -4617,12 +4567,7 @@ if (store.sections && store.sections.length) {
             renderElementListInSection(store.contextMenuTarget.sectionId);
             saveDesign();
             addToHistory();
-            // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', { sections: store.sections });
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+            sendToIframe('load-sections', { sections: store.sections });
             toast('Elemen dipadam');
           }
         }
@@ -4693,86 +4638,18 @@ if (store.sections && store.sections.length) {
   if (userPreview) {
     userPreview.addEventListener('load', () => {
       console.log('iframe onload → refresh sections'); // 修复: 添加日志便于调试
-      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', store.sections);
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+      sendToIframe('load-sections', store.sections);
     });
   }
   
   // 修复: 监听来自iframe的"sections-loaded"消息，确保双向同步
   window.addEventListener('message', (e) => {
     if (e.data && e.data.type === 'sections-loaded') {
-      // 修复: ambil sections dan terus hantar load-sections kepada iframe
-    var _secs = e && e.data && e.data.data && e.data.data.sections;
-    if (Array.isArray(_secs) && _secs.length) {
-      try {
-        store.sections = _secs;
-        console.log('bootstrap store.sections dari iframe', store.sections.length);
-        // hantar semula ke iframe supaya preview tak kosong
-        sendToIframe('load-sections', { sections: store.sections });
-      } catch (err) {
-        console.warn('gagal set/hantar store.sections dari iframe', err);
-      }
-    }
-// 修复: ambil sections dari iframe bila tersedia (bootstrap store)
-    if (e.data && e.data.data && Array.isArray(e.data.data.sections) && e.data.data.sections.length) {
-      try { store.sections = e.data.data.sections; console.log('bootstrap store.sections dari iframe', store.sections.length); }
-      catch (err) { console.warn('gagal set store.sections dari iframe', err); }
-    }
-console.log('sections-loaded signal diterima dari iframe'); // 修复: 添加日志便于调试
-      // 修复: Elak hantar load-sections bila tiada sections (cegah preview putih)
-if (store.sections && store.sections.length) {
-  sendToIframe('load-sections', store.sections);
-} else {
-  console.warn('skip load-sections — store.sections kosong');
-}
+      console.log('sections-loaded signal diterima dari iframe'); // 修复: 添加日志便于调试
+      sendToIframe('load-sections', store.sections);
     }
   });
 
 </script>
-
-<script>
-// 修复: Fallback "revive preview" — jika iframe menjadi kosong selepas edit, muat semula sections yang ada
-(function(){
-  const userPreview = document.getElementById('userPreview');
-
-  function iframeHasContent(){
-    try {
-      const d = userPreview && userPreview.contentWindow && userPreview.contentWindow.document;
-      return !!(d && d.body && d.body.children && d.body.children.length > 0);
-    } catch(e){ return false; }
-  }
-
-  function revivePreview(reason){
-    try {
-      if (window.store && Array.isArray(store.sections) && store.sections.length && !iframeHasContent()){
-        console.warn('revive preview — force load-sections (reason:', reason, ')');
-        sendToIframe('load-sections', { sections: store.sections });
-      }
-    } catch(e){ /* noop */ }
-  }
-
-  // Debounce helper
-  function debounce(fn, wait){
-    let t; return function(){ clearTimeout(t); t = setTimeout(()=>fn.apply(this, arguments), wait); };
-  }
-
-  // Peristiwa kritikal yang boleh menyebabkan preview kosong
-  if (userPreview){
-    userPreview.addEventListener('load', function(){ setTimeout(()=>revivePreview('iframe.onload'), 0); }, { once:false });
-  }
-  window.addEventListener('message', function(e){
-    if (e && e.data && e.data.type === 'sections-loaded'){
-      setTimeout(()=>revivePreview('sections-loaded'), 0);
-    }
-  });
-  document.addEventListener('input', debounce(()=>revivePreview('input-change'), 180), true);
-  document.addEventListener('change', debounce(()=>revivePreview('change'), 120), true);
-})();
-</script>
-
 </body>
 </html>
