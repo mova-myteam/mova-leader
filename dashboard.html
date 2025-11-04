@@ -1646,8 +1646,16 @@
 
   // Fungsi untuk menggunakan gaya
   function applySectionStyle(section) {
-    const mainElement = document.querySelector(`#userPreview`).contentWindow.document.querySelector(`[data-section-id="${section.id}"]`);
-    if (!mainElement) return;
+    const userPreview = document.getElementById('userPreview');
+    // 修复: 确保能正确获取到[data-section-id="<ID>"]的元素
+    if (!userPreview || !userPreview.contentWindow || !userPreview.contentWindow.document) {
+      return; // 安全返回，不抛异常
+    }
+    
+    const mainElement = userPreview.contentWindow.document.querySelector(`[data-section-id="${section.id}"]`);
+    if (!mainElement) {
+      return; // 安全返回，不抛异常
+    }
     
     mainElement.className = mainElement.className.replace(/section-style-\S+/g, '');
     
@@ -3970,6 +3978,7 @@
           console.error('Error sending message to iframe:', error);
         }
       };
+      // 修复: sendToIframe必须在iframe加载完成后再发送
       if (userPreview.contentDocument.readyState === 'complete') {
         send();
       } else {
@@ -3994,36 +4003,54 @@
   
   function initAdvancedEditor() {
     // Setup toolbar buttons
-    document.getElementById('btnUndo').addEventListener('click', undo);
-    document.getElementById('btnRedo').addEventListener('click', redo);
-    document.getElementById('btnCopy').addEventListener('click', copy);
-    document.getElementById('btnPaste').addEventListener('click', paste);
-    document.getElementById('btnTemplates').addEventListener('click', showTemplatesModal);
-    document.getElementById('btnHistory').addEventListener('click', toggleHistoryPanel);
+    // 修复: 确保元素存在后再绑定事件
+    const btnUndo = document.getElementById('btnUndo');
+    const btnRedo = document.getElementById('btnRedo');
+    const btnCopy = document.getElementById('btnCopy');
+    const btnPaste = document.getElementById('btnPaste');
+    const btnTemplates = document.getElementById('btnTemplates');
+    const btnHistory = document.getElementById('btnHistory');
+    
+    if (btnUndo) btnUndo.addEventListener('click', undo);
+    if (btnRedo) btnRedo.addEventListener('click', redo);
+    if (btnCopy) btnCopy.addEventListener('click', copy);
+    if (btnPaste) btnPaste.addEventListener('click', paste);
+    if (btnTemplates) btnTemplates.addEventListener('click', showTemplatesModal);
+    if (btnHistory) btnHistory.addEventListener('click', toggleHistoryPanel);
     
     // Setup zoom controls
-    document.getElementById('btnZoomIn').addEventListener('click', () => zoom(0.1));
-    document.getElementById('btnZoomOut').addEventListener('click', () => zoom(-0.1));
-    document.getElementById('btnZoomReset').addEventListener('click', () => {
+    const btnZoomIn = document.getElementById('btnZoomIn');
+    const btnZoomOut = document.getElementById('btnZoomOut');
+    const btnZoomReset = document.getElementById('btnZoomReset');
+    
+    if (btnZoomIn) btnZoomIn.addEventListener('click', () => zoom(0.1));
+    if (btnZoomOut) btnZoomOut.addEventListener('click', () => zoom(-0.1));
+    if (btnZoomReset) btnZoomReset.addEventListener('click', () => {
       store.zoomLevel = 1;
       applyZoom();
     });
     
     // 修复: 统一缩放按钮的ID名称
-    document.getElementById('zoomInBtn').addEventListener('click', () => zoom(0.1));
-    document.getElementById('zoomOutBtn').addEventListener('click', () => zoom(-0.1));
-    document.getElementById('zoomResetBtn').addEventListener('click', () => {
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomResetBtn = document.getElementById('zoomResetBtn');
+    
+    if (zoomInBtn) zoomInBtn.addEventListener('click', () => zoom(0.1));
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => zoom(-0.1));
+    if (zoomResetBtn) zoomResetBtn.addEventListener('click', () => {
       store.zoomLevel = 1;
       applyZoom();
     });
     
     // Setup templates modal
-    document.getElementById('btnCloseTemplates').addEventListener('click', () => {
+    const btnCloseTemplates = document.getElementById('btnCloseTemplates');
+    if (btnCloseTemplates) btnCloseTemplates.addEventListener('click', () => {
       document.getElementById('templatesModal').classList.add('hidden');
     });
     
     // Setup history panel
-    document.getElementById('btnCloseHistory').addEventListener('click', () => {
+    const btnCloseHistory = document.getElementById('btnCloseHistory');
+    if (btnCloseHistory) btnCloseHistory.addEventListener('click', () => {
       document.getElementById('historyPanel').classList.remove('open');
     });
     
