@@ -4869,5 +4869,95 @@ window.addEventListener('message', (e)=>{
 })();
 </script>
 
+
+<script>
+// ==== TRACE LAYER (instrumentasi mendalam) ====
+(function(){
+  const logs = [];
+  const log = (...a)=>{ try{ console.log('[trace]', ...a); }catch(e){} logs.push([Date.now(), ...a]); };
+  window.__TRACE__ = { logs };
+
+  // 1) Jejak fokus/blur input
+  const isEditor = (el)=>{
+    if (!el) return false;
+    const t=(el.tagName||'').toLowerCase();
+    if (t==='input'||t==='textarea'||t==='select') return true;
+    if (el.isContentEditable) return true;
+    const cls = (el.className||'')+'';
+    return /rtbox|editor|content|picker|slider|color|range/i.test(cls);
+  };
+  document.addEventListener('focusin', e=>{
+    if (isEditor(e.target)) log('focusin→', e.target.tagName, e.target.type || '', e.target.className || '');
+  }, true);
+  document.addEventListener('focusout', e=>{
+    if (isEditor(e.target)) log('focusout→', e.target.tagName, e.target.type || '', e.target.className || '');
+  }, true);
+
+  // 2) Balut sendToIframe untuk log semua call + stack ringkas
+  (function(){
+    const raw = window.sendToIframe || function(type, data){
+      const ifr = document.getElementById('userPreview');
+      if (ifr?.contentWindow) ifr.contentWindow.postMessage({type, data}, '*');
+    };
+    window.sendToIframe = function(type, data){
+      const secs = data && (data.sections || data);
+      const len  = Array.isArray(secs) ? secs.length : undefined;
+      const st = (new Error()).stack?.split('\n').slice(2,7).map(s=>s.trim()).join(' ⟶ ') || '';
+      log('sendToIframe', type, 'len=', len, 'stack=', st);
+      return raw(type, data);
+    };
+  })();
+
+  // 3) Jejak perubahan kepada store.sections (set kosong/dll)
+  (function(){
+    window.store = window.store || {};
+    let _sections = window.store.sections || [];
+    Object.defineProperty(store, 'sections', {
+      get(){ return _sections; },
+      set(v){
+        const len = Array.isArray(v) ? v.length : -1;
+        log('store.sections SET:', len, v);
+        _sections = v;
+      },
+      configurable: true
+    });
+  })();
+
+  // 4) Jejak mesej antara window↔iframe
+  window.addEventListener('message', (e)=>{
+    const t = e?.data?.type;
+    const len = Array.isArray(e?.data?.data?.sections) ? e.data.data.sections.length : undefined;
+    log('message', t, 'len=', len);
+  });
+
+  // 5) Jejak reload/penukaran src pada iframe
+  (function(){
+    const ifr = document.getElementById('userPreview');
+    if (!ifr) return;
+    ifr.addEventListener('load', ()=> log('iframe load event'), true);
+    try {
+      const set = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src').set;
+      Object.defineProperty(ifr, 'src', {
+        set(v){ log('iframe.src SET→', v); return set.call(this, v); }
+      });
+    } catch(e){}
+  })();
+
+  // 6) Tombol salin log untuk anda
+  (function addCopyButton(){
+    const btn = document.createElement('button');
+    btn.textContent = 'Salin Log TRACE';
+    btn.style = 'position:fixed;right:16px;bottom:16px;z-index:9999;background:#111;color:#fff;border-radius:10px;padding:.6rem 1rem;font-weight:700;';
+    btn.onclick = ()=>{
+      const text = logs.map(x=>{
+        const [ts, ...rest]=x; return new Date(ts).toISOString()+' | '+rest.join(' ');
+      }).join('\n');
+      navigator.clipboard.writeText(text).then(()=> alert('Log TRACE telah disalin ke clipboard. Tampal dalam chat.'));
+    };
+    document.body.appendChild(btn);
+  })();
+})();
+</script>
+
 </body>
 </html>
