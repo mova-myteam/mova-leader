@@ -4697,5 +4697,73 @@ window.addEventListener('message', (e)=>{
 })();
 </script>
 
+
+<script>
+// ==== Ultra Bridge: beku navigasi iframe + cegah reload tidak sengaja ====
+(function(){
+  const ifr = document.getElementById('userPreview');
+  if (!ifr) return;
+
+  // 1) Bekukan penukaran src selepas kali pertama ditetapkan
+  let __initialSrc__ = null;
+  const setSrc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src').set;
+  const getSrc = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src').get;
+  Object.defineProperty(ifr, 'src', {
+    get(){ return getSrc.call(this); },
+    set(value){
+      if (__initialSrc__ === null) { __initialSrc__ = String(value || ''); return setSrc.call(this, value); }
+      // Tolak perubahan src yang bukan daripada butang "Lihat Laman User"
+      console.warn('[ultra-bridge] halang penukaran iframe.src kepada:', value);
+      // Abaikan
+    }
+  });
+
+  // 2) Halang percubaan menukar location dalam iframe
+  try {
+    const _postMessage = window.postMessage;
+    ifr.addEventListener('load', ()=>{
+      try {
+        const cw = ifr.contentWindow;
+        if (!cw) return;
+        // Pagar navigation dalam iframe
+        cw.addEventListener('beforeunload', (e)=>{
+          // Sekiranya cuba reload, batalkan dan force render semula dari store
+          e.preventDefault();
+          e.returnValue = '';
+          console.warn('[ultra-bridge] beforeunload dalam iframe — dibatalkan');
+          if (Array.isArray(window.store?.sections) && store.sections.length){
+            window.sendToIframe('load-sections', { sections: store.sections });
+          }
+          return '';
+        });
+      } catch (err){ /* cross-origin guard */ }
+    });
+  } catch (err){}
+
+  // 3) Ready flag dua hala
+  window.store = window.store || {};
+  store.iframeReady = false;
+  window.addEventListener('message', (e)=>{
+    if (e?.data?.type === 'sections-loaded') {
+      store.iframeReady = true;
+    }
+  });
+
+  // 4) Jika ada handler lama yang cuba set src semula (fungsi reloadPreview), balut dan matikan
+  for (const k of Object.getOwnPropertyNames(window)) {
+    if (/reload.*preview/i.test(k) && typeof window[k] === 'function') {
+      const orig = window[k];
+      window[k] = function(){
+        console.warn('[ultra-bridge] panggilan', k, 'diabaikan');
+        // Sebagai ganti, hanya push semula data
+        if (Array.isArray(store.sections) && store.sections.length) {
+          window.sendToIframe('load-sections', { sections: store.sections });
+        }
+      };
+    }
+  }
+})();
+</script>
+
 </body>
 </html>
