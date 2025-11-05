@@ -1221,7 +1221,7 @@
     // 修复: 添加iframe加载状态监听
     userPreview.addEventListener('load', () => {
       store.iframeReady = true;
-      console.log('iframe loaded successfully');
+      console.log('Iframe loaded successfully');
     }, { once: true });
     
     window.addEventListener('message', handleIframeMessage);
@@ -4629,27 +4629,66 @@
     }
   }
 
-  // =========================
-  // 修复: 添加iframe加载监听和sections-loaded消息处理
-  // =========================
-  
-  // 修复: 监听iframe的load事件，确保iframe加载完成后自动刷新预览内容
-  const userPreview = document.getElementById('userPreview');
-  if (userPreview) {
-    userPreview.addEventListener('load', () => {
-      console.log('iframe onload → refresh sections'); // 修复: 添加日志便于调试
-      sendToIframe('load-sections', store.sections);
-    });
+</script>
+
+<script>
+// --- HOTFIX TANPA UBAH STRUKTUR ---
+document.addEventListener('submit', function(e){
+  e.preventDefault(); e.stopPropagation();
+}, true);
+
+(function(){
+  const _send = window.sendToIframe;
+  if (typeof _send !== 'function') return;
+  window.sendToIframe = function(type, data){
+    try {
+      if (type === 'load-sections') {
+        const secs = data && (data.sections || data);
+        const len = Array.isArray(secs) ? secs.length : 0;
+        if (!len) {
+          console.warn('[hotfix] skip load-sections — sections kosong');
+          return;
+        }
+      }
+      return _send(type, data);
+    } catch (err) {
+      console.error('[hotfix] sendToIframe error', err);
+    }
+  };
+})();
+
+(function(){
+  const ifr = document.getElementById('userPreview');
+  if (!ifr) return;
+
+  function iframeHasContent(){
+    try {
+      const d = ifr.contentWindow && ifr.contentWindow.document;
+      return !!(d && d.body && d.body.children && d.body.children.length > 0);
+    } catch(e){ return false; }
   }
-  
-  // 修复: 监听来自iframe的"sections-loaded"消息，确保双向同步
+
+  function revive(reason){
+    try {
+      const secs = (window.store && Array.isArray(store.sections)) ? store.sections : [];
+      if (!iframeHasContent() && secs.length){
+        console.warn('[hotfix] revive preview —', reason, '→ force load-sections');
+        window.sendToIframe('load-sections', { sections: secs });
+      }
+    } catch(e){}
+  }
+
+  ifr.addEventListener('load', () => setTimeout(()=>revive('iframe.onload'), 0));
   window.addEventListener('message', (e) => {
-    if (e.data && e.data.type === 'sections-loaded') {
-      console.log('sections-loaded signal diterima dari iframe'); // 修复: 添加日志便于调试
-      sendToIframe('load-sections', store.sections);
+    if (e && e.data && (e.data.type === 'sections-loaded' || e.data.type === 'sections-updated')) {
+      setTimeout(()=>revive(e.data.type), 0);
     }
   });
-
+  const deb = (fn, t)=>{ let id; return (...a)=>{ clearTimeout(id); id=setTimeout(()=>fn(...a), t); }; };
+  document.addEventListener('input', deb(()=>revive('input'), 160), true);
+  document.addEventListener('change', deb(()=>revive('change'), 120), true);
+})();
 </script>
+
 </body>
 </html>
