@@ -4765,5 +4765,109 @@ window.addEventListener('message', (e)=>{
 })();
 </script>
 
+
+<script>
+// ==== EditGuard: blok "preview putih" ketika fokus di input ====
+(function(){
+  // 1) Kenal pasti elemen input yang dianggap 'editing'
+  const isEditorInput = (el)=>{
+    if (!el) return false;
+    const tag = (el.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+    if (el.isContentEditable) return true;
+    // class umum editor (boleh tambah jika perlu)
+    const cls = el.className || '';
+    return /rtbox|editor|content|picker|slider|color|range/i.test(cls);
+  };
+
+  // 2) State & queue
+  const state = { editing:false, lastActive:null, queue:[] };
+
+  // 3) Balut sendToIframe: semasa editing, queue mesej, terutama 'load-sections'
+  (function(){
+    const rawSend = window.sendToIframe || function(type, data){
+      const ifr = document.getElementById('userPreview');
+      if (!ifr || !ifr.contentWindow) return;
+      ifr.contentWindow.postMessage({ type, data }, '*');
+    };
+    window.sendToIframe = function(type, data){
+      // Jangan sekali-kali hantar load-sections kosong
+      if (type === 'load-sections') {
+        const secs = data && (data.sections || data);
+        if (!Array.isArray(secs) || !secs.length) {
+          console.warn('[edit-guard] block load-sections kosong');
+          return;
+        }
+      }
+      // Jika sedang mengedit, QUEUE mesej yang mengubah preview
+      if (state.editing && (type === 'load-sections' || /update-|add-|delete-/.test(type))) {
+        state.queue.push([type, data]);
+        // catat & jangan hantar sekarang
+        console.warn('[edit-guard] queue mesej semasa editing:', type);
+        return;
+      }
+      rawSend(type, data);
+    };
+  })();
+
+  // 4) Apabila fokus masuk input → aktifkan editing
+  document.addEventListener('focusin', (e)=>{
+    if (isEditorInput(e.target)) {
+      state.editing = true;
+      state.lastActive = e.target;
+      // cegah Enter menyebabkan submit/reload
+      const onKey = (ev)=>{
+        if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); }
+      };
+      e.target.__eg_onKey = onKey;
+      e.target.addEventListener('keydown', onKey, true);
+      // log
+      console.log('[edit-guard] start editing');
+    }
+  }, true);
+
+  // 5) Apabila blur dari input → tamat editing dan FLUSH queue (debounced)
+  const flush = ()=>{
+    if (!state.queue.length) return;
+    console.log('[edit-guard] flush', state.queue.length, 'mesej');
+    const q = state.queue.slice();
+    state.queue.length = 0;
+    // gabungkan mesej terakhir load-sections sahaja
+    let lastLoad = null;
+    q.forEach(([t,d])=>{ if (t==='load-sections') lastLoad = [t,d]; });
+    if (lastLoad) { window.sendToIframe(lastLoad[0], lastLoad[1]); }
+    // mesej lain (update/add) tidak kritikal selepas load-sections baru
+  };
+  const debFlush = (fn=>{ let t; return ()=>{ clearTimeout(t); t=setTimeout(fn,120); }; })(flush);
+
+  document.addEventListener('focusout', (e)=>{
+    if (isEditorInput(e.target)) {
+      // buang key handler
+      if (e.target.__eg_onKey) {
+        e.target.removeEventListener('keydown', e.target.__eg_onKey, true);
+        delete e.target.__eg_onKey;
+      }
+      state.editing = false;
+      console.log('[edit-guard] stop editing');
+      debFlush();
+    }
+  }, true);
+
+  // 6) Jaring keselamatan tambahan semasa input/change → jangan biar trigger reload
+  document.addEventListener('input', (e)=>{
+    if (isEditorInput(e.target)) {
+      // hentikan bubbling yang boleh mencetus reload/clear
+      e.stopPropagation();
+    }
+  }, true);
+
+  document.addEventListener('change', (e)=>{
+    if (isEditorInput(e.target)) {
+      e.stopPropagation();
+    }
+  }, true);
+})();
+</script>
+
 </body>
 </html>
