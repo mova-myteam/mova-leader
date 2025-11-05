@@ -4690,5 +4690,32 @@ document.addEventListener('submit', function(e){
 })();
 </script>
 
+
+<script>
+// 修复: Listener kuat untuk 'sections-updated' — kemas kini store + hantar terus ke iframe (debounced)
+(function(){
+  const deb = (fn, ms)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; };
+  const forward = deb(function(secs){
+    try {
+      if (!Array.isArray(secs) || !secs.length) return;
+      window.store = window.store || {};
+      store.sections = secs;
+      console.log('[fix] sections-updated diterima → store.sections =', secs.length);
+      if (typeof window.sendToIframe === 'function') {
+        window.sendToIframe('load-sections', { sections: store.sections });
+      }
+    } catch (e) { console.warn('[fix] gagal forward sections-updated', e); }
+  }, 80);
+
+  window.addEventListener('message', function(e){
+    if (!e || !e.data) return;
+    if (e.data.type === 'sections-updated'){
+      var secs = e.data && e.data.data && e.data.data.sections;
+      if (Array.isArray(secs)) forward(secs);
+    }
+  });
+})();
+</script>
+
 </body>
 </html>
