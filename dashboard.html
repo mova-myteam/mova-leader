@@ -5299,75 +5299,50 @@
   })();
 
 
-  /* ===== LIVE PREVIEW: PUSH + BOOTSTRAP ===== */
-  (function previewPushBootstrap(){
+  
+  /* ===== SINGLE PREVIEW ONLY (no auto-creation) ===== */
+  (function previewSingleOnly(){
     function getIframe(){
-      return document.getElementById('previewFrame') 
-          || document.querySelector('#previewFrame')
+      return document.getElementById('previewFrame')
           || document.querySelector('#preview iframe')
           || document.querySelector('#userPreview iframe');
     }
-    function ensureIframe(){
-      var iframe = getIframe();
-      if (!iframe){
-        var host = document.getElementById('tab-user') || document.body;
-        var container = document.getElementById('previewContainer');
-        if (!container){
-          container = document.createElement('div');
-          container.id = 'previewContainer';
-          container.style.border = '1px solid #e5e7eb';
-          container.style.borderRadius = '12px';
-          container.style.background = '#fff';
-          container.style.marginTop = '12px';
-          container.style.overflow = 'hidden';
-          host.appendChild(container);
-        }
-        iframe = document.createElement('iframe');
-        iframe.id = 'previewFrame';
-        iframe.style.width = '100%';
-        iframe.style.height = '72vh';
-        iframe.style.border = '0';
-        iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups');
-        container.appendChild(iframe);
-      }
-      return iframe;
+    var iframe = getIframe();
+    if (!iframe){
+      console.warn('[MOVA] Tiada iframe preview sedia ada. Tidak akan mencipta yang baharu.');
+      return;
     }
-
-    // Hide any preview footer/controls in the dashboard (best-effort; won't affect iframe)
-    var style = document.createElement('style');
-    style.textContent = '#previewContainer [data-preview-controls], #previewContainer .preview-controls, #previewContainer .preview-toolbar { display:none !important; }';
-    document.head.appendChild(style);
-
-    var iframe = ensureIframe();
-    var targetSrc = new URL('user.html?edit=1&preview=1', location.href).href;
-    if (iframe.src !== targetSrc) iframe.src = targetSrc;
+    // Pastikan src menunjuk ke user.html relatif jika kosong sahaja (jangan cipta elemen baru)
+    try{
+      if (!iframe.src || iframe.src === 'about:blank'){
+        iframe.src = new URL('user.html?edit=1&preview=1', location.href).href;
+      }
+      // Longgar sandbox agar postMessage + script berfungsi
+      iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups');
+    }catch(_){}
 
     function safeGet(obj, path, fallback){
-      try{
-        var val = obj;
-        for (var i=0;i<path.length;i++){ val = val[path[i]]; }
-        return (val==null?fallback:val);
-      }catch(e){ return fallback; }
+      try{ let v=obj; for(let i=0;i<path.length;i++) v=v[path[i]]; return (v==null?fallback:v); }
+      catch(e){ return fallback; }
     }
     function currentPayload(){
-      var sections = safeGet(window, ['store','sections'], []);
-      var theme    = safeGet(window, ['store','theme'], {});
-      var settings = safeGet(window, ['store','settings'], {});
-      return { sections: sections, theme: theme, settings: settings };
-    }
-    function persistBootstrap(){
-      try{
-        localStorage.setItem('mova_preview_bootstrap', JSON.stringify(currentPayload()));
-      }catch(_){}
+      return {
+        sections: safeGet(window, ['store','sections'], []),
+        theme:    safeGet(window, ['store','theme'], {}),
+        settings: safeGet(window, ['store','settings'], {}),
+      };
     }
     function post(type, body){
-      iframe = getIframe() || ensureIframe();
+      iframe = getIframe();
       if (iframe && iframe.contentWindow){
-        iframe.contentWindow.postMessage({ type:type, payload: body }, '*');
+        iframe.contentWindow.postMessage({ type, payload: body }, '*');
       }
     }
+    function persistBootstrap(){
+      try{ localStorage.setItem('mova_preview_bootstrap', JSON.stringify(currentPayload())); }catch(_){}
+    }
 
-    // Initial nudge and bootstrap persist
+    // Nudge awal
     window.addEventListener('load', function(){
       setTimeout(function(){
         persistBootstrap();
@@ -5376,21 +5351,21 @@
       }, 250);
     });
 
-    // Stream on interactions
-    var t=null;
+    // Stream perubahan tanpa mencipta preview baharu
+    let t=null;
     function stream(){ clearTimeout(t); t=setTimeout(function(){ persistBootstrap(); post('sections-updated', currentPayload()); }, 150); }
-    var userTab = document.getElementById('tab-user') || document.body;
-    ['input','change','keyup','keydown','click'].forEach(function(evt){
+    const userTab = document.getElementById('tab-user') || document.body;
+    ['input','change','keyup','keydown','click'].forEach(evt=>{
       userTab.addEventListener(evt, stream, true);
     });
     try{
-      var mo = new MutationObserver(stream);
+      const mo = new MutationObserver(stream);
       mo.observe(userTab, { childList:true, subtree:true, attributes:true, characterData:true });
     }catch(_){}
 
-    // Heartbeat while tab active
+    // Heartbeat ringan
     setInterval(function(){
-      var tab = document.getElementById('tab-user');
+      const tab = document.getElementById('tab-user');
       if (tab && !tab.classList.contains('hidden')){
         persistBootstrap();
         post('sections-updated', currentPayload());
