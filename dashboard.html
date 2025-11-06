@@ -709,6 +709,7 @@
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
     if (name === 'org') renderOrg();
+    if (name === 'broadcast') buildRecipientTree();
   }
   
   // Tab event delegation
@@ -731,7 +732,8 @@
     await reloadRegs();
     await renderOrg();
     await refreshSettings();     // untuk theme/typography dll + preview mini
-    initEditor();                // Initialize the Section-Based editor
+    initEditor();
+    await buildRecipientTree();                // Initialize the Section-Based editor
     initAdvancedEditor();        // Initialize advanced editor features
   })();
 
@@ -3985,7 +3987,7 @@
     if (userPreview && userPreview.contentWindow) {
       const send = () => {
         try {
-          userPreview.contentWindow.postMessage({ type, data }, '*');
+          userPreview.contentWindow.postMessage({ type, data }, window.location.origin);
         } catch (error) {
           console.error('Error sending message to iframe:', error);
         }
