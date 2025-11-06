@@ -743,16 +743,6 @@
     localStorage.setItem('mova_active_tab', name);
   }
 
-      else { 
-        btn.classList.add('pill-idle'); 
-        btn.classList.remove('pill-active'); 
-      }
-    });
-    document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
-    const tab = document.getElementById('tab-'+name);
-    if (tab) tab.classList.remove('hidden');
-    if (name === 'org') renderOrg();
-  }
   
   // Tab event delegation
   document.addEventListener('click', function(e) {
