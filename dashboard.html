@@ -5089,5 +5089,110 @@
 })();
 </script>
 
+
+<script>
+// === Hard Lock Hardening: keep locked until explicitly unlocked ===
+(function(){
+  function safely(fn){ try{ fn(); }catch(e){} }
+
+  // If the base lock API exists, enhance it; otherwise, do nothing.
+  if (!window.uiLock || typeof window.uiLock.userTabLocked === 'undefined'){
+    window.uiLock = window.uiLock || {};
+    window.uiLock.userTabLocked = window.uiLock.userTabLocked || false;
+  }
+
+  // Reuse updateUserLockUI if available
+  function refresh(){
+    if (typeof window.updateUserLockUI === 'function'){ window.updateUserLockUI(); }
+  }
+
+  // 1) Enforce hash/router to #user when locked
+  safely(function(){
+    window.addEventListener('hashchange', function(){
+      if (window.uiLock.userTabLocked){
+        if (location.hash !== '#user' && location.hash.toLowerCase() !== '#tab-user'){
+          location.hash = '#user';
+          refresh();
+        }
+      }
+    });
+    // On load: normalize hash if locked
+    if (window.uiLock.userTabLocked){
+      if (location.hash !== '#user' && location.hash.toLowerCase() !== '#tab-user'){
+        location.hash = '#user';
+      }
+      refresh();
+    }
+  });
+
+  // 2) Block keyboard navigation that could trigger non-user tabs
+  safely(function(){
+    document.addEventListener('keydown', function(e){
+      if (!window.uiLock.userTabLocked) return;
+      // If focused element is or is inside a tab button that's not "user", block Enter/Space
+      const tabBtn = e.target && e.target.closest && e.target.closest('[data-tab]');
+      if (tabBtn && tabBtn.getAttribute('data-tab') !== 'user'){
+        const code = e.code || e.key;
+        if (code === 'Enter' or code === 'Space' or code === ' '){
+          e.preventDefault(); e.stopPropagation();
+        }
+      }
+    }, true);
+  });
+
+  // 3) MutationObserver: any new tabs added later are immediately disabled
+  safely(function(){
+    const mo = new MutationObserver(function(muts){
+      if (!window.uiLock.userTabLocked) return;
+      let needs = false;
+      for (const m of muts){
+        if (m.addedNodes){
+          for (const n of m.addedNodes){
+            if (n.nodeType === 1 && (n.matches && n.matches('[data-tab]') || (n.querySelector && n.querySelector('[data-tab]')))){
+              needs = true; break;
+            }
+          }
+        }
+      }
+      if (needs) refresh();
+    });
+    mo.observe(document.documentElement || document.body, {subtree:true, childList:true});
+  });
+
+  // 4) Storage sync: if another tab changes the lock, stay in sync
+  safely(function(){
+    window.addEventListener('storage', function(ev){
+      if (ev && ev.key === 'mova_user_lock'){
+        // Trigger a light refresh; setUserLock exists in the base script
+        const locked = ev.newValue === '1';
+        if (typeof window.setUserLock === 'function'){
+          window.setUserLock(locked);
+        } else {
+          window.uiLock.userTabLocked = locked;
+          refresh();
+        }
+      }
+    });
+  });
+
+  // 5) Periodic re-assertion (lightweight) while locked
+  safely(function(){
+    setInterval(function(){
+      if (window.uiLock.userTabLocked) refresh();
+    }, 2000);
+  });
+
+  // 6) Optional: warn on page unload while locked (avoid accidental navigation away)
+  safely(function(){
+    window.addEventListener('beforeunload', function(e){
+      if (!window.uiLock.userTabLocked) return;
+      // Show confirmation dialog
+      e.preventDefault();
+      e.returnValue = '';
+    });
+  });
+})();
+</script>
+
 </body>
 </html>                                 
