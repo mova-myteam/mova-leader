@@ -4866,6 +4866,18 @@
   opacity:.5; pointer-events:none; filter:grayscale(1);
 }
 
+<
+/* === Preview No-Scroll helper (applied via JS) === */
+.noscroll-preview{
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+.noscroll-preview iframe{
+  display: block;
+  width: 100%;
+}
+
 </style>
 <script>
 (function(){
@@ -5191,6 +5203,104 @@
       e.returnValue = '';
     });
   });
+})();
+</script>
+
+
+<script>
+(function(){
+  // Run only inside dashboard
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+
+  function isScrollable(el){
+    const cs = getComputedStyle(el);
+    return /(auto|scroll)/.test(cs.overflow + cs.overflowY + cs.overflowX);
+  }
+
+  function markNoScrollPreview(){
+    const root = $('#tab-user') || document;
+    // Heuristic: prefer a right column that contains a preview iframe or a table
+    // 1) Find a container that has an iframe (likely preview)
+    let container = root.querySelector('iframe') ? root.querySelector('iframe').parentElement : null;
+    // 2) Or find the first container with a <table>
+    if (!container){
+      const tbl = root.querySelector('table');
+      if (tbl) container = tbl.closest('*');
+    }
+    // 3) Or fallback to any element that looks like a "preview pane" by class/id
+    if (!container){
+      container = root.querySelector('[id*="preview"],[class*="preview"]');
+    }
+    if (!container) return null;
+
+    // climb up until we hit the immediate pane-like container (typically the direct grid/flex child)
+    let pane = container;
+    for (let i=0; i<4 && pane.parentElement; i++){
+      const p = pane.parentElement;
+      if (p && p.children && p.children.length >= 2){
+        // Stop when parent is the two-column container
+        pane = pane; break;
+      }
+      pane = p;
+    }
+
+    // Apply no-scroll to pane and any inner scroll wrappers
+    pane.classList.add('noscroll-preview');
+    // remove scroll locks on wrappers inside this pane
+    $all('*', pane).forEach(function(n){
+      if (!n) return;
+      if (isScrollable(n)){
+        n.style.overflow = 'visible';
+        n.style.maxHeight = 'none';
+        n.style.height = 'auto';
+      }
+    });
+
+    return pane;
+  }
+
+  // Try to autosize same-origin iframe to its content
+  function autoSizeIframe(pane){
+    if (!pane) return;
+    const ifr = pane.querySelector('iframe');
+    if (!ifr) return;
+    function setH(h){
+      if (!h || h < 200) return;
+      ifr.style.height = h + 'px';
+    }
+    function calc(){
+      try{
+        const doc = ifr.contentDocument;
+        if (doc && doc.documentElement){
+          const h = Math.max(
+            doc.body ? doc.body.scrollHeight : 0,
+            doc.documentElement.scrollHeight,
+            doc.documentElement.offsetHeight
+          );
+          setH(h + 10); // a little extra room
+        }
+      }catch(e){
+        // cross-origin — ignore
+      }
+    }
+    ifr.addEventListener('load', calc);
+    // periodic adjust in case content grows
+    const iv = setInterval(calc, 800);
+    // stop after 20s
+    setTimeout(()=>clearInterval(iv), 20000);
+    // initial call (if already loaded)
+    calc();
+  }
+
+  function setup(){
+    const pane = markNoScrollPreview();
+    autoSizeIframe(pane);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', setup);
+  } else { setup(); }
 })();
 </script>
 
