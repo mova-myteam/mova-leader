@@ -365,7 +365,7 @@
           </div>
           <div class="grid gap-2">
             <div class="flex items-center gap-2">
-              <input id="urlInput" class="input" placeholder="https://contoh.com/media.jpg atau https://youtube.com/...">
+              <input id="urlInput" class="input" placeholder="https://contoh.com/media.jpg atau https://youtube.com/">
               <button id="btnAddUrl" class="btn-ghost">Tambah</button>
             </div>
             <div id="urlList" class="grid gap-2"></div>
@@ -476,7 +476,7 @@
       </div>
 
       <div class="grid gap-3">
-        <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
+        <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran"></textarea>
         <div id="attachChips" class="flex flex-wrap gap-2"></div>
         <div class="grid md:grid-cols-[1fr_auto] gap-3">
           <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
@@ -805,7 +805,7 @@
   }
 
   document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
-    const allAttachments = [...Array.from(store.selectedMedia), ...store.linkUrls];
+    const allAttachments = [Array.from(store.selectedMedia), store.linkUrls];
     const payload = {
       leader_id: store.leader.leader_id,
       title: elTitle.value || '',
@@ -1106,7 +1106,7 @@
       partnerNodes.push({ el:n, children: p.children||[] });
     });
 
-    const maxDepth = Math.max(0, ...partnerNodes.map(x=>x.children.length));
+    const maxDepth = Math.max(0, partnerNodes.map(x=>x.children.length));
     for (let r=0; r<maxDepth; r++){
       const row = document.createElement('div'); 
       row.className = 'grid gap-8 mt-6'; 
@@ -1787,8 +1787,7 @@
                   <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                   <select id="prop-gridColumn" class="input mt-1">
                     <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected'
-                                         <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
                     <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
                     <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
                   </select>
@@ -1888,7 +1887,7 @@
             <div class="space-y-4">
               <div>
                 <label class="text-sm font-medium">URL Imej</label>
-                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://...">
+                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://">
               </div>
               <div>
                 <label class="text-sm font-medium">Alt Text</label>
@@ -1897,11 +1896,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                </select>
+                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                  </select>
               </div>
               <div>
                 <label class="text-sm font-medium">Clickable?</label>
@@ -1912,7 +1911,7 @@
               </div>
               <div id="clickableOptions" style="display: ${element.clickable === 'yes' ? 'block' : 'none'}">
                 <label class="text-sm font-medium">Link URL</label>
-                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.linkUrl || ''}" placeholder="https://...">
+                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.linkUrl || ''}" placeholder="https://">
                 <label class="text-sm font-medium">Open in</label>
                 <select id="prop-linkTarget" class="input mt-1">
                   <option value="_blank" ${element.linkTarget === '_blank' ? 'selected' : ''}>New Tab</option>
@@ -2016,16 +2015,16 @@
             <div class="space-y-4">
               <div>
                 <label class="text-sm font-medium">URL Video</label>
-                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://...">
+                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://">
               </div>
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                </select>
+                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                  </select>
               </div>
               <div>
                 <label class="text-sm font-medium">Autoplay?</label>
@@ -2161,11 +2160,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                </select>
+                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                  </select>
               </div>
             </div>
           </div>
@@ -2281,7 +2280,7 @@
                 </div>
                 <div>
                   <label class="text-sm font-medium">URL Profil</label>
-                  <input type="text" id="prop-socialUrl" class="input mt-1" value="${element.url || ''}" placeholder="https://...">
+                  <input type="text" id="prop-socialUrl" class="input mt-1" value="${element.url || ''}" placeholder="https://">
                 </div>
                 <div>
                   <label class="text-sm font-medium">Warna Ikon</label>
@@ -2299,11 +2298,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                </select>
+                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                  </select>
               </div>
             </div>
           </div>
@@ -2400,7 +2399,7 @@
               </div>
               <div>
                 <label class="text-sm font-medium">URL Pautan</label>
-                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.url || '#'}" placeholder="https://...">
+                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.url || '#'}" placeholder="https://">
               </div>
               <div>
                 <label class="text-sm font-medium">Buka di Tab Baharu?</label>
@@ -2412,11 +2411,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                </select>
+                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                  </select>
               </div>
             </div>
           </div>
@@ -2521,11 +2520,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                </select>
+                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                  </select>
               </div>
             </div>
           </div>
@@ -3659,7 +3658,7 @@
   function getElementPreview(element) {
     switch (element.type) {
       case 'text':
-        return (element.content || '').replace(/<[^>]*>/g, '').substring(0, 20) + '...';
+        return (element.content || '').replace(/<[^>]*>/g, '').substring(0, 20) + '';
       case 'image':
         return 'Imej';
       case 'video':
@@ -3722,7 +3721,7 @@
           modalOptions.innerHTML = `
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Kandungan Teks Awal</label>
-              <textarea id="modalTextContent" class="textarea" rows="3" placeholder="Tulis kandungan awal di sini..."></textarea>
+              <textarea id="modalTextContent" class="textarea" rows="3" placeholder="Tulis kandungan awal di sini"></textarea>
             </div>
           `;
           break;
@@ -3731,7 +3730,7 @@
           modalOptions.innerHTML = `
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">URL Media</label>
-              <input type="text" id="modalMediaUrl" class="input" placeholder="https://...">
+              <input type="text" id="modalMediaUrl" class="input" placeholder="https://">
             </div>
           `;
           break;
@@ -3741,7 +3740,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Teks Butang</label>
               <input type="text" id="modalButtonText" class="input" placeholder="Cth: 'Daftar Sekarang'">
               <label class="block text-sm font-medium text-gray-700 mb-1">Pautan (URL)</label>
-              <input type="text" id="modalButtonUrl" class="input" placeholder="https://...">
+              <input type="text" id="modalButtonUrl" class="input" placeholder="https://">
             </div>
           `;
           break;
@@ -3761,7 +3760,7 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">URL Profil</label>
-                <input type="text" id="modalSocialUrl" class="input" placeholder="https://...">
+                <input type="text" id="modalSocialUrl" class="input" placeholder="https://">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Warna Ikon</label>
@@ -3784,7 +3783,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Teks Pautan</label>
               <input type="text" id="modalLinkText" class="input" placeholder="Cth: Lihat Promosi">
               <label class="block text-sm font-medium text-gray-700 mb-1">URL Pautan</label>
-              <input type="text" id="modalLinkUrl" class="input" placeholder="https://...">
+              <input type="text" id="modalLinkUrl" class="input" placeholder="https://">
               <label class="block text-sm font-medium text-gray-700 mb-1">Buka di Tab Baharu?</label>
               <select id="modalLinkTarget" class="input">
                 <option value="_blank">Ya</option>
