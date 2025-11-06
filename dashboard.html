@@ -4928,5 +4928,146 @@
 })();
 </script>
 
+
+
+<!-- MOVA consolidated native upgrade — editor-left + live preview + guard (2025-11-06) -->
+<style>
+  #mova-sections-split { display:grid; grid-template-columns: var(--mova-left,42%) 6px 1fr; gap:1rem; align-items:start; }
+  #mova-sections-split .pane.preview iframe { width:100%; height:calc(100vh - 220px); border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
+  #mova-resizer { width:6px; cursor:col-resize; user-select:none; -webkit-user-select:none; background:linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(229,231,235,1) 50%, rgba(0,0,0,0) 100%); border-radius:3px; }
+  .mova-pane-toolbar{ display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem; }
+  .mova-btn{ display:inline-flex; align-items:center; gap:.4rem; padding:.4rem .6rem; border:1px solid #e5e7eb; border-radius:.5rem; background:#fff; font-weight:600; font-size:.9rem; }
+  @media (max-width: 1024px){ #mova-sections-split{ display:block; } }
+</style>
+<script>
+(function(){
+  const $ = (s,root=document)=>root.querySelector(s);
+  const on = (el,ev,fn,opt)=>el&&el.addEventListener(ev,fn,opt||false);
+  const debounce = (fn,ms=180)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
+
+  // ---------- 1) Side-by-side layout ----------
+  function ensureLayout(){
+    const editor = $('#editorPanel');
+    const iframe = $('#userPreview');
+    if (!editor || !iframe) return;
+
+    // force docked styles if it was modal/fixed
+    Object.assign(editor.style,{position:'static',transform:'none',width:'auto',maxWidth:'100%',zIndex:'auto'});
+
+    let wrap = $('#mova-sections-split');
+    if (!wrap){
+      wrap = document.createElement('div');
+      wrap.id = 'mova-sections-split';
+      const left = document.createElement('div'); left.className='pane editor';
+      const res  = document.createElement('div'); res.id='mova-resizer';
+      const right= document.createElement('div'); right.className='pane preview';
+
+      left.appendChild(editor);
+      right.appendChild(iframe);
+
+      const anchor = iframe.parentElement || $('#app') || document.body;
+      anchor.insertBefore(wrap, iframe);
+      wrap.appendChild(left); wrap.appendChild(res); wrap.appendChild(right);
+
+      // toolbar (pin)
+      const tb = document.createElement('div'); tb.className='mova-pane-toolbar';
+      const btn = document.createElement('button'); btn.type='button'; btn.className='mova-btn'; btn.textContent='📌 Pin editor';
+      left.insertBefore(tb, left.firstChild); tb.appendChild(btn);
+      const stickyKey='mova_editor_sticky'; let sticky=(localStorage.getItem(stickyKey)||'1')==='1';
+      function applySticky(){ left.style.position = sticky?'sticky':'static'; left.style.top = sticky?'90px':''; btn.textContent = sticky?'📌 Pinned':'📌 Pin editor'; localStorage.setItem(stickyKey, sticky?'1':'0'); }
+      on(btn,'click',()=>{ sticky=!sticky; applySticky(); }); applySticky();
+
+      // resizer
+      const key='mova_left_width'; const saved=localStorage.getItem(key); if(saved){ wrap.style.setProperty('--mova-left', saved); }
+      let drag=false;
+      on(res,'mousedown',e=>{ drag=true; e.preventDefault(); });
+      on(document,'mouseup',()=>{ drag=false; });
+      on(document,'mousemove',e=>{
+        if(!drag) return;
+        const rect = wrap.getBoundingClientRect();
+        const pct = Math.min(80, Math.max(20, ((e.clientX-rect.left)/rect.width)*100));
+        const val = pct.toFixed(1)+'%';
+        wrap.style.setProperty('--mova-left', val);
+        localStorage.setItem(key, val);
+      });
+    }
+  }
+
+  // ---------- 2) Live preview ----------
+  const pushLive = debounce(()=>{
+    try{
+      if (!window.store || !window.store.sections) return;
+      sendToIframe({ type:'sections-updated', sections: window.store.sections });
+    }catch(e){ console.warn('[MOVA live]', e); }
+  }, 120);
+
+  function bindLive(){
+    const editor = $('#editorPanel');
+    if (!editor) return;
+    on(editor,'input', pushLive, true);
+    on(editor,'change', pushLive, true);
+    setTimeout(pushLive, 250);
+  }
+
+  // tighten sendToIframe origin
+  (function(){
+    const origin = (window.location && window.location.origin) ? window.location.origin : '*';
+    const original = window.sendToIframe;
+    window.sendToIframe = function(payload){
+      try{
+        const frame = $('#userPreview');
+        if (frame && frame.contentWindow){ frame.contentWindow.postMessage(payload, origin); return; }
+      }catch(e){}
+      if (typeof original === 'function') return original(payload);
+    };
+  })();
+
+  // ---------- 3) Prevent editor from closing while typing ----------
+  let editing = false;
+  function markEditing(){ editing = true; clearTimeout(markEditing.t); markEditing.t = setTimeout(()=>editing=false, 700); }
+  // any input focus/change inside editor marks editing
+  on(document,'input', (e)=>{ const ep=$('#editorPanel'); if(ep && ep.contains(e.target)) markEditing(); }, true);
+  on(document,'change',(e)=>{ const ep=$('#editorPanel'); if(ep && ep.contains(e.target)) markEditing(); }, true);
+  on(document,'focusin',(e)=>{ const ep=$('#editorPanel'); if(ep && ep.contains(e.target)) markEditing(); }, true);
+
+  // guard setActiveTab: ignore programmatic tab switches while editing
+  if (typeof window.setActiveTab === 'function'){
+    const _set = window.setActiveTab;
+    window.setActiveTab = function(name){
+      const ep = $('#editorPanel');
+      // if currently editing and the request is not explicitly forced, ignore
+      if (editing && name !== 'sections' && name !== 'user' && name !== 'User Sections') return;
+      const ret = _set.apply(this, arguments);
+      if (name === 'broadcast' && typeof window.buildRecipientTree === 'function') { try{ window.buildRecipientTree(); }catch(e){} }
+      if (name === 'sections' || name === 'user' || name === 'User Sections'){ ensureLayout(); bindLive(); }
+      return ret;
+    };
+  }
+
+  // stop clicks in editor from bubbling to any global/tab handlers
+  on(document,'click', (e)=>{
+    const ep = $('#editorPanel');
+    if (ep && ep.contains(e.target)){ e.stopPropagation(); }
+  }, true);
+
+  // kill anchors with href="#" and prevent submit inside editor
+  on(document,'click', (e)=>{ const a=e.target.closest && e.target.closest('a[href=\"#\"]'); if(a) e.preventDefault(); }, true);
+  on(document,'submit',(e)=>{ const ep=$('#editorPanel'); if(ep && ep.contains(e.target)){ e.preventDefault(); e.stopPropagation(); } }, true);
+  on(document,'keydown',(e)=>{ if(e.key==='Enter'){ const ep=$('#editorPanel'); if(ep && ep.contains(e.target)){ /* prevent implicit form submit */ if(!(e.target && (e.target.tagName==='TEXTAREA'))) e.preventDefault(); } }}, true);
+
+  // ---------- 4) Bootstrap ----------
+  document.addEventListener('DOMContentLoaded', ()=>{ ensureLayout(); bindLive(); });
+  // If openSectionEditor exists, reinforce after opening editor
+  if (typeof window.openSectionEditor === 'function'){
+    const _open = window.openSectionEditor;
+    window.openSectionEditor = function(){
+      const r = _open.apply(this, arguments);
+      ensureLayout(); bindLive();
+      return r;
+    };
+  }
+})();
+</script>
+
 </body>
 </html>                                 
