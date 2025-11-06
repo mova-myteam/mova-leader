@@ -4935,5 +4935,137 @@
 })();
 </script>
 
+
+
+<!-- === MOVA User Sections — Forced Side-by-Side Editor & Preview + Live Sync (v3, 2025-11-06) === -->
+<style>
+  /* Force any editor modal/backdrop to behave as docked panel */
+  #editorPanel, .editor-panel, [data-editor-panel="true"] {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    width: auto !important;
+    max-width: 100% !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+  /* Hide typical backdrops/overlays that may block clicks */
+  #editorBackdrop, .editor-backdrop, .backdrop, .fixed.inset-0.bg-black, .fixed.inset-0[style*="opacity"] {
+    display: none !important;
+    pointer-events: none !important;
+  }
+
+  /* The split container */
+  #mova-sections-split { display: grid; grid-template-columns: 42% 1fr; gap: 1rem; align-items: start; }
+  #mova-sections-split .pane { min-height: 60vh; }
+  #mova-sections-split .pane.preview iframe { width: 100%; height: calc(100vh - 220px); border: 1px solid #e5e7eb; border-radius: 12px; background:#fff; }
+  #mova-sections-split .pane.editor { position: sticky; top: 90px; align-self: start; }
+  @media (max-width: 1024px){
+    #mova-sections-split { display: block; }
+    #mova-sections-split .pane.preview iframe { height: 60vh; }
+    #mova-sections-split .pane.editor { position: static; }
+  }
+</style>
+<script>
+(function(){
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function $all(sel, root){ return Array.prototype.slice.call((root||document).querySelectorAll(sel)); }
+  function on(el, ev, fn, opt){ el && el.addEventListener(ev, fn, opt||false); }
+  function debounce(fn, ms){ var t; return function(){ clearTimeout(t); var a=arguments; t=setTimeout(function(){ fn.apply(null,a); }, ms||200); }; }
+
+  function commonAncestor(a, b){
+    if (!a || !b) return null;
+    var p = a; var ancestors = new Set();
+    while (p){ ancestors.add(p); p = p.parentElement; }
+    p = b;
+    while (p){ if (ancestors.has(p)) return p; p = p.parentElement; }
+    return document.body;
+  }
+
+  function forceSplit(){
+    var editor = $('#editorPanel');
+    var iframe = $('#userPreview');
+    if (!editor || !iframe) return false;
+
+    // If already split, done
+    if ($('#mova-sections-split')) return true;
+
+    // Find a sensible anchor: common ancestor of editorPanel and userPreview
+    var anchor = commonAncestor(editor, iframe) || document.getElementById('app') || document.body;
+
+    // Create split wrapper and panes
+    var wrap = document.createElement('div'); wrap.id = 'mova-sections-split';
+    var left = document.createElement('div'); left.className = 'pane editor';
+    var right = document.createElement('div'); right.className = 'pane preview';
+
+    // Insert wrap just before the iframe (keeps preview position roughly same)
+    anchor.insertBefore(wrap, iframe);
+    wrap.appendChild(left);
+    wrap.appendChild(right);
+
+    // Move nodes into panes
+    left.appendChild(editor);
+    right.appendChild(iframe);
+
+    return true;
+  }
+
+  // Live Preview sync from editor changes
+  var pushLive = debounce(function(){
+    try{
+      if (typeof window.sendToIframe !== 'function') return;
+      if (!window.store || !window.store.sections) return;
+      window.sendToIframe({ type:'sections-updated', sections: window.store.sections });
+    }catch(e){ console.warn('[MOVA live]', e); }
+  }, 160);
+
+  function bindLive(){
+    var editor = $('#editorPanel');
+    if (!editor) return;
+    on(editor, 'input', pushLive, true);
+    on(editor, 'change', pushLive, true);
+  }
+
+  // Build split when User Sections tab is opened or editor is launched
+  function ensureAll(){
+    var ok = forceSplit();
+    bindLive();
+    setTimeout(pushLive, 200);
+    return ok;
+  }
+
+  if (typeof window.setActiveTab === 'function'){
+    var _setActiveTab = window.setActiveTab;
+    window.setActiveTab = function(name){
+      var r = _setActiveTab.apply(this, arguments);
+      if (name === 'sections' || name === 'user' || name === 'User Sections') {
+        setTimeout(ensureAll, 0);
+      }
+      return r;
+    };
+  }
+
+  if (typeof window.openSectionEditor === 'function'){
+    var _open = window.openSectionEditor;
+    window.openSectionEditor = function(){
+      var r = _open.apply(this, arguments);
+      setTimeout(ensureAll, 0);
+      return r;
+    };
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    ensureAll();
+  });
+
+  // Safety: kill href="#" jumps
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a){ e.preventDefault(); }
+  }, true);
+})();
+</script>
+
 </body>
 </html>
