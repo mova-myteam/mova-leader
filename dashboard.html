@@ -171,19 +171,27 @@
     /* Modal overlay */
     .modal-overlay{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:40; display:flex; align-items:center; justify-content:center; }
     .modal-content{ background:white; border-radius:1rem; padding:1.5rem; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; position:relative; }
-    
-    /* User Sections Split Layout */
-    #user-sections-split { display:flex; gap:1rem; align-items:stretch; }
-    #user-sections-split .pane { display:flex; flex-direction:column; min-height:60vh; }
-    #user-sections-split .pane.editor { flex:0 0 40%; max-width:46rem; }
-    #user-sections-split .pane.preview { flex:1 1 auto; }
-    #user-sections-split .pane.preview iframe { width:100%; height:calc(100vh - 220px); border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
-    @media (max-width: 1024px){
-      #user-sections-split { flex-direction:column; }
-      #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
-      #user-sections-split .pane.preview iframe { height:60vh; }
-    }
-  </style>
+  
+/* === MOVA side-by-side editor patch (2025-11-06) === */
+@media (min-width: 1024px){
+  #leftCol{ position: relative; }
+  #leftCol .properties-panel{ 
+    position: sticky; 
+    top: 90px;               /* header height + margin */
+    max-height: calc(100vh - 120px);
+    overflow: auto;
+    margin-top: 12px;
+  }
+}
+/* Prevent accidental tab-change while editing inside properties */
+#propertiesPanel input, 
+#propertiesPanel textarea,
+#propertiesPanel select,
+#propertiesPanel button{
+  /* Avoid bubbling to any global click handlers */
+  pointer-events: auto;
+}
+</style>
 </head>
 <body class="bg-gray-50">
 
@@ -285,42 +293,23 @@
         </div>
       </div>
 
-      <!-- User Sections Split Layout -->
-      <div id="user-sections-split">
-        <!-- Left column: Section List & Properties -->
-        <div class="pane editor">
+      <!-- Two column layout for section list and preview -->
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Left column: Section List -->
+        <div id="leftCol" class="lg:col-span-1 space-y-3">
           <div class="element-panel">
             <h3>Senarai Bahagian</h3>
             <button id="btnAddSection" class="btn-ghost w-full justify-center" style="margin-top: 12px;">
               <i data-lucide="plus-circle" class="w-4 h-4"></i> Tambah Bahagian Baru
             </button>
           </div>
-          <div id="sectionList" class="space-y-2 mt-4">
+          <div id="sectionList" class="space-y-2">
             <!-- Senarai bahagian akan dimuatkan di sini -->
-          </div>
-          
-          <!-- Properties Panel (will be shown when a section or element is selected) -->
-          <div id="propertiesPanel" class="card p-6 space-y-5 hidden properties-panel mt-6">
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold" id="propertiesTitle">Sifat</h3>
-              <button id="btnCloseProperties" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
-            </div>
-            
-            <!-- Properties Tabs -->
-            <div class="properties-tabs">
-              <div class="properties-tab active" data-tab="basic">Asas</div>
-              <div class="properties-tab" data-tab="style">Gaya</div>
-              <div class="properties-tab" data-tab="advanced">Advanced</div>
-            </div>
-            
-            <div id="propertiesContent">
-              <!-- Kandungan sifat akan dimuatkan di sini -->
-            </div>
           </div>
         </div>
         
-        <!-- Right column: Preview -->
-        <div class="pane preview">
+        <!-- Right column: Preview & Properties -->
+        <div class="lg:col-span-3">
           <div class="preview-container">
             <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
             <!-- Zoom Controls -->
@@ -330,6 +319,25 @@
               <button id="zoomResetBtn"><i data-lucide="maximize" class="w-4 h-4"></i></button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Properties Panel (will be shown when a section or element is selected) -->
+      <div id="propertiesPanel" class="card p-6 space-y-5 hidden properties-panel">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold" id="propertiesTitle">Sifat</h3>
+          <button id="btnCloseProperties" class="btn-ghost"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+        
+        <!-- Properties Tabs -->
+        <div class="properties-tabs">
+          <div class="properties-tab active" data-tab="basic">Asas</div>
+          <div class="properties-tab" data-tab="style">Gaya</div>
+          <div class="properties-tab" data-tab="advanced">Advanced</div>
+        </div>
+        
+        <div id="propertiesContent">
+          <!-- Kandungan sifat akan dimuatkan di sini -->
         </div>
       </div>
     </div>
@@ -365,7 +373,7 @@
           </div>
           <div class="grid gap-2">
             <div class="flex items-center gap-2">
-              <input id="urlInput" class="input" placeholder="https://contoh.com/media.jpg atau https://youtube.com/">
+              <input id="urlInput" class="input" placeholder="https://contoh.com/media.jpg atau https://youtube.com/...">
               <button id="btnAddUrl" class="btn-ghost">Tambah</button>
             </div>
             <div id="urlList" class="grid gap-2"></div>
@@ -476,7 +484,7 @@
       </div>
 
       <div class="grid gap-3">
-        <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran"></textarea>
+        <textarea id="broadcastMsg" class="textarea" placeholder="Mesej siaran..."></textarea>
         <div id="attachChips" class="flex flex-wrap gap-2"></div>
         <div class="grid md:grid-cols-[1fr_auto] gap-3">
           <input id="attachFile" type="file" accept="image/*,video/*" class="input"/>
@@ -721,6 +729,7 @@
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
     if (name === 'org') renderOrg();
+    if (name === 'broadcast') buildRecipientTree();
   }
   
   // Tab event delegation
@@ -743,7 +752,8 @@
     await reloadRegs();
     await renderOrg();
     await refreshSettings();     // untuk theme/typography dll + preview mini
-    initEditor();                // Initialize the Section-Based editor
+    initEditor();
+    await buildRecipientTree();                // Initialize the Section-Based editor
     initAdvancedEditor();        // Initialize advanced editor features
   })();
 
@@ -805,7 +815,7 @@
   }
 
   document.getElementById('btnSaveContent').addEventListener('click', async ()=>{
-    const allAttachments = [Array.from(store.selectedMedia), store.linkUrls];
+    const allAttachments = [...Array.from(store.selectedMedia), ...store.linkUrls];
     const payload = {
       leader_id: store.leader.leader_id,
       title: elTitle.value || '',
@@ -1106,7 +1116,7 @@
       partnerNodes.push({ el:n, children: p.children||[] });
     });
 
-    const maxDepth = Math.max(0, partnerNodes.map(x=>x.children.length));
+    const maxDepth = Math.max(0, ...partnerNodes.map(x=>x.children.length));
     for (let r=0; r<maxDepth; r++){
       const row = document.createElement('div'); 
       row.className = 'grid gap-8 mt-6'; 
@@ -1887,7 +1897,7 @@
             <div class="space-y-4">
               <div>
                 <label class="text-sm font-medium">URL Imej</label>
-                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://">
+                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://...">
               </div>
               <div>
                 <label class="text-sm font-medium">Alt Text</label>
@@ -1896,11 +1906,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                  </select>
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
               </div>
               <div>
                 <label class="text-sm font-medium">Clickable?</label>
@@ -1911,7 +1921,7 @@
               </div>
               <div id="clickableOptions" style="display: ${element.clickable === 'yes' ? 'block' : 'none'}">
                 <label class="text-sm font-medium">Link URL</label>
-                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.linkUrl || ''}" placeholder="https://">
+                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.linkUrl || ''}" placeholder="https://...">
                 <label class="text-sm font-medium">Open in</label>
                 <select id="prop-linkTarget" class="input mt-1">
                   <option value="_blank" ${element.linkTarget === '_blank' ? 'selected' : ''}>New Tab</option>
@@ -2015,16 +2025,16 @@
             <div class="space-y-4">
               <div>
                 <label class="text-sm font-medium">URL Video</label>
-                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://">
+                <input type="text" id="prop-src" class="input mt-1" value="${element.src || ''}" placeholder="https://...">
               </div>
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                  </select>
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
               </div>
               <div>
                 <label class="text-sm font-medium">Autoplay?</label>
@@ -2160,11 +2170,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                  </select>
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
               </div>
             </div>
           </div>
@@ -2211,8 +2221,8 @@
               </div>
               <div>
                 <label class="text-sm font-medium">Padding</label>
-                <input type="text" id="prop-padding" class="input mt-1" value="${element.padding || ''}" placeholder="cth: 0.5rem 1rem">
-              </div>
+                <input type="text" id="prop-padding" class="input mt-1" value
+                              </div>
             </div>
           </div>
           
@@ -2280,7 +2290,7 @@
                 </div>
                 <div>
                   <label class="text-sm font-medium">URL Profil</label>
-                  <input type="text" id="prop-socialUrl" class="input mt-1" value="${element.url || ''}" placeholder="https://">
+                  <input type="text" id="prop-socialUrl" class="input mt-1" value="${element.url || ''}" placeholder="https://...">
                 </div>
                 <div>
                   <label class="text-sm font-medium">Warna Ikon</label>
@@ -2298,11 +2308,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                  </select>
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
               </div>
             </div>
           </div>
@@ -2399,7 +2409,7 @@
               </div>
               <div>
                 <label class="text-sm font-medium">URL Pautan</label>
-                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.url || '#'}" placeholder="https://">
+                <input type="text" id="prop-linkUrl" class="input mt-1" value="${element.url || '#'}" placeholder="https://...">
               </div>
               <div>
                 <label class="text-sm font-medium">Buka di Tab Baharu?</label>
@@ -2411,11 +2421,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                  </select>
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
               </div>
             </div>
           </div>
@@ -2520,11 +2530,11 @@
               <div>
                 <label class="text-sm font-medium">Kedudukan (Grid Column)</label>
                 <select id="prop-gridColumn" class="input mt-1">
-                    <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
-                    <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
-                    <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
-                    <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
-                  </select>
+                  <option value="span 12 / span 12" ${element.gridColumn === 'span 12 / span 12' ? 'selected' : ''}>Lebar Penuh</option>
+                  <option value="span 6 / span 6" ${element.gridColumn === 'span 6 / span 6' ? 'selected' : ''}>Separuh (2 lajur)</option>
+                  <option value="span 4 / span 4" ${element.gridColumn === 'span 4 / span 4' ? 'selected' : ''}>Satu Pertiga (3 lajur)</option>
+                  <option value="span 3 / span 3" ${element.gridColumn === 'span 3 / span 3' ? 'selected' : ''}>Suku (4 lajur)</option>
+                </select>
               </div>
             </div>
           </div>
@@ -3658,7 +3668,7 @@
   function getElementPreview(element) {
     switch (element.type) {
       case 'text':
-        return (element.content || '').replace(/<[^>]*>/g, '').substring(0, 20) + '';
+        return (element.content || '').replace(/<[^>]*>/g, '').substring(0, 20) + '...';
       case 'image':
         return 'Imej';
       case 'video':
@@ -3721,7 +3731,7 @@
           modalOptions.innerHTML = `
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Kandungan Teks Awal</label>
-              <textarea id="modalTextContent" class="textarea" rows="3" placeholder="Tulis kandungan awal di sini"></textarea>
+              <textarea id="modalTextContent" class="textarea" rows="3" placeholder="Tulis kandungan awal di sini..."></textarea>
             </div>
           `;
           break;
@@ -3730,7 +3740,7 @@
           modalOptions.innerHTML = `
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">URL Media</label>
-              <input type="text" id="modalMediaUrl" class="input" placeholder="https://">
+              <input type="text" id="modalMediaUrl" class="input" placeholder="https://...">
             </div>
           `;
           break;
@@ -3740,7 +3750,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Teks Butang</label>
               <input type="text" id="modalButtonText" class="input" placeholder="Cth: 'Daftar Sekarang'">
               <label class="block text-sm font-medium text-gray-700 mb-1">Pautan (URL)</label>
-              <input type="text" id="modalButtonUrl" class="input" placeholder="https://">
+              <input type="text" id="modalButtonUrl" class="input" placeholder="https://...">
             </div>
           `;
           break;
@@ -3760,7 +3770,7 @@
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">URL Profil</label>
-                <input type="text" id="modalSocialUrl" class="input" placeholder="https://">
+                <input type="text" id="modalSocialUrl" class="input" placeholder="https://...">
               </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Warna Ikon</label>
@@ -3783,7 +3793,7 @@
               <label class="block text-sm font-medium text-gray-700 mb-1">Teks Pautan</label>
               <input type="text" id="modalLinkText" class="input" placeholder="Cth: Lihat Promosi">
               <label class="block text-sm font-medium text-gray-700 mb-1">URL Pautan</label>
-              <input type="text" id="modalLinkUrl" class="input" placeholder="https://">
+              <input type="text" id="modalLinkUrl" class="input" placeholder="https://...">
               <label class="block text-sm font-medium text-gray-700 mb-1">Buka di Tab Baharu?</label>
               <select id="modalLinkTarget" class="input">
                 <option value="_blank">Ya</option>
@@ -3997,7 +4007,7 @@
     if (userPreview && userPreview.contentWindow) {
       const send = () => {
         try {
-          userPreview.contentWindow.postMessage({ type, data }, '*');
+          userPreview.contentWindow.postMessage({ type, data }, window.location.origin);
         } catch (error) {
           console.error('Error sending message to iframe:', error);
         }
@@ -4729,313 +4739,55 @@
     }
   });
 
-</script>
 
-<!-- MOVA Dashboard Inline Patch – 2025-11-06 -->
-<script>
-/*! Inline Patch Notes:
- *  Fixes: (a) white screen when clicking Edit (preventDefault + stopPropagation),
- *         (b) guard setActiveTab & auto-refresh Broadcast recipients,
- *         (c) prevent accidental form submits in editor panel,
- *         (d) ensure Lucide icons re-render after dynamic lists,
- *         (e) tighten postMessage targetOrigin in sendToIframe,
- *         (f) first-load buildRecipientTree for Broadcast.
- *  Non-destructive; structure preserved.
- */
-(function () {
-  function safe(fn){ try { return fn && fn(); } catch(e){ console.warn('[MOVA patch]', e); } }
-
-  // 0) On first load, attempt to build recipient tree (Broadcast)
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(function(){
-      if (typeof window.buildRecipientTree === 'function') {
-        safe(function(){ window.buildRecipientTree(); });
-      }
-    }, 0);
-  });
-
-  // 1) Prevent anchors with href="#" from navigating (white flash / scroll top)
-  document.addEventListener('click', function(e){
-    var a = e.target.closest && e.target.closest('a[href="#"]');
-    if (a) { e.preventDefault(); }
-  }, true);
-
-  // 2) Intercept Edit clicks via data-edit-section on any element (anchor or button)
-  document.addEventListener('click', function(e){
-    var el = e.target.closest && e.target.closest('[data-edit-section]');
-    if (!el) return;
-    e.preventDefault();
-    e.stopPropagation();
-    var id = el.getAttribute('data-edit-section');
-    if (typeof window.openSectionEditor === 'function') {
-      window.openSectionEditor(id);
-      if (typeof window.showEditorPanel === 'function') { window.showEditorPanel(); }
-      var panel = document.getElementById('editorPanel');
-      if (panel && typeof panel.scrollIntoView === 'function') panel.scrollIntoView({behavior:'smooth', block:'start'});
-    }
-  }, true);
-
-  // 3) Prevent accidental <form> submissions in the editor panel
-  document.addEventListener('submit', function(e){
-    var ep = document.getElementById('editorPanel');
-    if (ep && ep.contains(e.target)) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, true);
-
-  // 4) Ensure Lucide icons re-render after section list renders
-  if (typeof window.renderSectionList === 'function') {
-    var _renderSectionList = window.renderSectionList;
-    window.renderSectionList = function(){
-      var ret = _renderSectionList.apply(this, arguments);
-      if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        try { window.lucide.createIcons(); } catch(_) {}
-      }
-      return ret;
-    };
-  }
-
-  // 5) Tighten postMessage origin for sendToIframe (if compatible)
-  if (typeof window.sendToIframe === 'function') {
-    var _sendToIframe = window.sendToIframe;
-    window.sendToIframe = function(payload){
-      try {
-        var frame = document.getElementById('userPreview');
-        if (!frame || !frame.contentWindow) return;
-        var origin = window.location && window.location.origin ? window.location.origin : '*';
-        frame.contentWindow.postMessage(payload, origin);
-      } catch (e) {
-        return _sendToIframe.apply(this, arguments);
-      }
-    };
-  }
-
-  // 6) Keep current tab when opening editor (avoid unintended switches)
-  if (typeof window.openSectionEditor === 'function') {
-    var _openSectionEditor = window.openSectionEditor;
-    window.openSectionEditor = function(){
-      var ret = _openSectionEditor.apply(this, arguments);
-      try { /* keep current tab */ } catch(_){}
-      return ret;
-    };
-  }
-
-  console.info('[MOVA inline patch] Applied.');
-})();
-</script>
-
-
-<!-- === MOVA User Sections UI Upgrade (Editor Left + Live Preview) — 2025-11-06 === -->
-<style>
-  /* Only affect the User Sections tab layout */
-  #user-sections-split { display:flex; gap:1rem; align-items:stretch; }
-  #user-sections-split .pane { display:flex; flex-direction:column; min-height:60vh; }
-  #user-sections-split .pane.editor { flex:0 0 40%; max-width:46rem; }
-  #user-sections-split .pane.preview { flex:1 1 auto; }
-  #user-sections-split .pane.preview iframe { width:100%; height:calc(100vh - 220px); border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
-  @media (max-width: 1024px){
-    #user-sections-split { flex-direction:column; }
-    #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
-    #user-sections-split .pane.preview iframe { height:60vh; }
-  }
-</style>
-<script>
-(function(){
-  function $(s,root){ return (root||document).querySelector(s); }
-  function on(el, ev, fn, opt){ el && el.addEventListener(ev, fn, opt||false); }
-  function debounce(fn, ms){ var t; return function(){ clearTimeout(t); var a=arguments; t=setTimeout(function(){ fn.apply(null,a); }, ms||200); }; }
-
-  // Build split layout only inside the User Sections tab if present
-  function buildUserSplit(){
-    var tabUser = document.getElementById('tab-user') || document.querySelector('[data-tab="user"],[data-tab="sections"]')?.id;
-    var editor = document.getElementById('propertiesPanel');
-    var iframe = document.getElementById('userPreview');
-    if (!editor || !iframe) return;
-
-    // Wrap only once
-    if (document.getElementById('user-sections-split')) return;
-    var split = document.createElement('div'); split.id = 'user-sections-split';
-
-    var ePane = document.createElement('div'); ePane.className = 'pane editor';
-    var pPane = document.createElement('div'); pPane.className = 'pane preview';
-
-    // Move existing nodes
-    ePane.appendChild(editor);
-    pPane.appendChild(iframe);
-
-    // Choose anchor: if tab-user exists, insert at its top; else fallback to #app/body
-    var anchor = document.getElementById('tab-user') || document.getElementById('app') || document.body;
-    anchor.insertBefore(split, anchor.firstChild);
-    split.appendChild(ePane);
-    split.appendChild(pPane);
-  }
-
-  // Live preview: push store.sections whenever user types/changes within editor
-  var pushLive = debounce(function(){
-    try{
-      if (typeof window.sendToIframe !== 'function') return;
-      if (!window.store || !window.store.sections) return;
-      window.sendToIframe({ type:'sections-updated', sections: window.store.sections });
-    }catch(e){ console.warn('[MOVA live]', e); }
-  }, 200);
-
-  function bindLive(){
-    var editor = document.getElementById('propertiesPanel');
-    if (!editor) return;
-    on(editor, 'input', pushLive, true);
-    on(editor, 'change', pushLive, true);
-  }
-
-  // Reinforce live push when editor opens or section list re-renders
-  if (typeof window.openSectionEditor === 'function'){
-    var _open = window.openSectionEditor;
-    window.openSectionEditor = function(){
-      var r = _open.apply(this, arguments);
-      try{ buildUserSplit(); bindLive(); pushLive(); }catch(_){}
-      return r;
-    };
-  }
-  if (typeof window.renderSectionList === 'function'){
-    var _rsl = window.renderSectionList;
-    window.renderSectionList = function(){
-      var r = _rsl.apply(this, arguments);
-      try{ pushLive(); }catch(_){}
-      return r;
-    };
-  }
-  if (typeof window.refreshSettings === 'function'){
-    var _rs = window.refreshSettings;
-    window.refreshSettings = function(){
-      var r = _rs.apply(this, arguments);
-      try{ pushLive(); }catch(_){}
-      return r;
-    };
-  }
-
-  // Build once on load, then push initial content
-  document.addEventListener('DOMContentLoaded', function(){
-    buildUserSplit();
-    bindLive();
-    setTimeout(pushLive, 300);
-  });
-
-  // Prevent accidental navigation from anchors with href="#"
-  document.addEventListener('click', function(e){
-    var a = e.target.closest && e.target.closest('a[href="#"]');
-    if (a){ e.preventDefault(); }
-  }, true);
-})();
-</script>
-
-
-
-<!-- MOVA Right Preview Dock (no editor move) + Dual sendToIframe — 2025-11-06 -->
-<style>
-  /* Right dock container */
-  #mova-preview-dock {
-    position: fixed;
-    right: 24px;
-    top: 120px;
-    width: var(--mova-dock-width, 42%);
-    height: calc(100vh - 150px);
-    display: none; /* enabled only on User Sections */
-    z-index: 30;
-    pointer-events: auto;
-  }
-  #mova-preview-dock .dock-inner {
-    width: 100%; height: 100%;
-    border: 1px solid #e5e7eb; border-radius: 12px; background:#fff;
-    overflow: hidden;
-    box-shadow: 0 6px 24px rgba(15,23,42,.08);
-  }
-  #mova-preview-dock iframe { width:100%; height:100%; border:0; background:#fff; }
-  #mova-dock-resizer {
-    position: absolute; left: -6px; top: 0; width: 6px; height: 100%; cursor: col-resize;
-  }
-  @media (max-width: 1024px){
-    #mova-preview-dock{ display:none !important; }
-  }
-</style>
-<script>
+/* === MOVA side-by-side editor patch — JS (2025-11-06) === */
 (function(){
   const $ = (s,root=document)=>root.querySelector(s);
   const on = (el,ev,fn,opt)=>el&&el.addEventListener(ev,fn,opt||false);
-  const debounce = (fn,ms=180)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
 
-  // 1) Create right dock once
-  function ensureDock(){
-    if ($('#mova-preview-dock')) return;
-    const dock = document.createElement('div'); dock.id='mova-preview-dock';
-    dock.innerHTML = '<div id="mova-dock-resizer"></div><div class="dock-inner"><iframe id="userPreviewDock" title="Preview"></iframe></div>';
-    document.body.appendChild(dock);
-
-    // Resizer: drag from left edge
-    const key='mova_dock_width'; const saved=localStorage.getItem(key); if(saved){ dock.style.setProperty('--mova-dock-width', saved); }
-    let drag=false;
-    on($('#mova-dock-resizer'),'mousedown', (e)=>{ drag=true; e.preventDefault(); });
-    on(document,'mouseup', ()=> drag=false);
-    on(document,'mousemove', (e)=>{
-      if(!drag) return;
-      const vw = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-      const left = e.clientX;
-      // Dock width is distance from left to right edge minus margin 24px
-      const width = Math.min(vw - 360, Math.max(340, vw - left - 24)); // clamp 340..(vw-360)
-      const val = width.toFixed(0) + 'px';
-      dock.style.setProperty('--mova-dock-width', val);
-      localStorage.setItem(key, val);
-    });
-
-    // Load the same URL as original userPreview, if available
-    const orig = $('#userPreview');
-    const url  = orig ? (orig.getAttribute('src') || 'user.html') : 'user.html';
-    $('#userPreviewDock').setAttribute('src', url);
+  function mountPropsInLeftCol(){
+    const left = $('#leftCol');
+    const prop = $('#propertiesPanel');
+    const tabUser = $('#tab-user');
+    if (!left || !prop || !tabUser) return;
+    if (tabUser.classList.contains('hidden')) return; // only when User Sections is active
+    if (prop.parentElement !== left){
+      left.appendChild(prop);
+    }
   }
 
-  // 2) Dual-target sendToIframe: send to both original and dock iframes
-  (function(){
-    const origin = (window.location && window.location.origin) ? window.location.origin : '*';
-    const original = window.sendToIframe;
-    window.sendToIframe = function(payload){
-      try{
-        const a = $('#userPreview');      if (a && a.contentWindow) a.contentWindow.postMessage(payload, origin);
-        const b = $('#userPreviewDock');  if (b && b.contentWindow) b.contentWindow.postMessage(payload, origin);
-      }catch(e){}
-      if (typeof original === 'function') return original(payload);
-    };
-  })();
-
-  // 3) Show dock only on User Sections tab; do NOT move the editor
-  function showDockIfUserSections(name){
-    const dock = $('#mova-preview-dock'); if (!dock) return;
-    const onUser = (name==='sections' || name==='user' || name==='User Sections');
-    dock.style.display = onUser ? 'block' : 'none';
-  }
-
-  // Hook tab switch
-  if (typeof window.setActiveTab === 'function'){
-    const _set = window.setActiveTab;
-    window.setActiveTab = function(name){
-      const r = _set.apply(this, arguments);
-      showDockIfUserSections(name);
-      return r;
-    };
-  }
-
-  // 4) Live push on input/change (non-intrusive; no global guards)
-  const pushLive = debounce(()=>{
-    try{ if (window.store && window.store.sections){ window.sendToIframe({type:'sections-updated', sections: window.store.sections}); } }catch(e){}
-  }, 150);
-  document.addEventListener('input', (e)=>{ const ep=$('#editorPanel'); if(ep && ep.contains(e.target)) pushLive(); }, true);
-  document.addEventListener('change',(e)=>{ const ep=$('#editorPanel'); if(ep && ep.contains(e.target)) pushLive(); }, true);
-  document.addEventListener('DOMContentLoaded', ()=>{
-    ensureDock();
-    // Auto-show if current tab already User Sections (best-effort)
-    showDockIfUserSections('sections');
-    setTimeout(pushLive, 300);
+  // Show properties panel where it is needed and keep it sticky on the left
+  document.addEventListener('click', (e)=>{
+    const el = e.target;
+    // Open properties when clicking on a section-item or element-item (same behavior, then mount)
+    if (el.closest && (el.closest('.section-item') || el.closest('.element-item'))){
+      setTimeout(mountPropsInLeftCol, 0);
+    }
   });
+
+  // Also run on tab switches
+  const _setActiveTab = window.setActiveTab;
+  if (typeof _setActiveTab === 'function'){
+    window.setActiveTab = function(name){
+      const r = _setActiveTab.apply(this, arguments);
+      if (name === 'user'){ setTimeout(mountPropsInLeftCol, 0); }
+      return r;
+    }
+  } else {
+    // Fallback: try once after DOM ready
+    document.addEventListener('DOMContentLoaded', ()=> setTimeout(mountPropsInLeftCol, 300));
+  }
+
+  // Guard: avoid clicks inside properties from closing/refreshing anything
+  const prop = document.getElementById('propertiesPanel');
+  if (prop){
+    ['click','mousedown','mouseup','keydown','keyup','input','change','submit'].forEach(evt=>{
+      prop.addEventListener(evt, (e)=>{
+        e.stopPropagation();
+      }, true);
+    });
+  }
 })();
 </script>
-
 </body>
-</html>                                 
+</html>
