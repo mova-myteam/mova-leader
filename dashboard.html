@@ -172,6 +172,87 @@
     .modal-overlay{ position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:40; display:flex; align-items:center; justify-content:center; }
     .modal-content{ background:white; border-radius:1rem; padding:1.5rem; max-width:500px; width:90%; max-height:80vh; overflow-y:auto; position:relative; }
   </style>
+
+<style>
+/* ==== MOVA Left-Editor Layout (non-destructive) ==== */
+:root{
+  --editorWidth: 480px;
+  --editorShadow: 0 10px 30px rgba(15,23,42,.08);
+  --dividerWidth: 6px;
+}
+/* When body has .editor-left-mode, dock the editor on the left */
+body.editor-left-mode{
+  overflow: hidden; /* prevent page jump; preview area scrolls separately */
+}
+/* Generic app container may vary; we keep preview in place and fix editor */
+#editorPanel{
+  position: fixed !important;
+  inset: 0 auto 0 0 !important; /* top right bottom left */
+  width: var(--editorWidth) !important;
+  max-width: 90vw;
+  height: 100vh !important;
+  margin: 0 !important;
+  border-right: 1px solid #e5e7eb;
+  border-radius: 0 !important;
+  box-shadow: var(--editorShadow) !important;
+  background: #fff;
+  z-index: 60; /* over content, under modals if any */
+  display: none; /* toggled by script */
+}
+body.editor-left-mode #editorPanel{
+  display: block;
+}
+/* Make the editor content area scrollable */
+#editorPanel .panel-body,
+#editorPanel .body,
+#editorPanel .content,
+#editorPanel .scrollable{
+  max-height: 100vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2rem;
+}
+
+/* Preview offset so it doesn't sit underneath the editor */
+body.editor-left-mode .preview-offset,
+body.editor-left-mode #userPreview,
+body.editor-left-mode iframe#userPreview{
+  margin-left: calc(var(--editorWidth) + var(--dividerWidth));
+}
+
+/* Divider (draggable) between editor and preview */
+#movaEditorDivider{
+  position: fixed;
+  left: var(--editorWidth);
+  top: 0;
+  bottom: 0;
+  width: var(--dividerWidth);
+  cursor: col-resize;
+  z-index: 61;
+  display: none;
+  background: linear-gradient(180deg,#f3f4f6, #e5e7eb);
+  border-right: 1px solid #e5e7eb;
+}
+body.editor-left-mode #movaEditorDivider{
+  display: block;
+}
+#movaEditorDivider::after{
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 2px;
+  height: 48px;
+  transform: translateX(-50%);
+  background: #d1d5db;
+  border-radius: 2px;
+}
+/* Ensure any header remains on top */
+.header, .topbar, header{
+  position: relative;
+  z-index: 62;
+}
+</style>
 </head>
 <body class="bg-gray-50">
 
@@ -4767,7 +4848,112 @@
   document.addEventListener('submit', function(e){
     var ep = document.getElementById('editorPanel');
     if (ep && ep.contains(e.target)) {
+      e.pre
+<!-- MOVA Left-Editor Script -->
+<script>
+(function(){
+  // Create divider once
+  var divider = document.getElementById('movaEditorDivider');
+  if (!divider){
+    divider = document.createElement('div');
+    divider.id = 'movaEditorDivider';
+    document.body.appendChild(divider);
+  }
+
+  // Helper: clamp editor width
+  function setEditorWidth(px){
+    var min = 340, max = Math.min(window.innerWidth * 0.9, 900);
+    var w = Math.max(min, Math.min(max, px));
+    document.documentElement.style.setProperty('--editorWidth', w + 'px');
+    divider.style.left = w + 'px';
+  }
+
+  // Drag to resize
+  (function enableResize(){
+    var dragging = false, startX = 0, startW = 0;
+    function onDown(e){
+      dragging = true;
+      startX = (e.touches ? e.touches[0].clientX : e.clientX);
+      var cw = getComputedStyle(document.documentElement).getPropertyValue('--editorWidth');
+      startW = parseFloat(cw) || 480;
       e.preventDefault();
+    }
+    function onMove(e){
+      if (!dragging) return;
+      var x = (e.touches ? e.touches[0].clientX : e.clientX);
+      var diff = x - startX;
+      setEditorWidth(startW + diff);
+    }
+    function onUp(){
+      dragging = false;
+    }
+    divider.addEventListener('mousedown', onDown);
+    divider.addEventListener('touchstart', onDown, {passive:false});
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+  })();
+
+  // Monkey-patch show/close editor to toggle left-mode
+  function applyLeftMode(){
+    document.body.classList.add('editor-left-mode');
+    // ensure divider position sync with current var
+    var cw = getComputedStyle(document.documentElement).getPropertyValue('--editorWidth');
+    var w = parseFloat(cw) || 480;
+    divider.style.left = w + 'px';
+  }
+  function removeLeftMode(){
+    document.body.classList.remove('editor-left-mode');
+  }
+
+  // If app exposes showEditorPanel/closeEditorPanel, wrap them
+  if (typeof window.showEditorPanel === 'function'){
+    var _showEditorPanel = window.showEditorPanel;
+    window.showEditorPanel = function(){
+      var ret = _showEditorPanel.apply(this, arguments);
+      applyLeftMode();
+      return ret;
+    };
+  } else {
+    // Fallback: when editorPanel is displayed, we toggle class
+    var ep = document.getElementById('editorPanel');
+    if (ep){
+      var observer = new MutationObserver(function(m){
+        var visible = window.getComputedStyle(ep).display !== 'none' && ep.offsetParent !== null || ep.style.display === 'block';
+        if (visible) applyLeftMode(); else removeLeftMode();
+      });
+      observer.observe(ep, {attributes:true, attributeFilter:['style','class']});
+    }
+  }
+
+  if (typeof window.closeEditorPanel === 'function'){
+    var _closeEditorPanel = window.closeEditorPanel;
+    window.closeEditorPanel = function(){
+      var ret = _closeEditorPanel.apply(this, arguments);
+      removeLeftMode();
+      return ret;
+    };
+  }
+
+  // Ensure initial state correct after page load
+  document.addEventListener('DOMContentLoaded', function(){
+    var ep = document.getElementById('editorPanel');
+    if (ep && (ep.style.display === 'block' || !ep.classList.contains('hidden'))){
+      applyLeftMode();
+    }
+  });
+
+  // Optional: Ctrl+Shift+E toggles editor-left-mode (for debugging)
+  window.addEventListener('keydown', function(e){
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'e'){
+      if (document.body.classList.contains('editor-left-mode')) removeLeftMode();
+      else applyLeftMode();
+    }
+  });
+})();
+</script>
+ventDefault();
       e.stopPropagation();
     }
   }, true);
