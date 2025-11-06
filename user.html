@@ -740,6 +740,20 @@
     });
   }
 
+  
+  // === BOOTSTRAP FROM localStorage (immediate) ===
+  ;(function bootstrapFromLocalStorage(){
+    try{
+      var raw = localStorage.getItem('mova_preview_bootstrap');
+      if (raw){
+        var payload = JSON.parse(raw);
+        var sections = Array.isArray(payload.sections) ? payload.sections : [];
+        pageSections = sections;
+        renderPage();
+      }
+    }catch(e){ /* ignore */}
+  })();
+
   document.addEventListener('DOMContentLoaded', async () => {
     if (window.lucide?.createIcons) lucide.createIcons();
     document.getElementById('year').textContent = new Date().getFullYear();
