@@ -184,17 +184,6 @@
       #user-sections-split .pane.preview iframe { height:60vh; }
     }
   </style>
-
-
-<style>
-  .lock-btn{display:inline-flex;align-items:center;gap:.5rem;border:1px solid #e5e7eb;border-radius:.75rem;padding:.45rem .8rem;background:#fff;font-weight:700}
-  .lock-btn[data-locked="true"]{background:#111;color:#fff;border-color:#111}
-  .lock-btn i{width:18px;height:18px}
-  body.ui-locked .tab,[aria-controls][role="tab"]{cursor:not-allowed}
-  body.ui-locked [role="tab"][aria-selected="false"],
-  body.ui-locked .tab{opacity:.6}
-</style>
-
 </head>
 <body class="bg-gray-50">
 
@@ -310,7 +299,7 @@
             <!-- Senarai bahagian akan dimuatkan di sini -->
           </div>
           
-          <!-- Properties Panel (will be shown when a section || element is selected) -->
+          <!-- Properties Panel (will be shown when a section or element is selected) -->
           <div id="propertiesPanel" class="card p-6 space-y-5 hidden properties-panel mt-6">
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold" id="propertiesTitle">Sifat</h3>
@@ -4675,7 +4664,7 @@
       undo();
     }
     
-    // Ctrl/Cmd + Shift + Z || Ctrl/Cmd + Y: Redo
+    // Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y: Redo
     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
       e.preventDefault();
       redo();
@@ -4792,7 +4781,7 @@
     if (a) { e.preventDefault(); }
   }, true);
 
-  // 2) Intercept Edit clicks via data-edit-section on any element (anchor || button)
+  // 2) Intercept Edit clicks via data-edit-section on any element (anchor or button)
   document.addEventListener('click', function(e){
     var el = e.target.closest && e.target.closest('[data-edit-section]');
     if (!el) return;
@@ -4937,7 +4926,7 @@
     on(editor, 'change', pushLive, true);
   }
 
-  // Reinforce live push when editor opens || section list re-renders
+  // Reinforce live push when editor opens or section list re-renders
   if (typeof window.openSectionEditor === 'function'){
     var _open = window.openSectionEditor;
     window.openSectionEditor = function(){
@@ -5152,11 +5141,11 @@
   safely(function(){
     document.addEventListener('keydown', function(e){
       if (!window.uiLock.userTabLocked) return;
-      // If focused element is || is inside a tab button that's not "user", block Enter/Space
+      // If focused element is or is inside a tab button that's not "user", block Enter/Space
       const tabBtn = e.target && e.target.closest && e.target.closest('[data-tab]');
       if (tabBtn && tabBtn.getAttribute('data-tab') !== 'user'){
         const code = e.code || e.key;
-        if (code==='Enter' || code==='Space' || code===' '){
+        if (code === 'Enter' or code === 'Space' or code === ' '){
           e.preventDefault(); e.stopPropagation();
         }
       }
@@ -5231,7 +5220,7 @@
 
   function markNoScrollPreview(){
     const root = $('#tab-user') || document;
-    // Heuristic: prefer a right column that contains a preview iframe || a table
+    // Heuristic: prefer a right column that contains a preview iframe or a table
     // 1) Find a container that has an iframe (likely preview)
     let container = root.querySelector('iframe') ? root.querySelector('iframe').parentElement : null;
     // 2) Or find the first container with a <table>
@@ -5312,204 +5301,6 @@
   if (document.readyState === 'loading'){
     document.addEventListener('DOMContentLoaded', setup);
   } else { setup(); }
-})();
-</script>
-
-
-<!-- === Injected: Persistent User Lock controller === -->
-<script>
-(function(){
-  const STORAGE_KEY = 'mova_user_lock';
-
-  function getToolbar(){
-    return document.querySelector('#editorToolbar, .editor-toolbar, [data-editor-toolbar]') || document.querySelector('header .toolbar');
-  }
-
-  function ensureLockButton(){
-    let btn = document.querySelector('#btnUserLock');
-    if (!btn){
-      btn = document.createElement('button');
-      btn.id = 'btnUserLock';
-      btn.type = 'button';
-      btn.className = 'lock-btn';
-      btn.innerHTML = '<i data-lucide="lock"></i><span> Dikunci</span>';
-      const bar = getToolbar();
-      if (bar) bar.prepend(btn);
-      else {
-        btn.style.position='fixed'; btn.style.top='12px'; btn.style.right='12px'; btn.style.zIndex='1000';
-        document.body.appendChild(btn);
-      }
-      if (window.lucide?.createIcons) lucide.createIcons();
-    }
-    return btn;
-  }
-
-  function setTabDisabled(disabled){
-    const tabs = document.querySelectorAll('[role="tab"], [data-tab], .tab');
-    tabs.forEach(el=>{
-      const label = (el.dataset.tab || el.textContent || '').toLowerCase();
-      const isUser = /user/.test(label);
-      if (!isUser){
-        el.setAttribute('aria-disabled', disabled ? 'true' : 'false');
-        if (disabled){
-          el.dataset.__locked = '1';
-          el.addEventListener('click', preventWhenLocked, true);
-        } else if (el.dataset.__locked){
-          el.removeEventListener('click', preventWhenLocked, true);
-          delete el.dataset.__locked;
-        }
-      }
-    });
-  }
-
-  function preventWhenLocked(e){
-    if (isLocked()){
-      e.stopPropagation();
-      e.preventDefault();
-      try{ window.toast && window.toast('Mod kunci aktif. Buka kunci untuk tukar tab.'); }catch(_){}
-    }
-  }
-
-  function isLocked(){
-    try{
-      return localStorage.getItem(STORAGE_KEY) === '1';
-    }catch(e){ return false; }
-  }
-
-  function applyLockUI(locked){
-    document.body.classList.toggle('ui-locked', !!locked);
-    setTabDisabled(!!locked);
-    const btn = ensureLockButton();
-    btn.dataset.locked = locked ? 'true' : 'false';
-    const label = btn.querySelector('span'); 
-    const ico = btn.querySelector('i');
-    if (label) label.textContent = locked ? ' Dikunci' : ' Buka Kunci';
-    if (ico){ ico.setAttribute('data-lucide', locked ? 'lock' : 'unlock'); }
-    if (window.lucide?.createIcons) lucide.createIcons();
-  }
-
-  function toggleLock(){
-    const next = !isLocked();
-    try{ localStorage.setItem(STORAGE_KEY, next ? '1' : '0'); }catch(e){}
-    applyLockUI(next);
-  }
-
-  function globalClickGuard(e){
-    if (!isLocked()) return;
-    if (e.target.closest('#sectionsList, [data-sections-list], .sections-list, .section-list')) return;
-    if (e.target.closest('[data-editor-panel], .editor, .user-sections-panel')) return;
-    e.stopPropagation(); e.preventDefault();
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    const btn = ensureLockButton();
-    btn.addEventListener('click', toggleLock);
-    applyLockUI(isLocked());
-    document.addEventListener('click', globalClickGuard, true);
-  });
-})();
-</script>
-
-
-<!-- === Injected Hotfix: ensure lock toggle + sidebar jump always work === -->
-<script>
-(function(){
-  // ---------- Preview jump helpers ----------
-  function getPreviewIframe(){
-    const selectors = [
-      '#previewIframe','iframe[data-preview]','iframe.preview','.preview iframe',
-      '.preview-pane iframe','iframe[src*="user.html"]','iframe'
-    ];
-    for (const s of selectors){ const el = document.querySelector(s); if (el) return el; }
-    return null;
-  }
-  function jumpToSectionInPreview(sectionId){
-    const ifr = getPreviewIframe();
-    if (!ifr || !sectionId) return;
-    (ifr.contentWindow || ifr).postMessage({ type:'select-section', data:{ id: sectionId } }, '*');
-  }
-
-  // Robust delegation: clicking any element carrying data-section-id triggers jump
-  function onSectionRowClick(e){
-    const row = e.target && e.target.closest && e.target.closest('[data-section-id]');
-    if (!row) return;
-    const id = row.getAttribute('data-section-id');
-    if (id) jumpToSectionInPreview(id);
-  }
-  document.addEventListener('click', onSectionRowClick, false);
-
-  // ---------- Persistent lock: make the button always work ----------
-  const STORAGE_KEY = 'mova_user_lock';
-
-  function isLocked(){ try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch(e){ return false; } }
-  function setLocked(val){
-    try { localStorage.setItem(STORAGE_KEY, val ? '1' : '0'); } catch(e){}
-    applyLockUI(val);
-  }
-  function applyLockUI(locked){
-    // body flag
-    document.body.classList.toggle('ui-locked', !!locked);
-
-    // enable/disable tabs generically
-    const tabs = document.querySelectorAll('[role="tab"], [data-tab], .tab');
-    tabs.forEach(el=>{
-      const label = (el.dataset.tab || el.textContent || '').toLowerCase();
-      const isUser = /user/.test(label);
-      if (!isUser){
-        if (locked){
-          el.setAttribute('aria-disabled', 'true');
-        } else {
-          el.setAttribute('aria-disabled', 'false');
-        }
-      }
-    });
-
-    // update button appearance
-    const btn = document.querySelector('#btnUserLock');
-    if (btn){
-      btn.dataset.locked = locked ? 'true' : 'false';
-      const label = btn.querySelector('span'); if (label) label.textContent = locked ? ' Dikunci' : ' Buka Kunci';
-      const ico = btn.querySelector('i'); if (ico){ ico.setAttribute('data-lucide', locked ? 'lock' : 'unlock'); }
-      if (window.lucide?.createIcons) lucide.createIcons();
-    }
-  }
-
-  // Ensure button exists (in case earlier scripts didn't create it)
-  function ensureLockButton(){
-    let btn = document.querySelector('#btnUserLock');
-    if (!btn){
-      btn = document.createElement('button');
-      btn.id = 'btnUserLock';
-      btn.type = 'button';
-      btn.className = 'lock-btn';
-      btn.innerHTML = '<i data-lucide="lock"></i><span> Dikunci</span>';
-      btn.style.position='fixed'; btn.style.top='12px'; btn.style.right='12px'; btn.style.zIndex='1000';
-      document.body.appendChild(btn);
-    }
-    return btn;
-  }
-
-  // Attach a capture-phase toggle so blockers can't stop it
-  document.addEventListener('DOMContentLoaded', function(){
-    const btn = ensureLockButton();
-    // capture-phase so it runs before any preventDefault in other listeners
-    btn.addEventListener('click', function(ev){
-      ev.stopPropagation();
-      ev.preventDefault();
-      setLocked(!isLocked());
-    }, true);
-
-    // Apply persisted state at load
-    applyLockUI(isLocked());
-  }, { once:true });
-
-  // Whitelist clicks on the lock button from any global click guards
-  document.addEventListener('click', function(e){
-    if (e.target && e.target.closest && e.target.closest('#btnUserLock')){
-      // Let our capture handler handle it; don't let other guards cancel it
-      e.stopImmediatePropagation && e.stopImmediatePropagation();
-    }
-  }, true);
 })();
 </script>
 
