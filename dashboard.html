@@ -5410,5 +5410,108 @@
 })();
 </script>
 
+
+<!-- === Injected Hotfix: ensure lock toggle + sidebar jump always work === -->
+<script>
+(function(){
+  // ---------- Preview jump helpers ----------
+  function getPreviewIframe(){
+    const selectors = [
+      '#previewIframe','iframe[data-preview]','iframe.preview','.preview iframe',
+      '.preview-pane iframe','iframe[src*="user.html"]','iframe'
+    ];
+    for (const s of selectors){ const el = document.querySelector(s); if (el) return el; }
+    return null;
+  }
+  function jumpToSectionInPreview(sectionId){
+    const ifr = getPreviewIframe();
+    if (!ifr || !sectionId) return;
+    (ifr.contentWindow || ifr).postMessage({ type:'select-section', data:{ id: sectionId } }, '*');
+  }
+
+  // Robust delegation: clicking any element carrying data-section-id triggers jump
+  function onSectionRowClick(e){
+    const row = e.target && e.target.closest && e.target.closest('[data-section-id]');
+    if (!row) return;
+    const id = row.getAttribute('data-section-id');
+    if (id) jumpToSectionInPreview(id);
+  }
+  document.addEventListener('click', onSectionRowClick, false);
+
+  // ---------- Persistent lock: make the button always work ----------
+  const STORAGE_KEY = 'mova_user_lock';
+
+  function isLocked(){ try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch(e){ return false; } }
+  function setLocked(val){
+    try { localStorage.setItem(STORAGE_KEY, val ? '1' : '0'); } catch(e){}
+    applyLockUI(val);
+  }
+  function applyLockUI(locked){
+    // body flag
+    document.body.classList.toggle('ui-locked', !!locked);
+
+    // enable/disable tabs generically
+    const tabs = document.querySelectorAll('[role="tab"], [data-tab], .tab');
+    tabs.forEach(el=>{
+      const label = (el.dataset.tab || el.textContent || '').toLowerCase();
+      const isUser = /user/.test(label);
+      if (!isUser){
+        if (locked){
+          el.setAttribute('aria-disabled', 'true');
+        } else {
+          el.setAttribute('aria-disabled', 'false');
+        }
+      }
+    });
+
+    // update button appearance
+    const btn = document.querySelector('#btnUserLock');
+    if (btn){
+      btn.dataset.locked = locked ? 'true' : 'false';
+      const label = btn.querySelector('span'); if (label) label.textContent = locked ? ' Dikunci' : ' Buka Kunci';
+      const ico = btn.querySelector('i'); if (ico){ ico.setAttribute('data-lucide', locked ? 'lock' : 'unlock'); }
+      if (window.lucide?.createIcons) lucide.createIcons();
+    }
+  }
+
+  // Ensure button exists (in case earlier scripts didn't create it)
+  function ensureLockButton(){
+    let btn = document.querySelector('#btnUserLock');
+    if (!btn){
+      btn = document.createElement('button');
+      btn.id = 'btnUserLock';
+      btn.type = 'button';
+      btn.className = 'lock-btn';
+      btn.innerHTML = '<i data-lucide="lock"></i><span> Dikunci</span>';
+      btn.style.position='fixed'; btn.style.top='12px'; btn.style.right='12px'; btn.style.zIndex='1000';
+      document.body.appendChild(btn);
+    }
+    return btn;
+  }
+
+  // Attach a capture-phase toggle so blockers can't stop it
+  document.addEventListener('DOMContentLoaded', function(){
+    const btn = ensureLockButton();
+    // capture-phase so it runs before any preventDefault in other listeners
+    btn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      ev.preventDefault();
+      setLocked(!isLocked());
+    }, true);
+
+    // Apply persisted state at load
+    applyLockUI(isLocked());
+  }, { once:true });
+
+  // Whitelist clicks on the lock button from any global click guards
+  document.addEventListener('click', function(e){
+    if (e.target && e.target.closest && e.target.closest('#btnUserLock')){
+      // Let our capture handler handle it; don't let other guards cancel it
+      e.stopImmediatePropagation && e.stopImmediatePropagation();
+    }
+  }, true);
+})();
+</script>
+
 </body>
 </html>                                 
