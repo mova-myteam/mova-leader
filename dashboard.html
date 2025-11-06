@@ -191,6 +191,18 @@
   /* Avoid bubbling to any global click handlers */
   pointer-events: auto;
 }
+
+/* === MOVA UX tweak (2025-11-06): wider left editor + sticky panel === */
+@media (min-width: 1024px){
+  #leftCol{ position: relative; min-width: 420px; width: 460px; }
+  #leftCol .properties-panel{ 
+    position: sticky; 
+    top: 90px;
+    max-height: calc(100vh - 120px);
+    overflow: auto;
+    margin-top: 12px;
+  }
+}
 </style>
 </head>
 <body class="bg-gray-50">
@@ -4787,6 +4799,102 @@
       }, true);
     });
   }
+})();
+
+/* === MOVA properties behavior fixes (tabs clickable, live preview, autosave) === */
+(function(){
+  const $ = (s,root=document)=>root.querySelector(s);
+  const on = (el,ev,fn,opt)=>el&&el.addEventListener(ev,fn,opt||false);
+  const debounce = (fn,ms=600)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
+
+  function mountPropsInLeftCol(){
+    const left = $('#leftCol');
+    const prop = $('#propertiesPanel');
+    const tabUser = $('#tab-user');
+    if (!left || !prop || !tabUser) return;
+    if (tabUser.classList && tabUser.classList.contains('hidden')) return; // only when User Sections active
+    if (prop.parentElement !== left){
+      left.appendChild(prop);
+      prop.classList.add('properties-panel');
+    }
+  }
+
+  // Re-mount whenever user selects a section/element or opens editor
+  document.addEventListener('click', (e)=>{
+    const el = e.target;
+    if (!el) return;
+    // Open properties
+    if (el.closest && (el.closest('.section-item') || el.closest('.element-item') || el.closest('[data-open-properties]'))){
+      setTimeout(mountPropsInLeftCol, 0);
+    }
+  }, true);
+
+  // Also mount on tab switch
+  if (typeof window.setActiveTab === 'function'){
+    const _set = window.setActiveTab;
+    window.setActiveTab = function(name){
+      const r = _set.apply(this, arguments);
+      if (name === 'user' || name === 'sections' || name === 'User Sections'){
+        setTimeout(mountPropsInLeftCol, 0);
+      }
+      return r;
+    };
+  } else {
+    document.addEventListener('DOMContentLoaded', ()=> setTimeout(mountPropsInLeftCol, 300));
+  }
+
+  // === Make tabs inside properties clickable ===
+  // We previously stopped propagation broadly; refine it to only prevent bubbling that causes tab exit,
+  // but ALLOW internal tab buttons to work.
+  const prop = document.getElementById('propertiesPanel');
+  if (prop){
+    // Prevent accidental page hash navigation only
+    prop.addEventListener('click', (e)=>{
+      const a = e.target.closest && e.target.closest('a[href="#"]');
+      if (a){ e.preventDefault(); }
+      // Do NOT stopPropagation here so internal handlers still fire
+    }, true);
+
+    // Keep forms local (no external submit)
+    prop.addEventListener('submit', (e)=>{ e.preventDefault(); }, true);
+
+    // Prevent Enter (non-textarea) from submitting
+    prop.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter' && e.target && e.target.tagName !== 'TEXTAREA'){ e.preventDefault(); }
+    }, true);
+  }
+
+  // === Live preview push on edit ===
+  const pushLive = debounce(()=>{
+    try{
+      if (window.store && window.store.sections && typeof window.sendToIframe === 'function'){
+        window.sendToIframe({ type:'sections-updated', sections: window.store.sections });
+      }
+    }catch(e){ console.warn('[MOVA live]', e); }
+  }, 200);
+
+  document.addEventListener('input', (e)=>{
+    const prop = $('#propertiesPanel');
+    if (prop && prop.contains(e.target)){ pushLive(); autoSave(); }
+  }, true);
+  document.addEventListener('change', (e)=>{
+    const prop = $('#propertiesPanel');
+    if (prop && prop.contains(e.target)){ pushLive(); autoSave(); }
+  }, true);
+
+  // === Debounced autosave if available ===
+  const autoSave = debounce(()=>{
+    try{
+      if (typeof window.saveDesign === 'function') window.saveDesign();
+      else if (typeof window.saveLayout === 'function') window.saveLayout();
+      else if (typeof window.persistSections === 'function') window.persistSections();
+    }catch(_){}
+  }, 1200);
+
+  // Initial mount
+  document.addEventListener('DOMContentLoaded', ()=>{
+    setTimeout(()=>{ mountPropsInLeftCol(); pushLive(); }, 350);
+  });
 })();
 </script>
 </body>
