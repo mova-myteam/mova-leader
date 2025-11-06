@@ -5127,7 +5127,7 @@
         // show a friendly message
         if (iframe && !loaded){
           iframe.removeAttribute('srcdoc');
-          iframe.srcdoc = '<div style="font:14px Inter,system-ui;padding:24px;color:#374151">Tidak dapat mencari <b>user.html</b> untuk prarupa.<br>Letakkan fail <code>user.html</code> pada repo/ruang yang sama (GitHub Pages), atau beritahu saya laluan tepatnya.</div>';
+          
         }
         return;
       }
@@ -5202,7 +5202,7 @@
       return iframe;
     }
     var iframe = ensureIframe();
-    var target = location.origin + '/user.html?edit=1&preview=1';
+    var target = new URL('user.html?edit=1&preview=1', location.href).href;
     if (iframe.src !== target){
       iframe.src = target;
     }
@@ -5245,7 +5245,7 @@
       return iframe;
     }
     var iframe = ensureIframe();
-    var targetSrc = location.origin + '/user.html?edit=1&preview=1';
+    var targetSrc = new URL('user.html?edit=1&preview=1', location.href).href;
     if (iframe.src !== targetSrc) iframe.src = targetSrc;
 
     function payload(){
