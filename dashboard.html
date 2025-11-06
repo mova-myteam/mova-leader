@@ -5063,6 +5063,112 @@
     window.__previewSyncNow = function(){ postToPreviewDebounced(10); };
   })();
 
+
+  // ====== PREVIEW IFRAME RESOLVER ======
+  (function previewResolver(){
+    // Ensure there is an iframe with a known id
+    function ensureIframe(){
+      var iframe = document.getElementById('previewFrame')
+               || document.querySelector('#preview iframe')
+               || document.querySelector('#userPreview iframe');
+      if (!iframe){
+        // Create a container if needed
+        var host = document.getElementById('tab-user') || document.body;
+        var container = document.getElementById('previewContainer');
+        if (!container){
+          container = document.createElement('div');
+          container.id = 'previewContainer';
+          container.style.border = '1px solid #e5e7eb';
+          container.style.borderRadius = '12px';
+          container.style.background = '#fff';
+          container.style.marginTop = '12px';
+          container.style.overflow = 'hidden';
+          host.appendChild(container);
+        }
+        iframe = document.createElement('iframe');
+        iframe.id = 'previewFrame';
+        iframe.style.width = '100%';
+        iframe.style.height = '70vh';
+        iframe.style.border = '0';
+        iframe.setAttribute('loading','eager');
+        // Crucial: allow scripts + same-origin so user.html can run and receive messages
+        iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock');
+        container.appendChild(iframe);
+      } else {
+        // make sure sandbox is permissive enough
+        iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock');
+      }
+      return iframe;
+    }
+
+    var iframe = ensureIframe();
+
+    var cached = localStorage.getItem('mova_preview_src');
+    var origin = location.origin;
+    var base = location.pathname.replace(/\/[^\/]*$/, '/'); // current dir
+
+    // Candidate URLs to try
+    var candidates = [];
+    if (cached) candidates.push(cached);
+    candidates.push(
+      origin + '/user.html?edit=1&preview=1',
+      origin + '/mova-user/user.html?edit=1&preview=1',
+      origin + '/user/user.html?edit=1&preview=1',
+      new URL('../user.html?edit=1&preview=1', location.href).href,
+      new URL('../../user.html?edit=1&preview=1', location.href).href
+    );
+
+    // De-dup
+    candidates = candidates.filter(function(x, i, a){ return a.indexOf(x) === i; });
+
+    var idx = 0, loaded = false, tryTimer = null;
+    function tryNext(){
+      if (idx >= candidates.length){
+        // show a friendly message
+        if (iframe && !loaded){
+          iframe.removeAttribute('srcdoc');
+          iframe.srcdoc = '<div style="font:14px Inter,system-ui;padding:24px;color:#374151">Tidak dapat mencari <b>user.html</b> untuk prarupa.<br>Letakkan fail <code>user.html</code> pada repo/ruang yang sama (GitHub Pages), atau beritahu saya laluan tepatnya.</div>';
+        }
+        return;
+      }
+      var url = candidates[idx++];
+      // set src and wait briefly; if no sections-loaded message within timeout, try next
+      iframe.src = url;
+      // success heuristic: we'll wait for a postMessage "sections-loaded" OR the native load event
+      var trialUrl = url;
+      var timeoutMs = 2500;
+      var loadOnce = function(){ if (!loaded){ loaded = true; localStorage.setItem('mova_preview_src', trialUrl);} };
+      iframe.addEventListener('load', function onld(){
+        iframe.removeEventListener('load', onld);
+        setTimeout(function(){
+          if (!loaded){ // still wait for message, or mark loaded anyway as last resort
+            loadOnce();
+          }
+        }, 150);
+      }, { once:true });
+
+      clearTimeout(tryTimer);
+      tryTimer = setTimeout(function(){
+        if (!loaded){ tryNext(); }
+      }, timeoutMs);
+    }
+
+    // Accept message-based confirmation
+    window.addEventListener('message', function(e){
+      if (e && e.data && (e.data.type === 'sections-loaded')){
+        // mark success
+        loaded = true;
+        // record sender URL if possible
+        try {
+          var src = new URL(iframe.src, location.href).href;
+          localStorage.setItem('mova_preview_src', src);
+        } catch(_){}
+      }
+    });
+
+    tryNext();
+  })();
+
 </script>
 
 </body>
