@@ -5349,5 +5349,60 @@
   });
 })();
 </script>
+
+<script>
+/* Observer-enhanced layout enforcer — finds editor/preview even if rendered late */
+(function(){
+  const candidatesEditor = ['#editorPanel','.editor-panel','[data-editor-panel="true"]','[id*="editor"][class*="panel"]'];
+  const candidatesIframe = ['#userPreview','iframe[src*="user.html"]','iframe[id*="preview"]','iframe'];
+  function findOne(list){ for(const sel of list){ const n=document.querySelector(sel); if(n) return n; } return null; }
+
+  function onceBothReady(cb){
+    let editor = findOne(candidatesEditor);
+    let iframe = findOne(candidatesIframe);
+    if (editor && iframe){ cb(editor, iframe); return; }
+    const obs = new MutationObserver(()=>{
+      editor = editor || findOne(candidatesEditor);
+      iframe = iframe || findOne(candidatesIframe);
+      if (editor && iframe){ obs.disconnect(); cb(editor, iframe); }
+    });
+    obs.observe(document.documentElement, {childList:true, subtree:true});
+    // also timeout as safety
+    setTimeout(()=>{ editor = findOne(candidatesEditor); iframe = findOne(candidatesIframe); if (editor && iframe){ try{ cb(editor, iframe);}catch(e){} } }, 2000);
+  }
+
+  onceBothReady(function(editor, iframe){
+    // reuse the native ensureUserSectionsLayout if present, else minimal inline
+    if (typeof window.ensureUserSectionsLayout === 'function'){
+      window.ensureUserSectionsLayout();
+    } else {
+      // minimal side-by-side
+      editor.style.position = 'static';
+      editor.style.transform = 'none';
+      let wrap = document.getElementById('mova-sections-split');
+      if (!wrap){
+        wrap = document.createElement('div'); wrap.id='mova-sections-split';
+        wrap.style.display='grid'; wrap.style.gridTemplateColumns='42% 6px 1fr'; wrap.style.gap='1rem'; wrap.style.alignItems='start';
+        const left = document.createElement('div'); left.className='pane editor';
+        const bar  = document.createElement('div'); bar.id='mova-resizer'; bar.style.width='6px'; bar.style.cursor='col-resize';
+        const right= document.createElement('div'); right.className='pane preview';
+        left.appendChild(editor); right.appendChild(iframe);
+        const parent = iframe.parentElement || document.body;
+        parent.insertBefore(wrap, iframe);
+        wrap.appendChild(left); wrap.appendChild(bar); wrap.appendChild(right);
+      }
+    }
+
+    // ensure live preview
+    const send = (payload)=>{
+      try{ (iframe.contentWindow||iframe).postMessage(payload, (window.location&&window.location.origin)||'*'); }catch(e){}
+    };
+    const push = ()=>{ if (window.store && window.store.sections){ send({type:'sections-updated', sections: window.store.sections}); } };
+    editor.addEventListener('input', push, true);
+    editor.addEventListener('change', push, true);
+    setTimeout(push, 250);
+  });
+})();
+</script>
 </body>
 </html>
