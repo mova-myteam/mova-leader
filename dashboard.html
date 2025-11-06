@@ -4875,6 +4875,16 @@
 /* ensure flex/grid parents stretch children equally */
 .equalize-container{align-items:stretch;}
 
+<
+/* === Fixed Equal Height (Viewport-based) === */
+.equalize-container{ align-items:stretch; }
+[data-pane-left],[data-pane-right]{
+  height:auto;            /* will be set via JS to exact px */
+  min-height:0 !important;/* override previous min-heights */
+  overflow:auto;          /* independent scrolling */
+  box-sizing:border-box;
+}
+
 </style>
 <script>
 (function(){
@@ -5273,6 +5283,76 @@
     setTimeout(()=>equalize(pair), 800);
     // Also re-run after potential preview refresh events
     document.addEventListener('sections-updated', ()=>equalize(pair));
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', setup);
+  } else {
+    setup();
+  }
+})();
+</script>
+
+
+<script>
+// === Viewport-based Equal Height for Editor (left) & Preview (right) ===
+(function(){
+  function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+
+  function findPair(){
+    const root = document.getElementById('tab-user') || document.querySelector('#tab-user') || document;
+    const containers = $all('#tab-user .equalize-container, #tab-user .grid, #tab-user .flex');
+    for (const c of containers){
+      const kids = Array.from(c.children).filter(n=>n.nodeType===1);
+      if (kids.length >= 2){
+        const left = c.querySelector('[data-pane-left]') || kids[0];
+        const right = c.querySelector('[data-pane-right]') || kids[1];
+        left.setAttribute('data-pane-left','');
+        right.setAttribute('data-pane-right','');
+        c.classList.add('equalize-container');
+        return {container:c,left,right};
+      }
+    }
+    return null;
+  }
+
+  function applyFixedHeight(pair){
+    if (!pair) return;
+    // Clear any previous min-heights from older equalizer
+    pair.left.style.minHeight = '0px';
+    pair.right.style.minHeight = '0px';
+
+    // Compute available height from top of container to bottom of viewport
+    const rect = pair.container.getBoundingClientRect();
+    const bottomGap = 12; // small breathing space
+    let avail = window.innerHeight - rect.top - bottomGap;
+    // Fallback minimum
+    if (!isFinite(avail) || avail < 300) avail = 300;
+
+    // Set exact pixel heights so both are perfectly equal
+    pair.left.style.height = avail + 'px';
+    pair.right.style.height = avail + 'px';
+  }
+
+  function setup(){
+    const pair = findPair();
+    if (!pair) return;
+    // Observe container position/size changes
+    const ro = new ResizeObserver(()=>applyFixedHeight(pair));
+    ro.observe(document.documentElement);
+    ro.observe(pair.container);
+    ro.observe(pair.left);
+    ro.observe(pair.right);
+
+    // Also recalc on window events
+    window.addEventListener('resize', ()=>applyFixedHeight(pair));
+    window.addEventListener('scroll', ()=>applyFixedHeight(pair), {passive:true});
+
+    // Initial + staged recalcs (handle fonts/icons loading)
+    applyFixedHeight(pair);
+    setTimeout(()=>applyFixedHeight(pair), 50);
+    setTimeout(()=>applyFixedHeight(pair), 250);
+    setTimeout(()=>applyFixedHeight(pair), 800);
   }
 
   if (document.readyState === 'loading'){
