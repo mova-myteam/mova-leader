@@ -175,7 +175,6 @@
 </head>
 <body class="bg-gray-50">
 
-<!-- ====== HEADER ====== -->
 <header class="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-200">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
     <div class="flex items-center gap-3">
@@ -197,7 +196,6 @@
   </div>
 </header>
 
-<!-- ====== CONTENT ====== -->
 <main class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
   <!-- KPI -->
@@ -238,7 +236,6 @@
   <!-- PANELS -->
   <section class="space-y-6">
 
-    <!-- ===== Tab: User Sections (Struktur Bahagian) ===== -->
     <div id="tab-user" class="card p-6 space-y-6">
       <div class="flex items-center justify-between gap-2">
         <div class="flex items-center gap-2">
@@ -322,7 +319,6 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Kandungan ===== -->
     <div id="tab-content" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="file-text" class="w-5 h-5 text-gray-700"></i>
@@ -378,7 +374,6 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Media ===== -->
     <div id="tab-media" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="image" class="w-5 h-5 text-gray-700"></i>
@@ -395,7 +390,6 @@
       <div id="mediaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3"></div>
     </div>
 
-    <!-- ===== Tab: Partner ===== -->
     <div id="tab-partner" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="user-plus" class="w-5 h-5 text-gray-700"></i>
@@ -418,7 +412,6 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Customer ===== -->
     <div id="tab-customer" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="users" class="w-5 h-5 text-gray-700"></i>
@@ -434,7 +427,6 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Approvals ====== -->
     <div id="tab-approve" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="check-circle" class="w-5 h-5 text-gray-700"></i>
@@ -455,7 +447,6 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Broadcast (WA) ===== -->
     <div id="tab-broadcast" class="card p-6 space-y-5 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="megaphone" class="w-5 h-5 text-gray-700"></i>
@@ -498,7 +489,6 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Carta Organisasi ===== -->
     <div id="tab-org" class="card p-6 hidden">
       <div class="flex items-center gap-2 mb-4">
         <i data-lucide="network" class="w-5 h-5 text-gray-700"></i>
@@ -513,7 +503,6 @@
       </div>
     </div>
 
-    <!-- ===== Tab: Settings ===== -->
     <div id="tab-settings" class="card p-6 hidden">
       <div class="flex items-center gap-2">
         <i data-lucide="settings" class="w-5 h-5 text-gray-700"></i>
@@ -4721,15 +4710,7 @@
 
 <!-- MOVA Dashboard Inline Patch – 2025-11-06 -->
 <script>
-/*! Inline Patch Notes:
- *  Fixes: (a) white screen when clicking Edit (preventDefault + stopPropagation),
- *         (b) guard setActiveTab & auto-refresh Broadcast recipients,
- *         (c) prevent accidental form submits in editor panel,
- *         (d) ensure Lucide icons re-render after dynamic lists,
- *         (e) tighten postMessage targetOrigin in sendToIframe,
- *         (f) first-load buildRecipientTree for Broadcast.
- *  Non-destructive; structure preserved.
- */
+
 (function () {
   function safe(fn){ try { return fn && fn(); } catch(e){ console.warn('[MOVA patch]', e); } }
 
@@ -4828,7 +4809,6 @@
 </script>
 
 
-<!-- === MOVA User Sections — Split Editor/Preview + Live Preview (Force Layout) — 2025-11-06 === -->
 <style>
   /* Force the editor panel to be docked (not modal) when on User Sections */
   #user-sections-split { display:flex; gap:1rem; align-items:stretch; }
@@ -4937,7 +4917,6 @@
 
 
 
-<!-- === MOVA User Sections — Forced Side-by-Side Editor & Preview + Live Sync (v3, 2025-11-06) === -->
 <style>
   /* Force any editor modal/backdrop to behave as docked panel */
   #editorPanel, .editor-panel, [data-editor-panel="true"] {
@@ -5069,7 +5048,6 @@
 
 
 
-<!-- === MOVA User Sections — Resizable Split + Sticky Toggle (2025-11-06) === -->
 <style>
   /* Resizer bar between editor & preview */
   #mova-sections-split { position: relative; }
