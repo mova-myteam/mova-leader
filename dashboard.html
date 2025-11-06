@@ -4860,24 +4860,6 @@
     #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
     #user-sections-split .pane.preview iframe { height:60vh; }
   }
-<
-/* === User Lock: disable non-User tabs when locked === */
-.pill[aria-disabled="true"]{
-  opacity:.5; pointer-events:none; filter:grayscale(1);
-}
-
-<
-/* === Preview No-Scroll helper (applied via JS) === */
-.noscroll-preview{
-  overflow: visible !important;
-  height: auto !important;
-  max-height: none !important;
-}
-.noscroll-preview iframe{
-  display: block;
-  width: 100%;
-}
-
 </style>
 <script>
 (function(){
@@ -4999,308 +4981,54 @@
 </script>
 
 
-<div id="btnUserLockFloating" style="position:fixed;right:12px;top:12px;z-index:1000;">
-  
-<button id="btnUserLock" class="btn-ghost flex items-center gap-2" title="Kunci untuk kekal di tab User">
-  <i data-lucide="lock" class="w-4 h-4"></i>
-  <span>Buka Kunci</span>
-</button>
-
-</div>
-
-
+<!-- === Injected: Sidebar click -> scroll preview to that section === -->
 <script>
 (function(){
-  const LOCK_KEY = 'mova_user_lock';
-
-  if (!window.uiLock) window.uiLock = { userTabLocked:false, _timer:null };
-  // Restore lock
-  try { uiLock.userTabLocked = (localStorage.getItem(LOCK_KEY) === '1'); } catch(e){ uiLock.userTabLocked = false; }
-
-  // Utility: current active tab name if available
-  function getActiveTabName(){
-    try {
-      if (window.activeTabName) return window.activeTabName;
-      const a = document.querySelector('[data-tab].is-active,[data-tab][aria-selected="true"]');
-      return a ? a.getAttribute('data-tab') : null;
-    } catch(e){ return null; }
-  }
-
-  function updateUserLockUI(){
-    const btn = document.getElementById('btnUserLock') || document.querySelector('#btnUserLockFloating #btnUserLock');
-    if (btn){
-      const iconEl = btn.querySelector('i[data-lucide]');
-      const labelEl = btn.querySelector('span');
-      const iconName = uiLock.userTabLocked ? 'lock' : 'unlock';
-      if (iconEl) iconEl.setAttribute('data-lucide', iconName);
-      if (labelEl) labelEl.textContent = uiLock.userTabLocked ? 'Dikunci' : 'Buka Kunci';
-      try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch(e){}
+  function getPreviewIframe(){
+    const selectors = [
+      '#previewIframe',
+      'iframe[data-preview]',
+      'iframe.preview',
+      '.preview iframe',
+      '.preview-pane iframe',
+      'iframe[src*="user.html"]',
+      'iframe'
+    ];
+    for (const sel of selectors){
+      const el = document.querySelector(sel);
+      if (el) return el;
     }
-    // disable all tabs except data-tab="user"
-    document.querySelectorAll('[data-tab]').forEach(function(b){
-      var isUser = (b.getAttribute('data-tab') === 'user');
-      if (uiLock.userTabLocked && !isUser){
-        b.setAttribute('aria-disabled','true');
-      } else {
-        b.removeAttribute('aria-disabled');
-      }
-    });
-
-    // force switch to user if locked
-    var active = getActiveTabName();
-    if (uiLock.userTabLocked && active && active !== 'user'){
-      if (typeof window.setActiveTab === 'function'){
-        window.setActiveTab('user');
-      }
-    }
+    return null;
   }
 
-  function setUserLock(locked){
-    uiLock.userTabLocked = !!locked;
-    try { localStorage.setItem(LOCK_KEY, locked ? '1' : '0'); } catch(e){}
-    updateUserLockUI();
-    if (typeof window.toast === 'function'){
-      toast(locked ? 'Tab User dikunci. Tab lain dinyahaktifkan.' : 'Kunci dimatikan. Anda boleh tukar tab semula.');
-    }
+  function jumpToSectionInPreview(sectionId){
+    try{
+      const iframe = getPreviewIframe();
+      if (!iframe || !sectionId) return;
+      (iframe.contentWindow || iframe).postMessage(
+        { type: 'select-section', data: { id: sectionId } },
+        '*'
+      );
+    }catch(e){}
   }
 
-  document.addEventListener('click', function(e){
-    var b = e.target.closest('#btnUserLock');
-    if (!b) return;
-    setUserLock(!uiLock.userTabLocked);
-  });
+  window.jumpToSectionInPreview = jumpToSectionInPreview;
 
-  // Guard inside setActiveTab if it exists (augment non-destructively)
-  if (typeof window.setActiveTab === 'function'){
-    var _origSetActiveTab = window.setActiveTab;
-    window.setActiveTab = function(name){
-      if (uiLock.userTabLocked && name !== 'user'){
-        if (typeof window.toast === 'function'){ toast('Sedang mengedit — tab User dikunci.'); }
-        return;
-      }
-      return _origSetActiveTab.apply(this, arguments);
-    };
-  } else {
-    // If there is a tab click handler not using setActiveTab, we still block clicks via aria-disabled + CSS.
-    document.addEventListener('click', function(e){
-      var tgt = e.target.closest('[data-tab]');
-      if (tgt && uiLock.userTabLocked && tgt.getAttribute('data-tab') !== 'user'){
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.toast === 'function'){ toast('Sedang mengedit — tab User dikunci.'); }
-      }
-    }, true);
+  function handleClick(e){
+    const row = e.target.closest('[data-section-id]');
+    if (!row) return;
+    const id = row.getAttribute('data-section-id');
+    if (id) jumpToSectionInPreview(id);
   }
 
-  // Initial paint
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', updateUserLockUI);
-  } else {
-    updateUserLockUI();
-  }
-})();
-</script>
-
-
-<script>
-// === Hard Lock Hardening: keep locked until explicitly unlocked ===
-(function(){
-  function safely(fn){ try{ fn(); }catch(e){} }
-
-  // If the base lock API exists, enhance it; otherwise, do nothing.
-  if (!window.uiLock || typeof window.uiLock.userTabLocked === 'undefined'){
-    window.uiLock = window.uiLock || {};
-    window.uiLock.userTabLocked = window.uiLock.userTabLocked || false;
-  }
-
-  // Reuse updateUserLockUI if available
-  function refresh(){
-    if (typeof window.updateUserLockUI === 'function'){ window.updateUserLockUI(); }
-  }
-
-  // 1) Enforce hash/router to #user when locked
-  safely(function(){
-    window.addEventListener('hashchange', function(){
-      if (window.uiLock.userTabLocked){
-        if (location.hash !== '#user' && location.hash.toLowerCase() !== '#tab-user'){
-          location.hash = '#user';
-          refresh();
-        }
-      }
-    });
-    // On load: normalize hash if locked
-    if (window.uiLock.userTabLocked){
-      if (location.hash !== '#user' && location.hash.toLowerCase() !== '#tab-user'){
-        location.hash = '#user';
-      }
-      refresh();
+  document.addEventListener('DOMContentLoaded', function(){
+    const list = document.querySelector('#sectionsList, [data-sections-list], .sections-list, .section-list');
+    if (list){
+      list.addEventListener('click', handleClick);
+    } else {
+      document.addEventListener('click', handleClick);
     }
   });
-
-  // 2) Block keyboard navigation that could trigger non-user tabs
-  safely(function(){
-    document.addEventListener('keydown', function(e){
-      if (!window.uiLock.userTabLocked) return;
-      // If focused element is or is inside a tab button that's not "user", block Enter/Space
-      const tabBtn = e.target && e.target.closest && e.target.closest('[data-tab]');
-      if (tabBtn && tabBtn.getAttribute('data-tab') !== 'user'){
-        const code = e.code || e.key;
-        if (code === 'Enter' or code === 'Space' or code === ' '){
-          e.preventDefault(); e.stopPropagation();
-        }
-      }
-    }, true);
-  });
-
-  // 3) MutationObserver: any new tabs added later are immediately disabled
-  safely(function(){
-    const mo = new MutationObserver(function(muts){
-      if (!window.uiLock.userTabLocked) return;
-      let needs = false;
-      for (const m of muts){
-        if (m.addedNodes){
-          for (const n of m.addedNodes){
-            if (n.nodeType === 1 && (n.matches && n.matches('[data-tab]') || (n.querySelector && n.querySelector('[data-tab]')))){
-              needs = true; break;
-            }
-          }
-        }
-      }
-      if (needs) refresh();
-    });
-    mo.observe(document.documentElement || document.body, {subtree:true, childList:true});
-  });
-
-  // 4) Storage sync: if another tab changes the lock, stay in sync
-  safely(function(){
-    window.addEventListener('storage', function(ev){
-      if (ev && ev.key === 'mova_user_lock'){
-        // Trigger a light refresh; setUserLock exists in the base script
-        const locked = ev.newValue === '1';
-        if (typeof window.setUserLock === 'function'){
-          window.setUserLock(locked);
-        } else {
-          window.uiLock.userTabLocked = locked;
-          refresh();
-        }
-      }
-    });
-  });
-
-  // 5) Periodic re-assertion (lightweight) while locked
-  safely(function(){
-    setInterval(function(){
-      if (window.uiLock.userTabLocked) refresh();
-    }, 2000);
-  });
-
-  // 6) Optional: warn on page unload while locked (avoid accidental navigation away)
-  safely(function(){
-    window.addEventListener('beforeunload', function(e){
-      if (!window.uiLock.userTabLocked) return;
-      // Show confirmation dialog
-      e.preventDefault();
-      e.returnValue = '';
-    });
-  });
-})();
-</script>
-
-
-<script>
-(function(){
-  // Run only inside dashboard
-  function $(sel, root){ return (root||document).querySelector(sel); }
-  function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
-
-  function isScrollable(el){
-    const cs = getComputedStyle(el);
-    return /(auto|scroll)/.test(cs.overflow + cs.overflowY + cs.overflowX);
-  }
-
-  function markNoScrollPreview(){
-    const root = $('#tab-user') || document;
-    // Heuristic: prefer a right column that contains a preview iframe or a table
-    // 1) Find a container that has an iframe (likely preview)
-    let container = root.querySelector('iframe') ? root.querySelector('iframe').parentElement : null;
-    // 2) Or find the first container with a <table>
-    if (!container){
-      const tbl = root.querySelector('table');
-      if (tbl) container = tbl.closest('*');
-    }
-    // 3) Or fallback to any element that looks like a "preview pane" by class/id
-    if (!container){
-      container = root.querySelector('[id*="preview"],[class*="preview"]');
-    }
-    if (!container) return null;
-
-    // climb up until we hit the immediate pane-like container (typically the direct grid/flex child)
-    let pane = container;
-    for (let i=0; i<4 && pane.parentElement; i++){
-      const p = pane.parentElement;
-      if (p && p.children && p.children.length >= 2){
-        // Stop when parent is the two-column container
-        pane = pane; break;
-      }
-      pane = p;
-    }
-
-    // Apply no-scroll to pane and any inner scroll wrappers
-    pane.classList.add('noscroll-preview');
-    // remove scroll locks on wrappers inside this pane
-    $all('*', pane).forEach(function(n){
-      if (!n) return;
-      if (isScrollable(n)){
-        n.style.overflow = 'visible';
-        n.style.maxHeight = 'none';
-        n.style.height = 'auto';
-      }
-    });
-
-    return pane;
-  }
-
-  // Try to autosize same-origin iframe to its content
-  function autoSizeIframe(pane){
-    if (!pane) return;
-    const ifr = pane.querySelector('iframe');
-    if (!ifr) return;
-    function setH(h){
-      if (!h || h < 200) return;
-      ifr.style.height = h + 'px';
-    }
-    function calc(){
-      try{
-        const doc = ifr.contentDocument;
-        if (doc && doc.documentElement){
-          const h = Math.max(
-            doc.body ? doc.body.scrollHeight : 0,
-            doc.documentElement.scrollHeight,
-            doc.documentElement.offsetHeight
-          );
-          setH(h + 10); // a little extra room
-        }
-      }catch(e){
-        // cross-origin — ignore
-      }
-    }
-    ifr.addEventListener('load', calc);
-    // periodic adjust in case content grows
-    const iv = setInterval(calc, 800);
-    // stop after 20s
-    setTimeout(()=>clearInterval(iv), 20000);
-    // initial call (if already loaded)
-    calc();
-  }
-
-  function setup(){
-    const pane = markNoScrollPreview();
-    autoSizeIframe(pane);
-  }
-
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', setup);
-  } else { setup(); }
 })();
 </script>
 
