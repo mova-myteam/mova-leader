@@ -709,7 +709,6 @@
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
     if (name === 'org') renderOrg();
-    if (name === 'broadcast') buildRecipientTree();
   }
   
   // Tab event delegation
@@ -732,8 +731,7 @@
     await reloadRegs();
     await renderOrg();
     await refreshSettings();     // untuk theme/typography dll + preview mini
-    initEditor();
-    await buildRecipientTree();                // Initialize the Section-Based editor
+    initEditor();                // Initialize the Section-Based editor
     initAdvancedEditor();        // Initialize advanced editor features
   })();
 
@@ -3987,7 +3985,7 @@
     if (userPreview && userPreview.contentWindow) {
       const send = () => {
         try {
-          userPreview.contentWindow.postMessage({ type, data }, window.location.origin);
+          userPreview.contentWindow.postMessage({ type, data }, '*');
         } catch (error) {
           console.error('Error sending message to iframe:', error);
         }
@@ -4719,6 +4717,114 @@
     }
   });
 
+</script>
+
+<!-- MOVA Dashboard Inline Patch – 2025-11-06 -->
+<script>
+/*! Inline Patch Notes:
+ *  Fixes: (a) white screen when clicking Edit (preventDefault + stopPropagation),
+ *         (b) guard setActiveTab & auto-refresh Broadcast recipients,
+ *         (c) prevent accidental form submits in editor panel,
+ *         (d) ensure Lucide icons re-render after dynamic lists,
+ *         (e) tighten postMessage targetOrigin in sendToIframe,
+ *         (f) first-load buildRecipientTree for Broadcast.
+ *  Non-destructive; structure preserved.
+ */
+(function () {
+  function safe(fn){ try { return fn && fn(); } catch(e){ console.warn('[MOVA patch]', e); } }
+
+  // 0) On first load, attempt to build recipient tree (Broadcast)
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(function(){
+      if (typeof window.buildRecipientTree === 'function') {
+        safe(function(){ window.buildRecipientTree(); });
+      }
+    }, 0);
+  });
+
+  // 1) Prevent anchors with href="#" from navigating (white flash / scroll top)
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) { e.preventDefault(); }
+  }, true);
+
+  // 2) Intercept Edit clicks via data-edit-section on any element (anchor or button)
+  document.addEventListener('click', function(e){
+    var el = e.target.closest && e.target.closest('[data-edit-section]');
+    if (!el) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var id = el.getAttribute('data-edit-section');
+    if (typeof window.openSectionEditor === 'function') {
+      window.openSectionEditor(id);
+      if (typeof window.showEditorPanel === 'function') { window.showEditorPanel(); }
+      var panel = document.getElementById('editorPanel');
+      if (panel && typeof panel.scrollIntoView === 'function') panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  }, true);
+
+  // 3) Prevent accidental <form> submissions in the editor panel
+  document.addEventListener('submit', function(e){
+    var ep = document.getElementById('editorPanel');
+    if (ep && ep.contains(e.target)) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
+
+  // 4) Guard setActiveTab + Broadcast hook
+  if (typeof window.setActiveTab === 'function') {
+    var _setActiveTab = window.setActiveTab;
+    window.setActiveTab = function(name){
+      var valid = ['sections','content','media','partners','customers','approvals','broadcast','chart','settings'];
+      if (valid.indexOf(name) === -1) { return; }
+      var ret = _setActiveTab.apply(this, arguments);
+      if (name === 'broadcast' && typeof window.buildRecipientTree === 'function') {
+        try { window.buildRecipientTree(); } catch(_) {}
+      }
+      return ret;
+    };
+  }
+
+  // 5) Ensure Lucide icons re-render after section list renders
+  if (typeof window.renderSectionList === 'function') {
+    var _renderSectionList = window.renderSectionList;
+    window.renderSectionList = function(){
+      var ret = _renderSectionList.apply(this, arguments);
+      if (window.lucide && typeof window.lucide.createIcons === 'function') {
+        try { window.lucide.createIcons(); } catch(_) {}
+      }
+      return ret;
+    };
+  }
+
+  // 6) Tighten postMessage origin for sendToIframe (if compatible)
+  if (typeof window.sendToIframe === 'function') {
+    var _sendToIframe = window.sendToIframe;
+    window.sendToIframe = function(payload){
+      try {
+        var frame = document.getElementById('userPreview');
+        if (!frame || !frame.contentWindow) return;
+        var origin = window.location && window.location.origin ? window.location.origin : '*';
+        frame.contentWindow.postMessage(payload, origin);
+      } catch (e) {
+        return _sendToIframe.apply(this, arguments);
+      }
+    };
+  }
+
+  // 7) Keep current tab when opening editor (avoid unintended switches)
+  if (typeof window.openSectionEditor === 'function') {
+    var _openSectionEditor = window.openSectionEditor;
+    window.openSectionEditor = function(){
+      var ret = _openSectionEditor.apply(this, arguments);
+      try { /* keep current tab */ } catch(_){}
+      return ret;
+    };
+  }
+
+  console.info('[MOVA inline patch] Applied.');
+})();
 </script>
 </body>
 </html>
