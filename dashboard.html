@@ -5169,5 +5169,185 @@
 })();
 </script>
 
+
+<script>
+/* MOVA native edits (User Sections side-by-side + live preview) — 2025-11-06
+   This block integrates the functionality as first-class behavior.
+*/
+(function(){
+  // --- Helpers ---
+  const $ = (s,root=document)=>root.querySelector(s);
+  const on = (el,ev,fn,opt)=>el&&el.addEventListener(ev,fn,opt||false);
+  const debounce = (fn,ms=180)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
+
+  // --- Layout: User Sections (editor left + preview right) ---
+  function ensureUserSectionsLayout(){
+    const editor = $('#editorPanel');
+    const iframe = $('#userPreview');
+    if (!editor || !iframe) return;
+
+    // Force docked editor styles (in case original used modal)
+    editor.style.position = 'static';
+    editor.style.transform = 'none';
+    editor.style.width = 'auto';
+    editor.style.maxWidth = '100%';
+    editor.style.zIndex = 'auto';
+
+    // Create split container if needed
+    let wrap = document.getElementById('mova-sections-split');
+    if (!wrap){
+      wrap = document.createElement('div');
+      wrap.id = 'mova-sections-split';
+      wrap.style.display = 'grid';
+      wrap.style.gridTemplateColumns = 'var(--mova-left,42%) 6px 1fr';
+      wrap.style.gap = '1rem';
+      wrap.style.alignItems = 'start';
+
+      // Insert before preview to keep screen position stable
+      const anchor = iframe.parentElement || document.getElementById('app') || document.body;
+      anchor.insertBefore(wrap, iframe);
+      // Create panes
+      const left = document.createElement('div'); left.className = 'pane editor';
+      const bar  = document.createElement('div'); bar.id='mova-resizer'; bar.style.width='6px'; bar.style.cursor='col-resize'; bar.style.userSelect='none';
+      const right= document.createElement('div'); right.className = 'pane preview';
+
+      // Move nodes
+      left.appendChild(editor);
+      right.appendChild(iframe);
+      wrap.appendChild(left); wrap.appendChild(bar); wrap.appendChild(right);
+
+      // Toolbar for sticky toggle
+      const tb = document.createElement('div'); tb.className='mova-pane-toolbar';
+      tb.style.display='flex'; tb.style.gap='.5rem'; tb.style.marginBottom='.5rem';
+      const btn = document.createElement('button'); btn.type='button'; btn.className='mova-btn'; btn.textContent='📌 Pin editor';
+      btn.style.border='1px solid #e5e7eb'; btn.style.borderRadius='.5rem'; btn.style.padding='.4rem .6rem'; btn.style.background='#fff'; btn.style.fontWeight='600';
+      left.insertBefore(tb, left.firstChild); tb.appendChild(btn);
+      const stickyKey='mova_editor_sticky'; let sticky=(localStorage.getItem(stickyKey)||'1')==='1';
+      function applySticky(){ left.style.position= sticky?'sticky':'static'; left.style.top= sticky?'90px':''; btn.textContent = sticky?'📌 Pinned':'📌 Pin editor'; localStorage.setItem(stickyKey, sticky?'1':'0'); }
+      btn.addEventListener('click', ()=>{ sticky=!sticky; applySticky(); }); applySticky();
+
+      // Resizer drag
+      const key='mova_left_width'; const saved=localStorage.getItem(key); if(saved){ wrap.style.setProperty('--mova-left', saved); }
+      let drag=false;
+      bar.addEventListener('mousedown', e=>{ drag=true; e.preventDefault(); });
+      document.addEventListener('mouseup', ()=> drag=false);
+      document.addEventListener('mousemove', e=>{
+        if(!drag) return;
+        const rect = wrap.getBoundingClientRect();
+        const pct = Math.min(80, Math.max(20, ((e.clientX-rect.left)/rect.width)*100));
+        const val = pct.toFixed(1)+'%';
+        wrap.style.setProperty('--mova-left', val);
+        localStorage.setItem(key, val);
+      });
+
+      // Preview iframe baseline styles
+      iframe.style.width='100%';
+      iframe.style.height='calc(100vh - 220px)';
+      iframe.style.border='1px solid #e5e7eb';
+      iframe.style.borderRadius='12px';
+      iframe.style.background='#fff';
+    }
+  }
+
+  // --- Live preview sync ---
+  const pushLive = debounce(()=>{
+    try{
+      if (typeof window.sendToIframe !== 'function') return;
+      if (!window.store || !window.store.sections) return;
+      window.sendToIframe({ type:'sections-updated', sections: window.store.sections });
+    }catch(e){ console.warn('[MOVA live]', e); }
+  }, 150);
+
+  function bindLiveEditorEvents(){
+    const editor = $('#editorPanel');
+    if (!editor) return;
+    on(editor,'input', pushLive, true);
+    on(editor,'change', pushLive, true);
+  }
+
+  // --- Safer postMessage ---
+  // If app defines sendToIframe, tighten target origin; else define a minimal one
+  (function(){
+    const origin = (window.location && window.location.origin) ? window.location.origin : '*';
+    const frameGetter = ()=>$('#userPreview')?.contentWindow;
+    const original = window.sendToIframe;
+    window.sendToIframe = function(payload){
+      try{
+        const cw = frameGetter();
+        if (!cw) return;
+        cw.postMessage(payload, origin);
+      }catch(e){
+        if (typeof original === 'function') return original(payload);
+      }
+    };
+  })();
+
+  // --- Core function taps (native-style) ---
+  // Upgrade init(): call buildRecipientTree and set up layout+live binding
+  (function(){
+    const originalInit = window.init;
+    window.init = async function(){
+      if (typeof originalInit === 'function') await originalInit();
+      try{
+        if (typeof window.buildRecipientTree === 'function') await window.buildRecipientTree();
+      }catch(e){}
+      ensureUserSectionsLayout();
+      bindLiveEditorEvents();
+      setTimeout(pushLive, 250);
+    };
+  })();
+
+  // Upgrade setActiveTab(): add broadcast hook + ensure layout on "sections"
+  (function(){
+    const orig = window.setActiveTab;
+    window.setActiveTab = function(name){
+      const ret = (typeof orig === 'function') ? orig(name) : undefined;
+      if (name === 'broadcast' && typeof window.buildRecipientTree === 'function') {
+        try{ window.buildRecipientTree(); }catch(e){}
+      }
+      if (name === 'sections' || name === 'user' || name === 'User Sections'){
+        ensureUserSectionsLayout();
+        bindLiveEditorEvents();
+        setTimeout(pushLive, 50);
+      }
+      return ret;
+    };
+  })();
+
+  // Keep current tab when opening the editor and ensure layout is ready
+  (function(){
+    const orig = window.openSectionEditor;
+    if (typeof orig === 'function'){
+      window.openSectionEditor = function(...a){
+        const r = orig.apply(this, a);
+        ensureUserSectionsLayout();
+        bindLiveEditorEvents();
+        setTimeout(pushLive, 50);
+        return r;
+      };
+    }
+  })();
+
+  // --- Global tiny fixes ---
+  // prevent anchors with href="#" from jumping
+  document.addEventListener('click', (e)=>{
+    const a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) e.preventDefault();
+  }, true);
+
+  // avoid accidental submits inside editor
+  document.addEventListener('submit', (e)=>{
+    const ep = $('#editorPanel');
+    if (ep && ep.contains(e.target)){ e.preventDefault(); e.stopPropagation(); }
+  }, true);
+
+  // DOM ready bootstrap
+  document.addEventListener('DOMContentLoaded', ()=>{
+    ensureUserSectionsLayout();
+    bindLiveEditorEvents();
+    setTimeout(pushLive, 250);
+  });
+})();
+</script>
 </body>
 </html>
