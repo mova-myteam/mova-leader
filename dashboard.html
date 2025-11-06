@@ -185,7 +185,7 @@
     }
   </style>
 
-/* === Injected: Persistent User Lock styles === */
+
 <style>
   .lock-btn{display:inline-flex;align-items:center;gap:.5rem;border:1px solid #e5e7eb;border-radius:.75rem;padding:.45rem .8rem;background:#fff;font-weight:700}
   .lock-btn[data-locked="true"]{background:#111;color:#fff;border-color:#111}
@@ -310,7 +310,7 @@
             <!-- Senarai bahagian akan dimuatkan di sini -->
           </div>
           
-          <!-- Properties Panel (will be shown when a section or element is selected) -->
+          <!-- Properties Panel (will be shown when a section || element is selected) -->
           <div id="propertiesPanel" class="card p-6 space-y-5 hidden properties-panel mt-6">
             <div class="flex items-center justify-between">
               <h3 class="text-lg font-semibold" id="propertiesTitle">Sifat</h3>
@@ -4675,7 +4675,7 @@
       undo();
     }
     
-    // Ctrl/Cmd + Shift + Z or Ctrl/Cmd + Y: Redo
+    // Ctrl/Cmd + Shift + Z || Ctrl/Cmd + Y: Redo
     if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.key === 'z' && e.shiftKey))) {
       e.preventDefault();
       redo();
@@ -4792,7 +4792,7 @@
     if (a) { e.preventDefault(); }
   }, true);
 
-  // 2) Intercept Edit clicks via data-edit-section on any element (anchor or button)
+  // 2) Intercept Edit clicks via data-edit-section on any element (anchor || button)
   document.addEventListener('click', function(e){
     var el = e.target.closest && e.target.closest('[data-edit-section]');
     if (!el) return;
@@ -4937,7 +4937,7 @@
     on(editor, 'change', pushLive, true);
   }
 
-  // Reinforce live push when editor opens or section list re-renders
+  // Reinforce live push when editor opens || section list re-renders
   if (typeof window.openSectionEditor === 'function'){
     var _open = window.openSectionEditor;
     window.openSectionEditor = function(){
@@ -5152,11 +5152,11 @@
   safely(function(){
     document.addEventListener('keydown', function(e){
       if (!window.uiLock.userTabLocked) return;
-      // If focused element is or is inside a tab button that's not "user", block Enter/Space
+      // If focused element is || is inside a tab button that's not "user", block Enter/Space
       const tabBtn = e.target && e.target.closest && e.target.closest('[data-tab]');
       if (tabBtn && tabBtn.getAttribute('data-tab') !== 'user'){
         const code = e.code || e.key;
-        if (code === 'Enter' or code === 'Space' or code === ' '){
+        if (code==='Enter' || code==='Space' || code===' '){
           e.preventDefault(); e.stopPropagation();
         }
       }
@@ -5231,7 +5231,7 @@
 
   function markNoScrollPreview(){
     const root = $('#tab-user') || document;
-    // Heuristic: prefer a right column that contains a preview iframe or a table
+    // Heuristic: prefer a right column that contains a preview iframe || a table
     // 1) Find a container that has an iframe (likely preview)
     let container = root.querySelector('iframe') ? root.querySelector('iframe').parentElement : null;
     // 2) Or find the first container with a <table>
