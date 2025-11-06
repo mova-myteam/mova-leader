@@ -5298,6 +5298,106 @@
     }catch(_){}
   })();
 
+
+  /* ===== LIVE PREVIEW: PUSH + BOOTSTRAP ===== */
+  (function previewPushBootstrap(){
+    function getIframe(){
+      return document.getElementById('previewFrame') 
+          || document.querySelector('#previewFrame')
+          || document.querySelector('#preview iframe')
+          || document.querySelector('#userPreview iframe');
+    }
+    function ensureIframe(){
+      var iframe = getIframe();
+      if (!iframe){
+        var host = document.getElementById('tab-user') || document.body;
+        var container = document.getElementById('previewContainer');
+        if (!container){
+          container = document.createElement('div');
+          container.id = 'previewContainer';
+          container.style.border = '1px solid #e5e7eb';
+          container.style.borderRadius = '12px';
+          container.style.background = '#fff';
+          container.style.marginTop = '12px';
+          container.style.overflow = 'hidden';
+          host.appendChild(container);
+        }
+        iframe = document.createElement('iframe');
+        iframe.id = 'previewFrame';
+        iframe.style.width = '100%';
+        iframe.style.height = '72vh';
+        iframe.style.border = '0';
+        iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups');
+        container.appendChild(iframe);
+      }
+      return iframe;
+    }
+
+    // Hide any preview footer/controls in the dashboard (best-effort; won't affect iframe)
+    var style = document.createElement('style');
+    style.textContent = '#previewContainer [data-preview-controls], #previewContainer .preview-controls, #previewContainer .preview-toolbar { display:none !important; }';
+    document.head.appendChild(style);
+
+    var iframe = ensureIframe();
+    var targetSrc = new URL('user.html?edit=1&preview=1', location.href).href;
+    if (iframe.src !== targetSrc) iframe.src = targetSrc;
+
+    function safeGet(obj, path, fallback){
+      try{
+        var val = obj;
+        for (var i=0;i<path.length;i++){ val = val[path[i]]; }
+        return (val==null?fallback:val);
+      }catch(e){ return fallback; }
+    }
+    function currentPayload(){
+      var sections = safeGet(window, ['store','sections'], []);
+      var theme    = safeGet(window, ['store','theme'], {});
+      var settings = safeGet(window, ['store','settings'], {});
+      return { sections: sections, theme: theme, settings: settings };
+    }
+    function persistBootstrap(){
+      try{
+        localStorage.setItem('mova_preview_bootstrap', JSON.stringify(currentPayload()));
+      }catch(_){}
+    }
+    function post(type, body){
+      iframe = getIframe() || ensureIframe();
+      if (iframe && iframe.contentWindow){
+        iframe.contentWindow.postMessage({ type:type, payload: body }, '*');
+      }
+    }
+
+    // Initial nudge and bootstrap persist
+    window.addEventListener('load', function(){
+      setTimeout(function(){
+        persistBootstrap();
+        post('toggle-edit', { on:true });
+        post('sections-updated', currentPayload());
+      }, 250);
+    });
+
+    // Stream on interactions
+    var t=null;
+    function stream(){ clearTimeout(t); t=setTimeout(function(){ persistBootstrap(); post('sections-updated', currentPayload()); }, 150); }
+    var userTab = document.getElementById('tab-user') || document.body;
+    ['input','change','keyup','keydown','click'].forEach(function(evt){
+      userTab.addEventListener(evt, stream, true);
+    });
+    try{
+      var mo = new MutationObserver(stream);
+      mo.observe(userTab, { childList:true, subtree:true, attributes:true, characterData:true });
+    }catch(_){}
+
+    // Heartbeat while tab active
+    setInterval(function(){
+      var tab = document.getElementById('tab-user');
+      if (tab && !tab.classList.contains('hidden')){
+        persistBootstrap();
+        post('sections-updated', currentPayload());
+      }
+    }, 2500);
+  })();
+
 </script>
 
 </body>
