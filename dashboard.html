@@ -5067,5 +5067,129 @@
 })();
 </script>
 
+
+
+<!-- === MOVA User Sections — Resizable Split + Sticky Toggle (2025-11-06) === -->
+<style>
+  /* Resizer bar between editor & preview */
+  #mova-sections-split { position: relative; }
+  #mova-resizer {
+    width: 6px;
+    cursor: col-resize;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(229,231,235,1) 50%, rgba(0,0,0,0) 100%);
+    border-radius: 3px;
+    user-select: none;
+    -webkit-user-select: none;
+    position: relative;
+    z-index: 10;
+  }
+  /* Grid with resizer as middle column: [editor | resizer | preview] */
+  #mova-sections-split.grid-3 {
+    display: grid;
+    grid-template-columns: var(--mova-left, 42%) 6px 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  /* Toolbar inside editor pane */
+  .mova-pane-toolbar{
+    display:flex; gap:.5rem; align-items:center; margin-bottom:.5rem;
+  }
+  .mova-btn{
+    display:inline-flex; align-items:center; gap:.4rem;
+    padding:.4rem .6rem; border:1px solid #e5e7eb; border-radius:.5rem; background:#fff; font-weight:600; font-size:.9rem;
+  }
+  .mova-btn[aria-pressed="true"]{ background:#f9fafb; }
+  @media (max-width: 1024px){
+    #mova-sections-split.grid-3 { display:block; }
+  }
+</style>
+<script>
+(function(){
+  function $(s,root){ return (root||document).querySelector(s); }
+  function makeToolbar(editorPane){
+    if (editorPane.querySelector('.mova-pane-toolbar')) return;
+    var bar = document.createElement('div'); bar.className='mova-pane-toolbar';
+    var btnSticky = document.createElement('button');
+    btnSticky.className='mova-btn'; btnSticky.type='button'; btnSticky.id='mova-btn-sticky';
+    btnSticky.innerHTML='📌 Pin editor';
+    var stickyKey = 'mova_editor_sticky';
+    var sticky = (localStorage.getItem(stickyKey) || '1') === '1';
+    function applySticky(){
+      editorPane.style.position = sticky ? 'sticky' : 'static';
+      editorPane.style.top = sticky ? '90px' : '';
+      btnSticky.setAttribute('aria-pressed', sticky ? 'true' : 'false');
+      btnSticky.innerHTML = sticky ? '📌 Pinned' : '📌 Pin editor';
+      localStorage.setItem(stickyKey, sticky ? '1' : '0');
+    }
+    btnSticky.addEventListener('click', function(){ sticky = !sticky; applySticky(); });
+    applySticky();
+
+    bar.appendChild(btnSticky);
+    editorPane.insertBefore(bar, editorPane.firstChild);
+  }
+
+  function ensureResizable(){
+    var wrap = document.getElementById('mova-sections-split');
+    if (!wrap) return;
+    // Switch to 3-col grid if not already
+    if (!wrap.classList.contains('grid-3')) wrap.classList.add('grid-3');
+
+    // Insert resizer if missing
+    if (!document.getElementById('mova-resizer')){
+      var res = document.createElement('div'); res.id='mova-resizer';
+      // Insert between editor and preview panes
+      var panes = wrap.querySelectorAll('.pane');
+      if (panes.length >= 2){
+        wrap.insertBefore(res, panes[1].nextSibling ? panes[1].nextSibling : panes[1]);
+      } else {
+        wrap.appendChild(res);
+      }
+
+      // Load saved width
+      var key='mova_left_width';
+      var saved = localStorage.getItem(key);
+      if (saved){ wrap.style.setProperty('--mova-left', saved); }
+
+      // Drag handling
+      var dragging = false;
+      function pxToPercent(pxTotal, px){ return Math.min(75, Math.max(20, (px/pxTotal)*100)); } // clamp 20%..75%
+      res.addEventListener('mousedown', function(e){ dragging = true; e.preventDefault(); });
+      document.addEventListener('mouseup', function(){ dragging=false; });
+      document.addEventListener('mousemove', function(e){
+        if (!dragging) return;
+        var rect = wrap.getBoundingClientRect();
+        var leftPct = pxToPercent(rect.width, e.clientX - rect.left);
+        var val = leftPct.toFixed(1) + '%';
+        wrap.style.setProperty('--mova-left', val);
+        localStorage.setItem(key, val);
+      });
+    }
+
+    // Add toolbar with sticky toggle
+    var editorPane = wrap.querySelector('.pane.editor');
+    if (editorPane){ makeToolbar(editorPane); }
+  }
+
+  // Run once and also when tab/user editor opens (if hooks exist)
+  document.addEventListener('DOMContentLoaded', ensureResizable);
+  if (typeof window.setActiveTab === 'function'){
+    var _set = window.setActiveTab;
+    window.setActiveTab = function(name){
+      var r = _set.apply(this, arguments);
+      if (name === 'sections' || name === 'user' || name === 'User Sections'){ setTimeout(ensureResizable, 0); }
+      return r;
+    };
+  }
+  if (typeof window.openSectionEditor === 'function'){
+    var _open = window.openSectionEditor;
+    window.openSectionEditor = function(){
+      var r = _open.apply(this, arguments);
+      setTimeout(ensureResizable, 0);
+      return r;
+    };
+  }
+})();
+</script>
+
 </body>
 </html>
