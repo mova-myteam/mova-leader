@@ -4828,14 +4828,28 @@
 </script>
 
 
-<!-- === MOVA User Sections UI Upgrade (Editor Left + Live Preview) — 2025-11-06 === -->
+<!-- === MOVA User Sections — Split Editor/Preview + Live Preview (Force Layout) — 2025-11-06 === -->
 <style>
-  /* Only affect the User Sections tab layout */
+  /* Force the editor panel to be docked (not modal) when on User Sections */
   #user-sections-split { display:flex; gap:1rem; align-items:stretch; }
   #user-sections-split .pane { display:flex; flex-direction:column; min-height:60vh; }
-  #user-sections-split .pane.editor { flex:0 0 40%; max-width:46rem; }
-  #user-sections-split .pane.preview { flex:1 1 auto; }
+  #user-sections-split .pane.editor { flex:0 0 42%; max-width:48rem; }
+  #user-sections-split .pane.preview { flex:1 1 auto; min-width:0; }
   #user-sections-split .pane.preview iframe { width:100%; height:calc(100vh - 220px); border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
+  /* Neutralize typical modal styles on the editor */
+  #editorPanel {
+    position: static !important;
+    inset: auto !important;
+    transform: none !important;
+    width: auto !important;
+    max-width: 100% !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+  #editorPanel .panel-body { overflow: auto; }
+  /* Keep existing look */
+  #editorPanel .card, #editorPanel .panel { box-shadow: none; }
   @media (max-width: 1024px){
     #user-sections-split { flex-direction:column; }
     #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
@@ -4844,88 +4858,79 @@
 </style>
 <script>
 (function(){
-  function $(s,root){ return (root||document).querySelector(s); }
+  function $(sel, root){ return (root||document).querySelector(sel); }
   function on(el, ev, fn, opt){ el && el.addEventListener(ev, fn, opt||false); }
   function debounce(fn, ms){ var t; return function(){ clearTimeout(t); var a=arguments; t=setTimeout(function(){ fn.apply(null,a); }, ms||200); }; }
+  function ensureSplit(){
+    var editor = $('#editorPanel');
+    var iframe = $('#userPreview');
+    if (!editor || !iframe) return false;
+    if ($('#user-sections-split')) return true;
 
-  // Build split layout only inside the User Sections tab if present
-  function buildUserSplit(){
-    var tabUser = document.getElementById('tab-user') || document.querySelector('[data-tab=\"user\"],[data-tab=\"sections\"]')?.id;
-    var editor = document.getElementById('editorPanel');
-    var iframe = document.getElementById('userPreview');
-    if (!editor || !iframe) return;
-
-    // Wrap only once
-    if (document.getElementById('user-sections-split')) return;
+    // Create wrapper
     var split = document.createElement('div'); split.id = 'user-sections-split';
-
     var ePane = document.createElement('div'); ePane.className = 'pane editor';
     var pPane = document.createElement('div'); pPane.className = 'pane preview';
 
-    // Move existing nodes
+    // Move nodes
     ePane.appendChild(editor);
     pPane.appendChild(iframe);
 
-    // Choose anchor: if tab-user exists, insert at its top; else fallback to #app/body
-    var anchor = document.getElementById('tab-user') || document.getElementById('app') || document.body;
-    anchor.insertBefore(split, anchor.firstChild);
+    // Find a safe anchor: prefer the container of the User Sections tab
+    var userTab = document.getElementById('tab-user') || document.querySelector('[data-tab="sections"]')?.closest('.tab-panel') || document.getElementById('app') || document.body;
+    userTab.insertBefore(split, userTab.firstChild);
     split.appendChild(ePane);
     split.appendChild(pPane);
+    return true;
   }
 
-  // Live preview: push store.sections whenever user types/changes within editor
+  // Live Preview: push on input/change in editor
   var pushLive = debounce(function(){
     try{
       if (typeof window.sendToIframe !== 'function') return;
       if (!window.store || !window.store.sections) return;
       window.sendToIframe({ type:'sections-updated', sections: window.store.sections });
     }catch(e){ console.warn('[MOVA live]', e); }
-  }, 200);
+  }, 180);
 
   function bindLive(){
-    var editor = document.getElementById('editorPanel');
+    var editor = $('#editorPanel');
     if (!editor) return;
     on(editor, 'input', pushLive, true);
     on(editor, 'change', pushLive, true);
   }
 
-  // Reinforce live push when editor opens or section list re-renders
+  // Build split when switching to User Sections tab
+  if (typeof window.setActiveTab === 'function'){
+    var _setActiveTab = window.setActiveTab;
+    window.setActiveTab = function(name){
+      var r = _setActiveTab.apply(this, arguments);
+      if (name === 'sections' || name === 'user' ) {
+        setTimeout(function(){ ensureSplit(); bindLive(); pushLive(); }, 0);
+      }
+      return r;
+    };
+  }
+
+  // Also hook when opening a section editor
   if (typeof window.openSectionEditor === 'function'){
     var _open = window.openSectionEditor;
     window.openSectionEditor = function(){
       var r = _open.apply(this, arguments);
-      try{ buildUserSplit(); bindLive(); pushLive(); }catch(_){}
-      return r;
-    };
-  }
-  if (typeof window.renderSectionList === 'function'){
-    var _rsl = window.renderSectionList;
-    window.renderSectionList = function(){
-      var r = _rsl.apply(this, arguments);
-      try{ pushLive(); }catch(_){}
-      return r;
-    };
-  }
-  if (typeof window.refreshSettings === 'function'){
-    var _rs = window.refreshSettings;
-    window.refreshSettings = function(){
-      var r = _rs.apply(this, arguments);
-      try{ pushLive(); }catch(_){}
+      setTimeout(function(){ ensureSplit(); bindLive(); pushLive(); }, 0);
       return r;
     };
   }
 
-  // Build once on load, then push initial content
+  // Build once on ready in case we're already in User Sections
   document.addEventListener('DOMContentLoaded', function(){
-    buildUserSplit();
-    bindLive();
-    setTimeout(pushLive, 300);
+    ensureSplit(); bindLive(); setTimeout(pushLive, 250);
   });
 
-  // Prevent accidental navigation from anchors with href="#"
+  // Safety: prevent anchors with href="#" from navigating
   document.addEventListener('click', function(e){
-    var a = e.target.closest && e.target.closest('a[href=\"#\"]');
-    if (a){ e.preventDefault(); }
+    var a = e.target.closest && e.target.closest('a[href="#"]');
+    if (a) { e.preventDefault(); }
   }, true);
 })();
 </script>
