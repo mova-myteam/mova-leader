@@ -781,5 +781,88 @@
     }
   });
 </script>
+
+<script>
+// ===== MOVA Settings Resolver (compatible with flat keys + single JSON) =====
+(function(){
+  function parseJSON(txt){ try{ return JSON.parse(txt||'{}'); }catch(e){ return {}; } }
+  function pick(S, APP, paths, fallback){
+    // 1) flat keys
+    for (const k of paths){ if (S && S[k] != null && S[k] !== '') return S[k]; }
+    // 2) JSON paths (dot notation)
+    for (const k of paths){
+      const segs = String(k).split('.'); let cur = APP, ok = true;
+      for (const s of segs){ if (!cur || !(s in cur)){ ok=false; break; } cur = cur[s]; }
+      if (ok && cur != null && cur !== '') return cur;
+    }
+    return fallback;
+  }
+
+  // Patch render fallback if sections_json empty: use APP.sections_defaults.home_blocks
+  function toSectionElements(blocks){
+    const els = [];
+    let idx = 0;
+    (blocks||[]).forEach(b=>{
+      const base = { id: 'el_'+(++idx), sectionId: 'sec_home', gridColumn: 'span 12 / span 12' };
+      if (b.type === 'hero'){
+        els.push({...base, type:'text', content:`<h1>${b.title||''}</h1><p>${b.subtitle||''}</p>`, fontSize: 24, lineHeight:'1.5'});
+        if (b.cta_text && b.cta_link){
+          els.push({...base, type:'button', content:b.cta_text, href:b.cta_link, backgroundColor:'#ef4444', color:'#fff'});
+        }
+      } else if (b.type === 'banner'){
+        els.push({...base, type:'image', src:b.image||'', alt:b.alt||'banner'});
+      } else if (b.type === 'text'){
+        els.push({...base, type:'text', content:b.html||b.text||''});
+      } else if (b.type === 'button'){
+        els.push({...base, type:'button', content:b.label||'Klik', href:b.link||'#'});
+      }
+    });
+    return els;
+  }
+
+  // Hook DOMContentLoaded after original handler runs
+  document.addEventListener('DOMContentLoaded', async () => {
+    try{
+      // Try to read last API response (not exposed), so call settings_get again lightly
+      const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
+      const resp = await (window.api && window.api('settings_get', { leader_id }));
+      const S = (resp && resp.settings) ? resp.settings : {};
+      const APP = parseJSON(S.app_settings || S.settings_json || '{}');
+
+      // Apply theme immediately
+      const contentWidth = Number(pick(S, APP, ['content_width','ui.content_width'], 1100));
+      const fontPrimary  = String(pick(S, APP, ['font_primary','ui.theme.font_primary'], 'Inter'));
+      const bodySize     = Number(pick(S, APP, ['body_size','ui.theme.body_size'], 16));
+      const headingSize  = Number(pick(S, APP, ['heading_size','ui.theme.heading_size'], 28));
+      const headingWeight= Number(pick(S, APP, ['heading_weight','ui.theme.heading_weight'], 700));
+      const bodyWeight   = Number(pick(S, APP, ['body_weight','ui.theme.body_weight'], 400));
+
+      document.documentElement.style.setProperty('--mova-content-width', contentWidth + 'px');
+      const st = document.createElement('style');
+      st.textContent = `
+        .container{max-width: var(--mova-content-width, 1100px)}
+        body{font-family:${fontPrimary},system-ui,ui-sans-serif;font-size:${bodySize}px;font-weight:${bodyWeight}}
+        h1,h2,h3,h4{font-weight:${headingWeight}}
+        h1{font-size:${Math.round(headingSize*1.2)}px}
+        h2{font-size:${headingSize}px}
+        h3{font-size:${Math.max(16, Math.round(headingSize*0.85))}px}
+      `;
+      document.head.appendChild(st);
+
+      // If sections previously empty, synthesize from APP.sections_defaults
+      if ((window.pageSections||[]).length === 0){
+        const blocks = (APP.sections_defaults && APP.sections_defaults.home_blocks) ? APP.sections_defaults.home_blocks : [];
+        if (blocks.length){
+          window.pageSections = [
+            { id:'sec_home', padding:'4rem 1rem', backgroundColor:'transparent', elements: toSectionElements(blocks) }
+          ];
+          if (typeof window.renderPage === 'function') window.renderPage();
+        }
+      }
+    }catch(e){ /* silent fallback */ }
+  });
+})();
+</script>
+
 </body>
 </html>
