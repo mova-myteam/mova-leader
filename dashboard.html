@@ -183,75 +183,7 @@
       #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
       #user-sections-split .pane.preview iframe { height:60vh; }
     }
-  
-/* === Lock editing: disable other tabs when active === */
-body.tabs-locked [data-tab]:not([data-tab="user"]) { pointer-events: none !important; opacity: .45 !important; }
-body.tabs-locked #lockHint { display: block !important; }
-#lockHint{ display:none; border:1px dashed #fecaca; background:#fff1f2; color:#b91c1c; border-radius:.75rem; padding:.5rem .75rem; font-size:.85rem; }
-
-/* === Edit-Only Lock (strong) === */
-body.tabs-locked { --lock-blur: 2px; }
-body.tabs-locked * { pointer-events: none !important; }
-body.tabs-locked #tab-user,
-body.tabs-locked #tab-user *,
-body.tabs-locked #btnLockEdit,
-body.tabs-locked #btnSaveDesign,
-body.tabs-locked [data-action="save"],
-body.tabs-locked .editor-toolbar,
-body.tabs-locked #lockHint { pointer-events: auto !important; }
-/* Visually dim non-editor areas */
-body.tabs-locked header, body.tabs-locked nav, body.tabs-locked .topbar,
-body.tabs-locked [data-tab]:not([data-tab="user"]) { filter: grayscale(.2) brightness(.92); opacity: .45 !important; }
-/* Make preview area non-clickable when locked (to avoid accidental focus) */
-body.tabs-locked #previewFrame { pointer-events: none !important; }
-/* Keep scroll usable inside #tab-user only */
-body.tabs-locked { overflow: hidden; }
-body.tabs-locked #tab-user { overflow: auto; }
-/* Hint banner */
-#lockHint{ display:none; border:1px dashed #fecaca; background:#fff1f2; color:#b91c1c; border-radius:.75rem; padding:.6rem .8rem; font-size:.85rem; }
-body.tabs-locked #lockHint{ display:block !important; }
-
-/* === MOVA Edit Lock (final) =============================================== */
-/* When locked, only the User Sections editor area remains interactive. */
-body.tabs-locked {
-  --lock-dim-opa: .45;
-}
-/* Disable interactions globally... */
-body.tabs-locked * {
-  pointer-events: none !important;
-}
-/* ...but allow inside editor & whitelisted controls */
-body.tabs-locked #tab-user,
-body.tabs-locked #tab-user *,
-body.tabs-locked #btnLockEdit,
-body.tabs-locked #btnSaveDesign,
-body.tabs-locked [data-allow-when-locked],
-body.tabs-locked .editor-toolbar,
-body.tabs-locked #lockHint {
-  pointer-events: auto !important;
-}
-/* Visually dim non-editor regions so it's clear we're in locked mode */
-body.tabs-locked header,
-body.tabs-locked nav,
-body.tabs-locked .topbar,
-body.tabs-locked [data-tab]:not([data-tab="user"]),
-body.tabs-locked .sidebar {
-  opacity: var(--lock-dim-opa) !important;
-  filter: grayscale(.2) brightness(.93);
-}
-/* Prevent clicks into preview while locked */
-body.tabs-locked #previewFrame { pointer-events: none !important; }
-/* Keep scrolling available inside editor only */
-body.tabs-locked { overflow: hidden; }
-body.tabs-locked #tab-user { overflow: auto; }
-/* Hint banner */
-#lockHint{
-  display:none; border:1px dashed #fecaca; background:#fff1f2; color:#b91c1c;
-  border-radius:.75rem; padding:.6rem .8rem; font-size:.85rem; margin-bottom:.5rem;
-}
-body.tabs-locked #lockHint{ display:block !important; }
-/* ========================================================================= */
-</style>
+  </style>
 </head>
 <body class="bg-gray-50">
 
@@ -332,12 +264,9 @@ body.tabs-locked #lockHint{ display:block !important; }
       </div>
 
       <!-- Editor Toolbar -->
-      
-<div id="lockHint" class="mt-2">Mod edit dikunci. Tab lain dimatikan sehingga anda membuka kunci.</div>
-<div class="editor-toolbar">
+      <div class="editor-toolbar">
         <button id="btnUndo" title="Undo"><i data-lucide="undo" class="w-4 h-4"></i></button>
         <button id="btnRedo" title="Redo"><i data-lucide="redo" class="w-4 h-4"></i></button>
-        <button id="btnLockEdit" title="Kunci Edit (kunci tab lain)"><i data-lucide="lock" class="w-4 h-4"></i></button>
         <div class="separator"></div>
         <button id="btnCopy" title="Copy"><i data-lucide="copy" class="w-4 h-4"></i></button>
         <button id="btnPaste" title="Paste"><i data-lucide="clipboard" class="w-4 h-4"></i></button>
@@ -4931,6 +4860,12 @@ body.tabs-locked #lockHint{ display:block !important; }
     #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
     #user-sections-split .pane.preview iframe { height:60vh; }
   }
+<
+/* === User Lock: disable non-User tabs when locked === */
+.pill[aria-disabled="true"]{
+  opacity:.5; pointer-events:none; filter:grayscale(1);
+}
+
 </style>
 <script>
 (function(){
@@ -5049,116 +4984,109 @@ body.tabs-locked #lockHint{ display:block !important; }
     mo.observe(userTabEl, { childList:true, subtree:true });
   })();
 
+</script>
 
-// === Lock Editing Logic ===
+
+<div id="btnUserLockFloating" style="position:fixed;right:12px;top:12px;z-index:1000;">
+  
+<button id="btnUserLock" class="btn-ghost flex items-center gap-2" title="Kunci untuk kekal di tab User">
+  <i data-lucide="lock" class="w-4 h-4"></i>
+  <span>Buka Kunci</span>
+</button>
+
+</div>
+
+
+<script>
 (function(){
-  const LOCK_KEY = 'mova_user_tab_lock';
-  const btn = document.getElementById('btnLockEdit');
-  const lockHint = document.getElementById('lockHint');
-  function setBtn(isLocked){
-    if (!btn) return;
-    btn.title = isLocked ? 'Buka Kunci (aktifkan tab lain)' : 'Kunci Edit (kunci tab lain)';
-    // swap icon lock/unlock
-    const icon = btn.querySelector('i[data-lucide]');
-    if (icon){ icon.setAttribute('data-lucide', isLocked ? 'lock-keyhole' : 'lock'); }
-    if (window.lucide?.createIcons) lucide.createIcons();
+  const LOCK_KEY = 'mova_user_lock';
+
+  if (!window.uiLock) window.uiLock = { userTabLocked:false, _timer:null };
+  // Restore lock
+  try { uiLock.userTabLocked = (localStorage.getItem(LOCK_KEY) === '1'); } catch(e){ uiLock.userTabLocked = false; }
+
+  // Utility: current active tab name if available
+  function getActiveTabName(){
+    try {
+      if (window.activeTabName) return window.activeTabName;
+      const a = document.querySelector('[data-tab].is-active,[data-tab][aria-selected="true"]');
+      return a ? a.getAttribute('data-tab') : null;
+    } catch(e){ return null; }
   }
-  function applyLock(isLocked){
-    try { uiLock.userTabLocked = !!isLocked; } catch(e){}
-    document.body.classList.toggle('tabs-locked', !!isLocked);
-    setBtn(!!isLocked);
-    if (isLocked) { try{ setActiveTab('user'); }catch(e){} }
-    if (lockHint) lockHint.style.display = isLocked ? 'block' : 'none';
-  }
-  // init from localStorage
-  let val = localStorage.getItem(LOCK_KEY);
-  const initial = val === '1';
-  applyLock(initial);
-  if (btn){
-    btn.addEventListener('click', function(){
-      const now = !document.body.classList.contains('tabs-locked');
-      localStorage.setItem(LOCK_KEY, now ? '1' : '0');
-      applyLock(now);
-      // optional short toast
-      try{ toast(now ? 'Tab dikunci untuk mod edit' : 'Kunci dibuka'); }catch(e){}
-    });
-  }
-  // Also ensure guard in setActiveTab continues to work
-  const _setActiveTab = window.setActiveTab;
-  if (typeof _setActiveTab === 'function'){
-    window.setActiveTab = function(name){
-      if (document.body.classList.contains('tabs-locked') && name !== 'user'){
-        try{ toast('Sedang mengedit — tab lain dikunci.'); }catch(e){}
-        return;
+
+  function updateUserLockUI(){
+    const btn = document.getElementById('btnUserLock') || document.querySelector('#btnUserLockFloating #btnUserLock');
+    if (btn){
+      const iconEl = btn.querySelector('i[data-lucide]');
+      const labelEl = btn.querySelector('span');
+      const iconName = uiLock.userTabLocked ? 'lock' : 'unlock';
+      if (iconEl) iconEl.setAttribute('data-lucide', iconName);
+      if (labelEl) labelEl.textContent = uiLock.userTabLocked ? 'Dikunci' : 'Buka Kunci';
+      try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch(e){}
+    }
+    // disable all tabs except data-tab="user"
+    document.querySelectorAll('[data-tab]').forEach(function(b){
+      var isUser = (b.getAttribute('data-tab') === 'user');
+      if (uiLock.userTabLocked && !isUser){
+        b.setAttribute('aria-disabled','true');
+      } else {
+        b.removeAttribute('aria-disabled');
       }
-      return _setActiveTab(name);
+    });
+
+    // force switch to user if locked
+    var active = getActiveTabName();
+    if (uiLock.userTabLocked && active && active !== 'user'){
+      if (typeof window.setActiveTab === 'function'){
+        window.setActiveTab('user');
+      }
     }
   }
-})();
 
-
-// === MOVA Edit Lock (final) ================================================
-(function(){
-  const LOCK_KEY = 'mova_user_tab_lock';
-  const btn = document.getElementById('btnLockEdit');
-  const hint = document.getElementById('lockHint');
-  const userTab = document.getElementById('tab-user') || document.body;
-
-  function iconSwap(locked){
-    if (!btn) return;
-    btn.setAttribute('aria-pressed', locked ? 'true' : 'false');
-    btn.title = locked ? 'Buka kunci (aktifkan semua tab)' : 'Kunci edit (hadkan kepada editor sahaja)';
-    const icon = btn.querySelector('i[data-lucide]');
-    if (icon){ icon.setAttribute('data-lucide', locked ? 'lock-keyhole' : 'lock'); }
-    if (window.lucide?.createIcons) lucide.createIcons();
+  function setUserLock(locked){
+    uiLock.userTabLocked = !!locked;
+    try { localStorage.setItem(LOCK_KEY, locked ? '1' : '0'); } catch(e){}
+    updateUserLockUI();
+    if (typeof window.toast === 'function'){
+      toast(locked ? 'Tab User dikunci. Tab lain dinyahaktifkan.' : 'Kunci dimatikan. Anda boleh tukar tab semula.');
+    }
   }
 
-  function apply(locked){
-    document.body.classList.toggle('tabs-locked', !!locked);
-    if (locked) { try{ setActiveTab('user'); }catch(_){} }
-    if (hint) hint.textContent = 'Mod edit terkunci — hanya ruang editor aktif. Buka kunci untuk ke tab lain.';
-    iconSwap(!!locked);
-  }
-
-  // Init from storage
-  const initial = localStorage.getItem(LOCK_KEY) === '1';
-  apply(initial);
-
-  // Toggle handler
-  if (btn){
-    btn.addEventListener('click', function(){
-      const next = !document.body.classList.contains('tabs-locked');
-      localStorage.setItem(LOCK_KEY, next ? '1' : '0');
-      apply(next);
-      try{ toast(next ? 'Kunci diaktifkan (edit-only)' : 'Kunci dibuka'); }catch(_){}
-    });
-  }
-
-  // Global click/keyboard guards (outside editor)
   document.addEventListener('click', function(e){
-    if (!document.body.classList.contains('tabs-locked')) return;
-    if (!userTab.contains(e.target) && e.target !== btn){ e.stopPropagation(); e.preventDefault(); }
-  }, true);
+    var b = e.target.closest('#btnUserLock');
+    if (!b) return;
+    setUserLock(!uiLock.userTabLocked);
+  });
 
-  document.addEventListener('keydown', function(e){
-    if (!document.body.classList.contains('tabs-locked')) return;
-    if (userTab.contains(document.activeElement)) return; // allow typing inside editor
-    e.stopPropagation(); e.preventDefault();
-  }, true);
-
-  // Patch setActiveTab as a final gate
+  // Guard inside setActiveTab if it exists (augment non-destructively)
   if (typeof window.setActiveTab === 'function'){
-    const _setActiveTab = window.setActiveTab;
+    var _origSetActiveTab = window.setActiveTab;
     window.setActiveTab = function(name){
-      if (document.body.classList.contains('tabs-locked') && name !== 'user'){
-        try{ toast('Tab lain dikunci ketika mod edit aktif.'); }catch(_){}
+      if (uiLock.userTabLocked && name !== 'user'){
+        if (typeof window.toast === 'function'){ toast('Sedang mengedit — tab User dikunci.'); }
         return;
       }
-      return _setActiveTab(name);
+      return _origSetActiveTab.apply(this, arguments);
     };
+  } else {
+    // If there is a tab click handler not using setActiveTab, we still block clicks via aria-disabled + CSS.
+    document.addEventListener('click', function(e){
+      var tgt = e.target.closest('[data-tab]');
+      if (tgt && uiLock.userTabLocked && tgt.getAttribute('data-tab') !== 'user'){
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.toast === 'function'){ toast('Sedang mengedit — tab User dikunci.'); }
+      }
+    }, true);
+  }
+
+  // Initial paint
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', updateUserLockUI);
+  } else {
+    updateUserLockUI();
   }
 })();
-// =========================================================================
 </script>
 
 </body>
