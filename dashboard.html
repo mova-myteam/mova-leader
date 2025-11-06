@@ -183,7 +183,12 @@
       #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
       #user-sections-split .pane.preview iframe { height:60vh; }
     }
-  </style>
+  
+/* === Lock editing: disable other tabs when active === */
+body.tabs-locked [data-tab]:not([data-tab="user"]) { pointer-events: none !important; opacity: .45 !important; }
+body.tabs-locked #lockHint { display: block !important; }
+#lockHint{ display:none; border:1px dashed #fecaca; background:#fff1f2; color:#b91c1c; border-radius:.75rem; padding:.5rem .75rem; font-size:.85rem; }
+</style>
 </head>
 <body class="bg-gray-50">
 
@@ -264,9 +269,12 @@
       </div>
 
       <!-- Editor Toolbar -->
-      <div class="editor-toolbar">
+      
+<div id="lockHint" class="mt-2">Mod edit dikunci. Tab lain dimatikan sehingga anda membuka kunci.</div>
+<div class="editor-toolbar">
         <button id="btnUndo" title="Undo"><i data-lucide="undo" class="w-4 h-4"></i></button>
         <button id="btnRedo" title="Redo"><i data-lucide="redo" class="w-4 h-4"></i></button>
+        <button id="btnLockEdit" title="Kunci Edit (kunci tab lain)"><i data-lucide="lock" class="w-4 h-4"></i></button>
         <div class="separator"></div>
         <button id="btnCopy" title="Copy"><i data-lucide="copy" class="w-4 h-4"></i></button>
         <button id="btnPaste" title="Paste"><i data-lucide="clipboard" class="w-4 h-4"></i></button>
@@ -4978,6 +4986,52 @@
     mo.observe(userTabEl, { childList:true, subtree:true });
   })();
 
+
+// === Lock Editing Logic ===
+(function(){
+  const LOCK_KEY = 'mova_user_tab_lock';
+  const btn = document.getElementById('btnLockEdit');
+  const lockHint = document.getElementById('lockHint');
+  function setBtn(isLocked){
+    if (!btn) return;
+    btn.title = isLocked ? 'Buka Kunci (aktifkan tab lain)' : 'Kunci Edit (kunci tab lain)';
+    // swap icon lock/unlock
+    const icon = btn.querySelector('i[data-lucide]');
+    if (icon){ icon.setAttribute('data-lucide', isLocked ? 'lock-keyhole' : 'lock'); }
+    if (window.lucide?.createIcons) lucide.createIcons();
+  }
+  function applyLock(isLocked){
+    try { uiLock.userTabLocked = !!isLocked; } catch(e){}
+    document.body.classList.toggle('tabs-locked', !!isLocked);
+    setBtn(!!isLocked);
+    if (isLocked) { try{ setActiveTab('user'); }catch(e){} }
+    if (lockHint) lockHint.style.display = isLocked ? 'block' : 'none';
+  }
+  // init from localStorage
+  let val = localStorage.getItem(LOCK_KEY);
+  const initial = val === '1';
+  applyLock(initial);
+  if (btn){
+    btn.addEventListener('click', function(){
+      const now = !document.body.classList.contains('tabs-locked');
+      localStorage.setItem(LOCK_KEY, now ? '1' : '0');
+      applyLock(now);
+      // optional short toast
+      try{ toast(now ? 'Tab dikunci untuk mod edit' : 'Kunci dibuka'); }catch(e){}
+    });
+  }
+  // Also ensure guard in setActiveTab continues to work
+  const _setActiveTab = window.setActiveTab;
+  if (typeof _setActiveTab === 'function'){
+    window.setActiveTab = function(name){
+      if (document.body.classList.contains('tabs-locked') && name !== 'user'){
+        try{ toast('Sedang mengedit — tab lain dikunci.'); }catch(e){}
+        return;
+      }
+      return _setActiveTab(name);
+    }
+  }
+})();
 </script>
 
 </body>
