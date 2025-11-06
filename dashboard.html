@@ -667,7 +667,23 @@
     draggedItem: null,          // Currently dragged item
     contextMenuTarget: null,    // Target for context menu
     iframeReady: false          // Track iframe readiness
+  
+  // ====== UI LOCK: elak tab user tertutup ketika mengedit ======
+  const uiLock = {
+    userTabLocked: false,
+    _timer: null
   };
+
+  // Ingat tab aktif (default: 'user')
+  let activeTabName = localStorage.getItem('mova_active_tab') || 'user';
+
+  // Util untuk aktifkan/lanjutkan "mode mengedit" selama X saat
+  function lockUserEditing(seconds = 12){
+    uiLock.userTabLocked = true;
+    clearTimeout(uiLock._timer);
+    uiLock._timer = setTimeout(()=>{ uiLock.userTabLocked = false; }, seconds*1000);
+  }
+};
 
   if (!store.leader || !store.leader.leader_id) {
     location.href = "./index.html";
@@ -706,24 +722,40 @@
   }
 
   // Tab management with proper event handling
+  
   function setActiveTab(name){
+    // Jika sedang mengedit di tab user, block penutupan/switch
+    if (uiLock.userTabLocked && name !== 'user') {
+      toast('Sedang mengedit — tab User dikunci sementara.');
+      return;
+    }
+
+    // Jika sama, elak flicker/hide-show tak perlu
+    if (typeof activeTabName !== 'undefined' && name === activeTabName) return;
+
     document.querySelectorAll('[data-tab]').forEach(btn=>{
       if (btn.dataset.tab === name) { 
         btn.classList.remove('pill-idle'); 
         btn.classList.add('pill-active'); 
-      }
-      else { 
+      } else { 
         btn.classList.add('pill-idle'); 
         btn.classList.remove('pill-active'); 
       }
     });
+
     document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
+
     if (name === 'org') renderOrg();
+
+    // Simpan nama tab aktif
+    activeTabName = name;
+    try { localStorage.setItem('mova_active_tab', name); } catch(e){}
   }
   
   // Tab event delegation
+
   document.addEventListener('click', function(e) {
     const tabButton = e.target.closest('[data-tab]');
     if (tabButton) {
@@ -732,7 +764,7 @@
   });
   
   // Initialize first tab
-  setActiveTab('user');
+  setActiveTab(activeTabName);
 
   // ====== INIT ======
   (async function init(){
