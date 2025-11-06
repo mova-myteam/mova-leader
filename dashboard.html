@@ -667,23 +667,16 @@
     draggedItem: null,          // Currently dragged item
     contextMenuTarget: null,    // Target for context menu
     iframeReady: false          // Track iframe readiness
-  
-  // ====== UI LOCK: elak tab user tertutup ketika mengedit ======
-  const uiLock = {
-    userTabLocked: false,
-    _timer: null
-  };
-
-  // Ingat tab aktif (default: 'user')
+  }
+  // ====== UI LOCK to keep User tab open while editing ======
+  const uiLock = { userTabLocked: false, _timer: null };
   let activeTabName = localStorage.getItem('mova_active_tab') || 'user';
-
-  // Util untuk aktifkan/lanjutkan "mode mengedit" selama X saat
   function lockUserEditing(seconds = 12){
     uiLock.userTabLocked = true;
     clearTimeout(uiLock._timer);
     uiLock._timer = setTimeout(()=>{ uiLock.userTabLocked = false; }, seconds*1000);
   }
-};
+;
 
   if (!store.leader || !store.leader.leader_id) {
     location.href = "./index.html";
@@ -723,39 +716,45 @@
 
   // Tab management with proper event handling
   
+  // Tab management with guard & remember
   function setActiveTab(name){
-    // Jika sedang mengedit di tab user, block penutupan/switch
     if (uiLock.userTabLocked && name !== 'user') {
-      toast('Sedang mengedit — tab User dikunci sementara.');
+      if (typeof toast === 'function') toast('Sedang mengedit — tab User dikunci sementara.');
       return;
     }
-
-    // Jika sama, elak flicker/hide-show tak perlu
-    if (typeof activeTabName !== 'undefined' && name === activeTabName) return;
+    if (name === activeTabName) return;
 
     document.querySelectorAll('[data-tab]').forEach(btn=>{
-      if (btn.dataset.tab === name) { 
-        btn.classList.remove('pill-idle'); 
-        btn.classList.add('pill-active'); 
-      } else { 
-        btn.classList.add('pill-idle'); 
-        btn.classList.remove('pill-active'); 
+      if (btn.dataset.tab === name) {
+        btn.classList.remove('pill-idle');
+        btn.classList.add('pill-active');
+      } else {
+        btn.classList.add('pill-idle');
+        btn.classList.remove('pill-active');
       }
     });
 
     document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
     const tab = document.getElementById('tab-'+name);
     if (tab) tab.classList.remove('hidden');
+    if (name === 'org' && typeof renderOrg === 'function') renderOrg();
 
-    if (name === 'org') renderOrg();
-
-    // Simpan nama tab aktif
     activeTabName = name;
-    try { localStorage.setItem('mova_active_tab', name); } catch(e){}
+    localStorage.setItem('mova_active_tab', name);
+  }
+
+      else { 
+        btn.classList.add('pill-idle'); 
+        btn.classList.remove('pill-active'); 
+      }
+    });
+    document.querySelectorAll('[id^="tab-"]').forEach(p=>p.classList.add('hidden'));
+    const tab = document.getElementById('tab-'+name);
+    if (tab) tab.classList.remove('hidden');
+    if (name === 'org') renderOrg();
   }
   
   // Tab event delegation
-
   document.addEventListener('click', function(e) {
     const tabButton = e.target.closest('[data-tab]');
     if (tabButton) {
@@ -764,7 +763,7 @@
   });
   
   // Initialize first tab
-  setActiveTab(activeTabName);
+  setActiveTab('user');
 
   // ====== INIT ======
   (async function init(){
@@ -4958,6 +4957,37 @@
     if (a){ e.preventDefault(); }
   }, true);
 })();
+
+  // Keep User tab locked while editing & make properties panel sticky
+  (function keepUserTabOpenWhileEditing(){
+    var userTabEl = document.getElementById('tab-user');
+    if (!userTabEl) return;
+    var extender = function(){ lockUserEditing(12); };
+    userTabEl.addEventListener('input', extender, true);
+    userTabEl.addEventListener('change', extender, true);
+    userTabEl.addEventListener('keydown', extender, true);
+
+    // Open properties panel automatically if a selection exists
+    var panel = document.getElementById('propertiesPanel');
+    function openPanel(){ if(panel) panel.classList.remove('hidden'); }
+    var sectionList = document.getElementById('sectionList');
+    if (sectionList){
+      sectionList.addEventListener('click', function(e){
+        if (e.target.closest && (e.target.closest('.section-item') || e.target.closest('.element-item'))) {
+          openPanel(); lockUserEditing(12);
+        }
+      }, true);
+    }
+
+    // Re-open panel after DOM changes while selection exists
+    var mo = new MutationObserver(function(){
+      try{
+        if (window.store && (store.selectedSectionId || store.selectedElementId)) openPanel();
+      }catch(_){}
+    });
+    mo.observe(userTabEl, { childList:true, subtree:true });
+  })();
+
 </script>
 
 </body>
