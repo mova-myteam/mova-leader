@@ -5032,5 +5032,65 @@
 })();
 </script>
 
+
+<!-- === Injected: Lock-aware guard for jumpToSectionInPreview & click blocking when locked === -->
+<script>
+(function(){
+  function isLocked(){
+    try {
+      return (window.movaLock && window.movaLock.isLocked === true)
+          || (window.__editLock === true)
+          || document.body.classList.contains('locked')
+          || document.body.classList.contains('ui-locked');
+    } catch(e){ return false; }
+  }
+  function isOnUserTab(){
+    const active = document.querySelector('[data-tab].is-active, [role="tab"][aria-selected="true"]');
+    if (!active) return true; // fallback if tab markup not found
+    const label = (active.dataset.tab || active.textContent || '').toLowerCase();
+    return label.includes('user');
+  }
+
+  // Wrap existing jump function if present
+  (function wrapJump(){
+    const orig = window.jumpToSectionInPreview;
+    if (!orig) return; // will remain no-op until the base script defines it
+    if (orig.__wrappedLockGuard) return;
+    function guarded(id){
+      if (!isOnUserTab()) return; // only act in User tab
+      orig(id);
+    }
+    guarded.__wrappedLockGuard = true;
+    window.jumpToSectionInPreview = guarded;
+  })();
+
+  // Re-wrap later if base script defines after this patch
+  const rq = requestAnimationFrame || function(cb){ return setTimeout(cb,16); };
+  let tries = 0;
+  (function ensureWrap(){
+    if (window.jumpToSectionInPreview && !window.jumpToSectionInPreview.__wrappedLockGuard){
+      const orig = window.jumpToSectionInPreview;
+      function guarded(id){
+        if (!isOnUserTab()) return;
+        orig(id);
+      }
+      guarded.__wrappedLockGuard = true;
+      window.jumpToSectionInPreview = guarded;
+      return;
+    }
+    if (++tries < 120) rq(ensureWrap); // ~2s
+  })();
+
+  // Strict click blocking when locked: allow interactions only inside user sections/editor area
+  document.addEventListener('click', function(e){
+    if (!isLocked()) return;
+    if (e.target.closest('#sectionsList, [data-sections-list], .sections-list, .section-list')) return;
+    if (e.target.closest('[data-editor-panel], .editor, .user-sections-panel')) return;
+    // prevent any other clicks
+    e.stopPropagation(); e.preventDefault();
+  }, true);
+})();
+</script>
+
 </body>
 </html>                                 
