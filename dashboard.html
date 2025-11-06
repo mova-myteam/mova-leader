@@ -4885,6 +4885,52 @@
   box-sizing:border-box;
 }
 
+<
+/* === MOVA Pane Polish (Clean & Consistent) === */
+.equalize-container{ align-items:stretch; gap:16px !important; }
+
+[data-pane-left],[data-pane-right]{
+  /* Card look */
+  background:#fff;
+  border:1px solid #e5e7eb;
+  border-radius:16px;
+  box-shadow:0 6px 24px rgba(15,23,42,.06);
+  /* Content & layout */
+  padding:16px;
+  overflow:auto;
+  box-sizing:border-box;
+  /* Smooth scrolling & look */
+  scroll-behavior:smooth;
+}
+
+/* Typography & spacing inside the panes for coherence */
+[data-pane-left] h1, [data-pane-right] h1 { font-weight:700; line-height:1.2; margin:0 0 .5rem; }
+[data-pane-left] h2, [data-pane-right] h2 { font-weight:600; line-height:1.25; margin:0 0 .5rem; }
+[data-pane-left] h3, [data-pane-right] h3 { font-weight:600; line-height:1.25; margin:0 0 .5rem; }
+[data-pane-left] p,  [data-pane-right] p  { margin:0 0 .75rem; }
+
+/* Ensure embeds fit neatly */
+[data-pane-right] iframe, [data-pane-right] img, [data-pane-right] video { max-width:100%; border-radius:12px; }
+[data-pane-right] iframe { background:#fafafa; border:1px solid #e5e7eb; }
+
+/* Scroll shadows for better visual affordance */
+.shadowable{ position:relative; }
+.shadowable::before,
+.shadowable::after{
+  content:"";
+  position:absolute; left:0; right:0; height:14px;
+  pointer-events:none;
+  opacity:0; transition:opacity .2s ease;
+}
+.shadowable::before{
+  top:0; background:linear-gradient(to bottom, rgba(0,0,0,.08), rgba(0,0,0,0));
+}
+.shadowable::after{
+  bottom:0; background:linear-gradient(to top, rgba(0,0,0,.08), rgba(0,0,0,0));
+}
+.shadowable.top-shadow::before{ opacity:1; }
+.shadowable.bottom-shadow::after{ opacity:1; }
+
 </style>
 <script>
 (function(){
@@ -5360,6 +5406,96 @@
   } else {
     setup();
   }
+})();
+</script>
+
+
+<script>
+// === Polished Equal-Height & Scroll Shadows ===
+(function(){
+  function $q(sel, root){ return (root||document).querySelector(sel); }
+  function $qa(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+
+  function findPair(){
+    const root = $q('#tab-user') || document;
+    // Prefer already marked panes; else detect first 2 children in container
+    const container = $q('#tab-user .equalize-container') ||
+                      $q('#tab-user .grid') ||
+                      $q('#tab-user .flex') ||
+                      $q('#tab-user');
+    if (!container) return null;
+    let left  = container.querySelector('[data-pane-left]');
+    let right = container.querySelector('[data-pane-right]');
+    const kids = Array.from(container.children).filter(n=>n.nodeType===1);
+    if (!left && kids.length>=1) left = kids[0];
+    if (!right && kids.length>=2) right = kids[1];
+    if (!left || !right) return null;
+    left.setAttribute('data-pane-left','');
+    right.setAttribute('data-pane-right','');
+    container.classList.add('equalize-container');
+    left.classList.add('shadowable'); right.classList.add('shadowable');
+    return {container,left,right};
+  }
+
+  function applyHeights(pair){
+    if (!pair) return;
+    // Compute available viewport height starting from the top of the panes (whichever is higher)
+    const topRef = Math.min(pair.left.getBoundingClientRect().top, pair.right.getBoundingClientRect().top);
+    const bottomGap = 12; // breathing room
+    let avail = window.innerHeight - topRef - bottomGap;
+    if (!isFinite(avail) || avail < 320) avail = 320;
+    pair.left.style.height  = avail + 'px';
+    pair.right.style.height = avail + 'px';
+  }
+
+  function updateShadows(el){
+    const atTop = el.scrollTop <= 0;
+    const atBottom = Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight;
+    el.classList.toggle('top-shadow', !atTop);
+    el.classList.toggle('bottom-shadow', !atBottom);
+  }
+
+  function wireScrollShadows(pair){
+    [pair.left, pair.right].forEach(pane=>{
+      updateShadows(pane);
+      pane.addEventListener('scroll', ()=>updateShadows(pane), {passive:true});
+    });
+  }
+
+  function setup(){
+    const pair = findPair();
+    if (!pair) return;
+    // Height calc on resize/scroll/layout mutations
+    const ro = new ResizeObserver(()=>applyHeights(pair));
+    ro.observe(document.documentElement);
+    ro.observe(pair.container);
+    ro.observe(pair.left);
+    ro.observe(pair.right);
+
+    window.addEventListener('resize', ()=>applyHeights(pair));
+    window.addEventListener('scroll', ()=>applyHeights(pair), {passive:true});
+
+    // When content inside panes changes, keep the height and shadows correct
+    const mo = new MutationObserver(()=>{
+      applyHeights(pair);
+      updateShadows(pair.left);
+      updateShadows(pair.right);
+    });
+    mo.observe(pair.left,  {subtree:true, childList:true, characterData:true});
+    mo.observe(pair.right, {subtree:true, childList:true, characterData:true});
+
+    // Initial + staged recalcs for fonts/iframes loading
+    applyHeights(pair);
+    setTimeout(()=>applyHeights(pair), 50);
+    setTimeout(()=>applyHeights(pair), 250);
+    setTimeout(()=>applyHeights(pair), 800);
+
+    wireScrollShadows(pair);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', setup);
+  } else { setup(); }
 })();
 </script>
 
