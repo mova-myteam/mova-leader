@@ -5169,6 +5169,47 @@
     tryNext();
   })();
 
+
+  // ====== PREVIEW IFRAME HARDCODED TO /user.html ======
+  (function hardcodePreviewURL(){
+    function ensureIframe(){
+      var iframe = document.getElementById('previewFrame')
+               || document.querySelector('#preview iframe')
+               || document.querySelector('#userPreview iframe');
+      if (!iframe){
+        var host = document.getElementById('previewContainer') || document.getElementById('tab-user') || document.body;
+        if (!document.getElementById('previewContainer')){
+          var container = document.createElement('div');
+          container.id = 'previewContainer';
+          container.style.border = '1px solid #e5e7eb';
+          container.style.borderRadius = '12px';
+          container.style.background = '#fff';
+          container.style.marginTop = '12px';
+          container.style.overflow = 'hidden';
+          host.appendChild(container);
+        }
+        iframe = document.createElement('iframe');
+        iframe.id = 'previewFrame';
+        iframe.style.width = '100%';
+        iframe.style.height = '70vh';
+        iframe.style.border = '0';
+        iframe.setAttribute('loading','eager');
+        iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock');
+        (document.getElementById('previewContainer') || host).appendChild(iframe);
+      } else {
+        iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-pointer-lock');
+      }
+      return iframe;
+    }
+    var iframe = ensureIframe();
+    var target = location.origin + '/user.html?edit=1&preview=1';
+    if (iframe.src !== target){
+      iframe.src = target;
+    }
+    // Remember for other code (not strictly needed but harmless)
+    try { localStorage.setItem('mova_preview_src', target); } catch(_) {}
+  })();
+
 </script>
 
 </body>
