@@ -5069,5 +5069,106 @@
 })();
 </script>
 
+
+
+<!-- MOVA Editing Shield — keep editor open & stable during edits (2025-11-06) -->
+<script>
+(function(){
+  const $ = (s,root=document)=>root.querySelector(s);
+  const on = (el, ev, fn, opt)=>el && el.addEventListener(ev, fn, opt||false);
+  const debounce = (fn,ms=160)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; };
+  let editingLock = false;
+  let lastSectionId = null;
+  let suppressHash = false;
+
+  // Track current open section id
+  if (typeof window.openSectionEditor === 'function'){
+    const _open = window.openSectionEditor;
+    window.openSectionEditor = function(id){
+      lastSectionId = id || lastSectionId;
+      const r = _open.apply(this, arguments);
+      return r;
+    };
+  }
+
+  function markEditing(){ editingLock = true; clearTimeout(markEditing.t); markEditing.t = setTimeout(()=>editingLock=false, 800); }
+
+  // Activate lock on any interaction within editor
+  function isInEditor(t){ const ep=$('#editorPanel'); return ep && t && ep.contains(t); }
+  on(document,'focusin',(e)=>{ if (isInEditor(e.target)) markEditing(); }, true);
+  on(document,'input',  (e)=>{ if (isInEditor(e.target)) markEditing(); }, true);
+  on(document,'change', (e)=>{ if (isInEditor(e.target)) markEditing(); }, true);
+  on(document,'keydown',(e)=>{
+    if (!isInEditor(e.target)) return;
+    markEditing();
+    // Prevent Enter from causing form submit / rerender
+    if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA'){ e.preventDefault(); }
+  }, true);
+
+  // Block any clicks that would switch tab while editing
+  document.addEventListener('click', (e)=>{
+    if (!editingLock) return;
+    const tabTrigger = e.target.closest && e.target.closest('[data-tab], .tab, .tab-button, a[href^="#"]');
+    if (tabTrigger){ e.stopPropagation(); e.preventDefault(); }
+  }, true);
+
+  // Guard setActiveTab & friends
+  ['setActiveTab','showTab','switchTab'].forEach(fn=>{
+    if (typeof window[fn] === 'function'){
+      const orig = window[fn];
+      window[fn] = function(name){
+        if (editingLock && name && String(name).toLowerCase().indexOf('section') === -1){
+          return; // ignore tab switch while editing
+        }
+        const ret = orig.apply(this, arguments);
+        return ret;
+      };
+    }
+  });
+
+  // Prevent hash navigation while editing
+  on(window, 'hashchange', (e)=>{
+    if (editingLock){ e.preventDefault && e.preventDefault(); suppressHash = true; history.pushState(null,'', location.pathname + location.search); setTimeout(()=>suppressHash=false, 50); }
+  });
+  // Also intercept pushState/replaceState initiated switches
+  (function(){
+    const push = history.pushState, rep = history.replaceState;
+    history.pushState = function(){ if (editingLock) return; return push.apply(this, arguments); };
+    history.replaceState = function(){ if (editingLock && !suppressHash) return; return rep.apply(this, arguments); };
+  })();
+
+  // MutationObserver: if editor disappears while editing, reopen it quickly
+  const observer = new MutationObserver(debounce(()=>{
+    if (!editingLock) return;
+    const ep = $('#editorPanel');
+    if (!ep && typeof window.openSectionEditor === 'function' && lastSectionId != null){
+      try{ window.openSectionEditor(lastSectionId); }catch(_){}
+    }
+  }, 50));
+  observer.observe(document.documentElement, {childList:true, subtree:true});
+
+  // Ensure side-by-side layout is present (in case late mount)
+  function ensureLayout(){
+    const editor = $('#editorPanel');
+    const iframe = $('#userPreview');
+    if (!editor || !iframe) return;
+    editor.style.position='static'; editor.style.transform='none';
+    let wrap = $('#mova-sections-split');
+    if (!wrap){
+      wrap = document.createElement('div'); wrap.id='mova-sections-split';
+      wrap.style.display='grid'; wrap.style.gridTemplateColumns='var(--mova-left,42%) 6px 1fr'; wrap.style.gap='1rem'; wrap.style.alignItems='start';
+      const left=document.createElement('div'); left.className='pane editor';
+      const mid=document.createElement('div'); mid.id='mova-resizer'; mid.style.width='6px'; mid.style.cursor='col-resize';
+      const right=document.createElement('div'); right.className='pane preview';
+      left.appendChild(editor); right.appendChild(iframe);
+      const parent = iframe.parentElement || document.body;
+      parent.insertBefore(wrap, iframe);
+      wrap.appendChild(left); wrap.appendChild(mid); wrap.appendChild(right);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', ensureLayout);
+})();
+</script>
+
 </body>
 </html>                                 
