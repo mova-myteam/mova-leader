@@ -4828,96 +4828,105 @@
 </script>
 
 
-<!-- MOVA Split & Live-Preview Patch – 2025-11-06 -->
+<!-- === MOVA User Sections UI Upgrade (Editor Left + Live Preview) — 2025-11-06 === -->
 <style>
-/* ===== MOVA Split Layout (Editor Left, Preview Right) ===== */
-#mova-split {
-  display: flex;
-  gap: 1rem;
-  align-items: stretch;
-}
-#mova-split .pane {
-  background: transparent;
-  border: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  min-height: 50vh;
-}
-#mova-split .pane.editor { flex: 0 0 40%; max-width: 46rem; }
-#mova-split .pane.preview { flex: 1 1 auto; }
-#mova-split .pane.preview iframe { width: 100%; height: calc(100vh - 220px); border: 1px solid #e5e7eb; border-radius: 12px; background:#fff; }
-@media (max-width: 1024px) {
-  #mova-split { flex-direction: column; }
-  #mova-split .pane.editor, #mova-split .pane.preview { flex: 1 1 auto; max-width: 100%; }
-  #mova-split .pane.preview iframe { height: 60vh; }
-}
+  /* Only affect the User Sections tab layout */
+  #user-sections-split { display:flex; gap:1rem; align-items:stretch; }
+  #user-sections-split .pane { display:flex; flex-direction:column; min-height:60vh; }
+  #user-sections-split .pane.editor { flex:0 0 40%; max-width:46rem; }
+  #user-sections-split .pane.preview { flex:1 1 auto; }
+  #user-sections-split .pane.preview iframe { width:100%; height:calc(100vh - 220px); border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
+  @media (max-width: 1024px){
+    #user-sections-split { flex-direction:column; }
+    #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
+    #user-sections-split .pane.preview iframe { height:60vh; }
+  }
 </style>
 <script>
 (function(){
-  function $(id){ return document.getElementById(id); }
+  function $(s,root){ return (root||document).querySelector(s); }
+  function on(el, ev, fn, opt){ el && el.addEventListener(ev, fn, opt||false); }
   function debounce(fn, ms){ var t; return function(){ clearTimeout(t); var a=arguments; t=setTimeout(function(){ fn.apply(null,a); }, ms||200); }; }
 
-  // 1) Build split layout: editor (left) + preview (right)
-  function buildSplit(){
-    var editor = $('editorPanel');
-    var previewIframe = $('userPreview');
-    if (!editor || !previewIframe) return;
+  // Build split layout only inside the User Sections tab if present
+  function buildUserSplit(){
+    var tabUser = document.getElementById('tab-user') || document.querySelector('[data-tab=\"user\"],[data-tab=\"sections\"]')?.id;
+    var editor = document.getElementById('editorPanel');
+    var iframe = document.getElementById('userPreview');
+    if (!editor || !iframe) return;
 
-    // Create split wrapper once
-    if ($('mova-split')) return;
-    var split = document.createElement('div');
-    split.id = 'mova-split';
+    // Wrap only once
+    if (document.getElementById('user-sections-split')) return;
+    var split = document.createElement('div'); split.id = 'user-sections-split';
 
-    var editorPane = document.createElement('div');
-    editorPane.className = 'pane editor';
-    editorPane.appendChild(editor);
+    var ePane = document.createElement('div'); ePane.className = 'pane editor';
+    var pPane = document.createElement('div'); pPane.className = 'pane preview';
 
-    var previewPane = document.createElement('div');
-    previewPane.className = 'pane preview';
-    // Ensure iframe sits cleanly in a container
-    previewPane.appendChild(previewIframe);
+    // Move existing nodes
+    ePane.appendChild(editor);
+    pPane.appendChild(iframe);
 
-    // Insert split near top of main content (#app) or body
-    var app = document.getElementById('app') || document.body;
-    app.insertBefore(split, app.firstChild);
-    split.appendChild(editorPane);
-    split.appendChild(previewPane);
+    // Choose anchor: if tab-user exists, insert at its top; else fallback to #app/body
+    var anchor = document.getElementById('tab-user') || document.getElementById('app') || document.body;
+    anchor.insertBefore(split, anchor.firstChild);
+    split.appendChild(ePane);
+    split.appendChild(pPane);
   }
 
-  // 2) Live preview: whenever editor inputs change, push sections to iframe
+  // Live preview: push store.sections whenever user types/changes within editor
   var pushLive = debounce(function(){
-    try {
+    try{
       if (typeof window.sendToIframe !== 'function') return;
       if (!window.store || !window.store.sections) return;
-      window.sendToIframe({ type: 'sections-updated', sections: window.store.sections });
-    } catch (e) { console.warn('[MOVA live]', e); }
-  }, 250);
+      window.sendToIframe({ type:'sections-updated', sections: window.store.sections });
+    }catch(e){ console.warn('[MOVA live]', e); }
+  }, 200);
 
   function bindLive(){
-    var editor = $('editorPanel');
+    var editor = document.getElementById('editorPanel');
     if (!editor) return;
-    editor.addEventListener('input', pushLive, true);
-    editor.addEventListener('change', pushLive, true);
+    on(editor, 'input', pushLive, true);
+    on(editor, 'change', pushLive, true);
   }
 
-  // 3) Also push once when the editor opens (if openSectionEditor is called)
-  if (typeof window.openSectionEditor === 'function') {
+  // Reinforce live push when editor opens or section list re-renders
+  if (typeof window.openSectionEditor === 'function'){
     var _open = window.openSectionEditor;
     window.openSectionEditor = function(){
-      var ret = _open.apply(this, arguments);
-      try { buildSplit(); bindLive(); pushLive(); } catch(_) {}
-      return ret;
+      var r = _open.apply(this, arguments);
+      try{ buildUserSplit(); bindLive(); pushLive(); }catch(_){}
+      return r;
+    };
+  }
+  if (typeof window.renderSectionList === 'function'){
+    var _rsl = window.renderSectionList;
+    window.renderSectionList = function(){
+      var r = _rsl.apply(this, arguments);
+      try{ pushLive(); }catch(_){}
+      return r;
+    };
+  }
+  if (typeof window.refreshSettings === 'function'){
+    var _rs = window.refreshSettings;
+    window.refreshSettings = function(){
+      var r = _rs.apply(this, arguments);
+      try{ pushLive(); }catch(_){}
+      return r;
     };
   }
 
-  // 4) Initialize on DOM ready (in case editor already visible)
+  // Build once on load, then push initial content
   document.addEventListener('DOMContentLoaded', function(){
-    buildSplit();
+    buildUserSplit();
     bindLive();
-    // initial push to ensure preview is in sync
     setTimeout(pushLive, 300);
   });
+
+  // Prevent accidental navigation from anchors with href="#"
+  document.addEventListener('click', function(e){
+    var a = e.target.closest && e.target.closest('a[href=\"#\"]');
+    if (a){ e.preventDefault(); }
+  }, true);
 })();
 </script>
 
