@@ -142,7 +142,7 @@
 <div id="toast" class="toast hidden"></div>
 
 <script>
-  // IMPORTANT: Keeping EXEC_URL as provided (do not modify without instruction)
+  // IMPORTANT: Kekalkan EXEC_URL seperti diberikan
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
   function toast(msg, ms = 2200) {
@@ -166,44 +166,99 @@
     return json;
   }
 
-  
-// === Sections Normalizer (prevents 'forEach is not a function') ===
-function normalizeSections(input){
-  try{
-    if (Array.isArray(input)) return input;
-    if (typeof input === 'string'){
-      try { const parsed = JSON.parse(input); return normalizeSections(parsed); } catch(e){ return []; }
-    }
-    if (input && typeof input === 'object'){
-      if (Array.isArray(input.sections)) return input.sections;
-      if (Array.isArray(input.data)) return input.data;
-      const keys = Object.keys(input).filter(k => /^\d+$/.test(k)).sort((a,b)=>Number(a)-Number(b));
-      if (keys.length){
-        return keys.map(k => input[k]).filter(Boolean);
-      }
-    }
-  }catch(e){}
-  return [];
-}
-
   const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
   let pageSections = [];
 
-  // Always listen to dashboard messages (so preview is live even without ?edit=1)
-  window.addEventListener('message', handleIframeMessage);
+  // ==========================================================
+  // ADAPTER / NORMALIZER — serasikan SEED (blocks) ↔ renderer (elements)
+  // ==========================================================
+  function mapBlockToElement(sectionId, block, idx) {
+    const id = (block?.id || `${sectionId}-el-${idx}`);
+    const base = { id, sectionId, gridColumn: 'span 12 / span 12', padding: '10px' };
 
-  if (EDIT_MODE) {
-    document.body.classList.add('edit-mode');
+    switch ((block?.kind || '').toLowerCase()) {
+      case 'text':
+        return Object.assign(base, {
+          type: 'text',
+          content: block.value || '',
+          fontSize: 16,
+          lineHeight: '1.6'
+        });
+      case 'image':
+        return Object.assign(base, {
+          type: 'image',
+          src: block.value || '',
+          alt: block.alt || '',
+          borderRadius: 12
+        });
+      case 'video':
+        return Object.assign(base, {
+          type: 'video',
+          src: block.value || '',
+          controls: 'yes',
+          autoplay: 'no',
+          muted: 'no'
+        });
+      case 'link':
+        return Object.assign(base, {
+          type: 'button',
+          content: block.text || block.label || 'Lihat',
+          href: block.value || '#',
+          backgroundColor: '#ef4444',
+          color: '#ffffff',
+          borderRadius: '12px',
+          boxShadow: '0 8px 20px rgba(239,68,68,0.20)'
+        });
+      default:
+        return Object.assign(base, { type: 'text', content: block?.value || '' });
+    }
   }
+
+  function adaptSection(sec) {
+    const s = {
+      id: sec?.id || ('sec-' + Math.random().toString(36).slice(2,7)),
+      padding: sec?.padding || '2rem 1rem',
+      backgroundColor: sec?.backgroundColor || 'transparent',
+      borderRadius: sec?.borderRadius || 0,
+      elements: Array.isArray(sec?.elements) ? sec.elements.slice() : []
+    };
+    if (Array.isArray(sec?.blocks) && sec.blocks.length) {
+      const extraEls = sec.blocks.map((b,i)=> mapBlockToElement(s.id, b, i));
+      s.elements = s.elements.concat(extraEls);
+    }
+    return s;
+  }
+
+  function normalizeSections(input) {
+    let arr = [];
+    try {
+      if (!input) arr = [];
+      else if (typeof input === 'string') {
+        const parsed = JSON.parse(input);
+        arr = Array.isArray(parsed) ? parsed
+            : Array.isArray(parsed?.sections) ? parsed.sections
+            : (typeof parsed === 'object' ? Object.values(parsed) : []);
+      } else if (Array.isArray(input)) {
+        arr = input;
+      } else if (typeof input === 'object') {
+        arr = Array.isArray(input.sections) ? input.sections : Object.values(input);
+      }
+    } catch(e){ arr = []; }
+    return arr.map(adaptSection);
+  }
+  // ==========================================================
+
+  // sentiasa dengar mesej dari dashboard (preview live)
+  window.addEventListener('message', handleIframeMessage);
+  if (EDIT_MODE) document.body.classList.add('edit-mode');
 
   function handleIframeMessage(event) {
     const { type, data } = event.data || {};
-
     switch (type) {
       case 'sections-updated': {
         const payload = (event.data && event.data.payload) || {};
-        const sections = Array.isArray(payload.sections) ? payload.sections : [];
-        pageSections = normalizeSections(sections);
+        const incoming = (Array.isArray(payload.sections) ? payload.sections : payload.sections);
+        pageSections = normalizeSections(incoming);
         renderPage();
         break;
       }
@@ -212,7 +267,7 @@ function normalizeSections(input){
         break;
       }
       case 'load-sections': {
-        pageSections = Array.isArray(data?.sections) ? data.sections : [];
+        pageSections = normalizeSections(data?.sections);
         renderPage();
         break;
       }
@@ -390,11 +445,14 @@ function normalizeSections(input){
   }
 
   function renderPage() {
+    // Guard — sentiasa normalise
+    pageSections = normalizeSections(pageSections);
+
     const mainContent = document.getElementById('main');
     if (!mainContent) return;
     mainContent.innerHTML = '';
 
-    (pageSections = normalizeSections(pageSections)).forEach(section => {
+    pageSections.forEach(section => {
       const sectionNode = createSectionNode(section);
       if (sectionNode) mainContent.appendChild(sectionNode);
     });
@@ -514,7 +572,7 @@ function normalizeSections(input){
       case 'text': {
         wrap.style.fontFamily = el.fontFamily || 'Inter';
         wrap.style.fontSize = `${el.fontSize || 16}px`;
-        wrap.style.color = el.color || '#000000';
+        wrap.style.color = el.color || '#0f172a';
         wrap.style.fontWeight = el.fontWeight || 'normal';
         wrap.style.fontStyle = el.fontStyle || 'normal';
         wrap.style.textDecoration = el.textDecoration || 'none';
@@ -530,9 +588,8 @@ function normalizeSections(input){
         img.style.maxWidth = '100%';
         img.style.height = 'auto';
         img.style.display = 'block';
-        img.style.borderRadius = '0.75rem';
+        img.style.borderRadius = (el.borderRadius ? (typeof el.borderRadius==='number' ? `${el.borderRadius}px` : el.borderRadius) : '0.75rem');
         img.style.objectFit = el.objectFit || 'cover';
-        
         if (el.clickable === 'yes' && el.linkUrl) {
           const link = document.createElement('a');
           link.href = el.linkUrl;
@@ -572,11 +629,10 @@ function normalizeSections(input){
         button.style.color = color;
         button.style.backgroundColor = bg;
         button.style.padding = el.padding || '.7rem 1.5rem';
-        button.style.fontWeight = '700';
+        button.style.fontWeight = el.fontWeight || '700';
         button.style.borderRadius = el.borderRadius || '.75rem';
         button.style.display = 'inline-block';
         button.style.fontSize = el.fontSize || '16px';
-        button.style.fontWeight = el.fontWeight || '700';
         button.style.boxShadow = el.boxShadow || '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
         button.textContent = label;
         wrap.appendChild(button);
@@ -615,7 +671,7 @@ function normalizeSections(input){
       }
       case 'link': {
         const url = el.url || '#';
-        the_target = el.target || '_blank';
+        const the_target = el.target || '_blank';
         const text = el.text || 'Link';
         const link = document.createElement('a');
         link.href = url;
@@ -702,7 +758,9 @@ function normalizeSections(input){
         wrap.appendChild(calculatorContainer);
         break;
       }
-      default: { wrap.textContent = ''; }
+      default: {
+        wrap.textContent = '';
+      }
     }
 
     return wrap;
@@ -760,18 +818,18 @@ function normalizeSections(input){
     });
   }
 
-  
   // === BOOTSTRAP FROM localStorage (immediate) ===
   ;(function bootstrapFromLocalStorage(){
     try{
       var raw = localStorage.getItem('mova_preview_bootstrap');
       if (raw){
         var payload = JSON.parse(raw);
-        var sections = Array.isArray(payload.sections) ? payload.sections : [];
+        // sokong { sections: [...] } atau array terus
+        var sections = Array.isArray(payload.sections) ? payload.sections : payload.sections;
         pageSections = normalizeSections(sections);
         renderPage();
       }
-    }catch(e){ /* ignore */}
+    }catch(e){ /* ignore */ }
   })();
 
   document.addEventListener('DOMContentLoaded', async () => {
@@ -782,8 +840,12 @@ function normalizeSections(input){
       const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
       const response = await api('settings_get', { leader_id });
 
-      if (response?.success && response?.settings?.sections_json) {
-        try { pageSections = normalizeSections(JSON.parse(response.settings.sections_json)); } catch { pageSections = []; }
+      // Log debug (pilihan): buka untuk semak bentuk data
+      // console.log('[MOVA] settings_get raw:', response);
+
+      if (response?.success) {
+        const rawSections = response.settings?.sections_json ?? response.settings?.sections ?? [];
+        pageSections = normalizeSections(rawSections);
       }
 
       renderPage();
@@ -801,67 +863,5 @@ function normalizeSections(input){
     }
   });
 </script>
-
-<script>
-// ===== MOVA Settings Resolver (compatible with flat keys + single JSON) =====
-(function(){
-  function parseJSON(txt){ try{ return JSON.parse(txt||'{}'); }catch(e){ return {}; } }
-  function pick(S, APP, paths, fallback){
-    for (const k of paths){ if (S && S[k] != null && S[k] !== '') return S[k]; }
-    for (const k of paths){
-      const segs = String(k).split('.'); let cur = APP, ok = true;
-      for (const s of segs){ if (!cur || !(s in cur)){ ok=false; break; } cur = cur[s]; }
-      if (ok && cur != null && cur !== '') return cur;
-    }
-    return fallback;
-  }
-  document.addEventListener('DOMContentLoaded', async () => {
-    try{
-      const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
-      const resp = await (window.api && window.api('settings_get', { leader_id }));
-      const S = (resp && resp.settings) ? resp.settings : {};
-      const APP = parseJSON(S.app_settings || S.settings_json || '{}');
-
-      const contentWidth = Number(pick(S, APP, ['content_width','ui.content_width'], 1100));
-      const fontPrimary  = String(pick(S, APP, ['font_primary','ui.theme.font_primary'], 'Inter'));
-      const bodySize     = Number(pick(S, APP, ['body_size','ui.theme.body_size'], 16));
-      const headingSize  = Number(pick(S, APP, ['heading_size','ui.theme.heading_size'], 28));
-      const headingWeight= Number(pick(S, APP, ['heading_weight','ui.theme.heading_weight'], 700));
-      const bodyWeight   = Number(pick(S, APP, ['body_weight','ui.theme.body_weight'], 400));
-
-      const st = document.createElement('style');
-      st.textContent = `
-        .container{max-width:${contentWidth}px}
-        body{font-family:${fontPrimary},system-ui,ui-sans-serif;font-size:${bodySize}px;font-weight:${bodyWeight}}
-        h1,h2,h3,h4{font-weight:${headingWeight}}
-        h1{font-size:${Math.round(headingSize*1.2)}px}
-        h2{font-size:${headingSize}px}
-        h3{font-size:${Math.max(16, Math.round(headingSize*0.85))}px}
-      `;
-      document.head.appendChild(st);
-
-      if ((window.pageSections||[]).length === 0){
-        const blocks = (APP.sections_defaults && APP.sections_defaults.home_blocks) ? APP.sections_defaults.home_blocks : [];
-        if (blocks.length){
-          const els = blocks.map((b, i)=>{
-            const base = { id:`el_${i+1}`, sectionId:'sec_home', gridColumn:'span 12 / span 12' };
-            if (b.type === 'hero'){
-              return [{...base, type:'text', content:`<h1>${b.title||''}</h1><p>${b.subtitle||''}</p>`, fontSize:24, lineHeight:'1.5'}]
-                .concat(b.cta_text && b.cta_link ? [{...base, type:'button', content:b.cta_text, href:b.cta_link, backgroundColor:'#ef4444', color:'#fff'}] : []);
-            }
-            if (b.type === 'banner'){ return [{...base, type:'image', src:b.image||'', alt:b.alt||'banner'}]; }
-            if (b.type === 'text'){ return [{...base, type:'text', content:b.html||b.text||''}]; }
-            if (b.type === 'button'){ return [{...base, type:'button', content:b.label||'Klik', href:b.link||'#'}]; }
-            return [];
-          }).flat();
-          window.pageSections = [{ id:'sec_home', padding:'4rem 1rem', backgroundColor:'transparent', elements: els }];
-          if (typeof window.renderPage === 'function') window.renderPage();
-        }
-      }
-    }catch(e){ /* ignore */ }
-  });
-})();
-</script>
-
 </body>
 </html>
