@@ -184,6 +184,17 @@
       #user-sections-split .pane.preview iframe { height:60vh; }
     }
   </style>
+
+/* === Injected: Persistent User Lock styles === */
+<style>
+  .lock-btn{display:inline-flex;align-items:center;gap:.5rem;border:1px solid #e5e7eb;border-radius:.75rem;padding:.45rem .8rem;background:#fff;font-weight:700}
+  .lock-btn[data-locked="true"]{background:#111;color:#fff;border-color:#111}
+  .lock-btn i{width:18px;height:18px}
+  body.ui-locked .tab,[aria-controls][role="tab"]{cursor:not-allowed}
+  body.ui-locked [role="tab"][aria-selected="false"],
+  body.ui-locked .tab{opacity:.6}
+</style>
+
 </head>
 <body class="bg-gray-50">
 
@@ -4860,6 +4871,24 @@
     #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
     #user-sections-split .pane.preview iframe { height:60vh; }
   }
+<
+/* === User Lock: disable non-User tabs when locked === */
+.pill[aria-disabled="true"]{
+  opacity:.5; pointer-events:none; filter:grayscale(1);
+}
+
+<
+/* === Preview No-Scroll helper (applied via JS) === */
+.noscroll-preview{
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+}
+.noscroll-preview iframe{
+  display: block;
+  width: 100%;
+}
+
 </style>
 <script>
 (function(){
@@ -4981,114 +5010,403 @@
 </script>
 
 
-<!-- === Injected: Sidebar click -> scroll preview to that section === -->
+<div id="btnUserLockFloating" style="position:fixed;right:12px;top:12px;z-index:1000;">
+  
+<button id="btnUserLock" class="btn-ghost flex items-center gap-2" title="Kunci untuk kekal di tab User">
+  <i data-lucide="lock" class="w-4 h-4"></i>
+  <span>Buka Kunci</span>
+</button>
+
+</div>
+
+
 <script>
 (function(){
-  function getPreviewIframe(){
-    const selectors = [
-      '#previewIframe',
-      'iframe[data-preview]',
-      'iframe.preview',
-      '.preview iframe',
-      '.preview-pane iframe',
-      'iframe[src*="user.html"]',
-      'iframe'
-    ];
-    for (const sel of selectors){
-      const el = document.querySelector(sel);
-      if (el) return el;
+  const LOCK_KEY = 'mova_user_lock';
+
+  if (!window.uiLock) window.uiLock = { userTabLocked:false, _timer:null };
+  // Restore lock
+  try { uiLock.userTabLocked = (localStorage.getItem(LOCK_KEY) === '1'); } catch(e){ uiLock.userTabLocked = false; }
+
+  // Utility: current active tab name if available
+  function getActiveTabName(){
+    try {
+      if (window.activeTabName) return window.activeTabName;
+      const a = document.querySelector('[data-tab].is-active,[data-tab][aria-selected="true"]');
+      return a ? a.getAttribute('data-tab') : null;
+    } catch(e){ return null; }
+  }
+
+  function updateUserLockUI(){
+    const btn = document.getElementById('btnUserLock') || document.querySelector('#btnUserLockFloating #btnUserLock');
+    if (btn){
+      const iconEl = btn.querySelector('i[data-lucide]');
+      const labelEl = btn.querySelector('span');
+      const iconName = uiLock.userTabLocked ? 'lock' : 'unlock';
+      if (iconEl) iconEl.setAttribute('data-lucide', iconName);
+      if (labelEl) labelEl.textContent = uiLock.userTabLocked ? 'Dikunci' : 'Buka Kunci';
+      try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch(e){}
     }
-    return null;
-  }
+    // disable all tabs except data-tab="user"
+    document.querySelectorAll('[data-tab]').forEach(function(b){
+      var isUser = (b.getAttribute('data-tab') === 'user');
+      if (uiLock.userTabLocked && !isUser){
+        b.setAttribute('aria-disabled','true');
+      } else {
+        b.removeAttribute('aria-disabled');
+      }
+    });
 
-  function jumpToSectionInPreview(sectionId){
-    try{
-      const iframe = getPreviewIframe();
-      if (!iframe || !sectionId) return;
-      (iframe.contentWindow || iframe).postMessage(
-        { type: 'select-section', data: { id: sectionId } },
-        '*'
-      );
-    }catch(e){}
-  }
-
-  window.jumpToSectionInPreview = jumpToSectionInPreview;
-
-  function handleClick(e){
-    const row = e.target.closest('[data-section-id]');
-    if (!row) return;
-    const id = row.getAttribute('data-section-id');
-    if (id) jumpToSectionInPreview(id);
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    const list = document.querySelector('#sectionsList, [data-sections-list], .sections-list, .section-list');
-    if (list){
-      list.addEventListener('click', handleClick);
-    } else {
-      document.addEventListener('click', handleClick);
+    // force switch to user if locked
+    var active = getActiveTabName();
+    if (uiLock.userTabLocked && active && active !== 'user'){
+      if (typeof window.setActiveTab === 'function'){
+        window.setActiveTab('user');
+      }
     }
+  }
+
+  function setUserLock(locked){
+    uiLock.userTabLocked = !!locked;
+    try { localStorage.setItem(LOCK_KEY, locked ? '1' : '0'); } catch(e){}
+    updateUserLockUI();
+    if (typeof window.toast === 'function'){
+      toast(locked ? 'Tab User dikunci. Tab lain dinyahaktifkan.' : 'Kunci dimatikan. Anda boleh tukar tab semula.');
+    }
+  }
+
+  document.addEventListener('click', function(e){
+    var b = e.target.closest('#btnUserLock');
+    if (!b) return;
+    setUserLock(!uiLock.userTabLocked);
+  });
+
+  // Guard inside setActiveTab if it exists (augment non-destructively)
+  if (typeof window.setActiveTab === 'function'){
+    var _origSetActiveTab = window.setActiveTab;
+    window.setActiveTab = function(name){
+      if (uiLock.userTabLocked && name !== 'user'){
+        if (typeof window.toast === 'function'){ toast('Sedang mengedit — tab User dikunci.'); }
+        return;
+      }
+      return _origSetActiveTab.apply(this, arguments);
+    };
+  } else {
+    // If there is a tab click handler not using setActiveTab, we still block clicks via aria-disabled + CSS.
+    document.addEventListener('click', function(e){
+      var tgt = e.target.closest('[data-tab]');
+      if (tgt && uiLock.userTabLocked && tgt.getAttribute('data-tab') !== 'user'){
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.toast === 'function'){ toast('Sedang mengedit — tab User dikunci.'); }
+      }
+    }, true);
+  }
+
+  // Initial paint
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', updateUserLockUI);
+  } else {
+    updateUserLockUI();
+  }
+})();
+</script>
+
+
+<script>
+// === Hard Lock Hardening: keep locked until explicitly unlocked ===
+(function(){
+  function safely(fn){ try{ fn(); }catch(e){} }
+
+  // If the base lock API exists, enhance it; otherwise, do nothing.
+  if (!window.uiLock || typeof window.uiLock.userTabLocked === 'undefined'){
+    window.uiLock = window.uiLock || {};
+    window.uiLock.userTabLocked = window.uiLock.userTabLocked || false;
+  }
+
+  // Reuse updateUserLockUI if available
+  function refresh(){
+    if (typeof window.updateUserLockUI === 'function'){ window.updateUserLockUI(); }
+  }
+
+  // 1) Enforce hash/router to #user when locked
+  safely(function(){
+    window.addEventListener('hashchange', function(){
+      if (window.uiLock.userTabLocked){
+        if (location.hash !== '#user' && location.hash.toLowerCase() !== '#tab-user'){
+          location.hash = '#user';
+          refresh();
+        }
+      }
+    });
+    // On load: normalize hash if locked
+    if (window.uiLock.userTabLocked){
+      if (location.hash !== '#user' && location.hash.toLowerCase() !== '#tab-user'){
+        location.hash = '#user';
+      }
+      refresh();
+    }
+  });
+
+  // 2) Block keyboard navigation that could trigger non-user tabs
+  safely(function(){
+    document.addEventListener('keydown', function(e){
+      if (!window.uiLock.userTabLocked) return;
+      // If focused element is or is inside a tab button that's not "user", block Enter/Space
+      const tabBtn = e.target && e.target.closest && e.target.closest('[data-tab]');
+      if (tabBtn && tabBtn.getAttribute('data-tab') !== 'user'){
+        const code = e.code || e.key;
+        if (code === 'Enter' or code === 'Space' or code === ' '){
+          e.preventDefault(); e.stopPropagation();
+        }
+      }
+    }, true);
+  });
+
+  // 3) MutationObserver: any new tabs added later are immediately disabled
+  safely(function(){
+    const mo = new MutationObserver(function(muts){
+      if (!window.uiLock.userTabLocked) return;
+      let needs = false;
+      for (const m of muts){
+        if (m.addedNodes){
+          for (const n of m.addedNodes){
+            if (n.nodeType === 1 && (n.matches && n.matches('[data-tab]') || (n.querySelector && n.querySelector('[data-tab]')))){
+              needs = true; break;
+            }
+          }
+        }
+      }
+      if (needs) refresh();
+    });
+    mo.observe(document.documentElement || document.body, {subtree:true, childList:true});
+  });
+
+  // 4) Storage sync: if another tab changes the lock, stay in sync
+  safely(function(){
+    window.addEventListener('storage', function(ev){
+      if (ev && ev.key === 'mova_user_lock'){
+        // Trigger a light refresh; setUserLock exists in the base script
+        const locked = ev.newValue === '1';
+        if (typeof window.setUserLock === 'function'){
+          window.setUserLock(locked);
+        } else {
+          window.uiLock.userTabLocked = locked;
+          refresh();
+        }
+      }
+    });
+  });
+
+  // 5) Periodic re-assertion (lightweight) while locked
+  safely(function(){
+    setInterval(function(){
+      if (window.uiLock.userTabLocked) refresh();
+    }, 2000);
+  });
+
+  // 6) Optional: warn on page unload while locked (avoid accidental navigation away)
+  safely(function(){
+    window.addEventListener('beforeunload', function(e){
+      if (!window.uiLock.userTabLocked) return;
+      // Show confirmation dialog
+      e.preventDefault();
+      e.returnValue = '';
+    });
   });
 })();
 </script>
 
 
-<!-- === Injected: Lock-aware guard for jumpToSectionInPreview & click blocking when locked === -->
 <script>
 (function(){
-  function isLocked(){
-    try {
-      return (window.movaLock && window.movaLock.isLocked === true)
-          || (window.__editLock === true)
-          || document.body.classList.contains('locked')
-          || document.body.classList.contains('ui-locked');
-    } catch(e){ return false; }
-  }
-  function isOnUserTab(){
-    const active = document.querySelector('[data-tab].is-active, [role="tab"][aria-selected="true"]');
-    if (!active) return true; // fallback if tab markup not found
-    const label = (active.dataset.tab || active.textContent || '').toLowerCase();
-    return label.includes('user');
+  // Run only inside dashboard
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+
+  function isScrollable(el){
+    const cs = getComputedStyle(el);
+    return /(auto|scroll)/.test(cs.overflow + cs.overflowY + cs.overflowX);
   }
 
-  // Wrap existing jump function if present
-  (function wrapJump(){
-    const orig = window.jumpToSectionInPreview;
-    if (!orig) return; // will remain no-op until the base script defines it
-    if (orig.__wrappedLockGuard) return;
-    function guarded(id){
-      if (!isOnUserTab()) return; // only act in User tab
-      orig(id);
+  function markNoScrollPreview(){
+    const root = $('#tab-user') || document;
+    // Heuristic: prefer a right column that contains a preview iframe or a table
+    // 1) Find a container that has an iframe (likely preview)
+    let container = root.querySelector('iframe') ? root.querySelector('iframe').parentElement : null;
+    // 2) Or find the first container with a <table>
+    if (!container){
+      const tbl = root.querySelector('table');
+      if (tbl) container = tbl.closest('*');
     }
-    guarded.__wrappedLockGuard = true;
-    window.jumpToSectionInPreview = guarded;
-  })();
+    // 3) Or fallback to any element that looks like a "preview pane" by class/id
+    if (!container){
+      container = root.querySelector('[id*="preview"],[class*="preview"]');
+    }
+    if (!container) return null;
 
-  // Re-wrap later if base script defines after this patch
-  const rq = requestAnimationFrame || function(cb){ return setTimeout(cb,16); };
-  let tries = 0;
-  (function ensureWrap(){
-    if (window.jumpToSectionInPreview && !window.jumpToSectionInPreview.__wrappedLockGuard){
-      const orig = window.jumpToSectionInPreview;
-      function guarded(id){
-        if (!isOnUserTab()) return;
-        orig(id);
+    // climb up until we hit the immediate pane-like container (typically the direct grid/flex child)
+    let pane = container;
+    for (let i=0; i<4 && pane.parentElement; i++){
+      const p = pane.parentElement;
+      if (p && p.children && p.children.length >= 2){
+        // Stop when parent is the two-column container
+        pane = pane; break;
       }
-      guarded.__wrappedLockGuard = true;
-      window.jumpToSectionInPreview = guarded;
-      return;
+      pane = p;
     }
-    if (++tries < 120) rq(ensureWrap); // ~2s
-  })();
 
-  // Strict click blocking when locked: allow interactions only inside user sections/editor area
-  document.addEventListener('click', function(e){
+    // Apply no-scroll to pane and any inner scroll wrappers
+    pane.classList.add('noscroll-preview');
+    // remove scroll locks on wrappers inside this pane
+    $all('*', pane).forEach(function(n){
+      if (!n) return;
+      if (isScrollable(n)){
+        n.style.overflow = 'visible';
+        n.style.maxHeight = 'none';
+        n.style.height = 'auto';
+      }
+    });
+
+    return pane;
+  }
+
+  // Try to autosize same-origin iframe to its content
+  function autoSizeIframe(pane){
+    if (!pane) return;
+    const ifr = pane.querySelector('iframe');
+    if (!ifr) return;
+    function setH(h){
+      if (!h || h < 200) return;
+      ifr.style.height = h + 'px';
+    }
+    function calc(){
+      try{
+        const doc = ifr.contentDocument;
+        if (doc && doc.documentElement){
+          const h = Math.max(
+            doc.body ? doc.body.scrollHeight : 0,
+            doc.documentElement.scrollHeight,
+            doc.documentElement.offsetHeight
+          );
+          setH(h + 10); // a little extra room
+        }
+      }catch(e){
+        // cross-origin — ignore
+      }
+    }
+    ifr.addEventListener('load', calc);
+    // periodic adjust in case content grows
+    const iv = setInterval(calc, 800);
+    // stop after 20s
+    setTimeout(()=>clearInterval(iv), 20000);
+    // initial call (if already loaded)
+    calc();
+  }
+
+  function setup(){
+    const pane = markNoScrollPreview();
+    autoSizeIframe(pane);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', setup);
+  } else { setup(); }
+})();
+</script>
+
+
+<!-- === Injected: Persistent User Lock controller === -->
+<script>
+(function(){
+  const STORAGE_KEY = 'mova_user_lock';
+
+  function getToolbar(){
+    return document.querySelector('#editorToolbar, .editor-toolbar, [data-editor-toolbar]') || document.querySelector('header .toolbar');
+  }
+
+  function ensureLockButton(){
+    let btn = document.querySelector('#btnUserLock');
+    if (!btn){
+      btn = document.createElement('button');
+      btn.id = 'btnUserLock';
+      btn.type = 'button';
+      btn.className = 'lock-btn';
+      btn.innerHTML = '<i data-lucide="lock"></i><span> Dikunci</span>';
+      const bar = getToolbar();
+      if (bar) bar.prepend(btn);
+      else {
+        btn.style.position='fixed'; btn.style.top='12px'; btn.style.right='12px'; btn.style.zIndex='1000';
+        document.body.appendChild(btn);
+      }
+      if (window.lucide?.createIcons) lucide.createIcons();
+    }
+    return btn;
+  }
+
+  function setTabDisabled(disabled){
+    const tabs = document.querySelectorAll('[role="tab"], [data-tab], .tab');
+    tabs.forEach(el=>{
+      const label = (el.dataset.tab || el.textContent || '').toLowerCase();
+      const isUser = /user/.test(label);
+      if (!isUser){
+        el.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+        if (disabled){
+          el.dataset.__locked = '1';
+          el.addEventListener('click', preventWhenLocked, true);
+        } else if (el.dataset.__locked){
+          el.removeEventListener('click', preventWhenLocked, true);
+          delete el.dataset.__locked;
+        }
+      }
+    });
+  }
+
+  function preventWhenLocked(e){
+    if (isLocked()){
+      e.stopPropagation();
+      e.preventDefault();
+      try{ window.toast && window.toast('Mod kunci aktif. Buka kunci untuk tukar tab.'); }catch(_){}
+    }
+  }
+
+  function isLocked(){
+    try{
+      return localStorage.getItem(STORAGE_KEY) === '1';
+    }catch(e){ return false; }
+  }
+
+  function applyLockUI(locked){
+    document.body.classList.toggle('ui-locked', !!locked);
+    setTabDisabled(!!locked);
+    const btn = ensureLockButton();
+    btn.dataset.locked = locked ? 'true' : 'false';
+    const label = btn.querySelector('span'); 
+    const ico = btn.querySelector('i');
+    if (label) label.textContent = locked ? ' Dikunci' : ' Buka Kunci';
+    if (ico){ ico.setAttribute('data-lucide', locked ? 'lock' : 'unlock'); }
+    if (window.lucide?.createIcons) lucide.createIcons();
+  }
+
+  function toggleLock(){
+    const next = !isLocked();
+    try{ localStorage.setItem(STORAGE_KEY, next ? '1' : '0'); }catch(e){}
+    applyLockUI(next);
+  }
+
+  function globalClickGuard(e){
     if (!isLocked()) return;
     if (e.target.closest('#sectionsList, [data-sections-list], .sections-list, .section-list')) return;
     if (e.target.closest('[data-editor-panel], .editor, .user-sections-panel')) return;
-    // prevent any other clicks
     e.stopPropagation(); e.preventDefault();
-  }, true);
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    const btn = ensureLockButton();
+    btn.addEventListener('click', toggleLock);
+    applyLockUI(isLocked());
+    document.addEventListener('click', globalClickGuard, true);
+  });
 })();
 </script>
 
