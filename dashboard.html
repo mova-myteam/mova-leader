@@ -4978,6 +4978,91 @@
     mo.observe(userTabEl, { childList:true, subtree:true });
   })();
 
+
+  // ====== LIVE PREVIEW SYNC (debounced) ======
+  (function livePreviewSync(){
+    // Find preview iframe robustly
+    function findPreviewIframe(){
+      return (
+        document.querySelector('#preview iframe') ||
+        document.querySelector('#userPreview iframe') ||
+        document.querySelector('iframe#sitePreview') ||
+        document.querySelector('iframe#previewFrame') ||
+        document.querySelector('#tab-user iframe') || // fallback: any iframe inside user tab
+        null
+      );
+    }
+
+    var previewIframe = findPreviewIframe();
+
+    function getPayload(){
+      try{
+        return {
+          sections: (window.store && store.sections) ? store.sections : [],
+          theme: (window.store && store.theme) ? store.theme : {},
+          settings: (window.store && store.settings) ? store.settings : {}
+        };
+      }catch(_){
+        return { sections: [], theme: {}, settings: {} };
+      }
+    }
+
+    var _t = null;
+    function postToPreviewDebounced(wait){
+      clearTimeout(_t);
+      _t = setTimeout(function(){
+        if (!previewIframe || !previewIframe.contentWindow){
+          previewIframe = findPreviewIframe();
+        }
+        if (previewIframe && previewIframe.contentWindow){
+          previewIframe.contentWindow.postMessage({ type: 'sections-updated', payload: getPayload() }, '*');
+        }
+      }, wait || 250);
+    }
+
+    // Kick once on iframe load
+    window.addEventListener('load', function(){
+      previewIframe = findPreviewIframe();
+      if (previewIframe){
+        previewIframe.addEventListener('load', function(){ postToPreviewDebounced(10); });
+        // If it doesn't fire (same-origin), still push once
+        postToPreviewDebounced(10);
+      }
+    });
+
+    // Extend existing user-tab edit listeners: re-use the same target (#tab-user)
+    var userTabEl = document.getElementById('tab-user');
+    if (userTabEl){
+      var ping = function(){ 
+        if (typeof lockUserEditing === 'function') lockUserEditing(12);
+        postToPreviewDebounced(200);
+      };
+      userTabEl.addEventListener('input', ping, true);
+      userTabEl.addEventListener('change', ping, true);
+      userTabEl.addEventListener('keydown', function(e){
+        // skip navigation keys to reduce noise
+        if (!['Shift','Alt','Control','Meta','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab','Escape'].includes(e.key)){
+          ping();
+        }
+      }, true);
+      userTabEl.addEventListener('click', function(e){
+        const trigger = e.target.closest && e.target.closest('[data-action], .btn, button');
+        if (trigger) postToPreviewDebounced(150);
+      }, true);
+    }
+
+    // Also observe DOM mutations within editor to catch programmatic updates
+    if (userTabEl){
+      var mo = new MutationObserver(function(){
+        postToPreviewDebounced(200);
+      });
+      mo.observe(userTabEl, {subtree:true, childList:true, attributes:true});
+    }
+
+    // Expose manual hook if code elsewhere updates sections
+    window.__previewSyncNow = function(){ postToPreviewDebounced(10); };
+  })();
+
 </script>
 
 </body>
