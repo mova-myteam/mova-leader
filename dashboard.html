@@ -5210,6 +5210,94 @@
     try { localStorage.setItem('mova_preview_src', target); } catch(_) {}
   })();
 
+
+  // ====== STRICT LIVE PREVIEW (force + heartbeat) ======
+  (function strictLivePreview(){
+    function getIframe(){
+      return document.getElementById('previewFrame') 
+          || document.querySelector('#previewFrame')
+          || document.querySelector('#preview iframe')
+          || document.querySelector('#userPreview iframe');
+    }
+    function ensureIframe(){
+      var iframe = getIframe();
+      if (!iframe){
+        var host = document.getElementById('tab-user') || document.body;
+        var container = document.getElementById('previewContainer');
+        if (!container){
+          container = document.createElement('div');
+          container.id = 'previewContainer';
+          container.style.border = '1px solid #e5e7eb';
+          container.style.borderRadius = '12px';
+          container.style.background = '#fff';
+          container.style.marginTop = '12px';
+          container.style.overflow = 'hidden';
+          host.appendChild(container);
+        }
+        iframe = document.createElement('iframe');
+        iframe.id = 'previewFrame';
+        iframe.style.width = '100%';
+        iframe.style.height = '72vh';
+        iframe.style.border = '0';
+        iframe.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups');
+        container.appendChild(iframe);
+      }
+      return iframe;
+    }
+    var iframe = ensureIframe();
+    var targetSrc = location.origin + '/user.html?edit=1&preview=1';
+    if (iframe.src !== targetSrc) iframe.src = targetSrc;
+
+    function payload(){
+      try{
+        return {
+          sections: (window.store && store.sections) ? store.sections : [],
+          theme: (window.store && store.theme) ? store.theme : {},
+          settings: (window.store && store.settings) ? store.settings : {}
+        };
+      }catch(e){ return { sections: [], theme:{}, settings:{} }; }
+    }
+    function send(type, body){
+      iframe = getIframe() || ensureIframe();
+      if (iframe && iframe.contentWindow){
+        iframe.contentWindow.postMessage({ type:type, payload: body }, '*');
+      }
+    }
+    // Tell child we're in edit mode
+    window.addEventListener('load', function(){
+      setTimeout(function(){
+        send('toggle-edit', { on:true });
+        send('sections-updated', payload());
+      }, 250);
+    });
+
+    // Debounced streaming on interactions
+    var t=null;
+    function stream(){ clearTimeout(t); t=setTimeout(function(){ send('sections-updated', payload()); }, 180); }
+
+    var userTab = document.getElementById('tab-user') || document.body;
+    ['input','change','keyup','keydown','click'].forEach(function(evt){
+      userTab.addEventListener(evt, function(e){
+        stream();
+      }, true);
+    });
+
+    // Heartbeat while tab 'user' is active: every 2.5s refresh to keep in sync
+    setInterval(function(){
+      // only when user tab is visible
+      var tab = document.getElementById('tab-user');
+      if (tab && !tab.classList.contains('hidden')){
+        send('sections-updated', payload());
+      }
+    }, 2500);
+
+    // Also resync after any DOM mutations within editor
+    try{
+      var mo = new MutationObserver(function(){ stream(); });
+      mo.observe(userTab, { childList:true, subtree:true, attributes:true, characterData:true });
+    }catch(_){}
+  })();
+
 </script>
 
 </body>
