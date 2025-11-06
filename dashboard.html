@@ -4866,6 +4866,15 @@
   opacity:.5; pointer-events:none; filter:grayscale(1);
 }
 
+<
+/* === Equalize Editor & Preview Panes (height & scroll length) === */
+[data-pane-left],[data-pane-right]{
+  /* allow independent scrolling while keeping equal heights */
+  overflow:auto;
+}
+/* ensure flex/grid parents stretch children equally */
+.equalize-container{align-items:stretch;}
+
 </style>
 <script>
 (function(){
@@ -5191,6 +5200,86 @@
       e.returnValue = '';
     });
   });
+})();
+</script>
+
+
+<script>
+// === Equalize left editor & right preview heights/lengths ===
+(function(){
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+
+  // Try to locate the User tab main 2-column container
+  function findPanes(){
+    const root = document.getElementById('tab-user') || document.querySelector('#tab-user') || document;
+    // Common layouts: grid with 2 children, or flex with 2 children
+    const candidates = $all('#tab-user .grid, #tab-user .flex, #tab-user [class*="grid"], #tab-user [class*="flex"]');
+    for (const c of candidates){
+      const kids = Array.from(c.children).filter(n=>n.nodeType===1);
+      if (kids.length >= 2){
+        // Prefer obvious "editor" / "preview" hints
+        let left = kids.find(k => /editor/i.test(k.id + ' ' + k.className)) || kids[0];
+        let right = kids.find(k => /preview|iframe/i.test(k.id + ' ' + k.className)) || kids[1];
+        // If right contains an iframe preview, choose the container that wraps it
+        if (right && right.querySelector && right.querySelector('iframe')){
+          // keep as is
+        }
+        // Heuristic: ensure left is visually on the left by DOM order; if swapped, swap
+        if (left && right && left.compareDocumentPosition(right) & Node.DOCUMENT_POSITION_FOLLOWING){
+          // ok
+        } else {
+          // if uncertain and kids length >=2, assign first two
+          left = kids[0]; right = kids[1];
+        }
+        // Mark and return
+        left.setAttribute('data-pane-left','');
+        right.setAttribute('data-pane-right','');
+        c.classList.add('equalize-container');
+        return {left,right,container:c};
+      }
+    }
+    return null;
+  }
+
+  function equalize(pair){
+    if (!pair) return;
+    const L = pair.left, R = pair.right;
+    // Compute full scroll heights (content length)
+    const lh = Math.max(L.scrollHeight, L.getBoundingClientRect().height);
+    const rh = Math.max(R.scrollHeight, R.getBoundingClientRect().height);
+    const target = Math.max(lh, rh, window.innerHeight - 160); // 160 as header/footer buffer
+    // Apply min-height so both stretch equally; keep auto height for natural growth
+    L.style.minHeight = target + 'px';
+    R.style.minHeight = target + 'px';
+  }
+
+  function setup(){
+    const pair = findPanes();
+    if (!pair) return;
+    // Observe size/content changes
+    const ro = new ResizeObserver(()=>equalize(pair));
+    ro.observe(pair.left);
+    ro.observe(pair.right);
+
+    const mo = new MutationObserver(()=>equalize(pair));
+    mo.observe(pair.left, {subtree:true, childList:true, characterData:true});
+    mo.observe(pair.right, {subtree:true, childList:true, characterData:true});
+
+    // Re-equalize on window resize and after small delays
+    window.addEventListener('resize', ()=>equalize(pair));
+    setTimeout(()=>equalize(pair), 50);
+    setTimeout(()=>equalize(pair), 250);
+    setTimeout(()=>equalize(pair), 800);
+    // Also re-run after potential preview refresh events
+    document.addEventListener('sections-updated', ()=>equalize(pair));
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', setup);
+  } else {
+    setup();
+  }
 })();
 </script>
 
