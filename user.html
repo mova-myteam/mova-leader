@@ -8,7 +8,6 @@
   <!-- Fonts & Libraries -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Fixed: removed stray space in unpkg URL -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -160,7 +159,7 @@
       headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
       body: new URLSearchParams({ path, payload: JSON.stringify(payload || {}) })
     });
-    const text = await res.text(); // Fixed: call text()
+    const text = await res.text();
     let json;
     try { json = JSON.parse(text); } catch (e) { throw new Error(text); }
     if (json && json.success === false) throw new Error(json.error || 'Ralat tidak diketahui');
@@ -170,14 +169,24 @@
   const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
   let pageSections = [];
 
+  // Always listen to dashboard messages (so preview is live even without ?edit=1)
+  window.addEventListener('message', handleIframeMessage);
+
   if (EDIT_MODE) {
-    window.addEventListener('message', handleIframeMessage);
     document.body.classList.add('edit-mode');
   }
 
   function handleIframeMessage(event) {
     const { type, data } = event.data || {};
+
     switch (type) {
+      case 'sections-updated': {
+        const payload = (event.data && event.data.payload) || {};
+        const sections = Array.isArray(payload.sections) ? payload.sections : [];
+        pageSections = sections;
+        renderPage();
+        break;
+      }
       case 'toggle-edit': {
         document.body.classList.toggle('edit-mode', event.data.on);
         break;
@@ -189,7 +198,7 @@
       }
       case 'select-section': {
         document.querySelectorAll('.page-section.selected').forEach(el => el.classList.remove('selected'));
-        const sectionEl = document.querySelector(`[data-section-id="${data.id}"]`); // Fixed selector
+        const sectionEl = document.querySelector(`[data-section-id="${data.id}"]`);
         if (sectionEl) {
           sectionEl.classList.add('selected');
           sectionEl.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
@@ -198,7 +207,7 @@
       }
       case 'select-element': {
         document.querySelectorAll('.page-element.selected').forEach(el => el.classList.remove('selected'));
-        const el = document.querySelector(`[data-id="${data.id}"]`); // Fixed selector
+        const el = document.querySelector(`[data-id="${data.id}"]`);
         if (el) {
           el.classList.add('selected');
           el.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
@@ -210,9 +219,8 @@
         break;
       }
       case 'update-element': {
-        const el = document.querySelector(`[data-id="${data.id}"]`); // unique var name
+        const el = document.querySelector(`[data-id="${data.id}"]`);
         if (el && data?.properties) {
-          // Apply style properties directly to the element
           Object.keys(data.properties).forEach(prop => {
             if (prop === 'content') {
               el.innerHTML = data.properties[prop];
@@ -284,7 +292,6 @@
       case 'update-section': {
         const section = document.querySelector(`[data-section-id="${data.id}"]`);
         if (section && data?.properties) {
-          // Apply style properties directly to the section
           Object.keys(data.properties).forEach(prop => {
             if (prop === 'backgroundColor') {
               section.style.backgroundColor = data.properties[prop];
@@ -377,7 +384,6 @@
       makeElementsSelectable();
     }
 
-    // Repaint Lucide icons
     if (window.lucide?.createIcons) lucide.createIcons();
   }
 
@@ -387,24 +393,20 @@
     sectionDiv.dataset.id = section.id;
     sectionDiv.dataset.sectionId = section.id;
 
-    // Apply section styles
     Object.assign(sectionDiv.style, {
       backgroundColor: section.backgroundColor || 'transparent',
       padding: section.padding || '4rem 1rem',
       borderRadius: `${section.borderRadius || 0}px`
     });
 
-    // Apply section style classes
     if (section.style && section.style !== 'default') {
       sectionDiv.classList.add(`section-style-${section.style}`);
     }
 
-    // Apply background image if exists
     if (section.backgroundImage) {
       sectionDiv.style.backgroundImage = section.backgroundImage;
     }
 
-    // Apply background pattern if exists
     if (section.pattern && section.pattern !== 'none') {
       switch (section.pattern) {
         case 'dots':
@@ -463,43 +465,27 @@
       boxSizing: 'border-box'
     });
 
-    // Apply shape styles
+    // shape
     if (el.shape) {
       switch (el.shape) {
-        case 'circle':
-          wrap.style.borderRadius = '50%';
-          break;
-        case 'rounded':
-          wrap.style.borderRadius = '0.75rem';
-          break;
-        case 'pill':
-          wrap.style.borderRadius = '9999px';
-          break;
-        case 'diamond':
-          wrap.style.transform = 'rotate(45deg)';
-          break;
+        case 'circle': wrap.style.borderRadius = '50%'; break;
+        case 'rounded': wrap.style.borderRadius = '0.75rem'; break;
+        case 'pill': wrap.style.borderRadius = '9999px'; break;
+        case 'diamond': wrap.style.transform = 'rotate(45deg)'; break;
       }
     }
 
-    // Apply shadow styles
+    // shadow
     if (el.shadow) {
       switch (el.shadow) {
-        case 'sm':
-          wrap.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)';
-          break;
-        case 'md':
-          wrap.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
-          break;
-        case 'lg':
-          wrap.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)';
-          break;
-        case 'xl':
-          wrap.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-          break;
+        case 'sm': wrap.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'; break;
+        case 'md': wrap.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'; break;
+        case 'lg': wrap.style.boxShadow = '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'; break;
+        case 'xl': wrap.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'; break;
       }
     }
 
-    // Apply animation styles
+    // animation
     if (el.animation && el.animation !== 'none') {
       wrap.style.animation = `${el.animation} ${el.animationDuration || 1000}ms ${el.animationDelay || 0}ms ease forwards`;
     }
@@ -527,7 +513,6 @@
         img.style.borderRadius = '0.75rem';
         img.style.objectFit = el.objectFit || 'cover';
         
-        // Make image clickable if needed
         if (el.clickable === 'yes' && el.linkUrl) {
           const link = document.createElement('a');
           link.href = el.linkUrl;
@@ -578,14 +563,7 @@
         break;
       }
       case 'social': {
-        const iconMap = { 
-          facebook:'facebook', 
-          instagram:'instagram', 
-          tiktok:'tiktok', 
-          youtube:'youtube', 
-          telegram:'telegram', 
-          whatsapp:'whatsapp' 
-        };
+        const iconMap = { facebook:'facebook', instagram:'instagram', tiktok:'tiktok', youtube:'youtube', telegram:'telegram', whatsapp:'whatsapp' };
         const icon = iconMap[el.platform] || 'message-circle';
         const url = el.url || '#';
         const size = Number(el.size) || 24;
@@ -617,11 +595,11 @@
       }
       case 'link': {
         const url = el.url || '#';
-        const target = el.target || '_blank';
+        the_target = el.target || '_blank';
         const text = el.text || 'Link';
         const link = document.createElement('a');
         link.href = url;
-        link.target = target;
+        link.target = the_target;
         link.style.textDecoration = el.textDecoration || 'none';
         link.style.color = el.color || '#374151';
         link.style.display = 'inline-block';
@@ -632,16 +610,14 @@
         break;
       }
       case 'calculator': {
-        // Create calculator container
         const calculatorContainer = document.createElement('div');
         calculatorContainer.className = 'calculator-container';
         calculatorContainer.style.backgroundColor = el.backgroundColor || '#ffffff';
         calculatorContainer.style.color = el.color || '#000000';
         calculatorContainer.style.borderRadius = el.borderRadius || '1rem';
         calculatorContainer.style.padding = el.padding || '1.5rem';
-        calculatorContainer.style.boxShadow = el.boxShadow || '0 4px 6px -1px rgba(0, 0, 0, 0.1)';
+        calculatorContainer.style.boxShadow = el.boxShadow || '0 4px 6px -1px rgba(0,0,0,0.1)';
         
-        // Create title
         const title = document.createElement('h3');
         title.textContent = el.title || 'Kalkulator Cashback';
         title.style.textAlign = 'center';
@@ -650,7 +626,6 @@
         title.style.fontWeight = '700';
         calculatorContainer.appendChild(title);
         
-        // Create input
         const inputContainer = document.createElement('div');
         inputContainer.style.marginBottom = '1rem';
         
@@ -674,7 +649,6 @@
         
         calculatorContainer.appendChild(inputContainer);
         
-        // Create button
         const button = document.createElement('button');
         button.textContent = el.buttonText || 'Kira Cashback';
         button.style.backgroundColor = el.buttonColor || '#ef4444';
@@ -688,17 +662,14 @@
         button.style.width = '100%';
         button.style.marginBottom = '1rem';
         
-        // Create result
         const resultContainer = document.createElement('div');
         resultContainer.style.textAlign = 'center';
         resultContainer.style.fontSize = '1.125rem';
         resultContainer.style.fontWeight = '600';
         resultContainer.style.marginTop = '1rem';
         
-        // Add click event to button
         button.addEventListener('click', function() {
           const amount = parseFloat(input.value) || 0;
-          // Get cashback percentage from settings (default 5-10%)
           const minPercent = 5;
           const maxPercent = 10;
           const percent = minPercent + Math.random() * (maxPercent - minPercent);
@@ -711,9 +682,7 @@
         wrap.appendChild(calculatorContainer);
         break;
       }
-      default: {
-        wrap.textContent = '';
-      }
+      default: { wrap.textContent = ''; }
     }
 
     return wrap;
@@ -751,7 +720,7 @@
   function makeSectionsSelectable() {
     document.querySelectorAll('.page-section').forEach(sec => {
       sec.addEventListener('click', (e) => {
-        if (e.target.closest('.page-element')) return; // do not select section when clicking element
+        if (e.target.closest('.page-element')) return;
         e.stopPropagation();
         document.querySelectorAll('.page-section.selected').forEach(s => s.classList.remove('selected'));
         sec.classList.add('selected');
