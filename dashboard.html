@@ -188,6 +188,28 @@
 body.tabs-locked [data-tab]:not([data-tab="user"]) { pointer-events: none !important; opacity: .45 !important; }
 body.tabs-locked #lockHint { display: block !important; }
 #lockHint{ display:none; border:1px dashed #fecaca; background:#fff1f2; color:#b91c1c; border-radius:.75rem; padding:.5rem .75rem; font-size:.85rem; }
+
+/* === Edit-Only Lock (strong) === */
+body.tabs-locked { --lock-blur: 2px; }
+body.tabs-locked * { pointer-events: none !important; }
+body.tabs-locked #tab-user,
+body.tabs-locked #tab-user *,
+body.tabs-locked #btnLockEdit,
+body.tabs-locked #btnSaveDesign,
+body.tabs-locked [data-action="save"],
+body.tabs-locked .editor-toolbar,
+body.tabs-locked #lockHint { pointer-events: auto !important; }
+/* Visually dim non-editor areas */
+body.tabs-locked header, body.tabs-locked nav, body.tabs-locked .topbar,
+body.tabs-locked [data-tab]:not([data-tab="user"]) { filter: grayscale(.2) brightness(.92); opacity: .45 !important; }
+/* Make preview area non-clickable when locked (to avoid accidental focus) */
+body.tabs-locked #previewFrame { pointer-events: none !important; }
+/* Keep scroll usable inside #tab-user only */
+body.tabs-locked { overflow: hidden; }
+body.tabs-locked #tab-user { overflow: auto; }
+/* Hint banner */
+#lockHint{ display:none; border:1px dashed #fecaca; background:#fff1f2; color:#b91c1c; border-radius:.75rem; padding:.6rem .8rem; font-size:.85rem; }
+body.tabs-locked #lockHint{ display:block !important; }
 </style>
 </head>
 <body class="bg-gray-50">
@@ -5026,6 +5048,68 @@ body.tabs-locked #lockHint { display: block !important; }
     window.setActiveTab = function(name){
       if (document.body.classList.contains('tabs-locked') && name !== 'user'){
         try{ toast('Sedang mengedit — tab lain dikunci.'); }catch(e){}
+        return;
+      }
+      return _setActiveTab(name);
+    }
+  }
+})();
+
+// === Edit-Only Lock Enhancements ===
+(function(){
+  const LOCK_KEY = 'mova_user_tab_lock';
+  const btn = document.getElementById('btnLockEdit');
+  const lockHint = document.getElementById('lockHint');
+  const userTab = document.getElementById('tab-user') || document.body;
+
+  function setBtn(isLocked){
+    if (!btn) return;
+    btn.title = isLocked ? 'Buka Kunci (aktifkan semula semua tab)' : 'Kunci Edit (hadkan kepada editor sahaja)';
+    const icon = btn.querySelector('i[data-lucide]');
+    if (icon){ icon.setAttribute('data-lucide', isLocked ? 'lock-keyhole' : 'lock'); }
+    if (window.lucide?.createIcons) lucide.createIcons();
+  }
+  function applyLock(isLocked){
+    document.body.classList.toggle('tabs-locked', !!isLocked);
+    setBtn(!!isLocked);
+    if (isLocked) { try{ setActiveTab('user'); }catch(e){} }
+    if (lockHint) lockHint.textContent = 'Mod edit terkunci: hanya editor dibenarkan. Buka kunci untuk ke tab lain.';
+  }
+
+  // Persisted init
+  const initial = localStorage.getItem(LOCK_KEY) === '1';
+  applyLock(initial);
+
+  if (btn){
+    btn.addEventListener('click', function(){
+      const now = !document.body.classList.contains('tabs-locked');
+      localStorage.setItem(LOCK_KEY, now ? '1' : '0');
+      applyLock(now);
+      try{ toast(now ? 'Mod edit dikunci — hanya editor aktif' : 'Kunci dibuka'); }catch(_){}
+    });
+  }
+
+  // Hard guard: intercept any clicks outside #tab-user when locked
+  document.addEventListener('click', function(e){
+    if (!document.body.classList.contains('tabs-locked')) return;
+    if (!userTab.contains(e.target) && e.target !== btn){ e.stopPropagation(); e.preventDefault(); }
+  }, true);
+
+  // Guard keyboard navigation while locked (e.g., Alt/Meta shortcuts)
+  document.addEventListener('keydown', function(e){
+    if (!document.body.classList.contains('tabs-locked')) return;
+    // Allow typing inside editor fields
+    if (userTab.contains(document.activeElement)) return;
+    // Block global shortcuts
+    if (e.key){ e.stopPropagation(); e.preventDefault(); }
+  }, true);
+
+  // Patch setActiveTab as a final gate
+  const _setActiveTab = window.setActiveTab;
+  if (typeof _setActiveTab === 'function'){
+    window.setActiveTab = function(name){
+      if (document.body.classList.contains('tabs-locked') && name !== 'user'){
+        try{ toast('Sedang mengedit — tab lain dikunci hingga anda buka kunci.'); }catch(_){}
         return;
       }
       return _setActiveTab(name);
