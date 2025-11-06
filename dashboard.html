@@ -5351,5 +5351,133 @@ async function callApi(path, payload) {
 }
 </script>
 
+
+<script>
+// === MOVA strict lock guard ===
+// Persisted lock flag helper
+function movaIsLocked() {
+  try { return localStorage.getItem('mova_edit_locked') === '1' || localStorage.getItem('mova_edit_lock') === '1'; }
+  catch(e){ return false; }
+}
+
+// Optional: expose helpers to existing UI
+window.movaIsLocked = movaIsLocked;
+
+// Try to wrap setActiveTab if it exists so that we never leave User tab while locked.
+(function(){
+  const guardTabs = ['user','users','user-sections','user sections','user section','sections','usersections'];
+  function isUserTabName(name){
+    if (!name) return false;
+    const n = (''+name).toLowerCase().trim();
+    return guardTabs.some(g => n === g || n.includes(g));
+  }
+  const tryWrap = () => {
+    if (typeof window.setActiveTab === 'function' && !window._setActiveTabOrig) {
+      window._setActiveTabOrig = window.setActiveTab;
+      window.setActiveTab = function(next){
+        if (movaIsLocked()) {
+          // Read current tab text/id if available to detect staying-on-user behavior
+          try {
+            const activeEl = document.querySelector('[data-tab].active, .tab-active, [aria-selected="true"]');
+            const activeName = activeEl?.dataset?.tab || activeEl?.textContent || '';
+            if (!isUserTabName(next) && !isUserTabName(activeName)) {
+              // Not on user tab yet; allow only if moving INTO user tab
+              if (!isUserTabName(next)) return; // block
+            } else {
+              // Already on user tab -> block moving away
+              if (!isUserTabName(next)) return;
+            }
+          } catch(e){ /* no-op */ }
+        }
+        return window._setActiveTabOrig.apply(this, arguments);
+      };
+      console.log('[MOVA strict lock] setActiveTab wrapped.');
+    }
+  };
+  // Attempt now & after page settles
+  tryWrap();
+  window.addEventListener('load', tryWrap);
+  setTimeout(tryWrap, 1000);
+})();
+
+// Capture clicks globally: when locked, allow interactions only inside the User Sections/editor areas.
+(function(){
+  const userSelectors = [
+    '#user-sections',
+    '.user-sections',
+    '[data-user-sections]',
+    '#editor',
+    '.editor-panel',
+    '[data-panel="user"]'
+  ];
+  function withinUserArea(el){
+    return !!(el && el.closest && userSelectors.some(sel => el.closest(sel)));
+  }
+  function shouldAllow(el){
+    if (!movaIsLocked()) return true;
+    // Allow clicks within the user/editor area
+    if (withinUserArea(el)) return true;
+    // Allow benign controls like formatting popovers inside editor if they happen to be detached
+    const id = (el.id||'').toLowerCase(), cls = (el.className||'').toString().toLowerCase();
+    if (id.includes('popover') || id.includes('tooltip') || cls.includes('popover') || cls.includes('tooltip')) return true;
+    return false;
+  }
+
+  // Block pointer-based navigation while locked
+  window.addEventListener('pointerdown', function(ev){
+    if (!movaIsLocked()) return;
+    const t = ev.target;
+    // If target is a tab/button/link to change section, block
+    const isTabIntent =
+      t.closest('[data-tab]') ||
+      t.closest('a[href^="#tab-"], a[href^="#"], button[data-tab], .tab, .tab-btn, [role="tab"]');
+    if (isTabIntent && !withinUserArea(t)) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      console.warn('[MOVA strict lock] Tab change blocked while locked.');
+    }
+  }, true);
+
+  // Block generic clicks that would change main panels
+  window.addEventListener('click', function(ev){
+    if (!shouldAllow(ev.target)) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      console.warn('[MOVA strict lock] Click blocked outside User Section while locked.');
+    }
+  }, true);
+
+  // Block keyboard shortcuts that might switch tabs (e.g., Ctrl+1/2...), only allow inside editor
+  window.addEventListener('keydown', function(ev){
+    if (!movaIsLocked()) return;
+    const k = ev.key;
+    const isNavHotkey = (ev.ctrlKey || ev.metaKey) && ['1','2','3','4','5','6','7','8','9','0'].includes(k);
+    if (isNavHotkey && !withinUserArea(ev.target)) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      console.warn('[MOVA strict lock] Hotkey blocked while locked.');
+    }
+  }, true);
+
+  // Safety net: if some script still flips the tab class, revert back immediately
+  const tabRoot = document.body;
+  const mo = new MutationObserver(() => {
+    if (!movaIsLocked()) return;
+    // If we can detect any active tab marker not pointing to user, try to force back by clicking user tab if available
+    const active = document.querySelector('[data-tab].active, .tab-active, [role="tab"][aria-selected="true"]');
+    const name = active?.dataset?.tab || active?.textContent || '';
+    const onUser = (''+name).toLowerCase().includes('user');
+    if (!onUser) {
+      const candidate = document.querySelector('[data-tab="user"], [data-tab="User"], [href="#tab-user"], [href="#user"]');
+      if (candidate && typeof candidate.click === 'function') {
+        candidate.click();
+        console.log('[MOVA strict lock] Forced back to User tab.');
+      }
+    }
+  });
+  try { mo.observe(tabRoot, { subtree: true, attributes: true, attributeFilter: ['class','aria-selected'] }); } catch(e){}
+})();
+</script>
+
 </body>
 </html>                                 
