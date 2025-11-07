@@ -5835,5 +5835,56 @@ window.movaIsLocked = movaIsLocked;
 })();
 </script>
 <!-- ==== /MOVA DRAFT/PUBLISH RECIPE PATCH ==== -->
+
+<!-- ==== MOVA LIVE SYNC BOOST (global listeners + store proxy) ==== -->
+<script>
+(function(){
+  if (window.__movaBoostedLiveSync) return;
+  window.__movaBoostedLiveSync = true;
+
+  const iframe = document.getElementById('userPreview');
+  const to = (fn,ms)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(this,a), ms); } };
+  const debouncedSend = to(()=>{ try{ window.__movaSyncPreviewNow && window.__movaSyncPreviewNow('boosted'); }catch(e){} }, 80);
+
+  // 1) Global capture listeners (covers inputs, contenteditable, color pickers, selects, sliders, etc.)
+  ['input','change','keyup','paste','cut'].forEach(evt=>{
+    document.addEventListener(evt, function(){ debouncedSend(); }, true);
+  });
+
+  // 2) Observe attribute/text changes under editor panel
+  const editorRoot = document.getElementById('propertiesPanel') || document.body;
+  const mo = new MutationObserver(debouncedSend);
+  mo.observe(editorRoot, { attributes:true, characterData:true, childList:true, subtree:true });
+
+  // 3) Proxy store to detect changes to sections/settings/selectedSectionId
+  try {
+    if (window.store && !window.store.__proxied) {
+      const raw = window.store;
+      const handler = {
+        set(obj, prop, value){
+          obj[prop] = value;
+          if (prop === 'sections' || prop === 'settings' || prop === 'selectedSectionId') {
+            debouncedSend();
+          }
+          return true;
+        }
+      };
+      window.store = new Proxy(raw, handler);
+      window.store.__proxied = true;
+    }
+  } catch(e){}
+
+  // 4) Ensure iframe handshake ping on ready
+  if (iframe){
+    iframe.addEventListener('load', function(){
+      try{ iframe.contentWindow && iframe.contentWindow.postMessage({type:'mova-bridge-ping'}, '*'); }catch(e){}
+      debouncedSend();
+    });
+  }
+
+  console.log('[MOVA LiveSync Boost] Global listeners + store proxy active.');
+})();
+</script>
+<!-- ==== /MOVA LIVE SYNC BOOST ==== -->
 </body>
 </html>                                 
