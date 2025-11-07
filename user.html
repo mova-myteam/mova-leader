@@ -143,7 +143,7 @@
 <div id="toast" class="toast hidden"></div>
 
 <script>
-  // IMPORTANT: Kekalkan EXEC_URL seperti diberikan
+  // Kekalkan EXEC_URL asal
   const EXEC_URL = "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec";
 
   function toast(msg, ms = 2200) {
@@ -170,9 +170,7 @@
   const EDIT_MODE = new URLSearchParams(location.search).get('edit') === '1';
   let pageSections = [];
 
-  // ==========================================================
-  // ADAPTER / NORMALIZER — serasikan SEED (blocks) ↔ renderer (elements)
-  // ==========================================================
+  // ========== Normalizer & Adapter ==========
   function mapBlockToElement(sectionId, block, idx) {
     const id = (block?.id || `${sectionId}-el-${idx}`);
     const base = { id, sectionId, gridColumn: 'span 12 / span 12', padding: '10px' };
@@ -247,9 +245,9 @@
     } catch(e){ arr = []; }
     return arr.map(adaptSection);
   }
-  // ==========================================================
+  // ==========================================
 
-  // sentiasa dengar mesej dari dashboard (preview live)
+  // Listener mesej dari dashboard & toggles
   window.addEventListener('message', handleIframeMessage);
   if (EDIT_MODE) document.body.classList.add('edit-mode');
 
@@ -446,9 +444,7 @@
   }
 
   function renderPage() {
-    // Guard — sentiasa normalise
     pageSections = normalizeSections(pageSections);
-
     const mainContent = document.getElementById('main');
     if (!mainContent) return;
     mainContent.innerHTML = '';
@@ -825,7 +821,6 @@
       var raw = localStorage.getItem('mova_preview_bootstrap');
       if (raw){
         var payload = JSON.parse(raw);
-        // sokong { sections: [...] } atau array terus
         var sections = Array.isArray(payload.sections) ? payload.sections : payload.sections;
         pageSections = normalizeSections(sections);
         renderPage();
@@ -840,15 +835,10 @@
     try {
       const leader_id = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
       const response = await api('settings_get', { leader_id });
-
-      // Log debug (pilihan): buka untuk semak bentuk data
-      // console.log('[MOVA] settings_get raw:', response);
-
       if (response?.success) {
         const rawSections = response.settings?.sections_json ?? response.settings?.sections ?? [];
         pageSections = normalizeSections(rawSections);
       }
-
       renderPage();
 
       if (EDIT_MODE) {
@@ -884,18 +874,20 @@
       window.pageSections = normalizeSections(window.__previewTransient.sections);
       renderPage();
 
-      // Opsyenal: fokus pada bahagian yang dipilih
+      // Fokus pada bahagian dipilih (hanya jika diberikan)
       const id = window.__previewTransient.selectedId;
       if (id) {
-        const el = document.querySelector('[data-section-id=\"'+id+'\"], #section-'+id+', #sec-'+id);
-        el && el.scrollIntoView({ behavior:'smooth', block:'center' });
-        el && el.classList.add('editing-focus');
-        setTimeout(()=>{ el && el.classList.remove('editing-focus'); }, 400);
+        const el = document.querySelector('[data-section-id="'+id+'"], #section-'+id+', #sec-'+id);
+        if (el) {
+          el.scrollIntoView({ behavior:'smooth', block:'center' });
+          el.classList.add('editing-focus');
+          setTimeout(()=> el.classList.remove('editing-focus'), 400);
+        }
       }
     }catch(e){ console.warn('[MOVA Bridge] updateFromSections error:', e); }
   };
 
-  // Listener khusus untuk mesej dari dashboard
+  // Listener mesej dari dashboard
   window.addEventListener('message', function(e){
     const msg = e.data || {};
     if (msg.type === 'mova-bridge-ping') {
@@ -909,7 +901,7 @@
       return;
     }
     if (msg.type === 'scroll-to-section' && msg.id) {
-      const t = document.querySelector('[data-section-id=\"'+msg.id+'\"]') ||
+      const t = document.querySelector('[data-section-id="'+msg.id+'"]') ||
                 document.getElementById('section-'+msg.id) ||
                 document.getElementById('sec-'+msg.id);
       t && t.scrollIntoView({ behavior:'smooth', block:'center' });
