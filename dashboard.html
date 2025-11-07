@@ -84,7 +84,7 @@
                 <h2 class="font-bold">Sunting Bahagian</h2>
                 <span class="pill">Pratonton hidup</span>
               </div>
-              <div class="text-xs text-slate-500">Simpan automatik</div>
+              <div class="text-xs text-slate-500">Pratonton hidup (tidak menyimpan)</div>
             </div>
 
             <div id="secList" class="space-y-2"></div>
@@ -538,8 +538,7 @@ async function onApplySettings(){
       theme_color: BRAND,
       content_width: String(CONTENT_WIDTH),
       fonnte_api: FONNTE_KEY,
-      whatsapp: LEADER_PHONE,
-      sections
+      whatsapp: LEADER_PHONE
     });
     toast("Tetapan & kandungan disimpan.");
   }catch(e){ toast("Gagal simpan ke sistem."); }
