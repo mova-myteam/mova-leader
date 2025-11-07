@@ -5479,5 +5479,104 @@ window.movaIsLocked = movaIsLocked;
 })();
 </script>
 
+
+<!-- ==== LIVE SYNC PATCH (7 Nov 2025) ==== -->
+<script>
+(function(){
+  // Guard against duplicate injection
+  if (window.__movaLiveSyncPatched) return;
+  window.__movaLiveSyncPatched = true;
+
+  // Helpers
+  function $(sel, root){ return (root||document).querySelector(sel); }
+  function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
+
+  // Elements
+  const iframe = document.getElementById('userPreview');
+  const propertiesPanel = document.getElementById('propertiesPanel');
+  const sectionList = document.getElementById('sectionList');
+
+  // Basic state accessors (reuse existing globals if available)
+  const getStore = () => (window.store || {});
+
+  // --- Messaging to iframe ---
+  function sendPreviewUpdate(reason){
+    try {
+      const st = getStore();
+      const payload = {
+        type: 'sections-live-update',
+        sections: st.sections || [],
+        selectedId: st.selectedSectionId || null,
+        settings: st.settings || {},
+        reason: reason || 'input'
+      };
+      if (iframe && iframe.contentWindow) {
+        // Primary: tell user.html (edit mode) to re-render
+        iframe.contentWindow.postMessage(payload, '*');
+        // Optional direct call if user.html exposes an updater
+        try { iframe.contentWindow.updateFromSections && iframe.contentWindow.updateFromSections(payload); } catch(e){}
+      }
+    } catch (err) {
+      console.warn('[MOVA LiveSync] sendPreviewUpdate error:', err);
+    }
+  }
+
+  function scrollPreviewToSection(sectionId){
+    if (!iframe) return;
+    // Ask iframe to handle scroll itself
+    try {
+      iframe.contentWindow && iframe.contentWindow.postMessage({ type:'scroll-to-section', id: sectionId }, '*');
+    } catch(e){}
+    // Fallback: try to scroll by directly accessing the DOM
+    try {
+      const d = iframe.contentDocument;
+      if (!d) return;
+      const el = d.querySelector('[data-section-id=\"'+sectionId+'\"], #section-'+sectionId+', #sec-'+sectionId);
+      el && el.scrollIntoView({ behavior:'smooth', block:'center' });
+    } catch(err){
+      console.warn('[MOVA LiveSync] scroll fallback error:', err);
+    }
+  }
+
+  // --- Event hooks ---
+  // 1) When iframe is ready, push the current sections/settings once
+  if (iframe){
+    iframe.addEventListener('load', function(){
+      // small delay to let user.html boot
+      setTimeout(function(){ sendPreviewUpdate('iframe-load'); }, 150);
+    });
+  }
+
+  // 2) Any change within Properties Panel or Section List triggers a live update
+  function attachLiveInputs(root){
+    if (!root) return;
+    root.addEventListener('input',  function(){ sendPreviewUpdate('input'); }, { passive: true });
+    root.addEventListener('change', function(){ sendPreviewUpdate('change'); }, { passive: true });
+    root.addEventListener('keyup',  function(){ sendPreviewUpdate('keyup'); }, { passive: true });
+  }
+  attachLiveInputs(propertiesPanel);
+  attachLiveInputs(sectionList);
+
+  // 3) When a section item is clicked/selected, scroll the preview to the same section
+  document.addEventListener('click', function(e){
+    const item = e.target.closest('.section-item');
+    if (!item) return;
+    const selId = item.dataset && (item.dataset.id || item.dataset.sectionId);
+    const st = getStore();
+    // Update happens anyway by existing code; we only drive the preview scroll
+    const id = selId || st.selectedSectionId;
+    if (id) {
+      // brief delay to allow any re-render on the iframe side
+      setTimeout(function(){ scrollPreviewToSection(id); }, 60);
+    }
+  }, true);
+
+  // 4) Public hook if the existing editor wants to explicitly trigger sync
+  window.__movaSyncPreviewNow = function(reason){ sendPreviewUpdate(reason || 'manual'); }
+
+  console.log('[MOVA LiveSync] Patch active: live preview + scroll sync.');
+})();
+</script>
+<!-- ==== /LIVE SYNC PATCH ==== -->
 </body>
 </html>                                 
