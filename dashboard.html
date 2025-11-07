@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Dashboard (Lengkap)</title>
+  <title>MOVA Leader — Dashboard (Fonnte + Org Tree + Live Preview)</title>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -29,9 +29,7 @@
     .kunci-on .tab-btn[role="tab"][data-tab="user"]{opacity:1}
     .kunci-on .lock-hint{display:inline-flex}
     .lock-hint{display:none}
-    .rtbox{min-height:110px}
     .pill{border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.75rem}
-    .handle{cursor:grab}
     .modal{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
     .modal.show{display:flex}
     .grid-asset{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem}
@@ -40,9 +38,11 @@
     .ce{min-height:120px;border:1px dashed #e5e7eb;border-radius:.75rem;padding:.75rem}
     .ce:focus{outline:none;border-color:var(--brand)}
     .toolbar-inline button[aria-pressed="true"]{background:#fee2e2;border-color:#fecaca}
-    .table{width:100%;border-collapse:separate;border-spacing:0}
-    .table th,.table td{border-bottom:1px solid #e5e7eb;padding:.6rem .5rem;text-align:left}
-    .prose{line-height:1.6}
+    /* Org tree */
+    .tree-wrap{overflow:auto}
+    .tree-node{background:#fff;border:1px solid #e5e7eb;border-radius:.75rem;padding:.5rem .75rem;box-shadow:0 3px 12px rgba(15,23,42,.06)}
+    .tree-link{stroke:#cbd5e1;stroke-width:2}
+    .tree-text{font-size:.75rem}
   </style>
 </head>
 <body class="min-h-screen">
@@ -52,17 +52,15 @@
         <div class="w-9 h-9 rounded-xl bg-[var(--brand)]"></div>
         <div>
           <h1 class="text-xl font-extrabold tracking-tight">MOVA Leader</h1>
-          <p class="text-xs text-slate-500 -mt-1">Dashboard — Versi Lengkap (selari API)</p>
+          <p class="text-xs text-slate-500 -mt-1">Dashboard — Fonnte + Org Tree + Live Sync</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <button id="btnLock" class="btn btn-ghost" aria-pressed="false" title="Kunci mod edit (hanya tab User dibenarkan)">
-          <i data-lucide="lock" class="w-4 h-4"></i>
-          <span>Kunci</span>
+        <button id="btnLock" class="btn btn-ghost" aria-pressed="false">
+          <i data-lucide="lock" class="w-4 h-4"></i><span>Kunci</span>
         </button>
-        <button id="btnPublish" class="btn btn-primary" title="Hantar sections + settings ke backend (settings_set)">
-          <i data-lucide="save" class="w-4 h-4"></i>
-          <span>Terbitkan</span>
+        <button id="btnPublish" class="btn btn-primary">
+          <i data-lucide="save" class="w-4 h-4"></i><span>Terbitkan</span>
         </button>
       </div>
     </div>
@@ -73,13 +71,11 @@
     <div class="card p-3 mb-4">
       <div role="tablist" class="flex flex-wrap gap-2">
         <button class="tab-btn btn btn-ghost" role="tab" data-tab="user" aria-selected="true"><i data-lucide="user-square" class="w-4 h-4"></i> User</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="kandungan"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
         <button class="tab-btn btn btn-ghost" role="tab" data-tab="media"><i data-lucide="images" class="w-4 h-4"></i> Media</button>
         <button class="tab-btn btn btn-ghost" role="tab" data-tab="partner"><i data-lucide="users" class="w-4 h-4"></i> Partner</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="customers"><i data-lucide="user-check" class="w-4 h-4"></i> Customers</button>
         <button class="tab-btn btn btn-ghost" role="tab" data-tab="approvals"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
         <button class="tab-btn btn btn-ghost" role="tab" data-tab="broadcast"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="carta"><i data-lucide="chart-line" class="w-4 h-4"></i> Carta</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="carta"><i data-lucide="git-branch" class="w-4 h-4"></i> Org Tree</button>
         <button class="tab-btn btn btn-ghost" role="tab" data-tab="settings"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
         <span class="lock-hint text-sm text-slate-500 flex items-center gap-2 ms-auto">
           <i data-lucide="shield" class="w-4 h-4"></i> Mod kunci aktif — tab selain "User" dikunci.
@@ -96,7 +92,7 @@
             <div class="toolbar flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
                 <h2 class="font-bold">Editor Bahagian</h2>
-                <span class="pill">Drag & Susun</span><span class="pill">Inline Toolbar</span>
+                <span class="pill">Inline Toolbar</span><span class="pill">Auto Live Preview</span>
               </div>
               <div class="text-xs text-slate-500">Auto-simpan (LocalStorage)</div>
             </div>
@@ -164,26 +160,10 @@
           <div class="card p-4">
             <div class="flex items-center justify-between mb-3">
               <h2 class="font-bold">Pratonton Langsung</h2>
-              <div class="text-xs text-slate-500">Klik "Fokus" untuk tatal</div>
+              <div class="text-xs text-slate-500">Auto-refresh ketika anda menaip</div>
             </div>
             <div id="preview" class="space-y-6"></div>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- KANDUNGAN (site_content list) -->
-    <section id="panel-kandungan" class="tab-panel">
-      <div class="card p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-bold">Kandungan Diterbitkan</h2>
-          <button id="btnRefreshContent" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
-        </div>
-        <div class="overflow-auto">
-          <table class="table text-sm" id="tblContent">
-            <thead><tr><th>Tarikh</th><th>Tajuk</th><th>Published</th><th>Media</th></tr></thead>
-            <tbody></tbody>
-          </table>
         </div>
       </div>
     </section>
@@ -221,23 +201,6 @@
       </div>
     </section>
 
-    <!-- CUSTOMERS -->
-    <section id="panel-customers" class="tab-panel">
-      <div class="card p-6 space-y-3">
-        <div class="flex items-center justify-between">
-          <h2 class="font-bold">Customers</h2>
-          <button id="btnRefreshCustomers" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
-        </div>
-        <div class="grid md:grid-cols-4 gap-3">
-          <input id="inpCustName" class="rounded-lg border px-3 py-2" placeholder="Nama">
-          <input id="inpCustPhone" class="rounded-lg border px-3 py-2" placeholder="Telefon">
-          <input id="inpCustPartner" class="rounded-lg border px-3 py-2" placeholder="Partner (nama)">
-          <button id="btnAddCustomer" class="btn btn-primary"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah</button>
-        </div>
-        <div id="customerList" class="grid md:grid-cols-2 gap-3"></div>
-      </div>
-    </section>
-
     <!-- APPROVALS -->
     <section id="panel-approvals" class="tab-panel">
       <div class="card p-6 space-y-3">
@@ -249,24 +212,30 @@
       </div>
     </section>
 
-    <!-- BROADCAST -->
+    <!-- BROADCAST (FONNTE) -->
     <section id="panel-broadcast" class="tab-panel">
       <div class="card p-6 space-y-3">
-        <h2 class="font-bold">Broadcast</h2>
-        <textarea id="inpBroadcast" class="w-full rounded-lg border px-3 py-2" rows="3" placeholder="Teks siaran WhatsApp..."></textarea>
-        <button id="btnSendBroadcast" class="btn btn-primary"><i data-lucide="send" class="w-4 h-4"></i> Hantar & Log</button>
+        <h2 class="font-bold">WhatsApp Broadcast</h2>
+        <div class="text-xs text-slate-600">Gunakan <strong>Fonnte API</strong> yang disimpan dalam Settings. Jika Fonnte gagal (CORS), mesej tetap direkod ke <code>broadcast</code> (log).</div>
+        <div class="grid md:grid-cols-3 gap-3">
+          <textarea id="inpBroadcast" class="md:col-span-2 w-full rounded-lg border px-3 py-2" rows="3" placeholder="Teks siaran WhatsApp..."></textarea>
+          <div class="space-y-2">
+            <input id="inpTargets" class="w-full rounded-lg border px-3 py-2" placeholder="Nombor penerima, pisahkan dengan koma (cth: 60123456789,60119876543)">
+            <button id="btnSendBroadcast" class="btn btn-primary w-full"><i data-lucide="send" class="w-4 h-4"></i> Hantar</button>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- CARTA (Stats) -->
+    <!-- CARTA (ORG TREE) -->
     <section id="panel-carta" class="tab-panel">
-      <div class="card p-6">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-bold">Statistik Ringkas</h2>
-          <button id="btnRefreshStats" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+      <div class="card p-6 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold">Carta Organisasi</h2>
+          <button id="btnRefreshTree" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
         </div>
-        <div id="statsWrap" class="grid md:grid-cols-4 gap-3 text-sm">
-          <!-- Filled dynamically -->
+        <div class="tree-wrap">
+          <svg id="treeSvg" width="1200" height="600"></svg>
         </div>
       </div>
     </section>
@@ -275,7 +244,7 @@
     <section id="panel-settings" class="tab-panel">
       <div class="card p-6 space-y-4">
         <h2 class="font-bold">Settings</h2>
-        <div class="grid md:grid-cols-5 gap-3">
+        <div class="grid md:grid-cols-6 gap-3">
           <div class="md:col-span-2">
             <label class="text-sm font-semibold">EXEC_URL</label>
             <input id="inpExec" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://script.google.com/macros/s/.../exec">
@@ -294,6 +263,10 @@
           <div>
             <label class="text-sm font-semibold">Lebar Kandungan (px)</label>
             <input id="inpWidth" type="number" class="w-full mt-1 rounded-lg border px-3 py-2" value="1100">
+          </div>
+          <div class="md:col-span-3">
+            <label class="text-sm font-semibold">Fonnte API Key</label>
+            <input id="inpFonnte" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="Token rahsia Fonnte (Bearer)">
           </div>
         </div>
         <div class="flex gap-2">
@@ -321,7 +294,7 @@
 
   <script>
   // ---------- KONFIG ----------
-  const LSKEY = "mova_dashboard_full_v1";
+  const LSKEY = "mova_dashboard_fonnte_orgtree_v1";
   let EXEC_URL = "";
   let LEADER_ID = "LEAD-0001";
   let locked = false;
@@ -333,7 +306,7 @@
   const defaults = {
     exec_url: "",
     leader_id: "LEAD-0001",
-    settings: { brand: "#ef4444", width: 1100 },
+    settings: { brand: "#ef4444", width: 1100, fonnte_api_key: "" },
     sections: [
       { id: uid(), title: "Hero — MOVA", type: "hero", html: "<h1>Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan <span style='color:#ef4444'>MOVA</span>.</h1><p>Mula sebagai Free User, kemudian naik taraf bila bersedia.</p>" }
     ]
@@ -348,6 +321,7 @@
   function qsa(s, el=document){ return Array.from(el.querySelectorAll(s)); }
   function saveLS(){ localStorage.setItem(LSKEY, JSON.stringify(state)); }
   function loadLS(){ try{ return JSON.parse(localStorage.getItem(LSKEY)||""); }catch{return null;} }
+  function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
 
   // ---------- TABS + LOCK ----------
   function setActiveTab(name){
@@ -366,7 +340,7 @@
   });
 
   // ---------- SETTINGS PANEL ----------
-  const inpExec = qs("#inpExec"), inpLeader = qs("#inpLeader"), inpBrand = qs("#inpBrand"), inpWidth = qs("#inpWidth");
+  const inpExec = qs("#inpExec"), inpLeader = qs("#inpLeader"), inpBrand = qs("#inpBrand"), inpWidth = qs("#inpWidth"), inpFonnte = qs("#inpFonnte");
   const btnApplySettings = qs("#btnApplySettings"), btnLoadSettings = qs("#btnLoadSettings");
   const swatchBrand = qs("#swatchBrand");
 
@@ -384,6 +358,7 @@
     LEADER_ID = state.leader_id;
     state.settings.brand = inpBrand.value || "#ef4444";
     state.settings.width = Math.max(640, Number(inpWidth.value)||1100);
+    state.settings.fonnte_api_key = (inpFonnte.value||"").trim();
     saveLS();
     applySettings();
     try{
@@ -391,6 +366,7 @@
         leader_id: LEADER_ID,
         theme_color: state.settings.brand,
         content_width: String(state.settings.width),
+        fonnte_api: state.settings.fonnte_api_key,
         sections: state.sections
       });
       alert("Settings & sections dihantar (settings_set).");
@@ -407,8 +383,10 @@
       const s = res?.settings || {};
       if(s.theme_color) state.settings.brand = s.theme_color;
       if(s.content_width) state.settings.width = Number(s.content_width)||state.settings.width;
+      if(typeof s.fonnte_api === "string") state.settings.fonnte_api_key = s.fonnte_api;
       if(Array.isArray(s.sections)) state.sections = s.sections;
       saveLS(); loadSettingsInputs(); applySettings(); renderList(); fillForm(); renderPreview();
+      alert("Settings & sections dimuat dari backend.");
     }catch(e){ console.warn(e); alert("Gagal ambil settings dari backend."); }
   });
 
@@ -417,14 +395,16 @@
     inpLeader.value = state.leader_id || "LEAD-0001";
     inpBrand.value = state.settings.brand || "#ef4444";
     inpWidth.value = state.settings.width || 1100;
+    inpFonnte.value = state.settings.fonnte_api_key || "";
     swatchBrand.style.background = inpBrand.value;
   }
 
-  // ---------- USER SECTIONS ----------
+  // ---------- USER SECTIONS (LIVE PREVIEW) ----------
   const sectionList = qs("#sectionList"), sectionForm = qs("#sectionForm");
   const inpTitle = qs("#inpTitle"), selType = qs("#selType"), ce = qs("#ce");
   const inpMediaURL = qs("#inpMediaURL"), mediaURLWrap = qs("#mediaURLWrap");
   const btnApply = qs("#btnApply"), btnDelete = qs("#btnDelete"), btnAdd = qs("#btnAddSection");
+  const preview = qs("#preview");
   let selectedId = state.sections[0]?.id || null;
 
   function renderList(){
@@ -450,7 +430,7 @@
         if(e.target.closest("[data-act='focus']")){ focusPreview(sec.id); return; }
         if(e.target.closest("[data-act='dup']")){
           const clone = JSON.parse(JSON.stringify(sec)); clone.id = uid(); state.sections.splice(idx+1,0,clone);
-          selectedId = clone.id; saveLS(); renderList(); fillForm(); renderPreview(); return;
+          selectedId = clone.id; persistAndRerender(); return;
         }
         selectedId = sec.id; renderList(); fillForm();
       });
@@ -469,7 +449,7 @@
     if(sIdx<0 || tIdx<0) return;
     const [it] = arr.splice(sIdx,1);
     arr.splice(tIdx,0,it);
-    saveLS(); renderList(); renderPreview();
+    persistAndRerender();
   }
   function fillForm(){
     const sec = state.sections.find(s => s.id===selectedId);
@@ -488,49 +468,32 @@
     sec.type = selType.value;
     sec.html = ce.innerHTML.trim();
     if(sec.type==="image" || sec.type==="video" || sec.type==="cta"){ sec.media = inpMediaURL.value.trim(); } else { delete sec.media; }
-    saveLS(); renderList(); renderPreview();
+    persistAndRerender();
   }
+
+  // Live preview auto-update (debounced)
+  const liveApply = debounce(applyForm, 120);
+  inpTitle.addEventListener("input", liveApply);
+  selType.addEventListener("change", ()=>{ mediaURLWrap.classList.toggle("hidden", !(selType.value==="image"||selType.value==="video"||selType.value==="cta")); liveApply(); });
+  inpMediaURL.addEventListener("input", liveApply);
+  ce.addEventListener("input", liveApply);
   btnApply.addEventListener("click", applyForm);
+
   btnDelete.addEventListener("click", () => {
     const idx = state.sections.findIndex(s => s.id===selectedId);
     if(idx>=0){ state.sections.splice(idx,1); selectedId = state.sections[0]?.id||null; }
-    saveLS(); renderList(); fillForm(); renderPreview();
+    persistAndRerender();
   });
   btnAdd.addEventListener("click", () => {
     const n = { id: uid(), title: "Bahagian Baharu", type: "text", html: "<p>Teks...</p>" };
-    state.sections.push(n); selectedId = n.id; saveLS(); renderList(); fillForm(); renderPreview();
-  });
-  selType.addEventListener("change", () => {
-    mediaURLWrap.classList.toggle("hidden", !(selType.value==="image"||selType.value==="video"||selType.value==="cta"));
+    state.sections.push(n); selectedId = n.id; persistAndRerender();
   });
 
-  // Inline toolbar
-  qsa(".toolbar-inline button[data-cmd]").forEach(btn=>{
-    btn.addEventListener("click", () => {
-      const cmd = btn.dataset.cmd;
-      if(cmd==="bold"){ document.execCommand("bold"); }
-      else if(cmd==="italic"){ document.execCommand("italic"); }
-      else if(cmd==="h1"){ applyHeading(1); }
-      else if(cmd==="h2"){ applyHeading(2); }
-      else if(cmd==="ul"){ document.execCommand("insertUnorderedList"); }
-      btn.setAttribute("aria-pressed", btn.getAttribute("aria-pressed")==="true"?"false":"true");
-      applyForm();
-    });
-  });
-  function applyHeading(level){
-    const sel = window.getSelection();
-    if(!sel || sel.rangeCount===0) return;
-    const range = sel.getRangeAt(0);
-    const wrapper = document.createElement("h"+level);
-    wrapper.appendChild(range.extractContents());
-    range.insertNode(wrapper);
-    sel.removeAllRanges();
-  }
+  function persistAndRerender(){ saveLS(); renderList(); renderPreview(); }
   function focusPreview(id){
-    const el = qs(`[data-sec="${CSS.escape(id)}"]`, qs("#preview"));
+    const el = qs(`[data-sec="${CSS.escape(id)}"]`, preview);
     if(el){ el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.add("selected"); setTimeout(()=>el.classList.remove("selected"), 900); }
   }
-  const preview = qs("#preview");
   function renderPreview(){
     preview.innerHTML = "";
     state.sections.forEach(sec => {
@@ -571,24 +534,6 @@
       preview.appendChild(wrap);
     });
   }
-
-  // ---------- KANDUNGAN (site_content) ----------
-  const btnRefreshContent = qs("#btnRefreshContent"), tblContent = qs("#tblContent tbody");
-  btnRefreshContent.addEventListener("click", async () => {
-    try{
-      const res = await postForm("content_list", { leader_id: LEADER_ID });
-      const items = res?.items || [];
-      tblContent.innerHTML = "";
-      for(const it of items){
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${escapeHtml(String(it.updated_at||""))}</td>
-                        <td>${escapeHtml(String(it.title||""))}</td>
-                        <td>${escapeHtml(String(it.published||""))}</td>
-                        <td class="truncate">${escapeHtml(String(it.media_urls||""))}</td>`;
-        tblContent.appendChild(tr);
-      }
-    }catch(e){ console.warn(e); alert("Gagal muat kandungan."); }
-  });
 
   // ---------- MEDIA TAB ----------
   const mediaGrid = qs("#mediaGrid");
@@ -660,36 +605,6 @@
     }catch(e){ console.warn(e); partnerList.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat partner.</div>"; }
   }
 
-  // ---------- CUSTOMERS ----------
-  const inpCustName = qs("#inpCustName"), inpCustPhone = qs("#inpCustPhone"), inpCustPartner = qs("#inpCustPartner");
-  const btnAddCustomer = qs("#btnAddCustomer"), customerList = qs("#customerList"), btnRefreshCustomers = qs("#btnRefreshCustomers");
-  btnAddCustomer.addEventListener("click", async () => {
-    const name=(inpCustName.value||"").trim(), phone=(inpCustPhone.value||"").trim(), partner=(inpCustPartner.value||"").trim();
-    if(!name || !phone){ alert("Nama & telefon diperlukan"); return; }
-    try{
-      await postForm("customer_add", { leader_id: LEADER_ID, name, phone, partner });
-      inpCustName.value=""; inpCustPhone.value=""; inpCustPartner.value=""; await refreshCustomers();
-    }catch(e){ console.warn(e); alert("Gagal tambah customer."); }
-  });
-  btnRefreshCustomers.addEventListener("click", refreshCustomers);
-  async function refreshCustomers(){
-    customerList.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
-    try{
-      // tiada endpoint senarai khusus customers; paparkan melalui org_tree untuk contoh
-      const res = await postForm("org_tree", { leader_id: LEADER_ID, leader_name: "Leader" });
-      const tree = res?.tree || { children: [] };
-      customerList.innerHTML = "";
-      (tree.children||[]).forEach(node => {
-        const c = document.createElement("div");
-        c.className = "p-3 rounded-lg border bg-white";
-        const users = (node.children||[]).map(u=>u.name).join(", ");
-        c.innerHTML = `<div class="font-semibold">${escapeHtml(node.name||"PARTNER")}</div>
-                       <div class="text-xs text-slate-500">Customers: ${escapeHtml(users||"-")}</div>`;
-        customerList.appendChild(c);
-      });
-    }catch(e){ console.warn(e); customerList.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat customers.</div>"; }
-  }
-
   // ---------- APPROVALS ----------
   const regsList = qs("#regsList"), btnRefreshRegs = qs("#btnRefreshRegs");
   btnRefreshRegs.addEventListener("click", refreshRegs);
@@ -721,38 +636,93 @@
     }catch(e){ console.warn(e); regsList.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat approvals.</div>"; }
   }
 
-  // ---------- BROADCAST ----------
-  const inpBroadcast = qs("#inpBroadcast"), btnSendBroadcast = qs("#btnSendBroadcast");
+  // ---------- BROADCAST (FONNTE) ----------
+  const inpBroadcast = qs("#inpBroadcast"), btnSendBroadcast = qs("#btnSendBroadcast"), inpTargets = qs("#inpTargets");
   btnSendBroadcast.addEventListener("click", async () => {
-    const msg = (inpBroadcast.value||"").trim(); if(!msg){ alert("Teks kosong"); return; }
+    const msg = (inpBroadcast.value||"").trim();
+    const targets = (inpTargets.value||"").split(",").map(s=>s.trim()).filter(Boolean);
+    if(!msg){ alert("Teks kosong"); return; }
+    const key = state.settings.fonnte_api_key || "";
     try{
+      // Log ke backend dahulu
       await postForm("broadcast", { leader_id: LEADER_ID, message: msg });
-      inpBroadcast.value = ""; alert("Disimpan ke log broadcast.");
-    }catch(e){ console.warn(e); alert("Gagal siar."); }
+      // Cuba hantar ke Fonnte jika ada kunci
+      if(key && targets.length){
+        const form = new FormData();
+        form.append("target", targets.join(","));
+        form.append("message", msg);
+        const res = await fetch("https://api.fonnte.com/send", {
+          method:"POST",
+          headers: { "Authorization": key }, // Key penuh (Bearer token) dari input
+          body: form,
+        });
+        if(!res.ok) throw new Error("Fonnte HTTP "+res.status);
+        alert("Broadcast dihantar melalui Fonnte & direkod di log.");
+      } else {
+        alert("Direkod di log. (Masukkan Fonnte API Key & nombor sasaran untuk hantar WhatsApp)")
+      }
+      inpBroadcast.value = "";
+      inpTargets.value = "";
+    }catch(e){ console.warn(e); alert("Fonnte gagal/CORS. Mesej masih direkod di log backend."); }
   });
 
-  // ---------- CARTA / STATS ----------
-  const statsWrap = qs("#statsWrap"), btnRefreshStats = qs("#btnRefreshStats");
-  btnRefreshStats.addEventListener("click", refreshStats);
-  async function refreshStats(){
-    statsWrap.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+  // ---------- ORG TREE (SVG) ----------
+  const treeSvg = qs("#treeSvg"); const btnRefreshTree = qs("#btnRefreshTree");
+  btnRefreshTree.addEventListener("click", loadTree);
+  async function loadTree(){
     try{
-      const res = await postForm("stats", { leader_id: LEADER_ID });
-      const t = res?.totals || {};
-      statsWrap.innerHTML = "";
-      const items = [
-        ["Partners", t.partners||0],
-        ["Customers", t.customers||0],
-        ["Pending Approvals", t.pending||0],
-        ["Published Content", t.published||0],
-      ];
-      items.forEach(([label,val]) => {
-        const card = document.createElement("div");
-        card.className = "p-4 rounded-xl border bg-white";
-        card.innerHTML = `<div class="text-xs text-slate-500">${label}</div><div class="text-2xl font-extrabold" style="color:var(--brand)">${val}</div>`;
-        statsWrap.appendChild(card);
+      const res = await postForm("org_tree", { leader_id: LEADER_ID, leader_name: "Leader" });
+      const tree = res?.tree || { name:"Leader", children:[] };
+      renderTree(tree);
+    }catch(e){ console.warn(e); alert("Gagal memuat carta."); }
+  }
+  function renderTree(tree){
+    const svg = treeSvg;
+    const W = svg.getAttribute("width")|0, H = svg.getAttribute("height")|0;
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+    // Layout ringkas: root di atas, partners di baris 2, customers di baris 3
+    const partners = tree.children||[];
+    const cols = Math.max(partners.length, 1);
+    const colW = W / (cols+1);
+    const rowY = [80, 220, 420];
+
+    // Root
+    const rootX = W/2;
+    drawNode(svg, rootX, rowY[0], tree.name||"LEADER");
+
+    partners.forEach((p, i) => {
+      const x = colW*(i+1);
+      drawLink(svg, rootX, rowY[0]+28, x, rowY[1]-28);
+      drawNode(svg, x, rowY[1], (p.name||"PARTNER") + (p.title?("\\n"+p.title):""));
+      const kids = p.children||[];
+      const kCols = Math.max(kids.length, 1);
+      const kColW = (W/(kCols+1));
+      kids.forEach((c, j) => {
+        const cx = kColW*(j+1);
+        drawLink(svg, x, rowY[1]+28, cx, rowY[2]-28);
+        drawNode(svg, cx, rowY[2], c.name||"USER");
       });
-    }catch(e){ console.warn(e); statsWrap.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat statistik.</div>"; }
+    });
+  }
+  function drawNode(svg, x, y, label){
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    const rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
+    rect.setAttribute("x", x-80); rect.setAttribute("y", y-22); rect.setAttribute("rx", 12); rect.setAttribute("ry", 12);
+    rect.setAttribute("width", 160); rect.setAttribute("height", 44);
+    rect.setAttribute("fill", "#ffffff"); rect.setAttribute("stroke", "#e5e7eb");
+    rect.setAttribute("filter","drop-shadow(0 3px 12px rgba(15,23,42,.06))");
+    const text = document.createElementNS("http://www.w3.org/2000/svg","text");
+    text.setAttribute("x", x); text.setAttribute("y", y+4); text.setAttribute("text-anchor","middle");
+    text.setAttribute("class","tree-text"); text.textContent = label;
+    g.appendChild(rect); g.appendChild(text); svg.appendChild(g);
+  }
+  function drawLink(svg, x1, y1, x2, y2){
+    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
+    const mx = (x1+x2)/2;
+    const d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+    path.setAttribute("d", d); path.setAttribute("class","tree-link"); path.setAttribute("fill","none");
+    svg.appendChild(path);
   }
 
   // ---------- ASSET PICKER (User tab) ----------
@@ -784,7 +754,8 @@
           <button class="btn btn-ghost text-xs">Gunakan</button>
         `;
         card.querySelector("button").addEventListener("click", () => {
-          inpMediaURL.value = url; modalAssets.classList.remove("show"); applyForm();
+          inpMediaURL.value = url; applyForm();
+          modalAssets.classList.remove("show");
         });
         assetGrid.appendChild(card);
       });
@@ -829,10 +800,11 @@
         leader_id: LEADER_ID,
         theme_color: state.settings.brand,
         content_width: String(state.settings.width),
+        fonnte_api: state.settings.fonnte_api_key,
         sections: state.sections
       };
       await postForm("settings_set", payload);
-      alert("Berjaya terbitkan (settings_set).");
+      alert("Berjaya terbitkan (settings_set). user.html patut membaca sections_json yang sama.");
     }catch(e){
       console.warn(e); alert("Gagal terbitkan ke backend. Data kekal pada LocalStorage.");
     }
