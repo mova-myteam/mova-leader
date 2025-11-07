@@ -3,64 +3,56 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Dashboard (Fonnte + Org Tree + Live Preview)</title>
+  <title>MOVA Leader — Dashboard</title>
 
-  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tailwind (CDN for simplicity) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    :root { --brand:#ef4444; }
+    :root { --brand:#ef4444 }
     html,body{font-family:Inter,system-ui,ui-sans-serif;background:#fafafa}
-    .container{max-width:1200px}
+    .container{max-width:1240px}
     .card{background:#fff;border:1px solid #e5e7eb;border-radius:1rem;box-shadow:0 6px 24px rgba(15,23,42,.06)}
     .btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;padding:.6rem .9rem;font-weight:700}
     .btn-primary{background:var(--brand);color:#fff}
     .btn-ghost{background:#fff;border:1px solid #e5e7eb}
     .tab-btn[aria-selected="true"]{color:var(--brand);border-color:var(--brand)}
-    .tab-panel{display:none}
-    .tab-panel.active{display:block}
-    .selected{outline:2px solid var(--brand);outline-offset:2px}
-    .toolbar{position:sticky;top:0;background:#fff;z-index:10}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+    .pill{border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.75rem}
     .kunci-on .tab-btn[role="tab"]:not([data-tab="user"]){pointer-events:none;opacity:.4}
     .kunci-on .tab-btn[role="tab"][data-tab="user"]{opacity:1}
-    .kunci-on .lock-hint{display:inline-flex}
-    .lock-hint{display:none}
-    .pill{border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.75rem}
-    .modal{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
-    .modal.show{display:flex}
-    .grid-asset{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem}
-    .asset-tile{border:1px solid #e5e7eb;border-radius:.75rem;padding:.5rem;background:#fff;display:flex;flex-direction:column;gap:.5rem}
-    .brand-swatch{width:24px;height:24px;border-radius:6px;border:1px solid #e5e7eb}
-    .ce{min-height:120px;border:1px dashed #e5e7eb;border-radius:.75rem;padding:.75rem}
+    .lock-hint{display:none}.kunci-on .lock-hint{display:inline-flex}
+    .ce{min-height:120px;border:1px dashed #e5e7eb;border-radius:.75rem;padding:.75rem;background:#fff}
     .ce:focus{outline:none;border-color:var(--brand)}
-    .toolbar-inline button[aria-pressed="true"]{background:#fee2e2;border-color:#fecaca}
-    /* Org tree */
-    .tree-wrap{overflow:auto}
-    .tree-node{background:#fff;border:1px solid #e5e7eb;border-radius:.75rem;padding:.5rem .75rem;box-shadow:0 3px 12px rgba(15,23,42,.06)}
-    .tree-link{stroke:#cbd5e1;stroke-width:2}
-    .tree-text{font-size:.75rem}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    .grid-12{display:grid;grid-template-columns:repeat(12,1fr);gap:1rem}
+    .tile{border:1px solid #e5e7eb;border-radius:.75rem;padding:.65rem;background:#fff}
+    iframe.preview{width:100%;height:74vh;border:1px solid #e5e7eb;border-radius:.75rem;background:#fff}
+    .chip{display:inline-flex;align-items:center;gap:.35rem;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.8rem}
+    .chip button{border:none;background:transparent;cursor:pointer}
+    .hint{font-size:.8rem;color:#6b7280}
+    .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   </style>
 </head>
-<body class="min-h-screen">
+<body>
   <header class="border-b bg-white">
     <div class="container mx-auto px-4 py-4 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-xl bg-[var(--brand)]"></div>
+        <div class="w-9 h-9 rounded-xl bg-[var(--brand)] grid place-items-center">
+          <i data-lucide="rocket" class="w-5 h-5 text-white"></i>
+        </div>
         <div>
           <h1 class="text-xl font-extrabold tracking-tight">MOVA Leader</h1>
-          <p class="text-xs text-slate-500 -mt-1">Dashboard — Fonnte + Org Tree + Live Sync</p>
+          <p class="text-xs text-slate-500 -mt-1">Papan Pemuka — Sunting & Siar Laman Pengguna</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
         <button id="btnLock" class="btn btn-ghost" aria-pressed="false">
-          <i data-lucide="lock" class="w-4 h-4"></i><span>Kunci</span>
+          <i data-lucide="lock" class="w-4 h-4"></i><span>Kunci Edit</span>
         </button>
         <button id="btnPublish" class="btn btn-primary">
-          <i data-lucide="save" class="w-4 h-4"></i><span>Terbitkan</span>
+          <i data-lucide="save" class="w-4 h-4"></i><span>Siar</span>
         </button>
       </div>
     </div>
@@ -70,118 +62,89 @@
     <!-- Tabs -->
     <div class="card p-3 mb-4">
       <div role="tablist" class="flex flex-wrap gap-2">
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="user" aria-selected="true"><i data-lucide="user-square" class="w-4 h-4"></i> User</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="media"><i data-lucide="images" class="w-4 h-4"></i> Media</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="partner"><i data-lucide="users" class="w-4 h-4"></i> Partner</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="approvals"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="broadcast"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="carta"><i data-lucide="git-branch" class="w-4 h-4"></i> Org Tree</button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="settings"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="user" aria-selected="true"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Laman Pengguna</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="partner"><i data-lucide="users" class="w-4 h-4"></i> Rakan Kongsi</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="approvals"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Kelulusan</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="broadcast"><i data-lucide="megaphone" class="w-4 h-4"></i> Hantaran WA</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="carta"><i data-lucide="git-branch" class="w-4 h-4"></i> Carta</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="settings"><i data-lucide="settings" class="w-4 h-4"></i> Tetapan</button>
         <span class="lock-hint text-sm text-slate-500 flex items-center gap-2 ms-auto">
-          <i data-lucide="shield" class="w-4 h-4"></i> Mod kunci aktif — tab selain "User" dikunci.
+          <i data-lucide="shield" class="w-4 h-4"></i> Mod kunci aktif — hanya tab Laman Pengguna dibenarkan.
         </span>
       </div>
     </div>
 
-    <!-- USER -->
+    <!-- USER: editor + preview -->
     <section id="panel-user" class="tab-panel active">
-      <div class="grid grid-cols-12 gap-4">
-        <!-- Editor -->
+      <div class="grid-12">
         <div class="col-span-12 lg:col-span-5">
           <div class="card p-4">
-            <div class="toolbar flex items-center justify-between mb-3">
+            <div class="flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
-                <h2 class="font-bold">Editor Bahagian</h2>
-                <span class="pill">Inline Toolbar</span><span class="pill">Auto Live Preview</span>
+                <h2 class="font-bold">Sunting Bahagian</h2>
+                <span class="pill">Pratonton hidup</span>
               </div>
-              <div class="text-xs text-slate-500">Auto-simpan (LocalStorage)</div>
+              <div class="text-xs text-slate-500">Simpan automatik</div>
             </div>
 
-            <div id="sectionList" class="space-y-2"></div>
+            <div id="secList" class="space-y-2"></div>
 
-            <div class="mt-3">
-              <button id="btnAddSection" class="btn btn-ghost w-full">
-                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Bahagian
-              </button>
+            <div class="mt-3 grid-2">
+              <button id="btnAddText" class="btn btn-ghost"><i data-lucide="type" class="w-4 h-4"></i> Teks</button>
+              <button id="btnAddImage" class="btn btn-ghost"><i data-lucide="image" class="w-4 h-4"></i> Imej</button>
+              <button id="btnAddVideo" class="btn btn-ghost"><i data-lucide="video" class="w-4 h-4"></i> Video</button>
+              <button id="btnAddLink" class="btn btn-ghost"><i data-lucide="link" class="w-4 h-4"></i> Butang/Pautan</button>
+              <button id="btnAddSocial" class="btn btn-ghost"><i data-lucide="share-2" class="w-4 h-4"></i> Media Sosial</button>
             </div>
 
             <hr class="my-4"/>
 
-            <div id="sectionForm" class="space-y-3 hidden">
-              <div class="grid md:grid-cols-2 gap-3">
-                <div>
-                  <label class="text-sm font-semibold">Tajuk</label>
-                  <input id="inpTitle" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="Contoh: Hero"/>
-                </div>
-                <div>
-                  <label class="text-sm font-semibold">Jenis</label>
-                  <select id="selType" class="w-full mt-1 rounded-lg border px-3 py-2">
-                    <option value="hero">Hero</option>
-                    <option value="text">Teks Kaya</option>
-                    <option value="image">Imej</option>
-                    <option value="cta">Butang (CTA)</option>
-                    <option value="video">Video (URL/embed)</option>
-                  </select>
-                </div>
+            <div id="formWrap" class="space-y-3 hidden">
+              <div>
+                <label class="text-sm font-semibold">Nama Bahagian</label>
+                <input id="inpTitle" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="Contoh: Hero">
+              </div>
+              <div>
+                <label class="text-sm font-semibold">Jenis</label>
+                <select id="selType" class="w-full mt-1 rounded-lg border px-3 py-2">
+                  <option value="hero">Hero</option>
+                  <option value="rich">Teks Kaya</option>
+                  <option value="list">Senarai</option>
+                  <option value="updates">Pengumuman</option>
+                  <option value="faq">Soalan Lazim</option>
+                </select>
               </div>
 
-              <div class="space-y-2">
+              <div>
                 <label class="text-sm font-semibold">Kandungan</label>
-                <div class="toolbar-inline flex flex-wrap gap-2">
-                  <button data-cmd="bold" class="btn btn-ghost text-xs"><i data-lucide="bold" class="w-4 h-4"></i> Bold</button>
-                  <button data-cmd="italic" class="btn btn-ghost text-xs"><i data-lucide="italic" class="w-4 h-4"></i> Italic</button>
-                  <button data-cmd="h1" class="btn btn-ghost text-xs"><i data-lucide="heading-1" class="w-4 h-4"></i> H1</button>
-                  <button data-cmd="h2" class="btn btn-ghost text-xs"><i data-lucide="heading-2" class="w-4 h-4"></i> H2</button>
-                  <button data-cmd="ul" class="btn btn-ghost text-xs"><i data-lucide="list" class="w-4 h-4"></i> Senarai</button>
-                  <button id="btnAssetPicker" class="btn btn-ghost text-xs"><i data-lucide="image-plus" class="w-4 h-4"></i> Masukkan Imej</button>
-                  <label class="btn btn-ghost text-xs cursor-pointer">
-                    <i data-lucide="upload" class="w-4 h-4"></i> Muat naik...
-                    <input id="fileUpload" type="file" accept="image/*,video/*" class="hidden">
-                  </label>
+                <div id="blocksWrap" class="space-y-2"></div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  <button id="btnAddBlockText" class="btn btn-ghost text-xs"><i data-lucide="plus" class="w-4 h-4"></i> Teks</button>
+                  <button id="btnAddBlockImage" class="btn btn-ghost text-xs"><i data-lucide="plus" class="w-4 h-4"></i> Imej</button>
+                  <button id="btnAddBlockVideo" class="btn btn-ghost text-xs"><i data-lucide="plus" class="w-4 h-4"></i> Video</button>
+                  <button id="btnAddBlockLink" class="btn btn-ghost text-xs"><i data-lucide="plus" class="w-4 h-4"></i> Butang</button>
+                  <button id="btnAddBlockSocial" class="btn btn-ghost text-xs"><i data-lucide="plus" class="w-4 h-4"></i> Media Sosial</button>
                 </div>
-                <div id="ce" class="ce" contenteditable="true" spellcheck="false"></div>
-              </div>
-
-              <div id="mediaURLWrap" class="hidden">
-                <label class="text-sm font-semibold">URL media (Imej/Video/Link)</label>
-                <input id="inpMediaURL" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://...">
+                <div class="hint mt-1">Tidak perlu sebarang kod. Hanya isi ruang yang disediakan.</div>
               </div>
 
               <div class="flex gap-2">
                 <button id="btnApply" class="btn btn-primary"><i data-lucide="sparkles" class="w-4 h-4"></i> Terap</button>
-                <button id="btnDelete" class="btn btn-ghost"><i data-lucide="trash-2" class="w-4 h-4"></i> Hapus</button>
+                <button id="btnDeleteSec" class="btn btn-ghost"><i data-lucide="trash-2" class="w-4 h-4"></i> Padam Bahagian</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Preview -->
         <div class="col-span-12 lg:col-span-7">
-          <div class="card p-4">
-            <div class="flex items-center justify-between mb-3">
-              <h2 class="font-bold">Pratonton Langsung</h2>
-              <div class="text-xs text-slate-500">Auto-refresh ketika anda menaip</div>
+          <div class="card p-3">
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="font-bold">Pratonton</h2>
+              <div class="text-xs text-slate-500">Memuat <code>user.html?edit=1</code></div>
             </div>
-            <div id="preview" class="space-y-6"></div>
+            <iframe id="userFrame" class="preview" src="user.html?edit=1&leader=LEAD-0001"></iframe>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- MEDIA -->
-    <section id="panel-media" class="tab-panel">
-      <div class="card p-4">
-        <div class="flex items-center justify-between mb-3">
-          <h2 class="font-bold">Media</h2>
-          <div class="flex items-center gap-2">
-            <label class="btn btn-ghost text-xs cursor-pointer">
-              <i data-lucide="upload" class="w-4 h-4"></i> Muat naik...
-              <input id="fileUploadMediaTab" type="file" accept="image/*,video/*" class="hidden">
-            </label>
-            <button id="btnRefreshMedia" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
-          </div>
-        </div>
-        <div id="mediaGrid" class="grid-asset"></div>
       </div>
     </section>
 
@@ -189,13 +152,13 @@
     <section id="panel-partner" class="tab-panel">
       <div class="card p-6 space-y-4">
         <div class="flex items-center justify-between">
-          <h2 class="font-bold">Partner</h2>
-          <button id="btnRefreshPartners" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+          <h2 class="font-bold">Rakan Kongsi</h2>
+          <button id="btnRefreshPartners" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat Semula</button>
         </div>
-        <div class="grid md:grid-cols-3 gap-3">
-          <input id="inpPartnerName" class="rounded-lg border px-3 py-2" placeholder="Nama partner baharu">
-          <input id="inpPartnerPhone" class="rounded-lg border px-3 py-2" placeholder="Telefon">
-          <button id="btnCreatePartner" class="btn btn-primary"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Partner</button>
+        <div class="grid-12">
+          <input id="inpPartnerName" class="col-span-6 rounded-lg border px-3 py-2" placeholder="Nama rakan kongsi baharu">
+          <input id="inpPartnerPhone" class="col-span-4 rounded-lg border px-3 py-2" placeholder="Telefon (cth: 60123456789)">
+          <button id="btnCreatePartner" class="col-span-2 btn btn-primary"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah</button>
         </div>
         <div id="partnerList" class="grid md:grid-cols-2 gap-3"></div>
       </div>
@@ -205,8 +168,8 @@
     <section id="panel-approvals" class="tab-panel">
       <div class="card p-6 space-y-3">
         <div class="flex items-center justify-between">
-          <h2 class="font-bold">Approvals</h2>
-          <button id="btnRefreshRegs" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+          <h2 class="font-bold">Kelulusan</h2>
+          <button id="btnRefreshRegs" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat Semula</button>
         </div>
         <div id="regsList" class="grid md:grid-cols-2 gap-3"></div>
       </div>
@@ -214,15 +177,42 @@
 
     <!-- BROADCAST (FONNTE) -->
     <section id="panel-broadcast" class="tab-panel">
-      <div class="card p-6 space-y-3">
-        <h2 class="font-bold">WhatsApp Broadcast</h2>
-        <div class="text-xs text-slate-600">Gunakan <strong>Fonnte API</strong> yang disimpan dalam Settings. Jika Fonnte gagal (CORS), mesej tetap direkod ke <code>broadcast</code> (log).</div>
-        <div class="grid md:grid-cols-3 gap-3">
-          <textarea id="inpBroadcast" class="md:col-span-2 w-full rounded-lg border px-3 py-2" rows="3" placeholder="Teks siaran WhatsApp..."></textarea>
-          <div class="space-y-2">
-            <input id="inpTargets" class="w-full rounded-lg border px-3 py-2" placeholder="Nombor penerima, pisahkan dengan koma (cth: 60123456789,60119876543)">
-            <button id="btnSendBroadcast" class="btn btn-primary w-full"><i data-lucide="send" class="w-4 h-4"></i> Hantar</button>
+      <div class="card p-6 space-y-4">
+        <h2 class="font-bold">Hantaran WhatsApp</h2>
+        <div class="hint">Masukkan Token Fonnte & Nombor Leader di Tetapan. Anda boleh pilih penerima dari senarai Rakan Kongsi atau masukkan nombor sendiri.</div>
+
+        <div class="grid-12 items-end">
+          <div class="col-span-12 md:col-span-6">
+            <label class="text-sm font-semibold">Pilih Penerima</label>
+            <div class="flex gap-2 mt-1">
+              <button id="btnLoadRecipients" class="btn btn-ghost text-xs"><i data-lucide="users" class="w-4 h-4"></i>Muat senarai rakan kongsi</button>
+              <input id="inpManualPhone" class="rounded-lg border px-3 py-2 flex-1" placeholder="Tambah nombor (cth: 60123456789), tekan Enter">
+            </div>
+            <div id="recipients" class="mt-2 flex flex-wrap gap-2"></div>
           </div>
+          <div class="col-span-12 md:col-span-3">
+            <label class="text-sm font-semibold">Jenis Hantaran</label>
+            <select id="selMsgType" class="w-full mt-1 rounded-lg border px-3 py-2">
+              <option value="text">Teks</option>
+              <option value="image">Gambar</option>
+              <option value="video">Video</option>
+            </select>
+          </div>
+          <div class="col-span-12 md:col-span-3" id="mediaUrlWrap" style="display:none">
+            <label class="text-sm font-semibold">URL Media</label>
+            <input id="inpMediaUrl" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://... (gambar/video)">
+          </div>
+        </div>
+
+        <div>
+          <label class="text-sm font-semibold">Mesej</label>
+          <textarea id="inpBroadcast" class="w-full rounded-lg border px-3 py-2 mt-1" rows="3" placeholder="Teks mesej..."></textarea>
+          <div class="hint mt-1">Untuk gambar/video, mesej ini akan jadi kapsyen.</div>
+        </div>
+
+        <div class="flex gap-2">
+          <button id="btnSendBroadcast" class="btn btn-primary"><i data-lucide="send" class="w-4 h-4"></i> Hantar</button>
+          <div class="hint">Log tetap direkod ke sistem.</div>
         </div>
       </div>
     </section>
@@ -232,611 +222,529 @@
       <div class="card p-6 space-y-3">
         <div class="flex items-center justify-between">
           <h2 class="font-bold">Carta Organisasi</h2>
-          <button id="btnRefreshTree" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+          <button id="btnRefreshTree" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat Semula</button>
         </div>
-        <div class="tree-wrap">
-          <svg id="treeSvg" width="1200" height="600"></svg>
-        </div>
+        <svg id="treeSvg" width="1200" height="600" class="w-full"></svg>
       </div>
     </section>
 
     <!-- SETTINGS -->
     <section id="panel-settings" class="tab-panel">
       <div class="card p-6 space-y-4">
-        <h2 class="font-bold">Settings</h2>
-        <div class="grid md:grid-cols-6 gap-3">
-          <div class="md:col-span-2">
-            <label class="text-sm font-semibold">EXEC_URL</label>
-            <input id="inpExec" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://script.google.com/macros/s/.../exec">
+        <h2 class="font-bold">Tetapan</h2>
+        <div class="grid-12">
+          <div class="col-span-6">
+            <label class="text-sm font-semibold">Alamat Sistem (Auto)</label>
+            <input id="inpExec" class="w-full mt-1 rounded-lg border px-3 py-2" value="https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec" disabled>
+            <div class="hint">Ditetapkan mengikut sistem sedia ada.</div>
           </div>
-          <div>
+          <div class="col-span-2">
             <label class="text-sm font-semibold">Leader ID</label>
             <input id="inpLeader" class="w-full mt-1 rounded-lg border px-3 py-2" value="LEAD-0001">
           </div>
-          <div>
-            <label class="text-sm font-semibold">Warna Brand</label>
-            <div class="flex items-center gap-2">
-              <input id="inpBrand" class="w-full mt-1 rounded-lg border px-3 py-2" value="#ef4444">
-              <span id="swatchBrand" class="brand-swatch"></span>
-            </div>
+          <div class="col-span-4">
+            <label class="text-sm font-semibold">Token Fonnte</label>
+            <input id="inpFonnte" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="Masukkan token Fonnte">
           </div>
-          <div>
+        </div>
+        <div class="grid-12">
+          <div class="col-span-4">
+            <label class="text-sm font-semibold">Warna Utama</label>
+            <input id="inpBrand" class="w-full mt-1 rounded-lg border px-3 py-2" value="#ef4444">
+          </div>
+          <div class="col-span-4">
             <label class="text-sm font-semibold">Lebar Kandungan (px)</label>
             <input id="inpWidth" type="number" class="w-full mt-1 rounded-lg border px-3 py-2" value="1100">
           </div>
-          <div class="md:col-span-3">
-            <label class="text-sm font-semibold">Fonnte API Key</label>
-            <input id="inpFonnte" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="Token rahsia Fonnte (Bearer)">
+          <div class="col-span-4">
+            <label class="text-sm font-semibold">Nombor Leader (WhatsApp)</label>
+            <input id="inpLeaderPhone" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="cth: 60123456789">
+            <div class="hint">Digunakan untuk hantaran WhatsApp (Fonnte).</div>
           </div>
         </div>
         <div class="flex gap-2">
-          <button id="btnLoadSettings" class="btn btn-ghost"><i data-lucide="download" class="w-4 h-4"></i> Ambil (settings_get)</button>
-          <button id="btnApplySettings" class="btn btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan (settings_set)</button>
+          <button id="btnLoadSettings" class="btn btn-ghost"><i data-lucide="download" class="w-4 h-4"></i> Ambil</button>
+          <button id="btnApplySettings" class="btn btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan</button>
         </div>
       </div>
     </section>
   </main>
 
-  <!-- Modal: Asset Picker -->
-  <div id="modalAssets" class="modal">
-    <div class="card p-4 w-full max-w-3xl">
-      <div class="flex items-center justify-between mb-3">
-        <h3 class="font-bold">Pilih Aset</h3>
-        <button id="btnCloseAssets" class="btn btn-ghost"><i data-lucide="x" class="w-4 h-4"></i>Tutup</button>
-      </div>
-      <div id="assetGrid" class="grid-asset"></div>
-      <div class="mt-3 flex items-center justify-between">
-        <div class="text-xs text-slate-500">Aset dimuat daripada <code>media_list</code>.</div>
-        <button id="btnRefreshAssets" class="btn btn-ghost"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
-      </div>
-    </div>
-  </div>
+<script>
+// ---------- STATE ----------
+const EXEC_URL = document.getElementById("inpExec") ? document.getElementById("inpExec").value : "https://script.google.com/macros/s/AKfycbylAgFpv3cyZV7jPQFF8ROBB2nEIRTdF-Go6UtHQ4YN8KfAqGa914hTtiwmVeq0XtM/exec"; // dikunci dari sistem asal
+let LEADER_ID = "LEAD-0001";
+let FONNTE_KEY = "";
+let LEADER_PHONE = "";
+let BRAND = "#ef4444";
+let CONTENT_WIDTH = 1100;
+let locked = false;
 
-  <script>
-  // ---------- KONFIG ----------
-  const LSKEY = "mova_dashboard_fonnte_orgtree_v1";
-  let EXEC_URL = "";
-  let LEADER_ID = "LEAD-0001";
-  let locked = false;
+const LSKEY = "mova_dashboard_final_v1";
 
-  // ---------- INIT ICONS ----------
-  window.addEventListener("DOMContentLoaded", () => { lucide.createIcons(); });
-
-  // ---------- STATE ----------
-  const defaults = {
-    exec_url: "",
-    leader_id: "LEAD-0001",
-    settings: { brand: "#ef4444", width: 1100, fonnte_api_key: "" },
-    sections: [
-      { id: uid(), title: "Hero — MOVA", type: "hero", html: "<h1>Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan <span style='color:#ef4444'>MOVA</span>.</h1><p>Mula sebagai Free User, kemudian naik taraf bila bersedia.</p>" }
+let sections = [
+  { id: uid(), title:"Hero — MOVA", type:"hero", featured:true, hidden:false,
+    blocks:[
+      { kind:"text", value:"<h1>Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan <span style='color:#ef4444'>MOVA</span>.</h1>" },
+      { kind:"text", value:"Mula sebagai Free User, kemudian naik taraf bila bersedia." }
     ]
-  };
-  let state = loadLS() || structuredClone(defaults);
-  EXEC_URL = state.exec_url || "";
-  LEADER_ID = state.leader_id || "LEAD-0001";
-
-  // ---------- HELPERS ----------
-  function uid(){ return (crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2))+Date.now().toString(36); }
-  function qs(s, el=document){ return el.querySelector(s); }
-  function qsa(s, el=document){ return Array.from(el.querySelectorAll(s)); }
-  function saveLS(){ localStorage.setItem(LSKEY, JSON.stringify(state)); }
-  function loadLS(){ try{ return JSON.parse(localStorage.getItem(LSKEY)||""); }catch{return null;} }
-  function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
-
-  // ---------- TABS + LOCK ----------
-  function setActiveTab(name){
-    if(locked && name !== "user") return;
-    qsa(".tab-btn").forEach(b => b.setAttribute("aria-selected", b.dataset.tab===name?"true":"false"));
-    qsa(".tab-panel").forEach(p => p.classList.toggle("active", p.id==="panel-"+name));
   }
-  qsa(".tab-btn").forEach(btn => btn.addEventListener("click", () => setActiveTab(btn.dataset.tab)));
-  qs("#btnLock").addEventListener("click", () => {
-    locked = !locked;
+];
+
+// ---------- HELPERS ----------
+function uid(){ return (crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2))+Date.now().toString(36); }
+function qs(s, el=document){ return el.querySelector(s); }
+function qsa(s, el=document){ return Array.from(el.querySelectorAll(s)); }
+function saveLS(){ localStorage.setItem(LSKEY, JSON.stringify({LEADER_ID,FONNTE_KEY,LEADER_PHONE,BRAND,CONTENT_WIDTH,sections})); }
+function loadLS(){ try{ return JSON.parse(localStorage.getItem(LSKEY)||""); }catch{ return null; } }
+function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); }; }
+function postForm(path, payload){
+  const body = new URLSearchParams();
+  body.set("path", path);
+  body.set("payload", JSON.stringify(payload||{}));
+  return fetch(EXEC_URL, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body })
+    .then(async r=>{ const text=await r.text(); try{ return JSON.parse(text); }catch(e){ throw new Error(text); } });
+}
+function toast(msg){ alert(msg); }
+
+// ---------- INIT UI ----------
+window.addEventListener("DOMContentLoaded", ()=>{
+  lucide.createIcons();
+  // Tabs
+  qsa(".tab-btn").forEach(btn => btn.addEventListener("click", ()=>setActiveTab(btn.dataset.tab)));
+  // Lock
+  qs("#btnLock").addEventListener("click", ()=>{
+    locked=!locked;
     document.body.classList.toggle("kunci-on", locked);
-    const b = qs("#btnLock");
-    b.setAttribute("aria-pressed", String(locked));
-    b.querySelector("span").textContent = locked ? "Terkunci" : "Kunci";
-    const icon = b.querySelector("i"); icon.setAttribute("data-lucide", locked ? "lock" : "unlock"); lucide.createIcons();
+    const b = qs("#btnLock"); b.setAttribute("aria-pressed", String(locked));
+    b.querySelector("span").textContent = locked? "Terkunci":"Kunci Edit";
+    const icon = b.querySelector("i"); icon.setAttribute("data-lucide", locked? "lock":"unlock"); lucide.createIcons();
   });
 
-  // ---------- SETTINGS PANEL ----------
-  const inpExec = qs("#inpExec"), inpLeader = qs("#inpLeader"), inpBrand = qs("#inpBrand"), inpWidth = qs("#inpWidth"), inpFonnte = qs("#inpFonnte");
-  const btnApplySettings = qs("#btnApplySettings"), btnLoadSettings = qs("#btnLoadSettings");
-  const swatchBrand = qs("#swatchBrand");
+  // Settings
+  qs("#btnApplySettings").addEventListener("click", onApplySettings);
+  qs("#btnLoadSettings").addEventListener("click", onLoadSettings);
+  qs("#btnPublish").addEventListener("click", onPublish);
 
-  function applySettings(){
-    document.documentElement.style.setProperty("--brand", state.settings.brand || "#ef4444");
-    const ct = qs(".container"); if(ct) ct.style.maxWidth = (state.settings.width||1100) + "px";
-    swatchBrand.style.background = state.settings.brand || "#ef4444";
+  // User editor toolbar
+  qs("#btnAddText").addEventListener("click", ()=> addBlock({kind:"text", value:"<p>Teks...</p>"}));
+  qs("#btnAddImage").addEventListener("click", ()=> addBlock({kind:"image", value:""}));
+  qs("#btnAddVideo").addEventListener("click", ()=> addBlock({kind:"video", value:""}));
+  qs("#btnAddLink").addEventListener("click", ()=> addBlock({kind:"link", value:"#", text:"Buka"}));
+  qs("#btnAddSocial").addEventListener("click", ()=> addBlock({kind:"social", platform:"telegram", url:"#", size:24, color:"#374151"}));
+
+  qs("#btnAddBlockText").addEventListener("click", ()=> addBlock({kind:"text", value:"<p>Teks...</p>"}));
+  qs("#btnAddBlockImage").addEventListener("click", ()=> addBlock({kind:"image", value:""}));
+  qs("#btnAddBlockVideo").addEventListener("click", ()=> addBlock({kind:"video", value:""}));
+  qs("#btnAddBlockLink").addEventListener("click", ()=> addBlock({kind:"link", value:"#", text:"Buka"}));
+  qs("#btnAddBlockSocial").addEventListener("click", ()=> addBlock({kind:"social", platform:"telegram", url:"#", size:24, color:"#374151"}));
+
+  qs("#btnApply").addEventListener("click", applyForm);
+  qs("#btnDeleteSec").addEventListener("click", deleteSection);
+
+  // Broadcast
+  qs("#btnLoadRecipients").addEventListener("click", loadRecipients);
+  qs("#inpManualPhone").addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ e.preventDefault(); addRecipient(e.target.value.trim()); e.target.value=""; } });
+  qs("#selMsgType").addEventListener("change", onMsgTypeChange);
+  qs("#btnSendBroadcast").addEventListener("click", sendBroadcast);
+
+  // Load LS if any
+  const ls = loadLS();
+  if(ls){
+    LEADER_ID = ls.LEADER_ID||LEADER_ID;
+    FONNTE_KEY = ls.FONNTE_KEY||"";
+    LEADER_PHONE = ls.LEADER_PHONE||"";
+    BRAND = ls.BRAND||BRAND;
+    CONTENT_WIDTH = ls.CONTENT_WIDTH||CONTENT_WIDTH;
+    if(Array.isArray(ls.sections)) sections = ls.sections;
   }
-  inpBrand.addEventListener("input", () => { swatchBrand.style.background = inpBrand.value; });
+  document.documentElement.style.setProperty("--brand", BRAND);
 
-  btnApplySettings.addEventListener("click", async () => {
-    state.exec_url = inpExec.value.trim();
-    state.leader_id = (inpLeader.value||"").trim() || "LEAD-0001";
-    EXEC_URL = state.exec_url;
-    LEADER_ID = state.leader_id;
-    state.settings.brand = inpBrand.value || "#ef4444";
-    state.settings.width = Math.max(640, Number(inpWidth.value)||1100);
-    state.settings.fonnte_api_key = (inpFonnte.value||"").trim();
+  renderSecList();
+  setupBridge();
+});
+
+function setActiveTab(name){
+  if(locked && name!=="user") return;
+  qsa(".tab-btn").forEach(b=> b.setAttribute("aria-selected", b.dataset.tab===name?"true":"false"));
+  qsa(".tab-panel").forEach(p=> p.classList.toggle("active", p.id==="panel-"+name));
+}
+
+// ---------- USER EDITOR ----------
+let selectedIndex = 0;
+
+function renderSecList(){
+  const wrap = qs("#secList"); wrap.innerHTML = "";
+  sections.forEach((sec, idx)=>{
+    const row = document.createElement("div");
+    row.className = "tile flex items-center justify-between gap-2";
+    row.innerHTML = `
+      <div class="min-w-0">
+        <div class="text-sm font-semibold truncate">${escapeHtml(sec.title||"(Tanpa tajuk)")}</div>
+        <div class="text-xs text-slate-500">${sec.type||"rich"} • ${sec.blocks?.length||0} kandungan</div>
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-ghost text-xs" data-act="edit"><i data-lucide="pencil" class="w-4 h-4"></i>Sunting</button>
+        <button class="btn btn-ghost text-xs" data-act="dup"><i data-lucide="copy" class="w-4 h-4"></i>Ganda</button>
+      </div>
+    `;
+    row.querySelector("[data-act='edit']").addEventListener("click", ()=> openForm(idx));
+    row.querySelector("[data-act='dup']").addEventListener("click", ()=> { const clone = structuredClone(sec); clone.id=uid(); sections.splice(idx+1,0,clone); saveLS(); renderSecList(); pushLive(); });
+    wrap.appendChild(row);
+  });
+  lucide.createIcons();
+  if(sections[selectedIndex]) openForm(selectedIndex);
+}
+
+function openForm(idx){
+  selectedIndex = idx;
+  const sec = sections[idx];
+  const form = qs("#formWrap"); form.classList.remove("hidden");
+  qs("#inpTitle").value = sec.title||"";
+  qs("#selType").value  = sec.type||"rich";
+  renderBlocks(sec.blocks||[]);
+  pushLive(idx);
+}
+
+function renderBlocks(blocks){
+  const bw = qs("#blocksWrap"); bw.innerHTML = "";
+  (blocks||[]).forEach((b,i)=>{ bw.appendChild(blockEditor(b,i)); });
+}
+
+function blockEditor(b, i){
+  const box = document.createElement("div");
+  box.className = "tile";
+  if(b.kind==="text"){
+    box.innerHTML = `
+      <div class="text-xs font-semibold mb-1">Teks</div>
+      <div contenteditable="true" class="ce" data-kind="text" data-idx="${i}">${b.value||""}</div>
+    `;
+    box.querySelector(".ce").addEventListener("input", onBlockInput);
+  } else if(b.kind==="image"){
+    box.innerHTML = `
+      <div class="text-xs font-semibold mb-1">Imej</div>
+      <input class="w-full rounded-lg border px-3 py-2" data-kind="image" data-idx="${i}" placeholder="https://..." value="${escapeAttr(b.value||'')}">
+    `;
+    box.querySelector("input").addEventListener("input", onBlockChange);
+  } else if(b.kind==="video"){
+    box.innerHTML = `
+      <div class="text-xs font-semibold mb-1">Video (URL/embed)</div>
+      <input class="w-full rounded-lg border px-3 py-2" data-kind="video" data-idx="${i}" placeholder="https://..." value="${escapeAttr(b.value||'')}">
+    `;
+    box.querySelector("input").addEventListener("input", onBlockChange);
+  } else if(b.kind==="link"){
+    box.innerHTML = `
+      <div class="grid-2">
+        <div>
+          <div class="text-xs font-semibold mb-1">Teks Butang</div>
+          <input class="w-full rounded-lg border px-3 py-2" data-kind="link-text" data-idx="${i}" value="${escapeAttr(b.text||'Buka')}">
+        </div>
+        <div>
+          <div class="text-xs font-semibold mb-1">URL</div>
+          <input class="w-full rounded-lg border px-3 py-2" data-kind="link-url" data-idx="${i}" value="${escapeAttr(b.value||'#')}">
+        </div>
+      </div>
+    `;
+    qsa("input", box).forEach(inp=> inp.addEventListener("input", onBlockChange));
+  } else if(b.kind==="social"){
+    box.innerHTML = `
+      <div class="text-xs font-semibold mb-1">Media Sosial</div>
+      <div class="grid-2">
+        <div>
+          <div class="text-xs">Platform</div>
+          <select class="w-full rounded-lg border px-3 py-2" data-kind="social-platform" data-idx="${i}">
+            <option value="telegram" ${b.platform==='telegram'?'selected':''}>Telegram</option>
+            <option value="facebook" ${b.platform==='facebook'?'selected':''}>Facebook</option>
+            <option value="instagram" ${b.platform==='instagram'?'selected':''}>Instagram</option>
+            <option value="whatsapp" ${b.platform==='whatsapp'?'selected':''}>WhatsApp</option>
+          </select>
+        </div>
+        <div>
+          <div class="text-xs">Pautan</div>
+          <input class="w-full rounded-lg border px-3 py-2" data-kind="social-url" data-idx="${i}" placeholder="https://..." value="${escapeAttr(b.url||'')}">
+        </div>
+      </div>
+    `;
+    box.querySelector("select").addEventListener("change", onBlockChange);
+    box.querySelector("input").addEventListener("input", onBlockChange);
+  }
+  return box;
+}
+
+function onBlockInput(e){
+  const idx = Number(e.target.dataset.idx);
+  sections[selectedIndex].blocks[idx].value = e.target.innerHTML;
+  saveLS(); pushLive(selectedIndex);
+}
+function onBlockChange(e){
+  const idx = Number(e.target.dataset.idx);
+  const kind = e.target.dataset.kind;
+  const blk = sections[selectedIndex].blocks[idx];
+  if(kind==="image"||kind==="video"){ blk.value = e.target.value; }
+  if(kind==="link-text"){ blk.text = e.target.value; }
+  if(kind==="link-url"){ blk.value = e.target.value; }
+  if(kind==="social-platform"){ blk.platform = e.target.value; }
+  if(kind==="social-url"){ blk.url = e.target.value; }
+  saveLS(); pushLive(selectedIndex);
+}
+
+function addBlock(b){
+  const sec = sections[selectedIndex] || (sections[0] ||= {id:uid(),title:"Bahagian",type:"rich",blocks:[]});
+  (sec.blocks ||= []).push(b);
+  saveLS(); renderBlocks(sec.blocks); pushLive(selectedIndex);
+}
+
+function applyForm(){
+  const sec = sections[selectedIndex]; if(!sec) return;
+  sec.title = qs("#inpTitle").value||"(Tanpa tajuk)";
+  sec.type  = qs("#selType").value||"rich";
+  saveLS(); renderSecList(); pushLive(selectedIndex);
+}
+function deleteSection(){
+  if(!sections[selectedIndex]) return;
+  sections.splice(selectedIndex,1);
+  selectedIndex = Math.max(0, selectedIndex-1);
+  saveLS(); renderSecList(); pushLive(selectedIndex);
+}
+
+// ---------- BRIDGE to user.html ----------
+let frame, frameReady=false;
+function setupBridge(){
+  frame = qs("#userFrame");
+  frame.addEventListener("load", ()=>{ frameReady=false; try{ frame.contentWindow.postMessage({type:"mova-bridge-ping"}, "*"); }catch{} });
+  window.addEventListener("message", (e)=>{ if((e.data||{}).type==="mova-bridge-ready"){ frameReady=true; pushLive(selectedIndex); } });
+  try{ frame.contentWindow.postMessage({type:"mova-bridge-ping"}, "*"); }catch{}
+}
+const pushLive = debounce((selectedIdx)=>{
+  if(!frameReady) return;
+  try{
+    const payload = { type:"sections-live-update", sections, settings:{ theme_color:BRAND, content_width:String(CONTENT_WIDTH) }, selectedId: sections[selectedIdx||0]?.id || null };
+    frame.contentWindow.postMessage(payload, "*");
+  }catch(e){ console.warn("postMessage gagal:", e); }
+}, 80);
+
+// ---------- SETTINGS (backend sync) ----------
+async function onApplySettings(){
+  LEADER_ID = qs("#inpLeader").value.trim() || "LEAD-0001";
+  FONNTE_KEY = qs("#inpFonnte").value.trim();
+  BRAND = qs("#inpBrand").value || "#ef4444";
+  CONTENT_WIDTH = Math.max(640, Number(qs("#inpWidth").value)||1100);
+  LEADER_PHONE = qs("#inpLeaderPhone").value.trim();
+  document.documentElement.style.setProperty("--brand", BRAND);
+  saveLS();
+  try{
+    await postForm("settings_set", {
+      leader_id: LEADER_ID,
+      theme_color: BRAND,
+      content_width: String(CONTENT_WIDTH),
+      fonnte_api: FONNTE_KEY,
+      whatsapp: LEADER_PHONE,
+      sections
+    });
+    toast("Tetapan & kandungan disimpan.");
+  }catch(e){ toast("Gagal simpan ke sistem."); }
+}
+async function onLoadSettings(){
+  try{
+    const res = await postForm("settings_get", { leader_id: LEADER_ID });
+    const s = res?.settings||{};
+    BRAND = s.theme_color || BRAND;
+    CONTENT_WIDTH = Number(s.content_width)||CONTENT_WIDTH;
+    FONNTE_KEY = s.fonnte_api || FONNTE_KEY;
+    LEADER_PHONE = s.whatsapp || LEADER_PHONE;
+    if(Array.isArray(s.sections)) sections = s.sections;
+    // Fill inputs
+    qs("#inpLeader").value = s.leader_id || LEADER_ID;
+    qs("#inpBrand").value = BRAND;
+    qs("#inpWidth").value = CONTENT_WIDTH;
+    qs("#inpFonnte").value = FONNTE_KEY;
+    qs("#inpLeaderPhone").value = LEADER_PHONE;
+    document.documentElement.style.setProperty("--brand", BRAND);
     saveLS();
-    applySettings();
-    try{
-      await postForm("settings_set", {
-        leader_id: LEADER_ID,
-        theme_color: state.settings.brand,
-        content_width: String(state.settings.width),
-        fonnte_api: state.settings.fonnte_api_key,
-        sections: state.sections
-      });
-      alert("Settings & sections dihantar (settings_set).");
-    }catch(e){ console.warn(e); alert("Gagal simpan ke backend."); }
-  });
+    renderSecList(); pushLive(selectedIndex);
+    toast("Tetapan dimuat.");
+  }catch(e){ toast("Gagal ambil tetapan."); }
+}
+async function onPublish(){
+  try{
+    await postForm("settings_set", { leader_id: LEADER_ID, theme_color: BRAND, content_width: String(CONTENT_WIDTH), fonnte_api: FONNTE_KEY, whatsapp: LEADER_PHONE, sections });
+    toast("Berjaya disiarkan.");
+  }catch(e){ toast("Gagal siar."); }
+}
 
-  btnLoadSettings.addEventListener("click", async () => {
-    state.exec_url = inpExec.value.trim() || state.exec_url;
-    state.leader_id = (inpLeader.value||"").trim() || state.leader_id || "LEAD-0001";
-    EXEC_URL = state.exec_url;
-    LEADER_ID = state.leader_id;
-    try{
-      const res = await postForm("settings_get", { leader_id: LEADER_ID });
-      const s = res?.settings || {};
-      if(s.theme_color) state.settings.brand = s.theme_color;
-      if(s.content_width) state.settings.width = Number(s.content_width)||state.settings.width;
-      if(typeof s.fonnte_api === "string") state.settings.fonnte_api_key = s.fonnte_api;
-      if(Array.isArray(s.sections)) state.sections = s.sections;
-      saveLS(); loadSettingsInputs(); applySettings(); renderList(); fillForm(); renderPreview();
-      alert("Settings & sections dimuat dari backend.");
-    }catch(e){ console.warn(e); alert("Gagal ambil settings dari backend."); }
-  });
+// ---------- PARTNER ----------
+document.getElementById("btnCreatePartner").addEventListener("click", async ()=>{
+  const name = (qs("#inpPartnerName").value||"").trim();
+  const phone= (qs("#inpPartnerPhone").value||"").trim();
+  if(!name){ toast("Nama diperlukan"); return; }
+  try{ await postForm("partner_create", { leader_id: LEADER_ID, name, phone }); qs("#inpPartnerName").value=""; qs("#inpPartnerPhone").value=""; await refreshPartners(); }
+  catch{ toast("Gagal tambah rakan kongsi."); }
+});
+document.getElementById("btnRefreshPartners").addEventListener("click", refreshPartners);
 
-  function loadSettingsInputs(){
-    inpExec.value = state.exec_url || "";
-    inpLeader.value = state.leader_id || "LEAD-0001";
-    inpBrand.value = state.settings.brand || "#ef4444";
-    inpWidth.value = state.settings.width || 1100;
-    inpFonnte.value = state.settings.fonnte_api_key || "";
-    swatchBrand.style.background = inpBrand.value;
-  }
-
-  // ---------- USER SECTIONS (LIVE PREVIEW) ----------
-  const sectionList = qs("#sectionList"), sectionForm = qs("#sectionForm");
-  const inpTitle = qs("#inpTitle"), selType = qs("#selType"), ce = qs("#ce");
-  const inpMediaURL = qs("#inpMediaURL"), mediaURLWrap = qs("#mediaURLWrap");
-  const btnApply = qs("#btnApply"), btnDelete = qs("#btnDelete"), btnAdd = qs("#btnAddSection");
-  const preview = qs("#preview");
-  let selectedId = state.sections[0]?.id || null;
-
-  function renderList(){
-    sectionList.innerHTML = "";
-    state.sections.forEach((sec, idx) => {
-      const row = document.createElement("div");
-      row.className = "flex items-center justify-between gap-2 p-2 rounded-lg border bg-white hover:bg-slate-50 " + (sec.id===selectedId?"selected":"");
-      row.draggable = true;
-      row.innerHTML = `
-        <div class="min-w-0 flex items-center gap-2">
-          <i class="handle" data-lucide="grip" class="w-4 h-4"></i>
-          <div class="min-w-0">
-            <div class="text-sm font-semibold truncate">${escapeHtml(sec.title||"(tanpa tajuk)")}</div>
-            <div class="text-xs text-slate-500">${sec.type}</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button class="btn btn-ghost text-xs" data-act="focus"><i data-lucide="mouse-pointer-square" class="w-4 h-4"></i> Fokus</button>
-          <button class="btn btn-ghost text-xs" data-act="dup"><i data-lucide="copy" class="w-4 h-4"></i> Ganda</button>
-        </div>
-      `;
-      row.addEventListener("click", (e) => {
-        if(e.target.closest("[data-act='focus']")){ focusPreview(sec.id); return; }
-        if(e.target.closest("[data-act='dup']")){
-          const clone = JSON.parse(JSON.stringify(sec)); clone.id = uid(); state.sections.splice(idx+1,0,clone);
-          selectedId = clone.id; persistAndRerender(); return;
-        }
-        selectedId = sec.id; renderList(); fillForm();
-      });
-      row.addEventListener("dragstart", ev => ev.dataTransfer.setData("text/plain", sec.id));
-      row.addEventListener("dragover", ev => ev.preventDefault());
-      row.addEventListener("drop", ev => { ev.preventDefault(); const id = ev.dataTransfer.getData("text/plain"); reorder(id, sec.id); });
-      sectionList.appendChild(row);
+async function refreshPartners(){
+  const box = qs("#partnerList"); box.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+  try{ 
+    const res = await postForm("partner_list", { leader_id: LEADER_ID });
+    const items = res?.items||[];
+    box.innerHTML = "";
+    items.forEach(p=>{ 
+      const div = document.createElement("div");
+      div.className = "tile";
+      div.innerHTML = `<div class="font-semibold">${escapeHtml(p.name||"PARTNER")}</div>
+                       <div class="text-xs text-slate-500">Pakej: ${escapeHtml(p.package||"-")}</div>
+                       <div class="text-xs text-slate-500">Telefon: ${escapeHtml(p.phone||"-")}</div>`;
+      box.appendChild(div);
     });
-    lucide.createIcons();
-  }
-  function reorder(sourceId, targetId){
-    if(sourceId===targetId) return;
-    const arr = state.sections;
-    const sIdx = arr.findIndex(x=>x.id===sourceId);
-    const tIdx = arr.findIndex(x=>x.id===targetId);
-    if(sIdx<0 || tIdx<0) return;
-    const [it] = arr.splice(sIdx,1);
-    arr.splice(tIdx,0,it);
-    persistAndRerender();
-  }
-  function fillForm(){
-    const sec = state.sections.find(s => s.id===selectedId);
-    if(!sec){ sectionForm.classList.add("hidden"); return; }
-    sectionForm.classList.remove("hidden");
-    inpTitle.value = sec.title || "";
-    selType.value = sec.type || "text";
-    ce.innerHTML = sec.html || "";
-    inpMediaURL.value = sec.media || "";
-    mediaURLWrap.classList.toggle("hidden", !(sec.type==="image"||sec.type==="video"||sec.type==="cta"));
-  }
-  function applyForm(){
-    const sec = state.sections.find(s => s.id===selectedId);
-    if(!sec) return;
-    sec.title = (inpTitle.value||"").trim() || "(tanpa tajuk)";
-    sec.type = selType.value;
-    sec.html = ce.innerHTML.trim();
-    if(sec.type==="image" || sec.type==="video" || sec.type==="cta"){ sec.media = inpMediaURL.value.trim(); } else { delete sec.media; }
-    persistAndRerender();
-  }
+  }catch{ box.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat senarai.</div>"; }
+}
 
-  // Live preview auto-update (debounced)
-  const liveApply = debounce(applyForm, 120);
-  inpTitle.addEventListener("input", liveApply);
-  selType.addEventListener("change", ()=>{ mediaURLWrap.classList.toggle("hidden", !(selType.value==="image"||selType.value==="video"||selType.value==="cta")); liveApply(); });
-  inpMediaURL.addEventListener("input", liveApply);
-  ce.addEventListener("input", liveApply);
-  btnApply.addEventListener("click", applyForm);
-
-  btnDelete.addEventListener("click", () => {
-    const idx = state.sections.findIndex(s => s.id===selectedId);
-    if(idx>=0){ state.sections.splice(idx,1); selectedId = state.sections[0]?.id||null; }
-    persistAndRerender();
-  });
-  btnAdd.addEventListener("click", () => {
-    const n = { id: uid(), title: "Bahagian Baharu", type: "text", html: "<p>Teks...</p>" };
-    state.sections.push(n); selectedId = n.id; persistAndRerender();
-  });
-
-  function persistAndRerender(){ saveLS(); renderList(); renderPreview(); }
-  function focusPreview(id){
-    const el = qs(`[data-sec="${CSS.escape(id)}"]`, preview);
-    if(el){ el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.add("selected"); setTimeout(()=>el.classList.remove("selected"), 900); }
-  }
-  function renderPreview(){
-    preview.innerHTML = "";
-    state.sections.forEach(sec => {
-      const wrap = document.createElement("section");
-      wrap.dataset.sec = sec.id;
-      if(sec.type==="hero"){
-        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white">
-          <div class="text-3xl font-extrabold mb-2" style="color:var(--brand)">${escapeHtml(sec.title||"")}</div>
-          <div class="prose prose-slate max-w-none">${sec.html||""}</div>
-        </div>`;
-      } else if(sec.type==="image"){
-        const url = sec.media || "";
-        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white text-center">
-          <div class="text-xl font-bold mb-2">${escapeHtml(sec.title||"")}</div>
-          ${url?`<img class="mx-auto rounded-xl max-h-72" src="${escapeAttr(url)}" alt="Imej">`:"<div class='text-xs text-slate-500'>Tiada imej</div>"}
-          <div class="mt-2 prose prose-slate max-w-none">${sec.html||""}</div>
-        </div>`;
-      } else if(sec.type==="video"){
-        const url = sec.media || "";
-        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white">
-          <div class="text-xl font-bold mb-2">${escapeHtml(sec.title||"")}</div>
-          ${url?`<div class="aspect-video rounded-xl overflow-hidden border"><iframe src="${escapeAttr(url)}" frameborder="0" allowfullscreen class="w-full h-full"></iframe></div>`:"<div class='text-xs text-slate-500'>Tiada video</div>"}
-          <div class="mt-2 prose prose-slate max-w-none">${sec.html||""}</div>
-        </div>`;
-      } else if(sec.type==="cta"){
-        const url = sec.media || "#";
-        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white text-center">
-          <div class="text-xl font-bold mb-4">${escapeHtml(sec.title||"")}</div>
-          <a class="btn btn-primary" href="${escapeAttr(url)}" target="_blank" rel="noopener">Pergi</a>
-          <div class="mt-2 prose prose-slate max-w-none">${sec.html||""}</div>
-        </div>`;
-      } else {
-        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white">
-          <div class="text-xl font-bold mb-2">${escapeHtml(sec.title||"")}</div>
-          <div class="prose prose-slate max-w-none">${sec.html||""}</div>
-        </div>`;
-      }
-      preview.appendChild(wrap);
+// ---------- APPROVALS ----------
+document.getElementById("btnRefreshRegs").addEventListener("click", refreshRegs);
+async function refreshRegs(){
+  const box = qs("#regsList"); box.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+  try{ 
+    const res = await postForm("registration_list", {});
+    const items = res?.items||[];
+    box.innerHTML = "";
+    items.forEach(r=>{ 
+      const card = document.createElement("div");
+      card.className = "tile flex items-center justify-between gap-2";
+      card.innerHTML = `<div class="min-w-0">
+          <div class="font-semibold truncate">${escapeHtml(r.name||"")}</div>
+          <div class="text-xs text-slate-500">Telefon: ${escapeHtml(r.phone||"")}</div>
+          <div class="text-xs">Status: <span class="${String(r.status||'')==='lulus'?'text-green-600':'text-amber-600'}">${escapeHtml(r.status||'menunggu')}</span></div>
+        </div>
+        <button class="btn btn-ghost text-xs" data-id="${escapeAttr(r.id||'')}"><i data-lucide="check" class="w-4 h-4"></i>Lulus</button>`;
+      card.querySelector("button").addEventListener("click", async()=>{ try{ await postForm("registration_approve", { id: r.id }); await refreshRegs(); }catch{ toast("Gagal lulus."); } });
+      box.appendChild(card);
     });
-  }
+  }catch{ box.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat senarai.</div>"; }
+}
 
-  // ---------- MEDIA TAB ----------
-  const mediaGrid = qs("#mediaGrid");
-  const btnRefreshMedia = qs("#btnRefreshMedia");
-  const fileUploadMediaTab = qs("#fileUploadMediaTab");
-  btnRefreshMedia.addEventListener("click", refreshAssetsTab);
-  fileUploadMediaTab.addEventListener("change", async (e) => {
-    const f = e.target.files?.[0]; if(!f) return;
-    try{
-      const base64 = await fileToBase64(f);
-      const res = await postForm("upload_media", {
-        leader_id: LEADER_ID,
-        file_name: f.name,
-        file_type: f.type || "application/octet-stream",
-        file_base64: String(base64).split(',').pop()
-      });
-      alert(res?.public_url ? "Muat naik berjaya." : "Muat naik selesai tetapi URL tidak diterima.");
-      await refreshAssetsTab();
-    }catch(err){ console.warn(err); alert("Gagal muat naik."); }
-    e.target.value = "";
+// ---------- BROADCAST (Fonnte) ----------
+let recipientSet = new Set();
+function addRecipient(phone){
+  if(!phone) return;
+  if(!/^\d{10,15}$/.test(phone)){ toast("Format nombor tidak sah."); return; }
+  recipientSet.add(phone);
+  renderRecipients();
+}
+function removeRecipient(phone){ recipientSet.delete(phone); renderRecipients(); }
+function renderRecipients(){
+  const box = qs("#recipients"); box.innerHTML = "";
+  if(recipientSet.size===0){ box.innerHTML = "<span class='hint'>Tiada penerima.</span>"; return; }
+  recipientSet.forEach(p=>{
+    const chip = document.createElement("span");
+    chip.className = "chip";
+    chip.innerHTML = `<i data-lucide="phone" class="w-4 h-4"></i><span>${p}</span><button aria-label="Buang" onclick="removeRecipient('${p}')">&times;</button>`;
+    box.appendChild(chip);
   });
-  async function refreshAssetsTab(){
-    mediaGrid.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
-    try{
-      const res = await postForm("media_list", { leader_id: LEADER_ID });
-      const items = res?.items || [];
-      mediaGrid.innerHTML = "";
-      items.forEach(it => {
-        const url = it.public_url||"";
-        const card = document.createElement("div");
-        card.className = "asset-tile";
-        card.innerHTML = `
-          ${url?`<img src="${escapeAttr(url)}" class="w-full h-28 object-cover rounded-md border">`:"<div class='h-28 rounded-md border grid place-items-center text-xs text-slate-500'>Tiada preview</div>"}
-          <div class="text-xs text-slate-600 truncate">${escapeHtml(it.file_name||"aset")}</div>
-          <div class="text-[10px] text-slate-400 truncate">${escapeHtml(it.file_type||"")}</div>
-        `;
-        mediaGrid.appendChild(card);
-      });
-    }catch(e){ console.warn(e); mediaGrid.innerHTML = "<div class='text-sm text-red-600'>Gagal memuatkan aset.</div>"; }
-  }
+  lucide.createIcons();
+}
 
-  // ---------- PARTNER ----------
-  const btnCreatePartner = qs("#btnCreatePartner");
-  const inpPartnerName = qs("#inpPartnerName"), inpPartnerPhone = qs("#inpPartnerPhone");
-  const partnerList = qs("#partnerList"), btnRefreshPartners = qs("#btnRefreshPartners");
-  btnCreatePartner.addEventListener("click", async () => {
-    const name = (inpPartnerName.value||"").trim(); const phone = (inpPartnerPhone.value||"").trim();
-    if(!name){ alert("Nama diperlukan"); return; }
-    try{
-      await postForm("partner_create", { leader_id: LEADER_ID, name, phone });
-      inpPartnerName.value=""; inpPartnerPhone.value=""; await refreshPartners();
-    }catch(e){ console.warn(e); alert("Gagal tambah partner."); }
-  });
-  btnRefreshPartners.addEventListener("click", refreshPartners);
-  async function refreshPartners(){
-    partnerList.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
-    try{
-      const res = await postForm("partner_list", { leader_id: LEADER_ID });
-      const items = res?.items || [];
-      partnerList.innerHTML = "";
-      items.forEach(p => {
-        const div = document.createElement("div");
-        div.className = "p-3 rounded-lg border bg-white";
-        div.innerHTML = `<div class="font-semibold">${escapeHtml(p.name||"PARTNER")}</div>
-                         <div class="text-xs text-slate-500">Pakej: ${escapeHtml(p.package||"-")}</div>
-                         <div class="text-xs text-slate-500">Telefon: ${escapeHtml(p.phone||"-")}</div>`;
-        partnerList.appendChild(div);
-      });
-    }catch(e){ console.warn(e); partnerList.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat partner.</div>"; }
-  }
+async function loadRecipients(){
+  try{
+    const res = await postForm("partner_list", { leader_id: LEADER_ID });
+    const items = res?.items||[];
+    items.forEach(p=>{ if(p.phone) addRecipient(String(p.phone).replace(/\D/g,"")); });
+    if(LEADER_PHONE) addRecipient(String(LEADER_PHONE).replace(/\D/g,""));
+  }catch{ toast("Gagal muat penerima."); }
+}
 
-  // ---------- APPROVALS ----------
-  const regsList = qs("#regsList"), btnRefreshRegs = qs("#btnRefreshRegs");
-  btnRefreshRegs.addEventListener("click", refreshRegs);
-  async function refreshRegs(){
-    regsList.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
-    try{
-      const res = await postForm("registration_list", {});
-      const items = res?.items || [];
-      regsList.innerHTML = "";
-      items.forEach(r => {
-        const card = document.createElement("div");
-        card.className = "p-3 rounded-lg border bg-white flex items-center justify-between gap-3";
-        card.innerHTML = `
-          <div class="min-w-0">
-            <div class="font-semibold truncate">${escapeHtml(r.name||"")}</div>
-            <div class="text-xs text-slate-500">Phone: ${escapeHtml(r.phone||"")}</div>
-            <div class="text-xs">Status: <span class="${String(r.status||'')==='lulus'?'text-green-600':'text-amber-600'}">${escapeHtml(r.status||'menunggu')}</span></div>
-          </div>
-          <div class="flex gap-2">
-            <button class="btn btn-ghost text-xs" data-act="approve" data-id="${escapeAttr(r.id||'')}"><i data-lucide="check" class="w-4 h-4"></i> Lulus</button>
-          </div>
-        `;
-        card.querySelector("[data-act='approve']").addEventListener("click", async () => {
-          try{ await postForm("registration_approve", { id: r.id }); await refreshRegs(); }catch(e){ console.warn(e); alert("Gagal lulus."); }
-        });
-        regsList.appendChild(card);
-      });
-      lucide.createIcons();
-    }catch(e){ console.warn(e); regsList.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat approvals.</div>"; }
-  }
+function onMsgTypeChange(){
+  const v = qs("#selMsgType").value;
+  qs("#mediaUrlWrap").style.display = (v==="image"||v==="video") ? "" : "none";
+}
 
-  // ---------- BROADCAST (FONNTE) ----------
-  const inpBroadcast = qs("#inpBroadcast"), btnSendBroadcast = qs("#btnSendBroadcast"), inpTargets = qs("#inpTargets");
-  btnSendBroadcast.addEventListener("click", async () => {
-    const msg = (inpBroadcast.value||"").trim();
-    const targets = (inpTargets.value||"").split(",").map(s=>s.trim()).filter(Boolean);
-    if(!msg){ alert("Teks kosong"); return; }
-    const key = state.settings.fonnte_api_key || "";
-    try{
-      // Log ke backend dahulu
-      await postForm("broadcast", { leader_id: LEADER_ID, message: msg });
-      // Cuba hantar ke Fonnte jika ada kunci
-      if(key && targets.length){
-        const form = new FormData();
-        form.append("target", targets.join(","));
+async function sendBroadcast(){
+  const msg = (qs("#inpBroadcast").value||"").trim();
+  const type = qs("#selMsgType").value;
+  const mediaUrl = (qs("#inpMediaUrl").value||"").trim();
+  if(recipientSet.size===0){ toast("Sila pilih atau tambah sekurang-kurangnya satu penerima."); return; }
+  if(type==="text" && !msg){ toast("Teks mesej kosong."); return; }
+  const targets = Array.from(recipientSet);
+  try{ 
+    // log ke sistem sentiasa
+    await postForm("broadcast", { leader_id: LEADER_ID, message: msg || (type.toUpperCase()+" "+mediaUrl) });
+    // cuba Fonnte jika ada token
+    if(FONNTE_KEY){
+      const form = new FormData();
+      form.append("target", targets.join(","));
+      if(type==="text"){
         form.append("message", msg);
-        const res = await fetch("https://api.fonnte.com/send", {
-          method:"POST",
-          headers: { "Authorization": key }, // Key penuh (Bearer token) dari input
-          body: form,
-        });
-        if(!res.ok) throw new Error("Fonnte HTTP "+res.status);
-        alert("Broadcast dihantar melalui Fonnte & direkod di log.");
-      } else {
-        alert("Direkod di log. (Masukkan Fonnte API Key & nombor sasaran untuk hantar WhatsApp)")
+      } else if(type==="image"){
+        form.append("message", msg);
+        form.append("url", mediaUrl);
+        form.append("type", "image");
+      } else if(type==="video"){
+        form.append("message", msg);
+        form.append("url", mediaUrl);
+        form.append("type", "video");
       }
-      inpBroadcast.value = "";
-      inpTargets.value = "";
-    }catch(e){ console.warn(e); alert("Fonnte gagal/CORS. Mesej masih direkod di log backend."); }
-  });
-
-  // ---------- ORG TREE (SVG) ----------
-  const treeSvg = qs("#treeSvg"); const btnRefreshTree = qs("#btnRefreshTree");
-  btnRefreshTree.addEventListener("click", loadTree);
-  async function loadTree(){
-    try{
-      const res = await postForm("org_tree", { leader_id: LEADER_ID, leader_name: "Leader" });
-      const tree = res?.tree || { name:"Leader", children:[] };
-      renderTree(tree);
-    }catch(e){ console.warn(e); alert("Gagal memuat carta."); }
-  }
-  function renderTree(tree){
-    const svg = treeSvg;
-    const W = svg.getAttribute("width")|0, H = svg.getAttribute("height")|0;
-    while(svg.firstChild) svg.removeChild(svg.firstChild);
-
-    // Layout ringkas: root di atas, partners di baris 2, customers di baris 3
-    const partners = tree.children||[];
-    const cols = Math.max(partners.length, 1);
-    const colW = W / (cols+1);
-    const rowY = [80, 220, 420];
-
-    // Root
-    const rootX = W/2;
-    drawNode(svg, rootX, rowY[0], tree.name||"LEADER");
-
-    partners.forEach((p, i) => {
-      const x = colW*(i+1);
-      drawLink(svg, rootX, rowY[0]+28, x, rowY[1]-28);
-      drawNode(svg, x, rowY[1], (p.name||"PARTNER") + (p.title?("\\n"+p.title):""));
-      const kids = p.children||[];
-      const kCols = Math.max(kids.length, 1);
-      const kColW = (W/(kCols+1));
-      kids.forEach((c, j) => {
-        const cx = kColW*(j+1);
-        drawLink(svg, x, rowY[1]+28, cx, rowY[2]-28);
-        drawNode(svg, cx, rowY[2], c.name||"USER");
-      });
-    });
-  }
-  function drawNode(svg, x, y, label){
-    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
-    const rect = document.createElementNS("http://www.w3.org/2000/svg","rect");
-    rect.setAttribute("x", x-80); rect.setAttribute("y", y-22); rect.setAttribute("rx", 12); rect.setAttribute("ry", 12);
-    rect.setAttribute("width", 160); rect.setAttribute("height", 44);
-    rect.setAttribute("fill", "#ffffff"); rect.setAttribute("stroke", "#e5e7eb");
-    rect.setAttribute("filter","drop-shadow(0 3px 12px rgba(15,23,42,.06))");
-    const text = document.createElementNS("http://www.w3.org/2000/svg","text");
-    text.setAttribute("x", x); text.setAttribute("y", y+4); text.setAttribute("text-anchor","middle");
-    text.setAttribute("class","tree-text"); text.textContent = label;
-    g.appendChild(rect); g.appendChild(text); svg.appendChild(g);
-  }
-  function drawLink(svg, x1, y1, x2, y2){
-    const path = document.createElementNS("http://www.w3.org/2000/svg","path");
-    const mx = (x1+x2)/2;
-    const d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
-    path.setAttribute("d", d); path.setAttribute("class","tree-link"); path.setAttribute("fill","none");
-    svg.appendChild(path);
-  }
-
-  // ---------- ASSET PICKER (User tab) ----------
-  const modalAssets = qs("#modalAssets");
-  const assetGrid = qs("#assetGrid");
-  const btnAssetPicker = qs("#btnAssetPicker");
-  const btnCloseAssets = qs("#btnCloseAssets");
-  const btnRefreshAssets = qs("#btnRefreshAssets");
-  const fileUpload = qs("#fileUpload");
-
-  btnAssetPicker?.addEventListener("click", async () => { await refreshAssetsPicker(); modalAssets.classList.add("show"); });
-  btnCloseAssets?.addEventListener("click", () => modalAssets.classList.remove("show"));
-  btnRefreshAssets?.addEventListener("click", refreshAssetsPicker);
-
-  async function refreshAssetsPicker(){
-    assetGrid.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
-    try{
-      const res = await postForm("media_list", { leader_id: LEADER_ID });
-      const items = res?.items || [];
-      if(!items.length){ assetGrid.innerHTML = "<div class='text-sm text-slate-600'>Tiada aset.</div>"; return; }
-      assetGrid.innerHTML = "";
-      items.forEach(it => {
-        const card = document.createElement("div");
-        card.className = "asset-tile";
-        const url = it.public_url || "";
-        card.innerHTML = `
-          ${url?`<img src="${escapeAttr(url)}" class="w-full h-28 object-cover rounded-md border">`:"<div class='h-28 rounded-md border grid place-items-center text-xs text-slate-500'>Tiada preview</div>"}
-          <div class="text-xs text-slate-600 truncate">${escapeHtml(it.file_name||"aset")}</div>
-          <button class="btn btn-ghost text-xs">Gunakan</button>
-        `;
-        card.querySelector("button").addEventListener("click", () => {
-          inpMediaURL.value = url; applyForm();
-          modalAssets.classList.remove("show");
-        });
-        assetGrid.appendChild(card);
-      });
-    }catch(e){
-      console.warn(e);
-      assetGrid.innerHTML = "<div class='text-sm text-red-600'>Gagal memuatkan aset.</div>";
+      const res = await fetch("https://api.fonnte.com/send", { method:"POST", headers:{ "Authorization": FONNTE_KEY }, body: form });
+      if(!res.ok) throw new Error("Fonnte HTTP "+res.status);
+      toast("Hantaran dihantar.");
+    } else {
+      toast("Token Fonnte tiada. Hanya log disimpan.");
     }
-    lucide.createIcons();
-  }
+    qs("#inpBroadcast").value=""; qs("#inpMediaUrl").value="";
+  }catch(e){ console.warn(e); toast("Gagal hantar. Log masih direkod."); }
+}
 
-  fileUpload?.addEventListener("change", async (e) => {
-    const f = e.target.files?.[0]; if(!f) return;
-    try{
-      const base64 = await fileToBase64(f);
-      const res = await postForm("upload_media", {
-        leader_id: LEADER_ID,
-        file_name: f.name,
-        file_type: f.type || "application/octet-stream",
-        file_base64: String(base64).split(',').pop()
-      });
-      const url = res?.public_url || "";
-      if(url){ inpMediaURL.value = url; applyForm(); alert("Muat naik berjaya."); }
-      else alert("Muat naik selesai tetapi URL tiada dalam respons.");
-    }catch(err){
-      console.warn(err); alert("Gagal muat naik.");
-    }finally{ e.target.value = ""; }
-  });
+// ---------- ORG TREE ----------
+document.getElementById("btnRefreshTree").addEventListener("click", loadTree);
+async function loadTree(){
+  try{ const res = await postForm("org_tree", { leader_id: LEADER_ID, leader_name: "Leader" }); renderTree(res?.tree||{name:"Leader",children:[]}); }
+  catch{ toast("Gagal memuat carta."); }
+}
+function renderTree(tree){
+  const svg = qs("#treeSvg");
+  const W = svg.clientWidth||1200, H = 600;
+  while(svg.firstChild) svg.removeChild(svg.firstChild);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
 
-  function fileToBase64(file){
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+  const partners = tree.children||[];
+  const cols = Math.max(partners.length,1);
+  const colW = W/(cols+1);
+  const rowY = [80, 230, 430];
+  // root
+  drawNode(svg, W/2, rowY[0], tree.name||"LEADER");
+  partners.forEach((p,i)=>{
+    const x = colW*(i+1);
+    drawLink(svg, W/2, rowY[0]+28, x, rowY[1]-28);
+    drawNode(svg, x, rowY[1], (p.name||"PARTNER")+(p.title?("\n"+p.title):""));
+    const kids = p.children||[];
+    const kCols = Math.max(kids.length,1);
+    const kColW = W/(kCols+1);
+    kids.forEach((c,j)=>{
+      const cx = kColW*(j+1);
+      drawLink(svg, x, rowY[1]+28, cx, rowY[2]-28);
+      drawNode(svg, cx, rowY[2], c.name||"USER");
     });
-  }
-
-  // ---------- TERBIT (settings_set) ----------
-  qs("#btnPublish").addEventListener("click", async () => {
-    try{
-      const payload = {
-        leader_id: LEADER_ID,
-        theme_color: state.settings.brand,
-        content_width: String(state.settings.width),
-        fonnte_api: state.settings.fonnte_api_key,
-        sections: state.sections
-      };
-      await postForm("settings_set", payload);
-      alert("Berjaya terbitkan (settings_set). user.html patut membaca sections_json yang sama.");
-    }catch(e){
-      console.warn(e); alert("Gagal terbitkan ke backend. Data kekal pada LocalStorage.");
-    }
   });
+}
+function drawNode(svg,x,y,label){
+  const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+  const r = document.createElementNS("http://www.w3.org/2000/svg","rect");
+  r.setAttribute("x", x-80); r.setAttribute("y", y-22); r.setAttribute("rx", 12); r.setAttribute("ry", 12);
+  r.setAttribute("width", 160); r.setAttribute("height", 44);
+  r.setAttribute("fill", "#fff"); r.setAttribute("stroke", "#e5e7eb");
+  const t = document.createElementNS("http://www.w3.org/2000/svg","text");
+  t.setAttribute("x", x); t.setAttribute("y", y+4); t.setAttribute("text-anchor", "middle"); t.setAttribute("font-size","12");
+  t.textContent = label;
+  g.appendChild(r); g.appendChild(t); svg.appendChild(g);
+}
+function drawLink(svg, x1,y1,x2,y2){
+  const p = document.createElementNS("http://www.w3.org/2000/svg","path");
+  const mx = (x1+x2)/2; const d = `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
+  p.setAttribute("d", d); p.setAttribute("fill","none"); p.setAttribute("stroke","#cbd5e1"); p.setAttribute("stroke-width","2");
+  svg.appendChild(p);
+}
 
-  // ---------- BACKEND HELPER ----------
-  async function postForm(path, payload){
-    if(!EXEC_URL) throw new Error("EXEC_URL belum ditetapkan dalam Settings.");
-    const body = new URLSearchParams();
-    body.set("path", path);
-    body.set("payload", JSON.stringify(payload||{}));
-    const res = await fetch(EXEC_URL, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body });
-    if(!res.ok) throw new Error("HTTP "+res.status);
-    const json = await res.json().catch(()=>null);
-    if(!json) throw new Error("Respons bukan JSON");
-    if(json.error || json.success===false) throw new Error(json.error||"Ralat backend");
-    return json;
-  }
-
-  // ---------- UTIL ----------
-  function escapeHtml(str){ return (str||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
-  function escapeAttr(str){ return (str||"").replace(/"/g,"&quot;"); }
-
-  // ---------- INIT ----------
-  (function init(){
-    loadSettingsInputs();
-    applySettings();
-    renderList();
-    fillForm();
-    renderPreview();
-    setActiveTab("user");
-  })();
-  </script>
+// ---------- UTIL ----------
+function escapeHtml(str){ return (str||"").replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+function escapeAttr(str){ return (str||"").replace(/"/g,"&quot;"); }
+</script>
 </body>
 </html>
