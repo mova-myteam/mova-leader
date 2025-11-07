@@ -35,6 +35,7 @@
     /* Editable element */
     .page-element { cursor: pointer; transition: box-shadow .2s ease }
     .page-element.selected { outline: 2px solid #10b981; outline-offset: 2px }
+    .editing-focus { box-shadow: 0 0 0 3px rgba(59,130,246,.5) inset; }
 
     /* Rich Text Editor styles (if used in child iframes) */
     .rtbox { min-height:120px; border:1px solid #d1d5db; border-radius:.75rem; padding:.6rem; background:#fff }
@@ -863,5 +864,61 @@
     }
   });
 </script>
+
+<!-- === LIVE PREVIEW BRIDGE (transient, no-save) === -->
+<script>
+(function(){
+  if (window.__movaUserBridgeReady) return;
+  window.__movaUserBridgeReady = true;
+
+  // State sementara (digunakan hanya untuk preview semasa edit)
+  window.__previewTransient = { sections: [], settings: {}, selectedId: null };
+
+  // API dipanggil oleh dashboard untuk render segera
+  window.updateFromSections = function(payload){
+    try{
+      window.__previewTransient.sections   = payload.sections || [];
+      window.__previewTransient.settings   = payload.settings || {};
+      window.__previewTransient.selectedId = payload.selectedId || null;
+      // Render sementara (tanpa simpan)
+      window.pageSections = normalizeSections(window.__previewTransient.sections);
+      renderPage();
+
+      // Opsyenal: fokus pada bahagian yang dipilih
+      const id = window.__previewTransient.selectedId;
+      if (id) {
+        const el = document.querySelector('[data-section-id=\"'+id+'\"], #section-'+id+', #sec-'+id);
+        el && el.scrollIntoView({ behavior:'smooth', block:'center' });
+        el && el.classList.add('editing-focus');
+        setTimeout(()=>{ el && el.classList.remove('editing-focus'); }, 400);
+      }
+    }catch(e){ console.warn('[MOVA Bridge] updateFromSections error:', e); }
+  };
+
+  // Listener khusus untuk mesej dari dashboard
+  window.addEventListener('message', function(e){
+    const msg = e.data || {};
+    if (msg.type === 'mova-bridge-ping') {
+      // Beritahu dashboard bahawa bridge sedia
+      e.source && e.source.postMessage({ type:'mova-bridge-ready' }, '*');
+      return;
+    }
+    if (msg.type === 'sections-live-update') {
+      // Render SEMASA edit (tiada simpan)
+      window.updateFromSections(msg);
+      return;
+    }
+    if (msg.type === 'scroll-to-section' && msg.id) {
+      const t = document.querySelector('[data-section-id=\"'+msg.id+'\"]') ||
+                document.getElementById('section-'+msg.id) ||
+                document.getElementById('sec-'+msg.id);
+      t && t.scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
+  }, false);
+})();
+</script>
+<!-- === /LIVE PREVIEW BRIDGE === -->
+
 </body>
 </html>
