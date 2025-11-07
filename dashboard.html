@@ -5553,5 +5553,98 @@ window.movaIsLocked = movaIsLocked;
 </script>
 <!-- ==== /MOVA Live Preview ==== -->
 
+
+<!-- ==== MOVA Live Preview Bridge (Injected) ==== -->
+<script>
+(function(){
+  try {
+    if (window.__movaPreviewPatched) return;
+    window.__movaPreviewPatched = true;
+
+    var iframe = document.getElementById('userPreview');
+    if (!iframe) return;
+
+    // Track last snapshot to avoid spamming messages
+    var lastHash = null;
+    var lastSel  = null;
+
+    // Ensure iframe has edit=1
+    try {
+      var u = new URL(iframe.src, location.href);
+      if (u.searchParams.get('edit') !== '1') {
+        u.searchParams.set('edit', '1');
+        iframe.src = u.toString();
+      }
+    } catch (e) {}
+
+    function post(msg){
+      try { iframe.contentWindow && iframe.contentWindow.postMessage(msg, '*'); } catch(e){}
+    }
+
+    // Ping user.html so it can reply 'mova-bridge-ready'
+    function ping(){ post({ type: 'mova-bridge-ping' }); }
+
+    // Compose current editor state safely
+    function currentState(){
+      var sections = (window.store && Array.isArray(window.store.sections)) ? window.store.sections : [];
+      var settings = (window.store && window.store.settings) || {};
+      var selectedId = (window.store && window.store.selectedSectionId) || null;
+      return { sections: sections, settings: settings, selectedId: selectedId };
+    }
+
+    function snapshot(state){
+      // Hash only main parts
+      try { return JSON.stringify({ s: state.sections, t: state.settings }); } catch(e){ return ''; }
+    }
+
+    function sendLive(state){
+      // Save bootstrap so user.html can render immediately while loading API
+      try { localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections: state.sections })); } catch(e){}
+      post(Object.assign({ type: 'sections-live-update' }, state));
+    }
+
+    // Listen for 'ready' from user.html then push immediately
+    window.addEventListener('message', function(ev){
+      var msg = ev && ev.data || {};
+      if (msg.type === 'mova-bridge-ready') {
+        window.__movaIframeReady = true;
+        sendLive(currentState());
+      }
+    }, false);
+
+    // Kick the handshake on load and a couple retries
+    function kickHandshake(){
+      ping();
+      setTimeout(ping, 500);
+      setTimeout(ping, 1200);
+    }
+    if (iframe) {
+      iframe.addEventListener('load', kickHandshake);
+      // If already loaded, still try
+      setTimeout(kickHandshake, 300);
+    }
+
+    // Change pump: watch store.sections/settings and selectedSectionId
+    setInterval(function(){
+      var st = currentState();
+      var h = snapshot(st);
+      // Only include selected jump when it actually changes
+      if (st.selectedId !== lastSel && window.__movaIframeReady) {
+        post({ type: 'scroll-to-section', id: st.selectedId });
+        lastSel = st.selectedId;
+      }
+      if (h !== lastHash && window.__movaIframeReady) {
+        lastHash = h;
+        sendLive(st);
+      }
+    }, 400);
+
+  } catch (err) {
+    console.warn('[MOVA live bridge patch] error:', err);
+  }
+})();
+</script>
+<!-- ==== /MOVA Live Preview Bridge (Injected) ==== -->
+
 </body>
 </html>                                 
