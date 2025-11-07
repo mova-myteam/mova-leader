@@ -5366,9 +5366,9 @@
 
 </script>
 
-<!-- === START: MOVA inline patch (LOCK_STRICT) — 2025-11-07T04:51:19.330169Z === -->
+<!-- === START: MOVA inline patch (LOCK_STRICT v2) — 2025-11-07T04:54:46.403604Z === -->
 <script>
-/* === MOVA Inline Patch (LOCK_STRICT) — JS === */
+/* === MOVA Inline Patch (LOCK_STRICT v2) — JS === */
 (function(){
   const LOG_PREFIX = "[MOVA inline patch]";
   const state = {
@@ -5382,12 +5382,10 @@
 
   function log(){ try{ console.log(LOG_PREFIX, ...arguments); }catch(e){} }
 
-  // Restore persisted lock from localStorage
   const KEY = "mova_lock_persist";
   function persist(val){ try{ localStorage.setItem(KEY, val ? "1":"0"); }catch(e){} }
   function restore(){ try{ return localStorage.getItem(KEY)==="1"; }catch(e){ return false; } }
 
-  // Create floating lock button (doesn't disturb original layout)
   function makeLockButton(){
     if(document.querySelector(".mova-lock-btn")) return;
     const btn = document.createElement("button");
@@ -5401,13 +5399,10 @@
       </svg>
       <span class="mova-lock-label">Kunci</span>
     `;
-    btn.addEventListener("click", () => {
-      setLocked(!state.locked, true);
-    });
+    btn.addEventListener("click", () => setLocked(!state.locked, true));
     document.body.appendChild(btn);
   }
 
-  // Apply/remove lock mode
   function setLocked(val, byUser=false){
     state.locked = !!val;
     document.body.classList.toggle("mova-locked", state.locked);
@@ -5415,27 +5410,20 @@
     log(state.locked ? "LOCKED" : "UNLOCKED");
   }
 
-  // Intercept clicks that would switch tabs or sections when locked
   function installGuards(){
     document.addEventListener("click", (ev) => {
       if(!state.locked) return;
       const el = ev.target.closest(state.selectors.tabs + "," + state.selectors.sectionItem);
       if(!el) return;
-
-      // Allow clicking the floating lock button still
       if (ev.target.closest(".mova-lock-btn")) return;
-
-      // Allow clicking inside editors/inputs
       const inputLike = ev.target.closest("input,textarea,[contenteditable],select,.rtbox,.editor");
       if(inputLike) return;
-
       ev.stopPropagation();
       ev.preventDefault();
       log("Blocked navigation/change while locked.");
     }, true);
   }
 
-  // Ensure only the first preview iframe/pane remains visible (hide duplicates)
   function ensureSinglePreview(){
     try{
       const iframes = Array.from(document.querySelectorAll("iframe[id*='preview'], iframe[src*='user'], iframe[name*='preview']"));
@@ -5446,57 +5434,33 @@
     }catch(e){}
   }
 
-  // Auto-scroll the preview to a section when a section item is clicked
   function installAutoScroll(){
     const container = document.querySelector(state.selectors.sectionList) || document;
     container.addEventListener("click", (ev) => {
-      if(state.locked) return; // respect lock
+      if(state.locked) return;
       const a = ev.target.closest("a[href^='#'], [data-target], [data-id]");
       if(!a) return;
       let targetId = null;
-      if(a.getAttribute("href") && a.getAttribute("href").startsWith("#")){
-        targetId = a.getAttribute("href").slice(1);
-      }else if(a.dataset.target){ targetId = a.dataset.target.replace(/^#/, ""); }
-      else if(a.dataset.id){ targetId = a.dataset.id.replace(/^#/, ""); }
+      if(a.getAttribute("href") && a.getAttribute("href").startsWith("#")) targetId = a.getAttribute("href").slice(1);
+      else if(a.dataset.target) targetId = a.dataset.target.replace(/^#/, "");
+      else if(a.dataset.id) targetId = a.dataset.id.replace(/^#/, "");
       if(!targetId) return;
-
       const iframe = document.querySelector("iframe[id*='preview'], iframe[name*='preview'], iframe[src*='user']");
       if(!iframe) return;
-
       try{
         const doc = iframe.contentWindow && iframe.contentWindow.document;
         if(doc){
           const el = doc.getElementById(targetId) || doc.querySelector(`[data-section-id='${targetId}'], section[id='${targetId}']`);
-          if(el){ el.scrollIntoView({behavior:"smooth", block:"start"}); log("Preview scrolled to:", targetId); }
+          if(el) el.scrollIntoView({behavior:"smooth", block:"start"});
         }else{
-          // Fallback: postMessage (if preview implements listener)
           iframe.contentWindow.postMessage({type:"mova-scroll", id:targetId}, "*");
         }
       }catch(e){
-        // Cross-origin fallback: postMessage
-        try{ iframe.contentWindow.postMessage({type:"mova-scroll", id:targetId}, "*"); }catch(_){}
+        try{ iframe.contentWindow.postMessage({type:"mova-scroll", id:targetId}, "*"); }catch(_ ){}
       }
     }, true);
   }
 
-  // Defensive fix for accidental 'or' token in JS (SyntaxError: Unexpected identifier 'or')
-  // If the page defined a global variable with 'a or b' by mistake, patch common patterns at runtime.
-  function fixCommonSyntaxAccidents(){
-    // No-op here: we cannot reliably rewrite parsed scripts, but we log a tip to find the culprit.
-    // The earlier error reported at line ~5148 likely comes from using `a or b` instead of `a || b`.
-    // Keep a console hint to aid debugging without touching original code.
-    log("Tip: If you see 'Unexpected identifier \"or\"', replace `or` with `||` in boolean expressions.");
-  }
-
-  // Tailwind CDN warning is benign for development; log a single note (do not change original import)
-  function noteTailwind(){
-    if(!window.__mova_tailwind_warned){
-      window.__mova_tailwind_warned = true;
-      log("Note: Using Tailwind via CDN is fine for dev. For production, consider CLI/PostCSS build.");
-    }
-  }
-
-  // Hide duplicate preview panes (non-iframe) heuristically
   function hideDuplicatePreviewPanes(){
     const previews = Array.from(document.querySelectorAll("[data-role='preview'], .preview, #preview"));
     if(previews.length > 1){
@@ -5505,28 +5469,23 @@
     }
   }
 
-  // Install input auto-save / live-sync trigger (non-invasive)
   function installLiveSync(){
     const editor = document.querySelector(".editor, [data-role='editor'], #editor, .user-editor, .left-editor");
     if(!editor) return;
     let timer = null;
-    editor.addEventListener("input", (e)=>{
+    editor.addEventListener("input", () => {
       clearTimeout(timer);
-      timer = setTimeout(()=>{
-        try{ window.dispatchEvent(new CustomEvent("mova-editor-change")); }catch(_){}
+      timer = setTimeout(() => {
+        try{ window.dispatchEvent(new CustomEvent("mova-editor-change")); }catch(_ ){}
         log("Editor change (debounced).");
       }, 250);
     });
   }
 
-  // Boot
-  document.addEventListener("DOMContentLoaded", function(){
-    try{
-      // Inject CSS programmatically in case we couldn't append to <head>
-      const style = document.createElement("style");
-      style.id = "mova_inline_patch_lock_strict";
-      style.textContent = `
-/* === MOVA Inline Patch (LOCK_STRICT) — CSS === *\/
+  function injectCSS(){
+    const style = document.createElement("style");
+    style.id = "mova_inline_patch_lock_strict";
+    style.textContent = `/* === MOVA Inline Patch (LOCK_STRICT) — CSS === */
 :root{ --mova-brand:#ef4444; }
 .mova-lock-btn{
   position:fixed; top:14px; right:14px; z-index:9999;
@@ -5540,7 +5499,7 @@ body.mova-locked{ --mova-dim:.5; }
 body.mova-locked .mova-lock-btn{ background: var(--mova-brand); color:#fff; border-color:transparent; }
 body.mova-locked .mova-lock-btn .mova-lock-label::after{ content:" (Terkunci)"; font-weight:700; }
 
-/* Kunci tab lain semasa mengedit *\/
+/* Kunci tab lain semasa mengedit */
 body.mova-locked [role="tab"]:not(.active),
 body.mova-locked .tab:not(.active) {
   pointer-events:none !important;
@@ -5548,33 +5507,31 @@ body.mova-locked .tab:not(.active) {
   filter: grayscale(1);
 }
 
-/* Elak klik yang menukar seksyen ketika terkunci *\/
+/* Elak klik yang menukar seksyen ketika terkunci */
 body.mova-locked .section-list [data-section],
 body.mova-locked .section-list .section-item {
   pointer-events:none !important;
   opacity:.85;
 }
 
-/* Pastikan hanya 1 preview kelihatan jika ada gandaan *\/
-.mova-hide { display:none !important; }
-`;
-      document.head.appendChild(style);
-    }catch(e){}
+/* Pastikan hanya 1 preview kelihatan jika ada gandaan */
+.mova-hide { display:none !important; }`;
+    document.head.appendChild(style);
+  }
 
+  document.addEventListener("DOMContentLoaded", function(){
+    try{ injectCSS(); }catch(e){}
     makeLockButton();
     installGuards();
     ensureSinglePreview();
     hideDuplicatePreviewPanes();
     installAutoScroll();
     installLiveSync();
-    fixCommonSyntaxAccidents();
-    noteTailwind();
-
     setLocked(restore(), false);
-    log("Applied.");
+    log("Applied v2.");
   });
 })();
 </script>
-<!-- === END: MOVA inline patch (LOCK_STRICT) === -->
+<!-- === END: MOVA inline patch (LOCK_STRICT v2) === -->
 </body>
 </html>
