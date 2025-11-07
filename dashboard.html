@@ -5480,13 +5480,15 @@ window.movaIsLocked = movaIsLocked;
 </script>
 
 
-<!-- === MOVA Universal Preview Bridge (stable, scroll-safe) === -->
+
+<!-- === MOVA Preview Bridge (backend-bootstrapped, scroll-safe, cross-origin OK) === -->
 <script>
 (function(){
   try{
-    if (window.__movaUniversalBridge) return;
-    window.__movaUniversalBridge = true;
+    if (window.__movaBridgeBackend) return;
+    window.__movaBridgeBackend = true;
 
+    // 0) Resolve preview iframe
     function findPreview(){
       return document.getElementById('userFrame')
           || document.getElementById('userPreview')
@@ -5496,109 +5498,133 @@ window.movaIsLocked = movaIsLocked;
     var iframe = findPreview();
     if (!iframe) { console.warn('[MOVA bridge] preview iframe not found'); return; }
 
-    function safeParse(x){ try{ return JSON.parse(x); }catch(e){ return null; } }
-    function jclone(x){ try{ return JSON.parse(JSON.stringify(x)); }catch(e){ return x; } }
-    function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){ fn.apply(null,a); }, ms||180); }; }
-    function throttle(fn, ms){ var last=0, tid=null; return function(){ var now=Date.now(); var remain=ms-(now-last); var ctx=this, args=arguments; if(remain<=0){ last=now; fn.apply(ctx,args); } else { clearTimeout(tid); tid=setTimeout(function(){ last=Date.now(); fn.apply(ctx,args); }, remain); } }; }
+    // 1) Minimal helpers
+    function jclone(x){ try{return JSON.parse(JSON.stringify(x));}catch(e){return x;} }
+    function safeParse(s){ try{return JSON.parse(s);}catch(e){return null;} }
+    function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){ fn.apply(null,a); }, ms||220); }; }
+    function throttle(fn,ms){ var last=0,tid; return function(){ var now=Date.now(); if(now-last>ms){ last=now; fn(); } else { clearTimeout(tid); tid=setTimeout(function(){ last=Date.now(); fn(); }, ms-(now-last)); } }; }
 
-    function extractSections(){
+    // 2) API caller (uses global EXEC_URL if available)
+    function api(path, payload){
+      return new Promise(function(resolve,reject){
+        var exec = window.EXEC_URL || (window.__EXEC_URL || '');
+        if (!exec){ resolve(null); return; }
+        var body = new URLSearchParams({ path: path, payload: JSON.stringify(payload||{}) });
+        fetch(exec, { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, body: body })
+          .then(r=>r.text()).then(t=>{ try{ resolve(JSON.parse(t)); }catch(e){ resolve(null); } })
+          .catch(()=>resolve(null));
+      });
+    }
+
+    // 3) Where sections/settings live inside editor
+    function extractLocalSections(){
       try{
         var srcs = [];
         if (window.store){
           if (Array.isArray(store.sections)) srcs.push(store.sections);
           if (store.settings && Array.isArray(store.settings.sections)) srcs.push(store.settings.sections);
-          if (typeof store.sections_json === 'string') { var p = safeParse(store.sections_json); if (Array.isArray(p)) srcs.push(p); }
+          if (typeof store.sections_json === 'string'){ var p=safeParse(store.sections_json); if (Array.isArray(p)) srcs.push(p); }
         }
         if (Array.isArray(window.sections)) srcs.push(window.sections);
-        if (Array.isArray(window.SECTIONS)) srcs.push(window.SECTIONS);
-        if (Array.isArray(window.__sections)) srcs.push(window.__sections);
-        var pick = [];
-        for (var i=0;i<srcs.length;i++){ if (srcs[i] && srcs[i].length){ pick = srcs[i]; break; } }
-        if (!Array.isArray(pick)) pick = [];
-        return jclone(pick);
-      }catch(e){ return []; }
-    }
-    function extractSettings(){
-      var s = {};
-      try{
-        if (window.store && store.settings) s = Object.assign({}, store.settings);
-        var get = function(id){ var el = document.getElementById(id); return el ? (el.type==='checkbox'?el.checked:el.value) : undefined; };
-        var brand = get('setThemeColor'); if (brand) s.theme_color = brand;
-        var width = get('setContentWidth'); if (width) s.content_width = String(width);
-        var fonnte = get('setFonnte'); if (fonnte) s.fonnte_api = fonnte;
-        var phone = get('setLeaderPhone'); if (phone) s.whatsapp = phone;
+        for (var i=0;i<srcs.length;i++){ if (srcs[i] && srcs[i].length) return jclone(srcs[i]); }
       }catch(e){}
-      return s;
+      return [];
+    }
+    function extractLocalSettings(){
+      try{
+        var s = (window.store && store.settings) ? Object.assign({}, store.settings) : {};
+        var get = function(id){ var el=document.getElementById(id); return el?(el.type==='checkbox'?el.checked:el.value):undefined; };
+        var brand=get('setThemeColor'); if (brand) s.theme_color=brand;
+        var width=get('setContentWidth'); if (width) s.content_width=String(width);
+        var fonnte=get('setFonnte'); if (fonnte) s.fonnte_api=fonnte;
+        var phone=get('setLeaderPhone'); if (phone) s.whatsapp=phone;
+        return s;
+      }catch(e){ return {}; }
     }
 
-    var scrollGuard = { paused:false, timer:null, resumeDelay: 700 };
+    // 4) Backend bootstrap: if local empty, fetch sections_get once
+    var boot = { fetched:false };
+    function leaderId(){
+      try{
+        var q = new URLSearchParams(location.search).get('leader') || 'LEAD-0001';
+        return q;
+      }catch(e){ return 'LEAD-0001'; }
+    }
+    async function backendFallback(){
+      if (boot.fetched) return [];
+      boot.fetched = true;
+      var r = await api('settings_get', { leader_id: leaderId() });
+      if (r && r.success){
+        var raw = r.settings && (r.settings.sections_json || r.settings.sections);
+        var arr = Array.isArray(raw) ? raw : (typeof raw==='string' ? safeParse(raw) : []);
+        return Array.isArray(arr) ? arr : [];
+      }
+      return [];
+    }
+
+    // 5) Push pipeline (scroll-safe & cross-origin)
+    var scrollGuard = { paused:false, tid:null, delay:700 };
     function pauseForScroll(){
       scrollGuard.paused = true;
-      clearTimeout(scrollGuard.timer);
-      scrollGuard.timer = setTimeout(function(){ scrollGuard.paused = false; push(); }, scrollGuard.resumeDelay);
+      clearTimeout(scrollGuard.tid);
+      scrollGuard.tid = setTimeout(function(){ scrollGuard.paused=false; push(); }, scrollGuard.delay);
     }
-
-    function bindIframeScroll(){
-      try{
-        var win = iframe.contentWindow;
-        var doc = win && (win.document || null);
-        if (!win || !doc) return;
-        var target = doc.scrollingElement || doc.documentElement || doc.body;
-        if (!target) return;
-        win.addEventListener('scroll', pauseForScroll, { passive:true });
-        doc.addEventListener('scroll', pauseForScroll, { passive:true });
-      }catch(e){}
-    }
-
-    var container = iframe.parentElement || document;
-    container.addEventListener('wheel', pauseForScroll, { passive:true });
-    container.addEventListener('touchmove', pauseForScroll, { passive:true });
+    // we can't read inside iframe on cross-origin, but we can avoid flooding while user scrolls container
+    (iframe.parentElement||document).addEventListener('wheel', pauseForScroll, {passive:true});
+    (iframe.parentElement||document).addEventListener('touchmove', pauseForScroll, {passive:true});
 
     function post(msg){ try{ (iframe.contentWindow||iframe).postMessage(msg, '*'); }catch(e){} }
-    var frameReady = false;
-
-    function pushNow(){
+    async function pushNow(){
       if (scrollGuard.paused) return;
-      var secs = extractSections();
-      var setg = extractSettings();
-      var sid  = null; // jangan auto scroll
-      post({ type:'sections-live-update', sections: secs, settings: setg, selectedId: sid });
+      var secs = extractLocalSections();
+      if (!secs || !secs.length){
+        // fetch from backend once
+        secs = await backendFallback();
+      }
+      var setg = extractLocalSettings();
+      // never send selectedId during live typing to avoid auto-scroll
+      post({ type:'sections-live-update', sections: secs, settings: setg, selectedId: null });
       post({ type:'load-sections', data:{ sections: secs } });
       post({ type:'sections-updated', payload:{ sections: secs } });
       try{ localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections: secs, settings: setg })); }catch(e){}
     }
+    var push = debounce(pushNow, 260);
+    var poll = throttle(function(){ if(!scrollGuard.paused) push(); }, 900);
 
-    var push = debounce(pushNow, 280);
-    var pollPush = throttle(function(){ if(!scrollGuard.paused) push(); }, 700);
-
+    // 6) Handshake
     window.addEventListener('message', function(e){
       var t = (e.data||{}).type;
-      if (t==='mova-bridge-ready' || t==='sections-loaded'){
-        frameReady = true; bindIframeScroll(); push();
-      }
+      if (t==='mova-bridge-ready' || t==='sections-loaded'){ push(); }
     });
     iframe.addEventListener('load', function(){
-      frameReady = false;
       try{ (iframe.contentWindow||iframe).postMessage({type:'mova-bridge-ping'}, '*'); }catch(e){}
-      setTimeout(function(){ bindIframeScroll(); push(); }, 250);
+      setTimeout(push, 300);
     });
 
-    var editorRoot = document.getElementById('tab-user') || document.getElementById('editor') || document.body;
-    editorRoot.addEventListener('input', push, true);
-    editorRoot.addEventListener('change', push, true);
-    editorRoot.addEventListener('click', function(){ setTimeout(push, 30); }, true);
+    // 7) Editor event hooks (generic)
+    var root = document.getElementById('tab-user') || document.getElementById('editor') || document.body;
+    root.addEventListener('input', push, true);
+    root.addEventListener('change', push, true);
+    root.addEventListener('click', function(){ setTimeout(push, 40); }, true);
 
-    setInterval(pollPush, 800);
+    // 8) Periodic poll
+    setInterval(poll, 1200);
 
-    window.__movaPushPreview = function(){ pushNow(); };
+    // 9) Quick manual refresh button (optional; tiny)
+    var btn = document.createElement('button');
+    btn.textContent='Muat semula Pratonton';
+    btn.style.cssText='position:absolute;right:18px;top:10px;z-index:50;background:#111;color:#fff;border:none;border-radius:10px;padding:6px 10px;font-size:12px;opacity:.8;';
+    btn.onclick=function(){ pushNow(); };
+    (document.querySelector('#preview-toolbar')||document.body).appendChild(btn);
 
-    setTimeout(function(){ try{ localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections: extractSections(), settings: extractSettings() })); }catch(e){}; push(); }, 300);
+    // 10) First push
+    setTimeout(push, 350);
   }catch(err){
-    console.warn('[MOVA bridge] error:', err);
+    console.warn('[MOVA bridge] init error:', err);
   }
 })();
 </script>
-<!-- === /MOVA Universal Preview Bridge (stable, scroll-safe) === -->
+<!-- === /MOVA Preview Bridge (backend-bootstrapped) === -->
 
 </body>
 </html>                                 
