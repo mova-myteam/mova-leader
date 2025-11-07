@@ -5583,5 +5583,59 @@ window.movaIsLocked = movaIsLocked;
 </script>
 <!-- === /MOVA Live Preview Sync === -->
 
+
+<!-- === MOVA Safe Guards: prevent undefined .push on sections/elements === -->
+<script>
+(function(){
+  try{
+    // Ensure global store & defaults
+    if (!window.store) window.store = {};
+    if (!Array.isArray(window.store.sections)) window.store.sections = [];
+    if (typeof window.store.selectedSectionId === 'undefined') window.store.selectedSectionId = (window.store.sections[0] && window.store.sections[0].id) || null;
+
+    function ensureSection(id){
+      if (!Array.isArray(store.sections)) store.sections = [];
+      var s = null;
+      if (id) { s = store.sections.find(function(x){ return x && x.id === id; }) || null; }
+      if (!s && store.sections.length){ s = store.sections[0]; }
+      if (!s){
+        s = { id: id || ('sec-'+Math.random().toString(36).slice(2,7)), title:'Bahagian', type:'rich', elements:[], padding:'4rem 1rem' };
+        store.sections.push(s);
+      }
+      if (!Array.isArray(s.elements)) s.elements = [];
+      return s;
+    }
+    window.__movaEnsureSection = ensureSection;
+
+    // When opening "Tambah Elemen Baharu" modal and clicking Tambah, make sure arrays exist
+    document.addEventListener('click', function(e){
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      var label = (btn.textContent || '').trim().toLowerCase();
+      if (label === 'tambah'){
+        if (!window.store) window.store = {};
+        if (!Array.isArray(store.sections)) store.sections = [];
+        var sid = store.selectedSectionId;
+        ensureSection(sid);
+        // allow original handler to run
+        setTimeout(function(){
+          try{ if (typeof window.__movaPushPreview === 'function') window.__movaPushPreview(); }catch(e){}
+        }, 10);
+      }
+    }, true);
+
+    // Also, whenever section is selected via any click in the editor, keep arrays valid
+    document.addEventListener('click', function(){
+      try{
+        if (store && store.selectedSectionId) ensureSection(store.selectedSectionId);
+      }catch(e){}
+    }, true);
+  }catch(err){
+    console.warn('[MOVA guards] init error:', err);
+  }
+})();
+</script>
+<!-- === /MOVA Safe Guards === -->
+
 </body>
 </html>                                 
