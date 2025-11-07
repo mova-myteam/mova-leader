@@ -5679,5 +5679,161 @@ window.movaIsLocked = movaIsLocked;
 })();
 </script>
 <!-- ==== /LIVE SYNC HANDSHAKE ==== -->
+
+<!-- ==== MOVA DRAFT/PUBLISH RECIPE PATCH (7 Nov 2025) ==== -->
+<style>
+  /* Badge overlay on top-right of preview iframe container */
+  .mova-live-badge{
+    position:absolute; right:.75rem; top:.5rem;
+    background:#111; color:#fff; font-weight:700;
+    font-size:.75rem; letter-spacing:.02em;
+    border-radius:.5rem; padding:.35rem .6rem;
+    box-shadow:0 8px 18px rgba(0,0,0,.2); pointer-events:none; z-index:50;
+    opacity:.88;
+  }
+  .mova-preview-wrap{ position:relative; }
+</style>
+<script>
+(function(){
+  if (window.__movaDraftPublishPatched) return;
+  window.__movaDraftPublishPatched = true;
+
+  // --- Elements ---
+  const iframe = document.getElementById('userPreview');
+
+  // Wrap preview iframe to place a badge
+  if (iframe && !iframe.parentElement.classList.contains('mova-preview-wrap')){
+    const wrap = document.createElement('div');
+    wrap.className = 'mova-preview-wrap';
+    iframe.parentElement.insertBefore(wrap, iframe);
+    wrap.appendChild(iframe);
+    const badge = document.createElement('div');
+    badge.className = 'mova-live-badge';
+    badge.textContent = 'LIVE PREVIEW · Draf';
+    wrap.appendChild(badge);
+  }
+
+  // --- DRAFT CACHE in localStorage ---
+  function cacheDraft(st){
+    try{
+      const payload = {
+        sections: st.sections || [],
+        settings: st.settings || {},
+        t: Date.now()
+      };
+      localStorage.setItem('mova_preview_bootstrap', JSON.stringify(payload));
+    }catch(e){}
+  }
+
+  // --- SAVE GATE (block auto-save to backend) ---
+  const EXEC_URL = (function(){
+    try{
+      // Try to read from existing global if present
+      if (window.EXEC_URL) return window.EXEC_URL;
+      // Fallback: search in scripts
+      return undefined;
+    }catch(e){ return undefined; }
+  })();
+
+  let allowUntil = 0;
+  function openSaveGate(ms){
+    allowUntil = Date.now() + (ms||5000);
+    setTimeout(()=>{ allowUntil = 0; }, ms||5000);
+  }
+
+  // Hijack clicks on "Simpan" buttons/links to open gate
+  function markSaveButtons(){
+    const nodes = Array.from(document.querySelectorAll('button, a'));
+    nodes.forEach(node => {
+      if (node.__movaSaveHijacked) return;
+      const txt = (node.textContent || '').trim().toLowerCase();
+      const isSave = txt === 'simpan' || txt.includes('simpan') || node.dataset.action === 'save';
+      if (isSave){
+        node.__movaSaveHijacked = true;
+        node.addEventListener('click', function(){ openSaveGate(6000); }, true);
+      }
+    });
+  }
+  markSaveButtons();
+  // In case UI changes dynamically
+  const mo = new MutationObserver(markSaveButtons);
+  mo.observe(document.documentElement, { childList:true, subtree:true });
+
+  // Proxy fetch to block unintended saves to backend
+  (function(){
+    const _fetch = window.fetch;
+    window.fetch = async function(resource, init){
+      try{
+        const url = (typeof resource === 'string') ? resource : (resource && resource.url);
+        const isExec = EXEC_URL ? (url === EXEC_URL) : /script\.google\.com\/macros\/s\//.test(url||"");
+        const method = (init && (init.method||'GET')).toUpperCase();
+        const isPost = method === 'POST';
+        if (isExec && isPost && init && init.body && typeof init.body.get === 'function'){
+          const path = init.body.get('path');
+          // Block settings_update unless save gate is open
+          if ((path === 'settings_update' || path === 'content_save') && Date.now() > allowUntil){
+            console.warn('[MOVA Draft] Auto-save attempt blocked for path:', path);
+            // Return a synthetic success to keep UI calm (but no write happened)
+            return new Response(JSON.stringify({ success:true, draftBlocked:true }), {
+              status: 200, headers: { 'Content-Type':'application/json' }
+            });
+          }
+        }
+      }catch(e){ /* ignore and fall through */ }
+      return _fetch.apply(this, arguments);
+    };
+    // Public API if you need to call save programmatically
+    window.__movaOpenSaveGate = openSaveGate;
+  })();
+
+  // --- LIVE UPDATE glue: also cache every change as DRAFT ---
+  function getStore(){ return window.store || {}; }
+  const iframeWin = iframe && iframe.contentWindow;
+
+  function sendPreview(reason){
+    const st = getStore();
+    const payload = {
+      type:'sections-live-update',
+      sections: st.sections || [],
+      selectedId: st.selectedSectionId || null,
+      settings: st.settings || {},
+      reason: reason || 'input'
+    };
+    cacheDraft(st);
+    try {
+      iframeWin && iframeWin.postMessage(payload, '*');
+      iframeWin && iframeWin.updateFromSections && iframeWin.updateFromSections(payload);
+    } catch(e){}
+  }
+
+  // Observe inputs in properties panel + section list
+  function attachLiveInputs(root){
+    if (!root) return;
+    const handler = ()=> sendPreview('input');
+    root.addEventListener('input', handler, { passive:true });
+    root.addEventListener('change', handler, { passive:true });
+    root.addEventListener('keyup', handler, { passive:true });
+  }
+  const propertiesPanel = document.getElementById('propertiesPanel');
+  const sectionList = document.getElementById('sectionList');
+  attachLiveInputs(propertiesPanel);
+  attachLiveInputs(sectionList);
+
+  // Keep attaching for dynamically added inputs
+  const reattachMO = new MutationObserver(()=>{
+    attachLiveInputs(document.getElementById('propertiesPanel'));
+    attachLiveInputs(document.getElementById('sectionList'));
+  });
+  reattachMO.observe(document.documentElement, { childList:true, subtree:true });
+
+  // Also trigger sendPreview on 500ms interval (already present) but ensure it caches DRAFT too
+  setInterval(function(){
+    sendPreview('interval-500ms');
+  }, 500);
+
+  console.log('[MOVA Draft/Publish] Save gate active, live preview + draft cache ready.');
+})();
+</script>
+<!-- ==== /MOVA DRAFT/PUBLISH RECIPE PATCH ==== -->
 </body>
 </html>                                 
