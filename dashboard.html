@@ -5480,172 +5480,13 @@ window.movaIsLocked = movaIsLocked;
 </script>
 
 
-<!-- === MOVA Live Preview Sync — minimally invasive patch (preview only) === -->
-<script>
-(function(){
-  try{
-    if (window.__movaPreviewSyncPatched) return;
-    window.__movaPreviewSyncPatched = true;
-
-    // Locate preview iframe
-    var iframe = document.getElementById('userPreview') || document.querySelector('iframe.preview-iframe');
-    if (!iframe) { console.warn('[MOVA patch] preview iframe not found'); return; }
-
-    // simple safe JSON clone
-    function jclone(x){ try{ return JSON.parse(JSON.stringify(x||{})); }catch(e){ return {}; } }
-    function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){ fn.apply(null,a); }, ms||200); }; }
-
-    // Keep a local snapshot to avoid spamming postMessage
-    var lastSent = { sections:null, settings:null, selectedId:null };
-    function hasChanged(a,b){
-      try { return JSON.stringify(a) !== JSON.stringify(b); } catch(e){ return true; }
-    }
-
-    function getSections(){ try{ return (window.store && Array.isArray(store.sections)) ? store.sections : []; }catch(e){ return []; } }
-    function getSettings(){
-      try{
-        var s = (window.store && store.settings) ? store.settings : {};
-        // also map from Settings inputs if present
-        var get = id => { var el=document.getElementById(id); return el ? (el.type==='checkbox' ? el.checked : el.value) : undefined; };
-        var merged = Object.assign({}, s);
-        var phone = get('setLeaderPhone'); if (phone) merged.leader_phone = phone;
-        var brand = get('setThemeColor'); if (brand) merged.brand = brand;
-        var hb = get('setHeadingBold'); if (typeof hb !== 'undefined') (merged.typography||(merged.typography={})).headingBold = !!hb;
-        var bs = get('setBodySize'); if (bs) (merged.typography||(merged.typography={})).bodySize = Number(bs)||undefined;
-        return merged;
-      }catch(e){ return {}; }
-    }
-    function getSelectedId(){
-      try{ return (window.store && store.selectedSectionId) ? store.selectedSectionId : null; }catch(e){ return null; }
-    }
-
-    // Handshake & messaging
-    function post(msg){ try{ (iframe.contentWindow||iframe).postMessage(msg, '*'); }catch(e){} }
-    function pushToPreview(){
-      var payload = { type:'sections-live-update',
-        sections: jclone(getSections()),
-        settings: jclone(getSettings()),
-        selectedId: getSelectedId()
-      };
-      // dedupe
-      if (!hasChanged(payload.sections, lastSent.sections) ||
-          !hasChanged(payload.settings, lastSent.settings)) {
-        // if both same but selected changed, still send a small message
-        if (payload.selectedId !== lastSent.selectedId){
-          post({ type:'scroll-to-section', id: payload.selectedId });
-          lastSent.selectedId = payload.selectedId;
-        }
-        return;
-      }
-      post(payload);
-      try { localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections: payload.sections, settings: payload.settings })); } catch(e){}
-      lastSent = { sections: jclone(payload.sections), settings: jclone(payload.settings), selectedId: payload.selectedId };
-      // console.debug('[MOVA patch] preview pushed', payload);
-    }
-    var debouncedPush = debounce(pushToPreview, 150);
-
-    // When iframe loads, ping + initial push
-    iframe.addEventListener('load', function(){
-      try { (iframe.contentWindow||iframe).postMessage({ type:'mova-bridge-ping' }, '*'); } catch(e){}
-      setTimeout(pushToPreview, 250);
-    });
-
-    // Observe changes heuristically without touching other code
-    // 1) Polling snapshot (very light)
-    setInterval(debouncedPush, 500);
-
-    // 2) Listen to generic input/change in the editor area
-    var editorRoot = document.getElementById('tab-user') || document.body;
-    editorRoot.addEventListener('input', debouncedPush, true);
-    editorRoot.addEventListener('change', debouncedPush, true);
-    editorRoot.addEventListener('click', function(e){
-      // try to capture section selection buttons etc.
-      setTimeout(debouncedPush, 10);
-    }, true);
-
-    // 3) Expose a tiny API other scripts can call after saving or editing
-    window.__movaPushPreview = pushToPreview;
-
-    // 4) Try to monkey-patch common editor functions if they exist (non-fatal)
-    ['addSection','updateSection','deleteSection','addElement','updateElement','deleteElement','initEditor'].forEach(function(fn){
-      if (typeof window[fn] === 'function'){
-        var orig = window[fn];
-        window[fn] = function(){ var r = orig.apply(this, arguments); try{ debouncedPush(); }catch(e){} return r; };
-      }
-    });
-
-    // Initial send soon after page ready
-    document.addEventListener('DOMContentLoaded', function(){ setTimeout(pushToPreview, 400); });
-  }catch(err){
-    console.warn('[MOVA patch] preview sync error:', err);
-  }
-})();
-</script>
-<!-- === /MOVA Live Preview Sync === -->
-
-
-<!-- === MOVA Safe Guards: prevent undefined .push on sections/elements === -->
-<script>
-(function(){
-  try{
-    // Ensure global store & defaults
-    if (!window.store) window.store = {};
-    if (!Array.isArray(window.store.sections)) window.store.sections = [];
-    if (typeof window.store.selectedSectionId === 'undefined') window.store.selectedSectionId = (window.store.sections[0] && window.store.sections[0].id) || null;
-
-    function ensureSection(id){
-      if (!Array.isArray(store.sections)) store.sections = [];
-      var s = null;
-      if (id) { s = store.sections.find(function(x){ return x && x.id === id; }) || null; }
-      if (!s && store.sections.length){ s = store.sections[0]; }
-      if (!s){
-        s = { id: id || ('sec-'+Math.random().toString(36).slice(2,7)), title:'Bahagian', type:'rich', elements:[], padding:'4rem 1rem' };
-        store.sections.push(s);
-      }
-      if (!Array.isArray(s.elements)) s.elements = [];
-      return s;
-    }
-    window.__movaEnsureSection = ensureSection;
-
-    // When opening "Tambah Elemen Baharu" modal and clicking Tambah, make sure arrays exist
-    document.addEventListener('click', function(e){
-      var btn = e.target.closest('button');
-      if (!btn) return;
-      var label = (btn.textContent || '').trim().toLowerCase();
-      if (label === 'tambah'){
-        if (!window.store) window.store = {};
-        if (!Array.isArray(store.sections)) store.sections = [];
-        var sid = store.selectedSectionId;
-        ensureSection(sid);
-        // allow original handler to run
-        setTimeout(function(){
-          try{ if (typeof window.__movaPushPreview === 'function') window.__movaPushPreview(); }catch(e){}
-        }, 10);
-      }
-    }, true);
-
-    // Also, whenever section is selected via any click in the editor, keep arrays valid
-    document.addEventListener('click', function(){
-      try{
-        if (store && store.selectedSectionId) ensureSection(store.selectedSectionId);
-      }catch(e){}
-    }, true);
-  }catch(err){
-    console.warn('[MOVA guards] init error:', err);
-  }
-})();
-</script>
-<!-- === /MOVA Safe Guards === -->
-
-
-<!-- === MOVA Universal Preview Bridge (preview-only, non-destructive) === -->
+<!-- === MOVA Universal Preview Bridge (stable, scroll-safe) === -->
 <script>
 (function(){
   try{
     if (window.__movaUniversalBridge) return;
     window.__movaUniversalBridge = true;
 
-    // 1) Find preview iframe robustly
     function findPreview(){
       return document.getElementById('userFrame')
           || document.getElementById('userPreview')
@@ -5655,12 +5496,11 @@ window.movaIsLocked = movaIsLocked;
     var iframe = findPreview();
     if (!iframe) { console.warn('[MOVA bridge] preview iframe not found'); return; }
 
-    // 2) Helpers
     function safeParse(x){ try{ return JSON.parse(x); }catch(e){ return null; } }
     function jclone(x){ try{ return JSON.parse(JSON.stringify(x)); }catch(e){ return x; } }
     function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){ fn.apply(null,a); }, ms||180); }; }
+    function throttle(fn, ms){ var last=0, tid=null; return function(){ var now=Date.now(); var remain=ms-(now-last); var ctx=this, args=arguments; if(remain<=0){ last=now; fn.apply(ctx,args); } else { clearTimeout(tid); tid=setTimeout(function(){ last=Date.now(); fn.apply(ctx,args); }, remain); } }; }
 
-    // 3) Extract sections/settings from *any* known shapes
     function extractSections(){
       try{
         var srcs = [];
@@ -5672,11 +5512,8 @@ window.movaIsLocked = movaIsLocked;
         if (Array.isArray(window.sections)) srcs.push(window.sections);
         if (Array.isArray(window.SECTIONS)) srcs.push(window.SECTIONS);
         if (Array.isArray(window.__sections)) srcs.push(window.__sections);
-
-        // first non-empty wins
         var pick = [];
         for (var i=0;i<srcs.length;i++){ if (srcs[i] && srcs[i].length){ pick = srcs[i]; break; } }
-        // fallback empty section to avoid crashes
         if (!Array.isArray(pick)) pick = [];
         return jclone(pick);
       }catch(e){ return []; }
@@ -5685,7 +5522,6 @@ window.movaIsLocked = movaIsLocked;
       var s = {};
       try{
         if (window.store && store.settings) s = Object.assign({}, store.settings);
-        // read common inputs if present
         var get = function(id){ var el = document.getElementById(id); return el ? (el.type==='checkbox'?el.checked:el.value) : undefined; };
         var brand = get('setThemeColor'); if (brand) s.theme_color = brand;
         var width = get('setContentWidth'); if (width) s.content_width = String(width);
@@ -5694,71 +5530,75 @@ window.movaIsLocked = movaIsLocked;
       }catch(e){}
       return s;
     }
-    function selectedId(){
-      try{
-        if (window.store && store.selectedSectionId) return store.selectedSectionId;
-        // other fallbacks
-        var s = extractSections(); return s[0] ? s[0].id : null;
-      }catch(e){ return null; }
+
+    var scrollGuard = { paused:false, timer:null, resumeDelay: 700 };
+    function pauseForScroll(){
+      scrollGuard.paused = true;
+      clearTimeout(scrollGuard.timer);
+      scrollGuard.timer = setTimeout(function(){ scrollGuard.paused = false; push(); }, scrollGuard.resumeDelay);
     }
 
-    // 4) Initial bootstrap into localStorage so user.html can self-boot
-    function writeBootstrap(){
+    function bindIframeScroll(){
       try{
-        localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections: extractSections(), settings: extractSettings() }));
+        var win = iframe.contentWindow;
+        var doc = win && (win.document || null);
+        if (!win || !doc) return;
+        var target = doc.scrollingElement || doc.documentElement || doc.body;
+        if (!target) return;
+        win.addEventListener('scroll', pauseForScroll, { passive:true });
+        doc.addEventListener('scroll', pauseForScroll, { passive:true });
       }catch(e){}
     }
 
-    // 5) Push messages to user.html
+    var container = iframe.parentElement || document;
+    container.addEventListener('wheel', pauseForScroll, { passive:true });
+    container.addEventListener('touchmove', pauseForScroll, { passive:true });
+
     function post(msg){ try{ (iframe.contentWindow||iframe).postMessage(msg, '*'); }catch(e){} }
     var frameReady = false;
+
     function pushNow(){
+      if (scrollGuard.paused) return;
       var secs = extractSections();
       var setg = extractSettings();
-      var sid  = selectedId();
-      // primary modern payload
+      var sid  = null; // jangan auto scroll
       post({ type:'sections-live-update', sections: secs, settings: setg, selectedId: sid });
-      // legacy payloads for compatibility
       post({ type:'load-sections', data:{ sections: secs } });
       post({ type:'sections-updated', payload:{ sections: secs } });
-      writeBootstrap();
+      try{ localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections: secs, settings: setg })); }catch(e){}
     }
-    var push = debounce(pushNow, 120);
 
-    // 6) Handshake
+    var push = debounce(pushNow, 280);
+    var pollPush = throttle(function(){ if(!scrollGuard.paused) push(); }, 700);
+
     window.addEventListener('message', function(e){
       var t = (e.data||{}).type;
       if (t==='mova-bridge-ready' || t==='sections-loaded'){
-        frameReady = true; push();
+        frameReady = true; bindIframeScroll(); push();
       }
     });
     iframe.addEventListener('load', function(){
       frameReady = false;
       try{ (iframe.contentWindow||iframe).postMessage({type:'mova-bridge-ping'}, '*'); }catch(e){}
-      setTimeout(push, 250);
+      setTimeout(function(){ bindIframeScroll(); push(); }, 250);
     });
 
-    // 7) Observe editor interactions *without* touching other code
     var editorRoot = document.getElementById('tab-user') || document.getElementById('editor') || document.body;
     editorRoot.addEventListener('input', push, true);
     editorRoot.addEventListener('change', push, true);
     editorRoot.addEventListener('click', function(){ setTimeout(push, 30); }, true);
 
-    // 8) Light polling as a safety net
-    setInterval(push, 600);
+    setInterval(pollPush, 800);
 
-    // 9) Expose hook if other scripts want to force a refresh
-    window.__movaPushPreview = pushNow;
+    window.__movaPushPreview = function(){ pushNow(); };
 
-    // 10) Write bootstrap immediately and schedule first push
-    writeBootstrap();
-    setTimeout(push, 300);
+    setTimeout(function(){ try{ localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections: extractSections(), settings: extractSettings() })); }catch(e){}; push(); }, 300);
   }catch(err){
     console.warn('[MOVA bridge] error:', err);
   }
 })();
 </script>
-<!-- === /MOVA Universal Preview Bridge === -->
+<!-- === /MOVA Universal Preview Bridge (stable, scroll-safe) === -->
 
 </body>
 </html>                                 
