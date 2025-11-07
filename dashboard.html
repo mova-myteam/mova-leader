@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Dashboard (Selari Backend)</title>
+  <title>MOVA Leader — Dashboard (Lengkap)</title>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -40,6 +40,9 @@
     .ce{min-height:120px;border:1px dashed #e5e7eb;border-radius:.75rem;padding:.75rem}
     .ce:focus{outline:none;border-color:var(--brand)}
     .toolbar-inline button[aria-pressed="true"]{background:#fee2e2;border-color:#fecaca}
+    .table{width:100%;border-collapse:separate;border-spacing:0}
+    .table th,.table td{border-bottom:1px solid #e5e7eb;padding:.6rem .5rem;text-align:left}
+    .prose{line-height:1.6}
   </style>
 </head>
 <body class="min-h-screen">
@@ -49,17 +52,17 @@
         <div class="w-9 h-9 rounded-xl bg-[var(--brand)]"></div>
         <div>
           <h1 class="text-xl font-extrabold tracking-tight">MOVA Leader</h1>
-          <p class="text-xs text-slate-500 -mt-1">Dashboard — Selari API Pilihan B</p>
+          <p class="text-xs text-slate-500 -mt-1">Dashboard — Versi Lengkap (selari API)</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <button id="btnLock" class="btn btn-ghost" aria-pressed="false">
+        <button id="btnLock" class="btn btn-ghost" aria-pressed="false" title="Kunci mod edit (hanya tab User dibenarkan)">
           <i data-lucide="lock" class="w-4 h-4"></i>
           <span>Kunci</span>
         </button>
-        <button id="btnPublish" class="btn btn-primary">
+        <button id="btnPublish" class="btn btn-primary" title="Hantar sections + settings ke backend (settings_set)">
           <i data-lucide="save" class="w-4 h-4"></i>
-          <span>Terbitkan (settings_set)</span>
+          <span>Terbitkan</span>
         </button>
       </div>
     </div>
@@ -69,39 +72,31 @@
     <!-- Tabs -->
     <div class="card p-3 mb-4">
       <div role="tablist" class="flex flex-wrap gap-2">
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="user" aria-selected="true">
-          <i data-lucide="user-square" class="w-4 h-4"></i> User
-        </button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="partner">
-          <i data-lucide="users" class="w-4 h-4"></i> Partner
-        </button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="approvals">
-          <i data-lucide="check-circle" class="w-4 h-4"></i> Approvals
-        </button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="broadcast">
-          <i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast
-        </button>
-        <button class="tab-btn btn btn-ghost" role="tab" data-tab="settings">
-          <i data-lucide="settings" class="w-4 h-4"></i> Settings
-        </button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="user" aria-selected="true"><i data-lucide="user-square" class="w-4 h-4"></i> User</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="kandungan"><i data-lucide="file-text" class="w-4 h-4"></i> Kandungan</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="media"><i data-lucide="images" class="w-4 h-4"></i> Media</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="partner"><i data-lucide="users" class="w-4 h-4"></i> Partner</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="customers"><i data-lucide="user-check" class="w-4 h-4"></i> Customers</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="approvals"><i data-lucide="check-circle" class="w-4 h-4"></i> Approvals</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="broadcast"><i data-lucide="megaphone" class="w-4 h-4"></i> Broadcast</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="carta"><i data-lucide="chart-line" class="w-4 h-4"></i> Carta</button>
+        <button class="tab-btn btn btn-ghost" role="tab" data-tab="settings"><i data-lucide="settings" class="w-4 h-4"></i> Settings</button>
         <span class="lock-hint text-sm text-slate-500 flex items-center gap-2 ms-auto">
-          <i data-lucide="shield" class="w-4 h-4"></i>
-          Mod kunci aktif — tab selain "User" dikunci.
+          <i data-lucide="shield" class="w-4 h-4"></i> Mod kunci aktif — tab selain "User" dikunci.
         </span>
       </div>
     </div>
 
-    <!-- Panels -->
+    <!-- USER -->
     <section id="panel-user" class="tab-panel active">
       <div class="grid grid-cols-12 gap-4">
-        <!-- Left: Editor -->
+        <!-- Editor -->
         <div class="col-span-12 lg:col-span-5">
           <div class="card p-4">
             <div class="toolbar flex items-center justify-between mb-3">
               <div class="flex items-center gap-2">
                 <h2 class="font-bold">Editor Bahagian</h2>
-                <span class="pill">Drag & Susun</span>
-                <span class="pill">Inline Toolbar</span>
+                <span class="pill">Drag & Susun</span><span class="pill">Inline Toolbar</span>
               </div>
               <div class="text-xs text-slate-500">Auto-simpan (LocalStorage)</div>
             </div>
@@ -116,7 +111,6 @@
 
             <hr class="my-4"/>
 
-            <!-- Form -->
             <div id="sectionForm" class="space-y-3 hidden">
               <div class="grid md:grid-cols-2 gap-3">
                 <div>
@@ -135,7 +129,6 @@
                 </div>
               </div>
 
-              <!-- Inline rich text like Canva -->
               <div class="space-y-2">
                 <label class="text-sm font-semibold">Kandungan</label>
                 <div class="toolbar-inline flex flex-wrap gap-2">
@@ -153,25 +146,20 @@
                 <div id="ce" class="ce" contenteditable="true" spellcheck="false"></div>
               </div>
 
-              <!-- Media & URL -->
               <div id="mediaURLWrap" class="hidden">
                 <label class="text-sm font-semibold">URL media (Imej/Video/Link)</label>
                 <input id="inpMediaURL" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://...">
               </div>
 
               <div class="flex gap-2">
-                <button id="btnApply" class="btn btn-primary">
-                  <i data-lucide="sparkles" class="w-4 h-4"></i> Terap
-                </button>
-                <button id="btnDelete" class="btn btn-ghost">
-                  <i data-lucide="trash-2" class="w-4 h-4"></i> Hapus
-                </button>
+                <button id="btnApply" class="btn btn-primary"><i data-lucide="sparkles" class="w-4 h-4"></i> Terap</button>
+                <button id="btnDelete" class="btn btn-ghost"><i data-lucide="trash-2" class="w-4 h-4"></i> Hapus</button>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Right: Preview -->
+        <!-- Preview -->
         <div class="col-span-12 lg:col-span-7">
           <div class="card p-4">
             <div class="flex items-center justify-between mb-3">
@@ -184,31 +172,110 @@
       </div>
     </section>
 
+    <!-- KANDUNGAN (site_content list) -->
+    <section id="panel-kandungan" class="tab-panel">
+      <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold">Kandungan Diterbitkan</h2>
+          <button id="btnRefreshContent" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+        </div>
+        <div class="overflow-auto">
+          <table class="table text-sm" id="tblContent">
+            <thead><tr><th>Tarikh</th><th>Tajuk</th><th>Published</th><th>Media</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- MEDIA -->
+    <section id="panel-media" class="tab-panel">
+      <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold">Media</h2>
+          <div class="flex items-center gap-2">
+            <label class="btn btn-ghost text-xs cursor-pointer">
+              <i data-lucide="upload" class="w-4 h-4"></i> Muat naik...
+              <input id="fileUploadMediaTab" type="file" accept="image/*,video/*" class="hidden">
+            </label>
+            <button id="btnRefreshMedia" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+          </div>
+        </div>
+        <div id="mediaGrid" class="grid-asset"></div>
+      </div>
+    </section>
+
+    <!-- PARTNER -->
     <section id="panel-partner" class="tab-panel">
-      <div class="card p-6">
-        <h2 class="font-bold mb-2">Partner</h2>
-        <div class="text-sm text-slate-600">Sambung terus ke <code>partner_list</code> / <code>partner_create</code> bila diperlukan.</div>
+      <div class="card p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold">Partner</h2>
+          <button id="btnRefreshPartners" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+        </div>
+        <div class="grid md:grid-cols-3 gap-3">
+          <input id="inpPartnerName" class="rounded-lg border px-3 py-2" placeholder="Nama partner baharu">
+          <input id="inpPartnerPhone" class="rounded-lg border px-3 py-2" placeholder="Telefon">
+          <button id="btnCreatePartner" class="btn btn-primary"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah Partner</button>
+        </div>
+        <div id="partnerList" class="grid md:grid-cols-2 gap-3"></div>
       </div>
     </section>
 
+    <!-- CUSTOMERS -->
+    <section id="panel-customers" class="tab-panel">
+      <div class="card p-6 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold">Customers</h2>
+          <button id="btnRefreshCustomers" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+        </div>
+        <div class="grid md:grid-cols-4 gap-3">
+          <input id="inpCustName" class="rounded-lg border px-3 py-2" placeholder="Nama">
+          <input id="inpCustPhone" class="rounded-lg border px-3 py-2" placeholder="Telefon">
+          <input id="inpCustPartner" class="rounded-lg border px-3 py-2" placeholder="Partner (nama)">
+          <button id="btnAddCustomer" class="btn btn-primary"><i data-lucide="user-plus" class="w-4 h-4"></i> Tambah</button>
+        </div>
+        <div id="customerList" class="grid md:grid-cols-2 gap-3"></div>
+      </div>
+    </section>
+
+    <!-- APPROVALS -->
     <section id="panel-approvals" class="tab-panel">
-      <div class="card p-6">
-        <h2 class="font-bold mb-2">Approvals</h2>
-        <div class="text-sm text-slate-600">Paparan untuk <code>registration_list</code> / tindakan <code>registration_approve</code> akan disuntik jika diminta.</div>
+      <div class="card p-6 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold">Approvals</h2>
+          <button id="btnRefreshRegs" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+        </div>
+        <div id="regsList" class="grid md:grid-cols-2 gap-3"></div>
       </div>
     </section>
 
+    <!-- BROADCAST -->
     <section id="panel-broadcast" class="tab-panel">
-      <div class="card p-6">
-        <h2 class="font-bold mb-2">Broadcast</h2>
-        <div class="text-sm text-slate-600">Eksport WhatsApp / log (endpoint <code>broadcast</code>).</div>
+      <div class="card p-6 space-y-3">
+        <h2 class="font-bold">Broadcast</h2>
+        <textarea id="inpBroadcast" class="w-full rounded-lg border px-3 py-2" rows="3" placeholder="Teks siaran WhatsApp..."></textarea>
+        <button id="btnSendBroadcast" class="btn btn-primary"><i data-lucide="send" class="w-4 h-4"></i> Hantar & Log</button>
       </div>
     </section>
 
+    <!-- CARTA (Stats) -->
+    <section id="panel-carta" class="tab-panel">
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold">Statistik Ringkas</h2>
+          <button id="btnRefreshStats" class="btn btn-ghost text-sm"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+        </div>
+        <div id="statsWrap" class="grid md:grid-cols-4 gap-3 text-sm">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS -->
     <section id="panel-settings" class="tab-panel">
       <div class="card p-6 space-y-4">
         <h2 class="font-bold">Settings</h2>
-        <div class="grid md:grid-cols-4 gap-3">
+        <div class="grid md:grid-cols-5 gap-3">
           <div class="md:col-span-2">
             <label class="text-sm font-semibold">EXEC_URL</label>
             <input id="inpExec" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://script.google.com/macros/s/.../exec">
@@ -254,11 +321,12 @@
 
   <script>
   // ---------- KONFIG ----------
-  const LSKEY = "mova_dashboard_aligned_v1";
+  const LSKEY = "mova_dashboard_full_v1";
   let EXEC_URL = "";
   let LEADER_ID = "LEAD-0001";
+  let locked = false;
 
-  // ---------- UI INIT ----------
+  // ---------- INIT ICONS ----------
   window.addEventListener("DOMContentLoaded", () => { lucide.createIcons(); });
 
   // ---------- STATE ----------
@@ -274,9 +342,6 @@
   EXEC_URL = state.exec_url || "";
   LEADER_ID = state.leader_id || "LEAD-0001";
 
-  let selectedId = state.sections[0]?.id || null;
-  let locked = false;
-
   // ---------- HELPERS ----------
   function uid(){ return (crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2))+Date.now().toString(36); }
   function qs(s, el=document){ return el.querySelector(s); }
@@ -284,14 +349,13 @@
   function saveLS(){ localStorage.setItem(LSKEY, JSON.stringify(state)); }
   function loadLS(){ try{ return JSON.parse(localStorage.getItem(LSKEY)||""); }catch{return null;} }
 
+  // ---------- TABS + LOCK ----------
   function setActiveTab(name){
     if(locked && name !== "user") return;
     qsa(".tab-btn").forEach(b => b.setAttribute("aria-selected", b.dataset.tab===name?"true":"false"));
     qsa(".tab-panel").forEach(p => p.classList.toggle("active", p.id==="panel-"+name));
   }
   qsa(".tab-btn").forEach(btn => btn.addEventListener("click", () => setActiveTab(btn.dataset.tab)));
-
-  // Lock
   qs("#btnLock").addEventListener("click", () => {
     locked = !locked;
     document.body.classList.toggle("kunci-on", locked);
@@ -302,12 +366,8 @@
   });
 
   // ---------- SETTINGS PANEL ----------
-  const inpExec = qs("#inpExec");
-  const inpLeader = qs("#inpLeader");
-  const inpBrand = qs("#inpBrand");
-  const inpWidth = qs("#inpWidth");
-  const btnApplySettings = qs("#btnApplySettings");
-  const btnLoadSettings = qs("#btnLoadSettings");
+  const inpExec = qs("#inpExec"), inpLeader = qs("#inpLeader"), inpBrand = qs("#inpBrand"), inpWidth = qs("#inpWidth");
+  const btnApplySettings = qs("#btnApplySettings"), btnLoadSettings = qs("#btnLoadSettings");
   const swatchBrand = qs("#swatchBrand");
 
   function applySettings(){
@@ -315,7 +375,6 @@
     const ct = qs(".container"); if(ct) ct.style.maxWidth = (state.settings.width||1100) + "px";
     swatchBrand.style.background = state.settings.brand || "#ef4444";
   }
-
   inpBrand.addEventListener("input", () => { swatchBrand.style.background = inpBrand.value; });
 
   btnApplySettings.addEventListener("click", async () => {
@@ -327,8 +386,6 @@
     state.settings.width = Math.max(640, Number(inpWidth.value)||1100);
     saveLS();
     applySettings();
-
-    // Hantar ke backend melalui settings_set (alias yang memetakan kunci)
     try{
       await postForm("settings_set", {
         leader_id: LEADER_ID,
@@ -336,8 +393,8 @@
         content_width: String(state.settings.width),
         sections: state.sections
       });
-      alert("Settings & sections dihantar ke backend (settings_set).");
-    }catch(e){ console.warn(e); alert("Gagal simpan ke backend. Disimpan pada LocalStorage."); }
+      alert("Settings & sections dihantar (settings_set).");
+    }catch(e){ console.warn(e); alert("Gagal simpan ke backend."); }
   });
 
   btnLoadSettings.addEventListener("click", async () => {
@@ -351,9 +408,7 @@
       if(s.theme_color) state.settings.brand = s.theme_color;
       if(s.content_width) state.settings.width = Number(s.content_width)||state.settings.width;
       if(Array.isArray(s.sections)) state.sections = s.sections;
-      // Persist & apply
       saveLS(); loadSettingsInputs(); applySettings(); renderList(); fillForm(); renderPreview();
-      alert("Settings & sections dimuat dari backend.");
     }catch(e){ console.warn(e); alert("Gagal ambil settings dari backend."); }
   });
 
@@ -365,17 +420,12 @@
     swatchBrand.style.background = inpBrand.value;
   }
 
-  // ---------- USER SECTIONS (LIST) ----------
-  const sectionList = qs("#sectionList");
-  const sectionForm = qs("#sectionForm");
-  const inpTitle = qs("#inpTitle");
-  const selType = qs("#selType");
-  const ce = qs("#ce");
-  const inpMediaURL = qs("#inpMediaURL");
-  const mediaURLWrap = qs("#mediaURLWrap");
-  const btnApply = qs("#btnApply");
-  const btnDelete = qs("#btnDelete");
-  const btnAdd = qs("#btnAddSection");
+  // ---------- USER SECTIONS ----------
+  const sectionList = qs("#sectionList"), sectionForm = qs("#sectionForm");
+  const inpTitle = qs("#inpTitle"), selType = qs("#selType"), ce = qs("#ce");
+  const inpMediaURL = qs("#inpMediaURL"), mediaURLWrap = qs("#mediaURLWrap");
+  const btnApply = qs("#btnApply"), btnDelete = qs("#btnDelete"), btnAdd = qs("#btnAddSection");
+  let selectedId = state.sections[0]?.id || null;
 
   function renderList(){
     sectionList.innerHTML = "";
@@ -411,7 +461,6 @@
     });
     lucide.createIcons();
   }
-
   function reorder(sourceId, targetId){
     if(sourceId===targetId) return;
     const arr = state.sections;
@@ -422,7 +471,6 @@
     arr.splice(tIdx,0,it);
     saveLS(); renderList(); renderPreview();
   }
-
   function fillForm(){
     const sec = state.sections.find(s => s.id===selectedId);
     if(!sec){ sectionForm.classList.add("hidden"); return; }
@@ -433,21 +481,15 @@
     inpMediaURL.value = sec.media || "";
     mediaURLWrap.classList.toggle("hidden", !(sec.type==="image"||sec.type==="video"||sec.type==="cta"));
   }
-
   function applyForm(){
     const sec = state.sections.find(s => s.id===selectedId);
     if(!sec) return;
     sec.title = (inpTitle.value||"").trim() || "(tanpa tajuk)";
     sec.type = selType.value;
     sec.html = ce.innerHTML.trim();
-    if(sec.type==="image" || sec.type==="video" || sec.type==="cta"){
-      sec.media = inpMediaURL.value.trim();
-    } else {
-      delete sec.media;
-    }
+    if(sec.type==="image" || sec.type==="video" || sec.type==="cta"){ sec.media = inpMediaURL.value.trim(); } else { delete sec.media; }
     saveLS(); renderList(); renderPreview();
   }
-
   btnApply.addEventListener("click", applyForm);
   btnDelete.addEventListener("click", () => {
     const idx = state.sections.findIndex(s => s.id===selectedId);
@@ -458,12 +500,11 @@
     const n = { id: uid(), title: "Bahagian Baharu", type: "text", html: "<p>Teks...</p>" };
     state.sections.push(n); selectedId = n.id; saveLS(); renderList(); fillForm(); renderPreview();
   });
-
   selType.addEventListener("change", () => {
     mediaURLWrap.classList.toggle("hidden", !(selType.value==="image"||selType.value==="video"||selType.value==="cta"));
   });
 
-  // Inline toolbar (Canva-like)
+  // Inline toolbar
   qsa(".toolbar-inline button[data-cmd]").forEach(btn=>{
     btn.addEventListener("click", () => {
       const cmd = btn.dataset.cmd;
@@ -476,7 +517,6 @@
       applyForm();
     });
   });
-
   function applyHeading(level){
     const sel = window.getSelection();
     if(!sel || sel.rangeCount===0) return;
@@ -486,13 +526,10 @@
     range.insertNode(wrapper);
     sel.removeAllRanges();
   }
-
   function focusPreview(id){
     const el = qs(`[data-sec="${CSS.escape(id)}"]`, qs("#preview"));
     if(el){ el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.add("selected"); setTimeout(()=>el.classList.remove("selected"), 900); }
   }
-
-  // ---------- PREVIEW ----------
   const preview = qs("#preview");
   function renderPreview(){
     preview.innerHTML = "";
@@ -535,7 +572,190 @@
     });
   }
 
-  // ---------- ASSET PICKER & UPLOAD (Selari API) ----------
+  // ---------- KANDUNGAN (site_content) ----------
+  const btnRefreshContent = qs("#btnRefreshContent"), tblContent = qs("#tblContent tbody");
+  btnRefreshContent.addEventListener("click", async () => {
+    try{
+      const res = await postForm("content_list", { leader_id: LEADER_ID });
+      const items = res?.items || [];
+      tblContent.innerHTML = "";
+      for(const it of items){
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${escapeHtml(String(it.updated_at||""))}</td>
+                        <td>${escapeHtml(String(it.title||""))}</td>
+                        <td>${escapeHtml(String(it.published||""))}</td>
+                        <td class="truncate">${escapeHtml(String(it.media_urls||""))}</td>`;
+        tblContent.appendChild(tr);
+      }
+    }catch(e){ console.warn(e); alert("Gagal muat kandungan."); }
+  });
+
+  // ---------- MEDIA TAB ----------
+  const mediaGrid = qs("#mediaGrid");
+  const btnRefreshMedia = qs("#btnRefreshMedia");
+  const fileUploadMediaTab = qs("#fileUploadMediaTab");
+  btnRefreshMedia.addEventListener("click", refreshAssetsTab);
+  fileUploadMediaTab.addEventListener("change", async (e) => {
+    const f = e.target.files?.[0]; if(!f) return;
+    try{
+      const base64 = await fileToBase64(f);
+      const res = await postForm("upload_media", {
+        leader_id: LEADER_ID,
+        file_name: f.name,
+        file_type: f.type || "application/octet-stream",
+        file_base64: String(base64).split(',').pop()
+      });
+      alert(res?.public_url ? "Muat naik berjaya." : "Muat naik selesai tetapi URL tidak diterima.");
+      await refreshAssetsTab();
+    }catch(err){ console.warn(err); alert("Gagal muat naik."); }
+    e.target.value = "";
+  });
+  async function refreshAssetsTab(){
+    mediaGrid.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+    try{
+      const res = await postForm("media_list", { leader_id: LEADER_ID });
+      const items = res?.items || [];
+      mediaGrid.innerHTML = "";
+      items.forEach(it => {
+        const url = it.public_url||"";
+        const card = document.createElement("div");
+        card.className = "asset-tile";
+        card.innerHTML = `
+          ${url?`<img src="${escapeAttr(url)}" class="w-full h-28 object-cover rounded-md border">`:"<div class='h-28 rounded-md border grid place-items-center text-xs text-slate-500'>Tiada preview</div>"}
+          <div class="text-xs text-slate-600 truncate">${escapeHtml(it.file_name||"aset")}</div>
+          <div class="text-[10px] text-slate-400 truncate">${escapeHtml(it.file_type||"")}</div>
+        `;
+        mediaGrid.appendChild(card);
+      });
+    }catch(e){ console.warn(e); mediaGrid.innerHTML = "<div class='text-sm text-red-600'>Gagal memuatkan aset.</div>"; }
+  }
+
+  // ---------- PARTNER ----------
+  const btnCreatePartner = qs("#btnCreatePartner");
+  const inpPartnerName = qs("#inpPartnerName"), inpPartnerPhone = qs("#inpPartnerPhone");
+  const partnerList = qs("#partnerList"), btnRefreshPartners = qs("#btnRefreshPartners");
+  btnCreatePartner.addEventListener("click", async () => {
+    const name = (inpPartnerName.value||"").trim(); const phone = (inpPartnerPhone.value||"").trim();
+    if(!name){ alert("Nama diperlukan"); return; }
+    try{
+      await postForm("partner_create", { leader_id: LEADER_ID, name, phone });
+      inpPartnerName.value=""; inpPartnerPhone.value=""; await refreshPartners();
+    }catch(e){ console.warn(e); alert("Gagal tambah partner."); }
+  });
+  btnRefreshPartners.addEventListener("click", refreshPartners);
+  async function refreshPartners(){
+    partnerList.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+    try{
+      const res = await postForm("partner_list", { leader_id: LEADER_ID });
+      const items = res?.items || [];
+      partnerList.innerHTML = "";
+      items.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "p-3 rounded-lg border bg-white";
+        div.innerHTML = `<div class="font-semibold">${escapeHtml(p.name||"PARTNER")}</div>
+                         <div class="text-xs text-slate-500">Pakej: ${escapeHtml(p.package||"-")}</div>
+                         <div class="text-xs text-slate-500">Telefon: ${escapeHtml(p.phone||"-")}</div>`;
+        partnerList.appendChild(div);
+      });
+    }catch(e){ console.warn(e); partnerList.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat partner.</div>"; }
+  }
+
+  // ---------- CUSTOMERS ----------
+  const inpCustName = qs("#inpCustName"), inpCustPhone = qs("#inpCustPhone"), inpCustPartner = qs("#inpCustPartner");
+  const btnAddCustomer = qs("#btnAddCustomer"), customerList = qs("#customerList"), btnRefreshCustomers = qs("#btnRefreshCustomers");
+  btnAddCustomer.addEventListener("click", async () => {
+    const name=(inpCustName.value||"").trim(), phone=(inpCustPhone.value||"").trim(), partner=(inpCustPartner.value||"").trim();
+    if(!name || !phone){ alert("Nama & telefon diperlukan"); return; }
+    try{
+      await postForm("customer_add", { leader_id: LEADER_ID, name, phone, partner });
+      inpCustName.value=""; inpCustPhone.value=""; inpCustPartner.value=""; await refreshCustomers();
+    }catch(e){ console.warn(e); alert("Gagal tambah customer."); }
+  });
+  btnRefreshCustomers.addEventListener("click", refreshCustomers);
+  async function refreshCustomers(){
+    customerList.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+    try{
+      // tiada endpoint senarai khusus customers; paparkan melalui org_tree untuk contoh
+      const res = await postForm("org_tree", { leader_id: LEADER_ID, leader_name: "Leader" });
+      const tree = res?.tree || { children: [] };
+      customerList.innerHTML = "";
+      (tree.children||[]).forEach(node => {
+        const c = document.createElement("div");
+        c.className = "p-3 rounded-lg border bg-white";
+        const users = (node.children||[]).map(u=>u.name).join(", ");
+        c.innerHTML = `<div class="font-semibold">${escapeHtml(node.name||"PARTNER")}</div>
+                       <div class="text-xs text-slate-500">Customers: ${escapeHtml(users||"-")}</div>`;
+        customerList.appendChild(c);
+      });
+    }catch(e){ console.warn(e); customerList.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat customers.</div>"; }
+  }
+
+  // ---------- APPROVALS ----------
+  const regsList = qs("#regsList"), btnRefreshRegs = qs("#btnRefreshRegs");
+  btnRefreshRegs.addEventListener("click", refreshRegs);
+  async function refreshRegs(){
+    regsList.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+    try{
+      const res = await postForm("registration_list", {});
+      const items = res?.items || [];
+      regsList.innerHTML = "";
+      items.forEach(r => {
+        const card = document.createElement("div");
+        card.className = "p-3 rounded-lg border bg-white flex items-center justify-between gap-3";
+        card.innerHTML = `
+          <div class="min-w-0">
+            <div class="font-semibold truncate">${escapeHtml(r.name||"")}</div>
+            <div class="text-xs text-slate-500">Phone: ${escapeHtml(r.phone||"")}</div>
+            <div class="text-xs">Status: <span class="${String(r.status||'')==='lulus'?'text-green-600':'text-amber-600'}">${escapeHtml(r.status||'menunggu')}</span></div>
+          </div>
+          <div class="flex gap-2">
+            <button class="btn btn-ghost text-xs" data-act="approve" data-id="${escapeAttr(r.id||'')}"><i data-lucide="check" class="w-4 h-4"></i> Lulus</button>
+          </div>
+        `;
+        card.querySelector("[data-act='approve']").addEventListener("click", async () => {
+          try{ await postForm("registration_approve", { id: r.id }); await refreshRegs(); }catch(e){ console.warn(e); alert("Gagal lulus."); }
+        });
+        regsList.appendChild(card);
+      });
+      lucide.createIcons();
+    }catch(e){ console.warn(e); regsList.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat approvals.</div>"; }
+  }
+
+  // ---------- BROADCAST ----------
+  const inpBroadcast = qs("#inpBroadcast"), btnSendBroadcast = qs("#btnSendBroadcast");
+  btnSendBroadcast.addEventListener("click", async () => {
+    const msg = (inpBroadcast.value||"").trim(); if(!msg){ alert("Teks kosong"); return; }
+    try{
+      await postForm("broadcast", { leader_id: LEADER_ID, message: msg });
+      inpBroadcast.value = ""; alert("Disimpan ke log broadcast.");
+    }catch(e){ console.warn(e); alert("Gagal siar."); }
+  });
+
+  // ---------- CARTA / STATS ----------
+  const statsWrap = qs("#statsWrap"), btnRefreshStats = qs("#btnRefreshStats");
+  btnRefreshStats.addEventListener("click", refreshStats);
+  async function refreshStats(){
+    statsWrap.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+    try{
+      const res = await postForm("stats", { leader_id: LEADER_ID });
+      const t = res?.totals || {};
+      statsWrap.innerHTML = "";
+      const items = [
+        ["Partners", t.partners||0],
+        ["Customers", t.customers||0],
+        ["Pending Approvals", t.pending||0],
+        ["Published Content", t.published||0],
+      ];
+      items.forEach(([label,val]) => {
+        const card = document.createElement("div");
+        card.className = "p-4 rounded-xl border bg-white";
+        card.innerHTML = `<div class="text-xs text-slate-500">${label}</div><div class="text-2xl font-extrabold" style="color:var(--brand)">${val}</div>`;
+        statsWrap.appendChild(card);
+      });
+    }catch(e){ console.warn(e); statsWrap.innerHTML = "<div class='text-sm text-red-600'>Gagal memuat statistik.</div>"; }
+  }
+
+  // ---------- ASSET PICKER (User tab) ----------
   const modalAssets = qs("#modalAssets");
   const assetGrid = qs("#assetGrid");
   const btnAssetPicker = qs("#btnAssetPicker");
@@ -543,11 +763,11 @@
   const btnRefreshAssets = qs("#btnRefreshAssets");
   const fileUpload = qs("#fileUpload");
 
-  btnAssetPicker.addEventListener("click", async () => { await refreshAssets(); modalAssets.classList.add("show"); });
-  btnCloseAssets.addEventListener("click", () => modalAssets.classList.remove("show"));
-  btnRefreshAssets.addEventListener("click", refreshAssets);
+  btnAssetPicker?.addEventListener("click", async () => { await refreshAssetsPicker(); modalAssets.classList.add("show"); });
+  btnCloseAssets?.addEventListener("click", () => modalAssets.classList.remove("show"));
+  btnRefreshAssets?.addEventListener("click", refreshAssetsPicker);
 
-  async function refreshAssets(){
+  async function refreshAssetsPicker(){
     assetGrid.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
     try{
       const res = await postForm("media_list", { leader_id: LEADER_ID });
@@ -564,9 +784,7 @@
           <button class="btn btn-ghost text-xs">Gunakan</button>
         `;
         card.querySelector("button").addEventListener("click", () => {
-          inpMediaURL.value = url;
-          modalAssets.classList.remove("show");
-          applyForm();
+          inpMediaURL.value = url; modalAssets.classList.remove("show"); applyForm();
         });
         assetGrid.appendChild(card);
       });
@@ -577,7 +795,7 @@
     lucide.createIcons();
   }
 
-  fileUpload.addEventListener("change", async (e) => {
+  fileUpload?.addEventListener("change", async (e) => {
     const f = e.target.files?.[0]; if(!f) return;
     try{
       const base64 = await fileToBase64(f);
@@ -585,16 +803,14 @@
         leader_id: LEADER_ID,
         file_name: f.name,
         file_type: f.type || "application/octet-stream",
-        file_base64: String(base64).split(',').pop() // hantar data b64 sahaja
+        file_base64: String(base64).split(',').pop()
       });
       const url = res?.public_url || "";
       if(url){ inpMediaURL.value = url; applyForm(); alert("Muat naik berjaya."); }
       else alert("Muat naik selesai tetapi URL tiada dalam respons.");
     }catch(err){
       console.warn(err); alert("Gagal muat naik.");
-    }finally{
-      e.target.value = "";
-    }
+    }finally{ e.target.value = ""; }
   });
 
   function fileToBase64(file){
@@ -606,7 +822,7 @@
     });
   }
 
-  // ---------- TERBIT (SIMPAN KE BACKEND) ----------
+  // ---------- TERBIT (settings_set) ----------
   qs("#btnPublish").addEventListener("click", async () => {
     try{
       const payload = {
@@ -622,7 +838,7 @@
     }
   });
 
-  // ---------- BACKEND HELPER (Apps Script form-encoded) ----------
+  // ---------- BACKEND HELPER ----------
   async function postForm(path, payload){
     if(!EXEC_URL) throw new Error("EXEC_URL belum ditetapkan dalam Settings.");
     const body = new URLSearchParams();
@@ -630,7 +846,6 @@
     body.set("payload", JSON.stringify(payload||{}));
     const res = await fetch(EXEC_URL, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body });
     if(!res.ok) throw new Error("HTTP "+res.status);
-    // API anda pulangkan JSON terus (respond)
     const json = await res.json().catch(()=>null);
     if(!json) throw new Error("Respons bukan JSON");
     if(json.error || json.success===false) throw new Error(json.error||"Ralat backend");
@@ -638,9 +853,7 @@
   }
 
   // ---------- UTIL ----------
-  function escapeHtml(str){
-    return (str||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-  }
+  function escapeHtml(str){ return (str||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
   function escapeAttr(str){ return (str||"").replace(/"/g,"&quot;"); }
 
   // ---------- INIT ----------
