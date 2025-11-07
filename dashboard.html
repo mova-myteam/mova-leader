@@ -140,7 +140,7 @@
           <div class="card p-3">
             <div class="flex items-center justify-between mb-2">
               <h2 class="font-bold">Pratonton</h2>
-              <div class="text-xs text-slate-500">Memuat <code>user.html?edit=1</code></div>
+              <div class="flex items-center gap-2 text-xs text-slate-500"><span>Memuat <code>user.html?edit=1</code></span><button id="btnReloadPreview" class="btn btn-ghost text-xs"><i data-lucide="refresh-ccw" class="w-4 h-4"></i>Muat semula</button></div>
             </div>
             <iframe id="userFrame" class="preview" src="user.html?edit=1&leader=LEAD-0001"></iframe>
           </div>
@@ -309,6 +309,8 @@ function toast(msg){ alert(msg); }
 
 // ---------- INIT UI ----------
 window.addEventListener("DOMContentLoaded", ()=>{
+  const reloadBtn = document.getElementById("btnReloadPreview");
+  if(reloadBtn){ reloadBtn.addEventListener("click", ()=>{ frameReady=false; const f=qs('#userFrame'); f.contentWindow?.location.reload(); setTimeout(()=>{ try{ f.contentWindow.postMessage({type:'mova-bridge-ping'}, '*'); }catch{} }, 400); }); }
   lucide.createIcons();
   // Tabs
   qsa(".tab-btn").forEach(btn => btn.addEventListener("click", ()=>setActiveTab(btn.dataset.tab)));
@@ -512,14 +514,18 @@ let frame, frameReady=false;
 function setupBridge(){
   frame = qs("#userFrame");
   frame.addEventListener("load", ()=>{ frameReady=false; try{ frame.contentWindow.postMessage({type:"mova-bridge-ping"}, "*"); }catch{} });
-  window.addEventListener("message", (e)=>{ if((e.data||{}).type==="mova-bridge-ready"){ frameReady=true; pushLive(selectedIndex); } });
+  window.addEventListener("message", (e)=>{ const t=(e.data||{}).type; if(t==="mova-bridge-ready"||t==="sections-loaded"){ frameReady=true; pushLive(selectedIndex); } });
   try{ frame.contentWindow.postMessage({type:"mova-bridge-ping"}, "*"); }catch{}
 }
 const pushLive = debounce((selectedIdx)=>{
-  if(!frameReady) return;
   try{
+    // keep a bootstrap copy for reload fallback (shared origin)
+    localStorage.setItem("mova_preview_bootstrap", JSON.stringify({sections}));
+    if(!frameReady) return;
     const payload = { type:"sections-live-update", sections, settings:{ theme_color:BRAND, content_width:String(CONTENT_WIDTH) }, selectedId: sections[selectedIdx||0]?.id || null };
     frame.contentWindow.postMessage(payload, "*");
+    // also send legacy shape
+    frame.contentWindow.postMessage({ type:"load-sections", data:{ sections } }, "*");
   }catch(e){ console.warn("postMessage gagal:", e); }
 }, 80);
 
