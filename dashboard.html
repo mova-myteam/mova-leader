@@ -5637,5 +5637,128 @@ window.movaIsLocked = movaIsLocked;
 </script>
 <!-- === /MOVA Safe Guards === -->
 
+
+<!-- === MOVA Universal Preview Bridge (preview-only, non-destructive) === -->
+<script>
+(function(){
+  try{
+    if (window.__movaUniversalBridge) return;
+    window.__movaUniversalBridge = true;
+
+    // 1) Find preview iframe robustly
+    function findPreview(){
+      return document.getElementById('userFrame')
+          || document.getElementById('userPreview')
+          || document.querySelector('iframe.preview-iframe')
+          || document.querySelector('iframe[src*="user.html"]');
+    }
+    var iframe = findPreview();
+    if (!iframe) { console.warn('[MOVA bridge] preview iframe not found'); return; }
+
+    // 2) Helpers
+    function safeParse(x){ try{ return JSON.parse(x); }catch(e){ return null; } }
+    function jclone(x){ try{ return JSON.parse(JSON.stringify(x)); }catch(e){ return x; } }
+    function debounce(fn,ms){ var t; return function(){ var a=arguments; clearTimeout(t); t=setTimeout(function(){ fn.apply(null,a); }, ms||180); }; }
+
+    // 3) Extract sections/settings from *any* known shapes
+    function extractSections(){
+      try{
+        var srcs = [];
+        if (window.store){
+          if (Array.isArray(store.sections)) srcs.push(store.sections);
+          if (store.settings && Array.isArray(store.settings.sections)) srcs.push(store.settings.sections);
+          if (typeof store.sections_json === 'string') { var p = safeParse(store.sections_json); if (Array.isArray(p)) srcs.push(p); }
+        }
+        if (Array.isArray(window.sections)) srcs.push(window.sections);
+        if (Array.isArray(window.SECTIONS)) srcs.push(window.SECTIONS);
+        if (Array.isArray(window.__sections)) srcs.push(window.__sections);
+
+        // first non-empty wins
+        var pick = [];
+        for (var i=0;i<srcs.length;i++){ if (srcs[i] && srcs[i].length){ pick = srcs[i]; break; } }
+        // fallback empty section to avoid crashes
+        if (!Array.isArray(pick)) pick = [];
+        return jclone(pick);
+      }catch(e){ return []; }
+    }
+    function extractSettings(){
+      var s = {};
+      try{
+        if (window.store && store.settings) s = Object.assign({}, store.settings);
+        // read common inputs if present
+        var get = function(id){ var el = document.getElementById(id); return el ? (el.type==='checkbox'?el.checked:el.value) : undefined; };
+        var brand = get('setThemeColor'); if (brand) s.theme_color = brand;
+        var width = get('setContentWidth'); if (width) s.content_width = String(width);
+        var fonnte = get('setFonnte'); if (fonnte) s.fonnte_api = fonnte;
+        var phone = get('setLeaderPhone'); if (phone) s.whatsapp = phone;
+      }catch(e){}
+      return s;
+    }
+    function selectedId(){
+      try{
+        if (window.store && store.selectedSectionId) return store.selectedSectionId;
+        // other fallbacks
+        var s = extractSections(); return s[0] ? s[0].id : null;
+      }catch(e){ return null; }
+    }
+
+    // 4) Initial bootstrap into localStorage so user.html can self-boot
+    function writeBootstrap(){
+      try{
+        localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections: extractSections(), settings: extractSettings() }));
+      }catch(e){}
+    }
+
+    // 5) Push messages to user.html
+    function post(msg){ try{ (iframe.contentWindow||iframe).postMessage(msg, '*'); }catch(e){} }
+    var frameReady = false;
+    function pushNow(){
+      var secs = extractSections();
+      var setg = extractSettings();
+      var sid  = selectedId();
+      // primary modern payload
+      post({ type:'sections-live-update', sections: secs, settings: setg, selectedId: sid });
+      // legacy payloads for compatibility
+      post({ type:'load-sections', data:{ sections: secs } });
+      post({ type:'sections-updated', payload:{ sections: secs } });
+      writeBootstrap();
+    }
+    var push = debounce(pushNow, 120);
+
+    // 6) Handshake
+    window.addEventListener('message', function(e){
+      var t = (e.data||{}).type;
+      if (t==='mova-bridge-ready' || t==='sections-loaded'){
+        frameReady = true; push();
+      }
+    });
+    iframe.addEventListener('load', function(){
+      frameReady = false;
+      try{ (iframe.contentWindow||iframe).postMessage({type:'mova-bridge-ping'}, '*'); }catch(e){}
+      setTimeout(push, 250);
+    });
+
+    // 7) Observe editor interactions *without* touching other code
+    var editorRoot = document.getElementById('tab-user') || document.getElementById('editor') || document.body;
+    editorRoot.addEventListener('input', push, true);
+    editorRoot.addEventListener('change', push, true);
+    editorRoot.addEventListener('click', function(){ setTimeout(push, 30); }, true);
+
+    // 8) Light polling as a safety net
+    setInterval(push, 600);
+
+    // 9) Expose hook if other scripts want to force a refresh
+    window.__movaPushPreview = pushNow;
+
+    // 10) Write bootstrap immediately and schedule first push
+    writeBootstrap();
+    setTimeout(push, 300);
+  }catch(err){
+    console.warn('[MOVA bridge] error:', err);
+  }
+})();
+</script>
+<!-- === /MOVA Universal Preview Bridge === -->
+
 </body>
 </html>                                 
