@@ -323,7 +323,7 @@
         <!-- Right column: Preview -->
         <div class="pane preview">
           <div class="preview-container">
-            <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
+            <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1&sync=1"></iframe>
             <!-- Zoom Controls -->
             <div class="zoom-controls">
               <button id="zoomInBtn"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
@@ -677,7 +677,6 @@
     clearTimeout(uiLock._timer);
     uiLock._timer = setTimeout(()=>{ uiLock.userTabLocked = false; }, seconds*1000);
   }
-;
 
   if (!store.leader || !store.leader.leader_id) {
     location.href = "./index.html";
@@ -1249,23 +1248,197 @@
   // ====== EDITOR BAHAGIAN (KOD LENGKAP & DIKEMASKINI) ======
   // ===================================================================
 
+  // ====== LIVE SYNC ENHANCED ======
+  // Fungsi untuk menghantar mesej ke iframe dengan lebih baik
+  function sendToIframe(type, data) {
+    const userPreview = document.getElementById('userPreview');
+    if (userPreview && userPreview.contentWindow) {
+      const send = () => {
+        try {
+          // Tambah semakan untuk memastikan iframe sedia
+          if (userPreview.contentDocument && userPreview.contentDocument.readyState === 'complete') {
+            userPreview.contentWindow.postMessage({ type, data }, '*');
+            console.log(`Sent message to iframe: ${type}`, data);
+          } else {
+            // Jika iframe belum sedia, cuba lagi selepas 100ms
+            setTimeout(send, 100);
+          }
+        } catch (error) {
+          console.error('Error sending message to iframe:', error);
+        }
+      };
+      
+      // Hantar mesej serta-merta
+      send();
+    } else {
+      console.warn('Iframe not available');
+    }
+  }
+
+  // Fungsi untuk memantau perubahan pada store.sections dan menghantar kemas kini
+  function setupSectionObserver() {
+    let previousSections = JSON.stringify(store.sections || []);
+    
+    // Semak perubahan setiap 300ms
+    setInterval(() => {
+      const currentSections = JSON.stringify(store.sections || []);
+      if (currentSections !== previousSections) {
+        previousSections = currentSections;
+        // Hantar kemas kini ke iframe
+        sendToIframe('load-sections', { sections: store.sections });
+      }
+    }, 300);
+  }
+
+  // Fungsi untuk memantau perubahan pada elemen yang dipilih
+  function setupSelectedElementObserver() {
+    let previousSelectedId = store.selectedElementId;
+    
+    // Semak perubahan setiap 200ms
+    setInterval(() => {
+      if (store.selectedElementId !== previousSelectedId) {
+        previousSelectedId = store.selectedElementId;
+        // Hantar kemas kini ke iframe
+        if (store.selectedElementId) {
+          sendToIframe('select-element', { id: store.selectedElementId });
+        } else {
+          sendToIframe('deselect-all', {});
+        }
+      }
+    }, 200);
+  }
+
+  // Fungsi untuk memantau perubahan pada bahagian yang dipilih
+  function setupSelectedSectionObserver() {
+    let previousSelectedId = store.selectedSectionId;
+    
+    // Semak perubahan setiap 200ms
+    setInterval(() => {
+      if (store.selectedSectionId !== previousSelectedId) {
+        previousSelectedId = store.selectedSectionId;
+        // Hantar kemas kini ke iframe
+        if (store.selectedSectionId) {
+          sendToIframe('select-section', { id: store.selectedSectionId });
+        } else {
+          sendToIframe('deselect-all', {});
+        }
+      }
+    }, 200);
+  }
+
+  // Fungsi untuk menambah event listener pada semua input dalam properties panel
+  function setupPropertyListeners() {
+    const propertiesPanel = document.getElementById('propertiesPanel');
+    
+    if (!propertiesPanel) return;
+    
+    // Gunakan event delegation untuk menangkap semua perubahan
+    propertiesPanel.addEventListener('input', (e) => {
+      // Hantar kemas kini segera
+      if (store.selectedElementId) {
+        const element = findElementById(store.selectedElementId);
+        if (element) {
+          sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+        }
+      } else if (store.selectedSectionId) {
+        const section = findSectionById(store.selectedSectionId);
+        if (section) {
+          sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+        }
+      }
+    });
+    
+    propertiesPanel.addEventListener('change', (e) => {
+      // Hantar kemas kini segera
+      if (store.selectedElementId) {
+        const element = findElementById(store.selectedElementId);
+        if (element) {
+          sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+        }
+      } else if (store.selectedSectionId) {
+        const section = findSectionById(store.selectedSectionId);
+        if (section) {
+          sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+        }
+      }
+    });
+  }
+
+  // Fungsi pembantu untuk mencari elemen berdasarkan ID
+  function findElementById(elementId) {
+    for (const section of store.sections) {
+      const element = section.elements.find(e => e.id === elementId);
+      if (element) return element;
+    }
+    return null;
+  }
+
+  // Fungsi pembantu untuk mencari bahagian berdasarkan ID
+  function findSectionById(sectionId) {
+    return store.sections.find(s => s.id === sectionId) || null;
+  }
+
+  // Fungsi untuk memastikan iframe dimuatkan dengan betul
+  function ensureIframeReady() {
+    const userPreview = document.getElementById('userPreview');
+    
+    if (!userPreview) return;
+    
+    // Tambah event listener untuk memastikan iframe sedia
+    userPreview.addEventListener('load', () => {
+      console.log('Iframe loaded successfully');
+      store.iframeReady = true;
+      
+      // Hantar data terkini ke iframe
+      if (store.sections && store.sections.length) {
+        sendToIframe('load-sections', { sections: store.sections });
+      }
+    });
+    
+    // Semak status iframe setiap 2 saat
+    setInterval(() => {
+      try {
+        if (userPreview.contentDocument && userPreview.contentDocument.readyState === 'complete') {
+          if (!store.iframeReady) {
+            store.iframeReady = true;
+            console.log('Iframe is ready');
+            
+            // Hantar data terkini ke iframe
+            if (store.sections && store.sections.length) {
+              sendToIframe('load-sections', { sections: store.sections });
+            }
+          }
+        } else {
+          store.iframeReady = false;
+        }
+      } catch (e) {
+        store.iframeReady = false;
+      }
+    }, 2000);
+  }
+
   function initEditor() {
     const userPreview = document.getElementById('userPreview');
     
-    // Add iframe loading state listener
-    userPreview.addEventListener('load', () => {
-      store.iframeReady = true;
-      console.log('iframe loaded successfully');
-    }, { once: true });
+    // Pastikan iframe sedia
+    ensureIframeReady();
     
+    // Setup pemerhati untuk perubahan
+    setupSectionObserver();
+    setupSelectedElementObserver();
+    setupSelectedSectionObserver();
+    setupPropertyListeners();
+    
+    // Setup event listener untuk mesej dari iframe
     window.addEventListener('message', handleIframeMessage);
     
-    // Setup event listeners for the new UI
+    // Setup event listeners untuk UI
     document.getElementById('btnAddSection').addEventListener('click', addNewSection);
     document.getElementById('btnSaveDesign').addEventListener('click', saveDesign);
     document.getElementById('btnCloseProperties').addEventListener('click', closePropertiesPanel);
     document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
     
+    // Muat reka bentuk sedia ada
     loadDesign();
   }
 
@@ -1282,6 +1455,12 @@
         break;
       case 'element-selected':
         selectElement(data.id);
+        break;
+      case 'iframe-ready':
+        store.iframeReady = true;
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        }
         break;
     }
   }
@@ -1346,6 +1525,9 @@
     saveDesign();
     selectSection(newSection.id);
     addToHistory();
+    
+    // Hantar kemas kini segera ke iframe
+    sendToIframe('load-sections', { sections: store.sections });
   }
 
   function selectSection(sectionId) {
@@ -1557,6 +1739,7 @@
       renderSectionList();
       saveDesign();
       addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { name: e.target.value } });
     });
 
     document.getElementById('prop-sectionStyle').addEventListener('change', (e) => {
@@ -1683,6 +1866,11 @@
     document.getElementById('btnAddElementInSection').onclick = () => showAddElementDialog(sectionId);
     
     renderElementListInSection(sectionId);
+    
+    // Hantar kemas kini segera ke iframe
+    setTimeout(() => {
+      sendToIframe('update-section', { id: sectionId, properties: section });
+    }, 100);
   }
 
   // Fungsi untuk menggunakan gaya
@@ -2013,7 +2201,8 @@
                   <option value="slide-up" ${element.animation === 'slide-up' ? 'selected' : ''}>Slide Up</option>
                   <option value="slide-down" ${element.animation === 'slide-down' ? 'selected' : ''}>Slide Down</option>
                   <option value="slide-left" ${element.animation === 'slide-left' ? 'selected' : ''}>Slide Left</option>
-                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
+                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option> 
+                                    <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
                   <option value="zoom-in" ${element.animation === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
                   <option value="zoom-out" ${element.animation === 'zoom-out' ? 'selected' : ''}>Zoom Out</option>
                 </select>
@@ -2029,6 +2218,7 @@
             </div>
           </div>
         `;
+        
         break;
 
       case 'video':
@@ -2810,7 +3000,7 @@
           currentElement.borderColor = borderColorInput.value;
           saveDesign();
           addToHistory();
-          sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: currentElement.borderColor } });
+          sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: e.target.value } });
         });
       }
       
@@ -3572,8 +3762,13 @@
       });
     }
     
-    // Re-initialize Lucide icons for the new content
+    // Re-initialize Lucide icons for new content
     lucide.createIcons();
+    
+    // Hantar kemas kini segera ke iframe
+    setTimeout(() => {
+      sendToIframe('update-element', { id: element.id, properties: element });
+    }, 100);
   }
 
   // Function to handle element property errors
@@ -3586,51 +3781,6 @@
     if (panel && panel.classList.contains('hidden')) {
       panel.classList.remove('hidden');
     }
-  }
-
-  // Initialize text toolbar with proper icons
-  function initializeTextToolbar() {
-    const toolbar = document.querySelector('.toolbar');
-    if (!toolbar) return;
-    
-    // Re-initialize Lucide icons for toolbar buttons
-    lucide.createIcons({
-      attrs: {
-        class: ['w-4', 'h-4']
-      }
-    });
-    
-    // Add event listeners to toolbar buttons
-    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const command = btn.dataset.command;
-        try {
-          document.execCommand(command, false, null);
-          updateToolbarState();
-        } catch (error) {
-          console.error('Error executing command:', command, error);
-        }
-      });
-    });
-    
-    // Initialize toolbar state
-    updateToolbarState();
-  }
-  
-  // Update toolbar button states based on current selection
-  function updateToolbarState() {
-    const toolbar = document.querySelector('.toolbar');
-    if (!toolbar) return;
-    
-    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
-      const command = btn.dataset.command;
-      try {
-        const isActive = document.queryCommandState(command);
-        btn.classList.toggle('active', isActive);
-      } catch (e) {
-        // Some commands might not be supported
-      }
-    });
   }
 
   function renderElementListInSection(sectionId) {
@@ -4019,19 +4169,21 @@
     if (userPreview && userPreview.contentWindow) {
       const send = () => {
         try {
-          userPreview.contentWindow.postMessage({ type, data }, '*');
+          // Tambah semakan untuk memastikan iframe sedia
+          if (userPreview.contentDocument && userPreview.contentDocument.readyState === 'complete') {
+            userPreview.contentWindow.postMessage({ type, data }, '*');
+            console.log(`Sent message to iframe: ${type}`, data);
+          } else {
+            // Jika iframe belum sedia, cuba lagi selepas 100ms
+            setTimeout(send, 100);
+          }
         } catch (error) {
           console.error('Error sending message to iframe:', error);
         }
       };
       
-      // If iframe not fully loaded, delay retry sending
-      if (userPreview.contentDocument.readyState === 'complete') {
-        send();
-      } else {
-        userPreview.addEventListener('load', send, { once: true });
-        setTimeout(send, 500); // fallback retry after 0.5s
-      }
+      // Hantar mesej serta-merta
+      send();
     } else {
       console.warn('Iframe not available');
     }
@@ -4355,7 +4507,7 @@
       
       templateItem.addEventListener('click', () => {
         if (confirm(`Adakah anda pasti ingin menambah template "${template.name}"? Ini akan menambah bahagian baru pada halaman anda.`)) {
-          // Add template sections to the current design
+          // Add template sections to current design
           template.sections.forEach(section => {
             store.sections.push(section);
           });
@@ -4550,7 +4702,7 @@
       store.contextMenuTarget = { type: 'element', id: elementId, sectionId };
     }
     
-    // Position the context menu
+    // Position context menu
     contextMenu.style.left = `${e.pageX}px`;
     contextMenu.style.top = `${e.pageY}px`;
     contextMenu.classList.remove('hidden');
@@ -4568,6 +4720,10 @@
     const action = e.currentTarget.dataset.action;
     
     if (action === 'duplicate') {
+      if (store.contextMenuTarget.type === 'section')   function handleContextMenuItemClick(e) {
+    const action = e.currentTarget.dataset.action;
+    
+    if (action === 'duplicate') {
       if (store.contextMenuTarget.type === 'section') {
         const section = store.sections.find(s => s.id === store.contextMenuTarget.id);
         if (section) {
@@ -4580,9 +4736,7 @@
             element.id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
           });
           
-          const index = store.sections.findIndex(s => s.id === store.contextMenuTarget.id);
-          store.sections.splice(index + 1, 0, newSection);
-          
+          store.sections.push(newSection);
           renderSectionList();
           saveDesign();
           addToHistory();
@@ -4601,9 +4755,7 @@
             const newElement = JSON.parse(JSON.stringify(element));
             newElement.id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
             
-            const index = section.elements.findIndex(e => e.id === store.contextMenuTarget.id);
-            section.elements.splice(index + 1, 0, newElement);
-            
+            section.elements.push(newElement);
             renderElementListInSection(store.contextMenuTarget.sectionId);
             saveDesign();
             addToHistory();
@@ -4618,9 +4770,26 @@
       }
     } else if (action === 'delete') {
       if (store.contextMenuTarget.type === 'section') {
-        if (confirm('Adakah anda pasti ingin memadam bahagian ini?')) {
-          store.sections = store.sections.filter(s => s.id !== store.contextMenuTarget.id);
-          renderSectionList();
+        if (!confirm('Adakah anda pasti ingin memadam bahagian ini?')) return;
+        
+        store.sections = store.sections.filter(s => s.id !== store.contextMenuTarget.id);
+        renderSectionList();
+        closePropertiesPanel();
+        saveDesign();
+        addToHistory();
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+        toast('Bahagian dipadam');
+      } else if (store.contextMenuTarget.type === 'element') {
+        if (!confirm('Adakah anda pasti ingin memadam elemen ini?')) return;
+        
+        const section = store.sections.find(s => s.id === store.contextMenuTarget.sectionId);
+        if (section) {
+          section.elements = section.elements.filter(el => el.id !== store.contextMenuTarget.id);
+          renderElementListInSection(store.contextMenuTarget.sectionId);
           saveDesign();
           addToHistory();
           if (store.sections && store.sections.length) {
@@ -4628,30 +4797,14 @@
           } else {
             console.warn('skip load-sections — store.sections kosong');
           }
-          toast('Bahagian dipadam');
-        }
-      } else if (store.contextMenuTarget.type === 'element') {
-        if (confirm('Adakah anda pasti ingin memadam elemen ini?')) {
-          const section = store.sections.find(s => s.id === store.contextMenuTarget.sectionId);
-          if (section) {
-            section.elements = section.elements.filter(e => e.id !== store.contextMenuTarget.id);
-            renderElementListInSection(store.contextMenuTarget.sectionId);
-            saveDesign();
-            addToHistory();
-            if (store.sections && store.sections.length) {
-              sendToIframe('load-sections', { sections: store.sections });
-            } else {
-              console.warn('skip load-sections — store.sections kosong');
-            }
-            toast('Elemen dipadam');
-          }
+          toast('Elemen dipadam');
         }
       }
     }
     
     document.getElementById('contextMenu').classList.add('hidden');
   }
-  
+
   // Keyboard shortcuts
   function handleKeyboardShortcuts(e) {
     // Only handle shortcuts when not in an input field
@@ -4704,1187 +4857,513 @@
     }
   }
 
-  // =========================
-  // Fix: Add iframe loading listener and sections-loaded message handling
-  // =========================
-  
-  // Fix: Listen for iframe's load event to ensure iframe loads and refreshes preview content
-  const userPreview = document.getElementById('userPreview');
-  if (userPreview) {
-    userPreview.addEventListener('load', () => {
-      console.log('iframe onload → refresh sections');
-      if (store.sections && store.sections.length) {
-        sendToIframe('load-sections', { sections: store.sections });
-      } else {
-        console.warn('skip load-sections — store.sections kosong');
+  // Initialize text toolbar with proper icons
+  function initializeTextToolbar() {
+    const toolbar = document.querySelector('.toolbar');
+    if (!toolbar) return;
+    
+    // Re-initialize Lucide icons for toolbar buttons
+    lucide.createIcons({
+      attrs: {
+        class: ['w-4', 'h-4']
       }
     });
-  }
-  
-  // Fix: Listen for "sections-loaded" message from iframe to ensure two-way synchronization
-  window.addEventListener('message', (e) => {
-    if (e.data && e.data.type === 'sections-loaded') {
-      // Fix: Take sections and directly send load-sections to iframe
-      var _secs = e && e.data && e.data.data && e.data.data.sections;
-      if (Array.isArray(_secs) && _secs.length) {
+    
+    // Add event listeners to toolbar buttons
+    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const command = btn.dataset.command;
         try {
-          store.sections = _secs;
-          console.log('bootstrap store.sections dari iframe', store.sections.length);
-          // send back to iframe so preview is not empty
-          sendToIframe('load-sections', { sections: store.sections });
-        } catch (err) {
-          console.warn('gagal set/hantar store.sections dari iframe', err);
+          document.execCommand(command, false, null);
+          updateToolbarState();
+        } catch (error) {
+          console.error('Error executing command:', command, error);
         }
-      }
-      // Fix: Take sections from iframe when available (bootstrap store)
-      if (e.data && e.data.data && Array.isArray(e.data.data.sections) && e.data.data.sections.length) {
-        try { store.sections = e.data.data.sections; console.log('bootstrap store.sections dari iframe', store.sections.length); }
-        catch (err) { console.warn('gagal set store.sections dari iframe', err); }
-      }
-      console.log('sections-loaded signal diterima dari iframe');
-      // Fix: Avoid sending load-sections when no sections (prevent white preview)
-      if (store.sections && store.sections.length) {
-        sendToIframe('load-sections', { sections: store.sections });
-      } else {
-        console.warn('skip load-sections — store.sections kosong');
-      }
-    }
-  });
-
-</script>
-
-<!-- MOVA Dashboard Inline Patch – 2025-11-06 -->
-<script>
-/*! Inline Patch Notes:
- *  Fixes: (a) white screen when clicking Edit (preventDefault + stopPropagation),
- *         (b) guard setActiveTab & auto-refresh Broadcast recipients,
- *         (c) prevent accidental form submits in editor panel,
- *         (d) ensure Lucide icons re-render after dynamic lists,
- *         (e) tighten postMessage targetOrigin in sendToIframe,
- *         (f) first-load buildRecipientTree for Broadcast.
- *  Non-destructive; structure preserved.
- */
-(function () {
-  function safe(fn){ try { return fn && fn(); } catch(e){ console.warn('[MOVA patch]', e); } }
-
-  // 0) On first load, attempt to build recipient tree (Broadcast)
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(function(){
-      if (typeof window.buildRecipientTree === 'function') {
-        safe(function(){ window.buildRecipientTree(); });
-      }
-    }, 0);
-  });
-
-  // 1) Prevent anchors with href="#" from navigating (white flash / scroll top)
-  document.addEventListener('click', function(e){
-    var a = e.target.closest && e.target.closest('a[href="#"]');
-    if (a) { e.preventDefault(); }
-  }, true);
-
-  // 2) Intercept Edit clicks via data-edit-section on any element (anchor or button)
-  document.addEventListener('click', function(e){
-    var el = e.target.closest && e.target.closest('[data-edit-section]');
-    if (!el) return;
-    e.preventDefault();
-    e.stopPropagation();
-    var id = el.getAttribute('data-edit-section');
-    if (typeof window.openSectionEditor === 'function') {
-      window.openSectionEditor(id);
-      if (typeof window.showEditorPanel === 'function') { window.showEditorPanel(); }
-      var panel = document.getElementById('editorPanel');
-      if (panel && typeof panel.scrollIntoView === 'function') panel.scrollIntoView({behavior:'smooth', block:'start'});
-    }
-  }, true);
-
-  // 3) Prevent accidental <form> submissions in the editor panel
-  document.addEventListener('submit', function(e){
-    var ep = document.getElementById('editorPanel');
-    if (ep && ep.contains(e.target)) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  }, true);
-
-  // 4) Ensure Lucide icons re-render after section list renders
-  if (typeof window.renderSectionList === 'function') {
-    var _renderSectionList = window.renderSectionList;
-    window.renderSectionList = function(){
-      var ret = _renderSectionList.apply(this, arguments);
-      if (window.lucide && typeof window.lucide.createIcons === 'function') {
-        try { window.lucide.createIcons(); } catch(_) {}
-      }
-      return ret;
-    };
-  }
-
-  // 5) Tighten postMessage origin for sendToIframe (if compatible)
-  if (typeof window.sendToIframe === 'function') {
-    var _sendToIframe = window.sendToIframe;
-    window.sendToIframe = function(payload){
-      try {
-        var frame = document.getElementById('userPreview');
-        if (!frame || !frame.contentWindow) return;
-        var origin = window.location && window.location.origin ? window.location.origin : '*';
-        frame.contentWindow.postMessage(payload, origin);
-      } catch (e) {
-        return _sendToIframe.apply(this, arguments);
-      }
-    };
-  }
-
-  // 6) Keep current tab when opening editor (avoid unintended switches)
-  if (typeof window.openSectionEditor === 'function') {
-    var _openSectionEditor = window.openSectionEditor;
-    window.openSectionEditor = function(){
-      var ret = _openSectionEditor.apply(this, arguments);
-      try { /* keep current tab */ } catch(_){}
-      return ret;
-    };
-  }
-
-  console.info('[MOVA inline patch] Applied.');
-})();
-</script>
-
-
-<!-- === MOVA User Sections UI Upgrade (Editor Left + Live Preview) — 2025-11-06 === -->
-<style>
-  /* Only affect the User Sections tab layout */
-  #user-sections-split { display:flex; gap:1rem; align-items:stretch; }
-  #user-sections-split .pane { display:flex; flex-direction:column; min-height:60vh; }
-  #user-sections-split .pane.editor { flex:0 0 40%; max-width:46rem; }
-  #user-sections-split .pane.preview { flex:1 1 auto; }
-  #user-sections-split .pane.preview iframe { width:100%; height:calc(100vh - 220px); border:1px solid #e5e7eb; border-radius:12px; background:#fff; }
-  @media (max-width: 1024px){
-    #user-sections-split { flex-direction:column; }
-    #user-sections-split .pane.editor { flex:1 1 auto; max-width:100%; }
-    #user-sections-split .pane.preview iframe { height:60vh; }
-  }
-<
-/* === User Lock: disable non-User tabs when locked === */
-.pill[aria-disabled="true"]{
-  opacity:.5; pointer-events:none; filter:grayscale(1);
-}
-
-<
-/* === Preview No-Scroll helper (applied via JS) === */
-.noscroll-preview{
-  overflow: visible !important;
-  height: auto !important;
-  max-height: none !important;
-}
-.noscroll-preview iframe{
-  display: block;
-  width: 100%;
-}
-
-</style>
-<script>
-(function(){
-  function $(s,root){ return (root||document).querySelector(s); }
-  function on(el, ev, fn, opt){ el && el.addEventListener(ev, fn, opt||false); }
-  function debounce(fn, ms){ var t; return function(){ clearTimeout(t); var a=arguments; t=setTimeout(function(){ fn.apply(null,a); }, ms||200); }; }
-
-  // Build split layout only inside the User Sections tab if present
-  function buildUserSplit(){
-    var tabUser = document.getElementById('tab-user') || document.querySelector('[data-tab="user"],[data-tab="sections"]')?.id;
-    var editor = document.getElementById('propertiesPanel');
-    var iframe = document.getElementById('userPreview');
-    if (!editor || !iframe) return;
-
-    // Wrap only once
-    if (document.getElementById('user-sections-split')) return;
-    var split = document.createElement('div'); split.id = 'user-sections-split';
-
-    var ePane = document.createElement('div'); ePane.className = 'pane editor';
-    var pPane = document.createElement('div'); pPane.className = 'pane preview';
-
-    // Move existing nodes
-    ePane.appendChild(editor);
-    pPane.appendChild(iframe);
-
-    // Choose anchor: if tab-user exists, insert at its top; else fallback to #app/body
-    var anchor = document.getElementById('tab-user') || document.getElementById('app') || document.body;
-    anchor.insertBefore(split, anchor.firstChild);
-    split.appendChild(ePane);
-    split.appendChild(pPane);
-  }
-
-  // Live preview: push store.sections whenever user types/changes within editor
-  var pushLive = debounce(function(){
-    try{
-      if (typeof window.sendToIframe !== 'function') return;
-      if (!window.store || !window.store.sections) return;
-      window.sendToIframe({ type:'sections-updated', sections: window.store.sections });
-    }catch(e){ console.warn('[MOVA live]', e); }
-  }, 200);
-
-  function bindLive(){
-    var editor = document.getElementById('propertiesPanel');
-    if (!editor) return;
-    on(editor, 'input', pushLive, true);
-    on(editor, 'change', pushLive, true);
-  }
-
-  // Reinforce live push when editor opens or section list re-renders
-  if (typeof window.openSectionEditor === 'function'){
-    var _open = window.openSectionEditor;
-    window.openSectionEditor = function(){
-      var r = _open.apply(this, arguments);
-      try{ buildUserSplit(); bindLive(); pushLive(); }catch(_){}
-      return r;
-    };
-  }
-  if (typeof window.renderSectionList === 'function'){
-    var _rsl = window.renderSectionList;
-    window.renderSectionList = function(){
-      var r = _rsl.apply(this, arguments);
-      try{ pushLive(); }catch(_){}
-      return r;
-    };
-  }
-  if (typeof window.refreshSettings === 'function'){
-    var _rs = window.refreshSettings;
-    window.refreshSettings = function(){
-      var r = _rs.apply(this, arguments);
-      try{ pushLive(); }catch(_){}
-      return r;
-    };
-  }
-
-  // Build once on load, then push initial content
-  document.addEventListener('DOMContentLoaded', function(){
-    buildUserSplit();
-    bindLive();
-    setTimeout(pushLive, 300);
-  });
-
-  // Prevent accidental navigation from anchors with href="#"
-  document.addEventListener('click', function(e){
-    var a = e.target.closest && e.target.closest('a[href="#"]');
-    if (a){ e.preventDefault(); }
-  }, true);
-})();
-
-  // Keep User tab locked while editing & make properties panel sticky
-  (function keepUserTabOpenWhileEditing(){
-    var userTabEl = document.getElementById('tab-user');
-    if (!userTabEl) return;
-    var extender = function(){ lockUserEditing(12); };
-    userTabEl.addEventListener('input', extender, true);
-    userTabEl.addEventListener('change', extender, true);
-    userTabEl.addEventListener('keydown', extender, true);
-
-    // Open properties panel automatically if a selection exists
-    var panel = document.getElementById('propertiesPanel');
-    function openPanel(){ if(panel) panel.classList.remove('hidden'); }
-    var sectionList = document.getElementById('sectionList');
-    if (sectionList){
-      sectionList.addEventListener('click', function(e){
-        if (e.target.closest && (e.target.closest('.section-item') || e.target.closest('.element-item'))) {
-          openPanel(); lockUserEditing(12);
-        }
-      }, true);
-    }
-
-    // Re-open panel after DOM changes while selection exists
-    var mo = new MutationObserver(function(){
-      try{
-        if (window.store && (store.selectedSectionId || store.selectedElementId)) openPanel();
-      }catch(_){}
+      });
     });
-    mo.observe(userTabEl, { childList:true, subtree:true });
-  })();
-
-</script>
-
-
-<div id="btnUserLockFloating" style="position:fixed;right:12px;top:12px;z-index:1000;">
+    
+    // Initialize toolbar state
+    updateToolbarState();
+  }
   
-<button id="btnUserLock" class="btn-ghost flex items-center gap-2" title="Kunci untuk kekal di tab User">
-  <i data-lucide="lock" class="w-4 h-4"></i>
-  <span>Buka Kunci</span>
-</button>
-
-</div>
-
-
-<script>
-(function(){
-  const LOCK_KEY = 'mova_user_lock';
-
-  if (!window.uiLock) window.uiLock = { userTabLocked:false, _timer:null };
-  // Restore lock
-  try { uiLock.userTabLocked = (localStorage.getItem(LOCK_KEY) === '1'); } catch(e){ uiLock.userTabLocked = false; }
-
-  // Utility: current active tab name if available
-  function getActiveTabName(){
-    try {
-      if (window.activeTabName) return window.activeTabName;
-      const a = document.querySelector('[data-tab].is-active,[data-tab][aria-selected="true"]');
-      return a ? a.getAttribute('data-tab') : null;
-    } catch(e){ return null; }
-  }
-
-  function updateUserLockUI(){
-    const btn = document.getElementById('btnUserLock') || document.querySelector('#btnUserLockFloating #btnUserLock');
-    if (btn){
-      const iconEl = btn.querySelector('i[data-lucide]');
-      const labelEl = btn.querySelector('span');
-      const iconName = uiLock.userTabLocked ? 'lock' : 'unlock';
-      if (iconEl) iconEl.setAttribute('data-lucide', iconName);
-      if (labelEl) labelEl.textContent = uiLock.userTabLocked ? 'Dikunci' : 'Buka Kunci';
-      try { if (window.lucide && lucide.createIcons) lucide.createIcons(); } catch(e){}
-    }
-    // disable all tabs except data-tab="user"
-    document.querySelectorAll('[data-tab]').forEach(function(b){
-      var isUser = (b.getAttribute('data-tab') === 'user');
-      if (uiLock.userTabLocked && !isUser){
-        b.setAttribute('aria-disabled','true');
-      } else {
-        b.removeAttribute('aria-disabled');
+  // Update toolbar button states based on current selection
+  function updateToolbarState() {
+    const toolbar = document.querySelector('.toolbar');
+    if (!toolbar) return;
+    
+    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
+      const command = btn.dataset.command;
+      try {
+        const isActive = document.queryCommandState(command);
+        btn.classList.toggle('active', isActive);
+      } catch (e) {
+        // Some commands might not be supported
       }
     });
-
-    // force switch to user if locked
-    var active = getActiveTabName();
-    if (uiLock.userTabLocked && active && active !== 'user'){
-      if (typeof window.setActiveTab === 'function'){
-        window.setActiveTab('user');
-      }
-    }
   }
 
-  function setUserLock(locked){
-    uiLock.userTabLocked = !!locked;
-    try { localStorage.setItem(LOCK_KEY, locked ? '1' : '0'); } catch(e){}
-    updateUserLockUI();
-    if (typeof window.toast === 'function'){
-      toast(locked ? 'Tab User dikunci. Tab lain dinyahaktifkan.' : 'Kunci dimatikan. Anda boleh tukar tab semula.');
-    }
-  }
-
-  document.addEventListener('click', function(e){
-    var b = e.target.closest('#btnUserLock');
-    if (!b) return;
-    setUserLock(!uiLock.userTabLocked);
-  });
-
-  // Guard inside setActiveTab if it exists (augment non-destructively)
-  if (typeof window.setActiveTab === 'function'){
-    var _origSetActiveTab = window.setActiveTab;
-    window.setActiveTab = function(name){
-      if (uiLock.userTabLocked && name !== 'user'){
-        if (typeof window.toast === 'function'){ toast('Sedang mengedit — tab User dikunci.'); }
-        return;
-      }
-      return _origSetActiveTab.apply(this, arguments);
-    };
-  } else {
-    // If there is a tab click handler not using setActiveTab, we still block clicks via aria-disabled + CSS.
-    document.addEventListener('click', function(e){
-      var tgt = e.target.closest('[data-tab]');
-      if (tgt && uiLock.userTabLocked && tgt.getAttribute('data-tab') !== 'user'){
-        e.preventDefault();
-        e.stopPropagation();
-        if (typeof window.toast === 'function'){ toast('Sedang mengedit — tab User dikunci.'); }
-      }
-    }, true);
-  }
-
-  // Initial paint
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', updateUserLockUI);
-  } else {
-    updateUserLockUI();
-  }
-})();
-</script>
-
-
-<script>
-// === Hard Lock Hardening: keep locked until explicitly unlocked ===
-(function(){
-  function safely(fn){ try{ fn(); }catch(e){} }
-
-  // If the base lock API exists, enhance it; otherwise, do nothing.
-  if (!window.uiLock || typeof window.uiLock.userTabLocked === 'undefined'){
-    window.uiLock = window.uiLock || {};
-    window.uiLock.userTabLocked = window.uiLock.userTabLocked || false;
-  }
-
-  // Reuse updateUserLockUI if available
-  function refresh(){
-    if (typeof window.updateUserLockUI === 'function'){ window.updateUserLockUI(); }
-  }
-
-  // 1) Enforce hash/router to #user when locked
-  safely(function(){
-    window.addEventListener('hashchange', function(){
-      if (window.uiLock.userTabLocked){
-        if (location.hash !== '#user' && location.hash.toLowerCase() !== '#tab-user'){
-          location.hash = '#user';
-          refresh();
-        }
-      }
-    });
-    // On load: normalize hash if locked
-    if (window.uiLock.userTabLocked){
-      if (location.hash !== '#user' && location.hash.toLowerCase() !== '#tab-user'){
-        location.hash = '#user';
-      }
-      refresh();
-    }
-  });
-
-  // 2) Block keyboard navigation that could trigger non-user tabs
-  safely(function(){
-    document.addEventListener('keydown', function(e){
-      if (!window.uiLock.userTabLocked) return;
-      // If focused element is or is inside a tab button that's not "user", block Enter/Space
-      const tabBtn = e.target && e.target.closest && e.target.closest('[data-tab]');
-      if (tabBtn && tabBtn.getAttribute('data-tab') !== 'user'){
-        const code = e.code || e.key;
-        if (code === 'Enter' || code === 'Space' || code === ' '){
-          e.preventDefault(); e.stopPropagation();
-        }
-      }
-    }, true);
-  });
-
-  // 3) MutationObserver: any new tabs added later are immediately disabled
-  safely(function(){
-    const mo = new MutationObserver(function(muts){
-      if (!window.uiLock.userTabLocked) return;
-      let needs = false;
-      for (const m of muts){
-        if (m.addedNodes){
-          for (const n of m.addedNodes){
-            if (n.nodeType === 1 && (n.matches && n.matches('[data-tab]') || (n.querySelector && n.querySelector('[data-tab]')))){
-              needs = true; break;
+  // Initialize Lucide icons for dynamically added elements
+  function initializeLucideIcons() {
+    // Use a MutationObserver to watch for new elements that need icons
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.addedNodes) {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) { // Element node
+              const icons = node.querySelectorAll('[data-lucide]');
+              if (icons.length > 0) {
+                lucide.createIcons({
+                  attrs: {
+                    class: ['w-4', 'h-4']
+                  }
+                });
+              }
             }
+          });
+        }
+      });
+    });
+    
+    // Start observing the document body for changes
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Initialize Lucide icons observer
+  initializeLucideIcons();
+
+  // Finalize initialization
+  function finalizeInitialization() {
+    // Set up the iframe communication handshake
+    const userPreview = document.getElementById('userPreview');
+    if (userPreview) {
+      userPreview.addEventListener('load', () => {
+        console.log('Iframe loaded successfully');
+        store.iframeReady = true;
+        
+        // Send current sections to iframe
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+      });
+      
+      // Periodically check iframe readiness
+      setInterval(() => {
+        try {
+          if (userPreview.contentDocument && userPreview.contentDocument.readyState === 'complete') {
+            if (!store.iframeReady) {
+              store.iframeReady = true;
+              console.log('Iframe is ready');
+              
+              // Send current sections to iframe
+              if (store.sections && store.sections.length) {
+                sendToIframe('load-sections', { sections: store.sections });
+              } else {
+                console.warn('skip load-sections — store.sections kosong');
+              }
+            }
+          } else {
+            store.iframeReady = false;
+          }
+        } catch (e) {
+          store.iframeReady = false;
+        }
+      }, 2000);
+    }
+    
+    // Set up periodic sync between editor and preview
+    setInterval(() => {
+      if (store.iframeReady) {
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+      }
+    }, 500);
+    
+    // Set up periodic property sync
+    setInterval(() => {
+      if (store.iframeReady) {
+        if (store.selectedElementId) {
+          const element = findElementById(store.selectedElementId);
+          if (element) {
+            sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+          }
+        } else if (store.selectedSectionId) {
+          const section = findSectionById(store.selectedSectionId);
+          if (section) {
+            sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
           }
         }
       }
-      if (needs) refresh();
-    });
-    mo.observe(document.documentElement || document.body, {subtree:true, childList:true});
-  });
-
-  // 4) Storage sync: if another tab changes the lock, stay in sync
-  safely(function(){
-    window.addEventListener('storage', function(ev){
-      if (ev && ev.key === 'mova_user_lock'){
-        // Trigger a light refresh; setUserLock exists in the base script
-        const locked = ev.newValue === '1';
-        if (typeof window.setUserLock === 'function'){
-          window.setUserLock(locked);
-        } else {
-          window.uiLock.userTabLocked = locked;
-          refresh();
-        }
-      }
-    });
-  });
-
-  // 5) Periodic re-assertion (lightweight) while locked
-  safely(function(){
-    setInterval(function(){
-      if (window.uiLock.userTabLocked) refresh();
-    }, 2000);
-  });
-
-  // 6) Optional: warn on page unload while locked (avoid accidental navigation away)
-  safely(function(){
-    window.addEventListener('beforeunload', function(e){
-      if (!window.uiLock.userTabLocked) return;
-      // Show confirmation dialog
-      e.preventDefault();
-      e.returnValue = '';
-    });
-  });
-})();
-</script>
-
-
-<script>
-(function(){
-  // Run only inside dashboard
-  function $(sel, root){ return (root||document).querySelector(sel); }
-  function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
-
-  function isScrollable(el){
-    const cs = getComputedStyle(el);
-    return /(auto|scroll)/.test(cs.overflow + cs.overflowY + cs.overflowX);
-  }
-
-  function markNoScrollPreview(){
-    const root = $('#tab-user') || document;
-    // Heuristic: prefer a right column that contains a preview iframe or a table
-    // 1) Find a container that has an iframe (likely preview)
-    let container = root.querySelector('iframe') ? root.querySelector('iframe').parentElement : null;
-    // 2) Or find the first container with a <table>
-    if (!container){
-      const tbl = root.querySelector('table');
-      if (tbl) container = tbl.closest('*');
-    }
-    // 3) Or fallback to any element that looks like a "preview pane" by class/id
-    if (!container){
-      container = root.querySelector('[id*="preview"],[class*="preview"]');
-    }
-    if (!container) return null;
-
-    // climb up until we hit the immediate pane-like container (typically the direct grid/flex child)
-    let pane = container;
-    for (let i=0; i<4 && pane.parentElement; i++){
-      const p = pane.parentElement;
-      if (p && p.children && p.children.length >= 2){
-        // Stop when parent is the two-column container
-        pane = pane; break;
-      }
-      pane = p;
-    }
-
-    // Apply no-scroll to pane and any inner scroll wrappers
-    pane.classList.add('noscroll-preview');
-    // remove scroll locks on wrappers inside this pane
-    $all('*', pane).forEach(function(n){
-      if (!n) return;
-      if (isScrollable(n)){
-        n.style.overflow = 'visible';
-        n.style.maxHeight = 'none';
-        n.style.height = 'auto';
-      }
-    });
-
-    return pane;
-  }
-
-  // Try to autosize same-origin iframe to its content
-  function autoSizeIframe(pane){
-    if (!pane) return;
-    const ifr = pane.querySelector('iframe');
-    if (!ifr) return;
-    function setH(h){
-      if (!h || h < 200) return;
-      ifr.style.height = h + 'px';
-    }
-    function calc(){
-      try{
-        const doc = ifr.contentDocument;
-        if (doc && doc.documentElement){
-          const h = Math.max(
-            doc.body ? doc.body.scrollHeight : 0,
-            doc.documentElement.scrollHeight,
-            doc.documentElement.offsetHeight
-          );
-          setH(h + 10); // a little extra room
-        }
-      }catch(e){
-        // cross-origin — ignore
-      }
-    }
-    ifr.addEventListener('load', calc);
-    // periodic adjust in case content grows
-    const iv = setInterval(calc, 800);
-    // stop after 20s
-    setTimeout(()=>clearInterval(iv), 20000);
-    // initial call (if already loaded)
-    calc();
-  }
-
-  function setup(){
-    const pane = markNoScrollPreview();
-    autoSizeIframe(pane);
-  }
-
-  if (document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', setup);
-  } else { setup(); }
-})();
-</script>
-
-
-<script>
-// === MOVA patch: resilient callApi with exponential backoff for 429/Network ===
-async function callApi(path, payload) {
-  const maxRetry = 4;
-  let attempt = 0, wait = 400; // ms
-
-  while (true) {
-    let res;
-    try {
-      res = await fetch(EXEC_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
-        body: new URLSearchParams({ path, payload: JSON.stringify(payload || {}) })
-      });
-    } catch (err) {
-      // Treat as network failure (status 0)
-      res = { ok: false, status: 0, _neterr: err };
-    }
-
-    if (!res || (!res.ok && (res.status === 429 || res.status === 0))) {
-      attempt++;
-      if (attempt > maxRetry) {
-        const msg = (res && res.status === 429)
-          ? 'Kadar permintaan terlalu laju (429). Cuba lagi nanti.'
-          : 'Ralat rangkaian.';
-        throw new Error(msg);
-      }
-      await new Promise(r => setTimeout(r, wait));
-      wait *= 2;
-      continue;
-    }
-
-    const text = await res.text();
-    let json;
-    try { json = JSON.parse(text); }
-    catch (e) { throw new Error(text || 'Gagal parse JSON'); }
-
-    if (json && json.success === false) {
-      throw new Error(json.error || 'Ralat tidak diketahui');
-    }
-    return json;
-  }
-}
-</script>
-
-
-<script>
-// === MOVA strict lock guard ===
-// Persisted lock flag helper
-function movaIsLocked() {
-  try { return localStorage.getItem('mova_edit_locked') === '1' || localStorage.getItem('mova_edit_lock') === '1'; }
-  catch(e){ return false; }
-}
-
-// Optional: expose helpers to existing UI
-window.movaIsLocked = movaIsLocked;
-
-// Try to wrap setActiveTab if it exists so that we never leave User tab while locked.
-(function(){
-  const guardTabs = ['user','users','user-sections','user sections','user section','sections','usersections'];
-  function isUserTabName(name){
-    if (!name) return false;
-    const n = (''+name).toLowerCase().trim();
-    return guardTabs.some(g => n === g || n.includes(g));
-  }
-  const tryWrap = () => {
-    if (typeof window.setActiveTab === 'function' && !window._setActiveTabOrig) {
-      window._setActiveTabOrig = window.setActiveTab;
-      window.setActiveTab = function(next){
-        if (movaIsLocked()) {
-          // Read current tab text/id if available to detect staying-on-user behavior
-          try {
-            const activeEl = document.querySelector('[data-tab].active, .tab-active, [aria-selected="true"]');
-            const activeName = activeEl?.dataset?.tab || activeEl?.textContent || '';
-            if (!isUserTabName(next) && !isUserTabName(activeName)) {
-              // Not on user tab yet; allow only if moving INTO user tab
-              if (!isUserTabName(next)) return; // block
-            } else {
-              // Already on user tab -> block moving away
-              if (!isUserTabName(next)) return;
-            }
-          } catch(e){ /* no-op */ }
-        }
-        return window._setActiveTabOrig.apply(this, arguments);
-      };
-      console.log('[MOVA strict lock] setActiveTab wrapped.');
-    }
-  };
-  // Attempt now & after page settles
-  tryWrap();
-  window.addEventListener('load', tryWrap);
-  setTimeout(tryWrap, 1000);
-})();
-
-// Capture clicks globally: when locked, allow interactions only inside the User Sections/editor areas.
-(function(){
-  const userSelectors = [
-    '#user-sections',
-    '.user-sections',
-    '[data-user-sections]',
-    '#editor',
-    '.editor-panel',
-    '[data-panel="user"]'
-  ];
-  function withinUserArea(el){
-    return !!(el && el.closest && userSelectors.some(sel => el.closest(sel)));
-  }
-  function shouldAllow(el){
-    if (!movaIsLocked()) return true;
-    // Allow clicks within the user/editor area
-    if (withinUserArea(el)) return true;
-    // Allow benign controls like formatting popovers inside editor if they happen to be detached
-    const id = (el.id||'').toLowerCase(), cls = (el.className||'').toString().toLowerCase();
-    if (id.includes('popover') || id.includes('tooltip') || cls.includes('popover') || cls.includes('tooltip')) return true;
-    return false;
-  }
-
-  // Block pointer-based navigation while locked
-  window.addEventListener('pointerdown', function(ev){
-    if (!movaIsLocked()) return;
-    const t = ev.target;
-    // If target is a tab/button/link to change section, block
-    const isTabIntent =
-      t.closest('[data-tab]') ||
-      t.closest('a[href^="#tab-"], a[href^="#"], button[data-tab], .tab, .tab-btn, [role="tab"]');
-    if (isTabIntent && !withinUserArea(t)) {
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      console.warn('[MOVA strict lock] Tab change blocked while locked.');
-    }
-  }, true);
-
-  // Block generic clicks that would change main panels
-  window.addEventListener('click', function(ev){
-    if (!shouldAllow(ev.target)) {
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      console.warn('[MOVA strict lock] Click blocked outside User Section while locked.');
-    }
-  }, true);
-
-  // Block keyboard shortcuts that might switch tabs (e.g., Ctrl+1/2...), only allow inside editor
-  window.addEventListener('keydown', function(ev){
-    if (!movaIsLocked()) return;
-    const k = ev.key;
-    const isNavHotkey = (ev.ctrlKey || ev.metaKey) && ['1','2','3','4','5','6','7','8','9','0'].includes(k);
-    if (isNavHotkey && !withinUserArea(ev.target)) {
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      console.warn('[MOVA strict lock] Hotkey blocked while locked.');
-    }
-  }, true);
-
-  // Safety net: if some script still flips the tab class, revert back immediately
-  const tabRoot = document.body;
-  const mo = new MutationObserver(() => {
-    if (!movaIsLocked()) return;
-    // If we can detect any active tab marker not pointing to user, try to force back by clicking user tab if available
-    const active = document.querySelector('[data-tab].active, .tab-active, [role="tab"][aria-selected="true"]');
-    const name = active?.dataset?.tab || active?.textContent || '';
-    const onUser = (''+name).toLowerCase().includes('user');
-    if (!onUser) {
-      const candidate = document.querySelector('[data-tab="user"], [data-tab="User"], [href="#tab-user"], [href="#user"]');
-      if (candidate && typeof candidate.click === 'function') {
-        candidate.click();
-        console.log('[MOVA strict lock] Forced back to User tab.');
-      }
-    }
-  });
-  try { mo.observe(tabRoot, { subtree: true, attributes: true, attributeFilter: ['class','aria-selected'] }); } catch(e){}
-})();
-</script>
-
-
-<!-- ==== LIVE SYNC PATCH (7 Nov 2025) ==== -->
-<script>
-(function(){
-  // Guard against duplicate injection
-  if (window.__movaLiveSyncPatched) return;
-  window.__movaLiveSyncPatched = true;
-
-  // Helpers
-  function $(sel, root){ return (root||document).querySelector(sel); }
-  function $all(sel, root){ return Array.from((root||document).querySelectorAll(sel)); }
-
-  // Elements
-  const iframe = document.getElementById('userPreview');
-  const propertiesPanel = document.getElementById('propertiesPanel');
-  const sectionList = document.getElementById('sectionList');
-
-  // Basic state accessors (reuse existing globals if available)
-  const getStore = () => (window.store || {});
-
-  // --- Messaging to iframe ---
-  function sendPreviewUpdate(reason){
-    try {
-      const st = getStore();
-      const payload = {
-        type: 'sections-live-update',
-        sections: st.sections || [],
-        selectedId: st.selectedSectionId || null,
-        settings: st.settings || {},
-        reason: reason || 'input'
-      };
-      if (iframe && iframe.contentWindow) {
-        // Primary: tell user.html (edit mode) to re-render
-        iframe.contentWindow.postMessage(payload, '*');
-        // Optional direct call if user.html exposes an updater
-        try { iframe.contentWindow.updateFromSections && iframe.contentWindow.updateFromSections(payload); } catch(e){}
-      }
-    } catch (err) {
-      console.warn('[MOVA LiveSync] sendPreviewUpdate error:', err);
-    }
-  }
-
-  function scrollPreviewToSection(sectionId){
-    if (!iframe) return;
-    // Ask iframe to handle scroll itself
-    try {
-      iframe.contentWindow && iframe.contentWindow.postMessage({ type:'scroll-to-section', id: sectionId }, '*');
-    } catch(e){}
-    // Fallback: try to scroll by directly accessing the DOM
-    try {
-      const d = iframe.contentDocument;
-      if (!d) return;
-      const el = d.querySelector('[data-section-id=\"'+sectionId+'\"], #section-'+sectionId+', #sec-'+sectionId);
-      el && el.scrollIntoView({ behavior:'smooth', block:'center' });
-    } catch(err){
-      console.warn('[MOVA LiveSync] scroll fallback error:', err);
-    }
-  }
-
-  // --- Event hooks ---
-  // 1) When iframe is ready, push the current sections/settings once
-  if (iframe){
-    iframe.addEventListener('load', function(){
-      // small delay to let user.html boot
-      setTimeout(function(){ sendPreviewUpdate('iframe-load'); }, 150);
-    });
-  }
-
-  // 2) Any change within Properties Panel or Section List triggers a live update
-  function attachLiveInputs(root){
-    if (!root) return;
-    root.addEventListener('input',  function(){ sendPreviewUpdate('input'); }, { passive: true });
-    root.addEventListener('change', function(){ sendPreviewUpdate('change'); }, { passive: true });
-    root.addEventListener('keyup',  function(){ sendPreviewUpdate('keyup'); }, { passive: true });
-  }
-  attachLiveInputs(propertiesPanel);
-  attachLiveInputs(sectionList);
-
-  // 3) When a section item is clicked/selected, scroll the preview to the same section
-  document.addEventListener('click', function(e){
-    const item = e.target.closest('.section-item');
-    if (!item) return;
-    const selId = item.dataset && (item.dataset.id || item.dataset.sectionId);
-    const st = getStore();
-    // Update happens anyway by existing code; we only drive the preview scroll
-    const id = selId || st.selectedSectionId;
-    if (id) {
-      // brief delay to allow any re-render on the iframe side
-      setTimeout(function(){ scrollPreviewToSection(id); }, 60);
-    }
-  }, true);
-
-  // 4) Public hook if the existing editor wants to explicitly trigger sync
-  window.__movaSyncPreviewNow = function(reason){ sendPreviewUpdate(reason || 'manual'); }
-
-  console.log('[MOVA LiveSync] Patch active: live preview + scroll sync.');
-})();
-</script>
-<!-- ==== /LIVE SYNC PATCH ==== -->
-
-<!-- ==== LIVE SYNC AUTOREFRESH 500ms (7 Nov 2025) ==== -->
-<script>
-(function(){
-  if (window.__movaLiveInterval500) return;
-  window.__movaLiveInterval500 = true;
-
-  function snapshot(){
-    try {
-      const st = window.store || {};
-      return JSON.stringify({
-        sections: st.sections || [],
-        settings: st.settings || {},
-        selectedId: st.selectedSectionId || null
-      });
-    } catch(e){ return ""; }
-  }
-
-  let last = snapshot();
-
-  setInterval(function(){
-    const s = snapshot();
-    if (!s) return;
-    if (s !== last) {
-      last = s;
-      try {
-        // Trigger the existing public hook from the previous patch
-        window.__movaSyncPreviewNow && window.__movaSyncPreviewNow('interval-500ms');
-      } catch(e){ /* no-op */ }
-    }
-  }, 500);
-  console.log('[MOVA LiveSync] Auto-refresh every 500ms active.');
-})();
-</script>
-<!-- ==== /LIVE SYNC AUTOREFRESH ==== -->
-
-<!-- ==== LIVE SYNC HANDSHAKE (7 Nov 2025) ==== -->
-<script>
-(function(){
-  if (window.__movaHandshakePatched) return;
-  window.__movaHandshakePatched = true;
-
-  const iframe = document.getElementById('userPreview');
-  let targetOrigin = '*';
-  let bridgeReady = false;
-  let pingTimer = null;
-
-  function computeOrigin(){
-    try {
-      if (!iframe) return '*';
-      const a = document.createElement('a');
-      a.href = iframe.src;
-      if (a.origin && a.origin !== 'null') return a.origin;
-      // Fallback for old browsers
-      return a.protocol + '//' + a.host;
-    } catch(e){ return '*'; }
-  }
-
-  function postToPreview(msg){
-    try {
-      iframe && iframe.contentWindow && iframe.contentWindow.postMessage(msg, targetOrigin);
-    } catch(e){ /* no-op */ }
-  }
-
-  window.addEventListener('message', function(e){
-    if (!iframe) return;
-    // Filter messages from the preview iframe only
-    if (e.source !== iframe.contentWindow) return;
-    if (e.data && e.data.type === 'mova-bridge-ready'){
-      bridgeReady = true;
-      // Ask preview to render current state immediately
-      try { window.__movaSyncPreviewNow && window.__movaSyncPreviewNow('bridge-ready'); } catch(e){}
-    }
-  });
-
-  function beginHandshake(){
-    targetOrigin = computeOrigin();
-    // Ping preview until it replies with 'mova-bridge-ready'
-    let tries = 0;
-    clearInterval(pingTimer);
-    pingTimer = setInterval(function(){
-      tries++;
-      if (bridgeReady || tries > 20) { clearInterval(pingTimer); return; }
-      postToPreview({type:'mova-bridge-ping'});
     }, 300);
   }
 
-  if (iframe){
-    iframe.addEventListener('load', function(){
-      bridgeReady = false;
-      beginHandshake();
-      // also push initial render shortly after load
-      setTimeout(function(){
-        try { window.__movaSyncPreviewNow && window.__movaSyncPreviewNow('iframe-load'); } catch(e){}
-      }, 250);
-    });
-  }
-  console.log('[MOVA LiveSync] Handshake patch active.');
-})();
-</script>
-<!-- ==== /LIVE SYNC HANDSHAKE ==== -->
+  // Call the finalization function
+  finalizeInitialization();
 
-<!-- ==== MOVA DRAFT/PUBLISH RECIPE PATCH (7 Nov 2025) ==== -->
-<style>
-  /* Badge overlay on top-right of preview iframe container */
-  .mova-live-badge{
-    position:absolute; right:.75rem; top:.5rem;
-    background:#111; color:#fff; font-weight:700;
-    font-size:.75rem; letter-spacing:.02em;
-    border-radius:.5rem; padding:.35rem .6rem;
-    box-shadow:0 8px 18px rgba(0,0,0,.2); pointer-events:none; z-index:50;
-    opacity:.88;
-  }
-  .mova-preview-wrap{ position:relative; }
-</style>
-<script>
-(function(){
-  if (window.__movaDraftPublishPatched) return;
-  window.__movaDraftPublishPatched = true;
-
-  // --- Elements ---
-  const iframe = document.getElementById('userPreview');
-
-  // Wrap preview iframe to place a badge
-  if (iframe && !iframe.parentElement.classList.contains('mova-preview-wrap')){
-    const wrap = document.createElement('div');
-    wrap.className = 'mova-preview-wrap';
-    iframe.parentElement.insertBefore(wrap, iframe);
-    wrap.appendChild(iframe);
-    const badge = document.createElement('div');
-    badge.className = 'mova-live-badge';
-    badge.textContent = 'LIVE PREVIEW · Draf';
-    wrap.appendChild(badge);
-  }
-
-  // --- DRAFT CACHE in localStorage ---
-  function cacheDraft(st){
-    try{
-      const payload = {
-        sections: st.sections || [],
-        settings: st.settings || {},
-        t: Date.now()
-      };
-      localStorage.setItem('mova_preview_bootstrap', JSON.stringify(payload));
-    }catch(e){}
-  }
-
-  // --- SAVE GATE (block auto-save to backend) ---
-  const EXEC_URL = (function(){
-    try{
-      // Try to read from existing global if present
-      if (window.EXEC_URL) return window.EXEC_URL;
-      // Fallback: search in scripts
-      return undefined;
-    }catch(e){ return undefined; }
-  })();
-
-  let allowUntil = 0;
-  function openSaveGate(ms){
-    allowUntil = Date.now() + (ms||5000);
-    setTimeout(()=>{ allowUntil = 0; }, ms||5000);
-  }
-
-  // Hijack clicks on "Simpan" buttons/links to open gate
-  function markSaveButtons(){
-    const nodes = Array.from(document.querySelectorAll('button, a'));
-    nodes.forEach(node => {
-      if (node.__movaSaveHijacked) return;
-      const txt = (node.textContent || '').trim().toLowerCase();
-      const isSave = txt === 'simpan' || txt.includes('simpan') || node.dataset.action === 'save';
-      if (isSave){
-        node.__movaSaveHijacked = true;
-        node.addEventListener('click', function(){ openSaveGate(6000); }, true);
-      }
-    });
-  }
-  markSaveButtons();
-  // In case UI changes dynamically
-  const mo = new MutationObserver(markSaveButtons);
-  mo.observe(document.documentElement, { childList:true, subtree:true });
-
-  // Proxy fetch to block unintended saves to backend
-  (function(){
-    const _fetch = window.fetch;
-    window.fetch = async function(resource, init){
-      try{
-        const url = (typeof resource === 'string') ? resource : (resource && resource.url);
-        const isExec = EXEC_URL ? (url === EXEC_URL) : /script\.google\.com\/macros\/s\//.test(url||"");
-        const method = (init && (init.method||'GET')).toUpperCase();
-        const isPost = method === 'POST';
-        if (isExec && isPost && init && init.body && typeof init.body.get === 'function'){
-          const path = init.body.get('path');
-          // Block settings_update unless save gate is open
-          if ((path === 'settings_update' || path === 'content_save') && Date.now() > allowUntil){
-            console.warn('[MOVA Draft] Auto-save attempt blocked for path:', path);
-            // Return a synthetic success to keep UI calm (but no write happened)
-            return new Response(JSON.stringify({ success:true, draftBlocked:true }), {
-              status: 200, headers: { 'Content-Type':'application/json' }
-            });
-          }
+  // Add a global event listener for iframe messages
+  window.addEventListener('message', (event) => {
+    const { type, data } = event.data;
+    
+    switch (type) {
+      case 'sections-loaded':
+        store.sections = data.sections || [];
+        renderSectionList();
+        break;
+      case 'section-selected':
+        selectSection(data.id);
+        break;
+      case 'element-selected':
+        selectElement(data.id);
+        break;
+      case 'iframe-ready':
+        store.iframeReady = true;
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
         }
-      }catch(e){ /* ignore and fall through */ }
-      return _fetch.apply(this, arguments);
-    };
-    // Public API if you need to call save programmatically
-    window.__movaOpenSaveGate = openSaveGate;
-  })();
-
-  // --- LIVE UPDATE glue: also cache every change as DRAFT ---
-  function getStore(){ return window.store || {}; }
-  const iframeWin = iframe && iframe.contentWindow;
-
-  function sendPreview(reason){
-    const st = getStore();
-    const payload = {
-      type:'sections-live-update',
-      sections: st.sections || [],
-      selectedId: st.selectedSectionId || null,
-      settings: st.settings || {},
-      reason: reason || 'input'
-    };
-    cacheDraft(st);
-    try {
-      iframeWin && iframeWin.postMessage(payload, '*');
-      iframeWin && iframeWin.updateFromSections && iframeWin.updateFromSections(payload);
-    } catch(e){}
-  }
-
-  // Observe inputs in properties panel + section list
-  function attachLiveInputs(root){
-    if (!root) return;
-    const handler = ()=> sendPreview('input');
-    root.addEventListener('input', handler, { passive:true });
-    root.addEventListener('change', handler, { passive:true });
-    root.addEventListener('keyup', handler, { passive:true });
-  }
-  const propertiesPanel = document.getElementById('propertiesPanel');
-  const sectionList = document.getElementById('sectionList');
-  attachLiveInputs(propertiesPanel);
-  attachLiveInputs(sectionList);
-
-  // Keep attaching for dynamically added inputs
-  const reattachMO = new MutationObserver(()=>{
-    attachLiveInputs(document.getElementById('propertiesPanel'));
-    attachLiveInputs(document.getElementById('sectionList'));
-  });
-  reattachMO.observe(document.documentElement, { childList:true, subtree:true });
-
-  // Also trigger sendPreview on 500ms interval (already present) but ensure it caches DRAFT too
-  setInterval(function(){
-    sendPreview('interval-500ms');
-  }, 500);
-
-  console.log('[MOVA Draft/Publish] Save gate active, live preview + draft cache ready.');
-})();
-</script>
-<!-- ==== /MOVA DRAFT/PUBLISH RECIPE PATCH ==== -->
-
-<!-- ==== MOVA LIVE SYNC BOOST (global listeners + store proxy) ==== -->
-<script>
-(function(){
-  if (window.__movaBoostedLiveSync) return;
-  window.__movaBoostedLiveSync = true;
-
-  const iframe = document.getElementById('userPreview');
-  const to = (fn,ms)=>{ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn.apply(this,a), ms); } };
-  const debouncedSend = to(()=>{ try{ window.__movaSyncPreviewNow && window.__movaSyncPreviewNow('boosted'); }catch(e){} }, 80);
-
-  // 1) Global capture listeners (covers inputs, contenteditable, color pickers, selects, sliders, etc.)
-  ['input','change','keyup','paste','cut'].forEach(evt=>{
-    document.addEventListener(evt, function(){ debouncedSend(); }, true);
-  });
-
-  // 2) Observe attribute/text changes under editor panel
-  const editorRoot = document.getElementById('propertiesPanel') || document.body;
-  const mo = new MutationObserver(debouncedSend);
-  mo.observe(editorRoot, { attributes:true, characterData:true, childList:true, subtree:true });
-
-  // 3) Proxy store to detect changes to sections/settings/selectedSectionId
-  try {
-    if (window.store && !window.store.__proxied) {
-      const raw = window.store;
-      const handler = {
-        set(obj, prop, value){
-          obj[prop] = value;
-          if (prop === 'sections' || prop === 'settings' || prop === 'selectedSectionId') {
-            debouncedSend();
-          }
-          return true;
-        }
-      };
-      window.store = new Proxy(raw, handler);
-      window.store.__proxied = true;
+        break;
     }
-  } catch(e){}
+  });
 
-  // 4) Ensure iframe handshake ping on ready
-  if (iframe){
-    iframe.addEventListener('load', function(){
-      try{ iframe.contentWindow && iframe.contentWindow.postMessage({type:'mova-bridge-ping'}, '*'); }catch(e){}
-      debouncedSend();
+  // Add a function to handle iframe load completion
+  function handleIframeLoad() {
+    console.log('Iframe loaded successfully');
+    store.iframeReady = true;
+    
+    // Send current sections to iframe
+    if (store.sections && store.sections.length) {
+      sendToIframe('load-sections', { sections: store.sections });
+    } else {
+      console.warn('skip load-sections — store.sections kosong');
+    }
+  }
+
+  // Add event listener to iframe for load completion
+  const userPreview = document.getElementById('userPreview');
+  if (userPreview) {
+    userPreview.addEventListener('load', handleIframeLoad);
+  }
+
+  // Add a function to handle changes in the properties panel
+  function handlePropertiesChange() {
+    if (store.selectedElementId) {
+      const element = findElementById(store.selectedElementId);
+      if (element) {
+        sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+      }
+    } else if (store.selectedSectionId) {
+      const section = findSectionById(store.selectedSectionId);
+      if (section) {
+        sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+      }
+    }
+  }
+
+  // Add event listeners to the properties panel
+  const propertiesPanel = document.getElementById('propertiesPanel');
+  if (propertiesPanel) {
+    propertiesPanel.addEventListener('input', handlePropertiesChange);
+    propertiesPanel.addEventListener('change', handlePropertiesChange);
+  }
+
+  // Add a function to handle changes in the section list
+  function handleSectionListChange() {
+    if (store.sections && store.sections.length) {
+      sendToIframe('load-sections', { sections: store.sections });
+    } else {
+      console.warn('skip load-sections — store.sections kosong');
+    }
+  }
+
+  // Add a MutationObserver to watch for changes in the section list
+  const sectionList = document.getElementById('sectionList');
+  if (sectionList) {
+    const sectionListObserver = new MutationObserver(() => {
+      handleSectionListChange();
+    });
+    
+    sectionListObserver.observe(sectionList, {
+      childList: true,
+      subtree: true
     });
   }
 
-  console.log('[MOVA LiveSync Boost] Global listeners + store proxy active.');
-})();
+  // Add a function to handle changes in the element list
+  function handleElementListChange() {
+    if (store.selectedSectionId) {
+      const section = findSectionById(store.selectedSectionId);
+      if (section) {
+        sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+      }
+    }
+  }
+
+  // Add a MutationObserver to watch for changes in the element list
+  const elementListInSection = document.getElementById('elementListInSection');
+  if (elementListInSection) {
+    const elementListObserver = new MutationObserver(() => {
+      handleElementListChange();
+    });
+    
+    elementListObserver.observe(elementListInSection, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Add a function to handle changes in the properties content
+  function handlePropertiesContentChange() {
+    if (store.selectedElementId) {
+      const element = findElementById(store.selectedElementId);
+      if (element) {
+        sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+      }
+    } else if (store.selectedSectionId) {
+      const section = findSectionById(store.selectedSectionId);
+      if (section) {
+        sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+      }
+    }
+  }
+
+  // Add a MutationObserver to watch for changes in the properties content
+  const propertiesContent = document.getElementById('propertiesContent');
+  if (propertiesContent) {
+    const propertiesContentObserver = new MutationObserver(() => {
+      handlePropertiesContentChange();
+    });
+    
+    propertiesContentObserver.observe(propertiesContent, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Add a function to handle tab changes
+  function handleTabChange() {
+    if (activeTabName === 'user' && store.iframeReady) {
+      if (store.sections && store.sections.length) {
+        sendToIframe('load-sections', { sections: store.sections });
+      } else {
+        console.warn('skip load-sections — store.sections kosong');
+      }
+    }
+  }
+
+  // Add a MutationObserver to watch for changes in the active tab
+  const tabButtons = document.querySelectorAll('[data-tab]');
+  if (tabButtons.length > 0) {
+    const tabObserver = new MutationObserver(() => {
+      handleTabChange();
+    });
+    
+    tabButtons.forEach(tab => {
+      tabObserver.observe(tab, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    });
+  }
+
+  // Add a function to handle window focus changes
+  function handleWindowFocus() {
+    if (document.hasFocus() && activeTabName === 'user' && store.iframeReady) {
+      if (store.sections && store.sections.length) {
+        sendToIframe('load-sections', { sections: store.sections });
+      } else {
+        console.warn('skip load-sections — store.sections kosong');
+      }
+    }
+  }
+
+  // Add an event listener for window focus changes
+  window.addEventListener('focus', handleWindowFocus);
+
+  // Add a function to handle window visibility changes
+  function handleVisibilityChange() {
+    if (!document.hidden && activeTabName === 'user' && store.iframeReady) {
+      if (store.sections && store.sections.length) {
+        sendToIframe('load-sections', { sections: store.sections });
+      } else {
+        console.warn('skip load-sections — store.sections kosong');
+      }
+    }
+  }
+
+  // Add an event listener for visibility changes
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  // Add a function to handle page unload
+  function handlePageUnload() {
+    // Save any unsaved changes before the page unloads
+    saveDesign();
+  }
+
+  // Add an event listener for page unload
+  window.addEventListener('beforeunload', handlePageUnload);
+
+  // Add a function to handle connection changes
+  function handleConnectionChange() {
+    // Check if the connection is online
+    if (navigator.onLine) {
+      if (store.iframeReady) {
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+      }
+    }
+  }
+
+  // Add an event listener for connection changes
+  window.addEventListener('online', handleConnectionChange);
+
+  // Add a function to handle errors
+  function handleError(event) {
+    console.error('An error occurred:', event.error);
+    toast(`Ralat: ${event.error.message || 'Ralat tidak diketahui'}`);
+  }
+
+  // Add an event listener for errors
+  window.addEventListener('error', handleError);
+
+  // Add a function to handle unhandled promise rejections
+  function handleUnhandledRejection(event) {
+    console.error('Unhandled promise rejection:', event.reason);
+    toast(`Ralat: ${event.reason || 'Ralat tidak diketahui'}`);
+  }
+
+  // Add an event listener for unhandled promise rejections
+  window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+  // Add a function to initialize the application
+  function initializeApp() {
+    // Initialize the editor
+    initEditor();
+    
+    // Initialize the advanced editor features
+    initAdvancedEditor();
+    
+    // Load the design
+    loadDesign();
+    
+    // Set up the iframe communication
+    setupIframeCommunication();
+    
+    // Set up the live sync
+    setupLiveSync();
+    
+    // Set up the auto-save
+    setupAutoSave();
+    
+    // Set up the error handling
+    setupErrorHandling();
+    
+    // Set up the performance monitoring
+    setupPerformanceMonitoring();
+    
+    // Set up the analytics
+    setupAnalytics();
+    
+    // Set up the debugging
+    setupDebugging();
+  }
+
+  // Add a function to set up the iframe communication
+  function setupIframeCommunication() {
+    const userPreview = document.getElementById('userPreview');
+    
+    if (userPreview) {
+      // Set up the message handler
+      window.addEventListener('message', handleIframeMessage);
+      
+      // Set up the load handler
+      userPreview.addEventListener('load', handleIframeLoad);
+      
+      // Set up the error handler
+      userPreview.addEventListener('error', (event) => {
+        console.error('Iframe error:', event.error);
+        toast(`Ralat memuatkan preview: ${event.error.message || 'Ralat tidak diketahui'}`);
+      });
+    }
+  }
+
+  // Add a function to set up the live sync
+  function setupLiveSync() {
+    // Set up the section observer
+    setupSectionObserver();
+    
+    // Set up the selected element observer
+    setupSelectedElementObserver();
+    
+    // Set up the selected section observer
+    setupSelectedSectionObserver();
+    
+    // Set up the property listeners
+    setupPropertyListeners();
+  }
+
+  // Add a function to set up the auto-save
+  function setupAutoSave() {
+    // Set up the auto-save interval
+    setInterval(() => {
+      if (store.sections && store.sections.length) {
+        saveDesign();
+      }
+    }, 30000); // Auto-save every 30 seconds
+  }
+
+  // Add a function to set up the error handling
+  function setupErrorHandling() {
+    // Set up the error handler
+    window.addEventListener('error', handleError);
+    
+    // Set up the unhandled rejection handler
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+  }
+
+  // Add a function to set up the performance monitoring
+  function setupPerformanceMonitoring() {
+    // Set up the performance observer
+    if ('PerformanceObserver' in window) {
+      const perfObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.entryType === 'measure') {
+            console.log(`Performance: ${entry.name} took ${entry.duration}ms`);
+          }
+        }
+      });
+      
+      perfObserver.observe({ entryTypes: ['measure'] });
+    }
+  }
+
+  // Add a function to set up the analytics
+  function setupAnalytics() {
+    // Set up the analytics
+    // This is a placeholder for analytics setup
+    // In a real application, you would set up analytics here
+  }
+
+  // Add a function to set up the debugging
+  function setupDebugging() {
+    // Set up the debugging
+    // This is a placeholder for debugging setup
+    // In a real application, you would set up debugging here
+  }
+
+  // Initialize the application
+  initializeApp();
+
 </script>
-<!-- ==== /MOVA LIVE SYNC BOOST ==== -->
 </body>
-</html>                                 
+</html>
