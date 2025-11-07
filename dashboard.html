@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Dashboard (Integrasi & Editor Gaya Canva)</title>
+  <title>MOVA Leader — Dashboard (Selari Backend)</title>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -49,7 +49,7 @@
         <div class="w-9 h-9 rounded-xl bg-[var(--brand)]"></div>
         <div>
           <h1 class="text-xl font-extrabold tracking-tight">MOVA Leader</h1>
-          <p class="text-xs text-slate-500 -mt-1">Dashboard Integrasi + Editor (Gaya Canva)</p>
+          <p class="text-xs text-slate-500 -mt-1">Dashboard — Selari API Pilihan B</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -58,8 +58,8 @@
           <span>Kunci</span>
         </button>
         <button id="btnPublish" class="btn btn-primary">
-          <i data-lucide="upload-cloud" class="w-4 h-4"></i>
-          <span>Terbitkan (Simpan ke Backend)</span>
+          <i data-lucide="save" class="w-4 h-4"></i>
+          <span>Terbitkan (settings_set)</span>
         </button>
       </div>
     </div>
@@ -130,7 +130,7 @@
                     <option value="text">Teks Kaya</option>
                     <option value="image">Imej</option>
                     <option value="cta">Butang (CTA)</option>
-                    <option value="video">Video (URL)</option>
+                    <option value="video">Video (URL/embed)</option>
                   </select>
                 </div>
               </div>
@@ -150,13 +150,13 @@
                     <input id="fileUpload" type="file" accept="image/*,video/*" class="hidden">
                   </label>
                 </div>
-                <div id="ce" class="ce" contenteditable="true" spellcheck="false" data-placeholder="Tulis teks, tampal gambar, atau gunakan alat di atas..."></div>
+                <div id="ce" class="ce" contenteditable="true" spellcheck="false"></div>
               </div>
 
               <!-- Media & URL -->
               <div id="mediaURLWrap" class="hidden">
-                <label class="text-sm font-semibold">URL media (Imej/Video)</label>
-                <input id="inpMediaURL" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://..."/>
+                <label class="text-sm font-semibold">URL media (Imej/Video/Link)</label>
+                <input id="inpMediaURL" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://...">
               </div>
 
               <div class="flex gap-2">
@@ -187,47 +187,51 @@
     <section id="panel-partner" class="tab-panel">
       <div class="card p-6">
         <h2 class="font-bold mb-2">Partner</h2>
-        <div class="text-sm text-slate-600">Placeholder integrasi <code>partner_list</code>, <code>org_tree</code>, dll.</div>
+        <div class="text-sm text-slate-600">Sambung terus ke <code>partner_list</code> / <code>partner_create</code> bila diperlukan.</div>
       </div>
     </section>
 
     <section id="panel-approvals" class="tab-panel">
       <div class="card p-6">
         <h2 class="font-bold mb-2">Approvals</h2>
-        <div class="text-sm text-slate-600">Placeholder integrasi <code>registration_list</code>, <code>registration_approve</code>.</div>
+        <div class="text-sm text-slate-600">Paparan untuk <code>registration_list</code> / tindakan <code>registration_approve</code> akan disuntik jika diminta.</div>
       </div>
     </section>
 
     <section id="panel-broadcast" class="tab-panel">
       <div class="card p-6">
         <h2 class="font-bold mb-2">Broadcast</h2>
-        <div class="text-sm text-slate-600">Eksport WhatsApp / log (placeholder; panggil endpoint <code>broadcast</code> bila perlu).</div>
+        <div class="text-sm text-slate-600">Eksport WhatsApp / log (endpoint <code>broadcast</code>).</div>
       </div>
     </section>
 
     <section id="panel-settings" class="tab-panel">
       <div class="card p-6 space-y-4">
         <h2 class="font-bold">Settings</h2>
-        <div class="grid md:grid-cols-3 gap-3">
-          <div>
+        <div class="grid md:grid-cols-4 gap-3">
+          <div class="md:col-span-2">
             <label class="text-sm font-semibold">EXEC_URL</label>
             <input id="inpExec" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://script.google.com/macros/s/.../exec">
           </div>
           <div>
+            <label class="text-sm font-semibold">Leader ID</label>
+            <input id="inpLeader" class="w-full mt-1 rounded-lg border px-3 py-2" value="LEAD-0001">
+          </div>
+          <div>
             <label class="text-sm font-semibold">Warna Brand</label>
             <div class="flex items-center gap-2">
-              <input id="inpBrand" class="w-full mt-1 rounded-lg border px-3 py-2" value="#ef4444"/>
+              <input id="inpBrand" class="w-full mt-1 rounded-lg border px-3 py-2" value="#ef4444">
               <span id="swatchBrand" class="brand-swatch"></span>
             </div>
           </div>
           <div>
             <label class="text-sm font-semibold">Lebar Kandungan (px)</label>
-            <input id="inpWidth" type="number" class="w-full mt-1 rounded-lg border px-3 py-2" value="1100"/>
+            <input id="inpWidth" type="number" class="w-full mt-1 rounded-lg border px-3 py-2" value="1100">
           </div>
         </div>
         <div class="flex gap-2">
-          <button id="btnLoadSettings" class="btn btn-ghost"><i data-lucide="download" class="w-4 h-4"></i> Ambil dari Backend</button>
-          <button id="btnApplySettings" class="btn btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan ke Backend</button>
+          <button id="btnLoadSettings" class="btn btn-ghost"><i data-lucide="download" class="w-4 h-4"></i> Ambil (settings_get)</button>
+          <button id="btnApplySettings" class="btn btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan (settings_set)</button>
         </div>
       </div>
     </section>
@@ -250,25 +254,25 @@
 
   <script>
   // ---------- KONFIG ----------
-  const LSKEY = "mova_canva_integrated_v1";
-  let EXEC_URL = ""; // akan diisi dari Settings atau LocalStorage
+  const LSKEY = "mova_dashboard_aligned_v1";
+  let EXEC_URL = "";
+  let LEADER_ID = "LEAD-0001";
 
   // ---------- UI INIT ----------
-  window.addEventListener("DOMContentLoaded", () => {
-    lucide.createIcons();
-  });
+  window.addEventListener("DOMContentLoaded", () => { lucide.createIcons(); });
 
   // ---------- STATE ----------
   const defaults = {
     exec_url: "",
+    leader_id: "LEAD-0001",
     settings: { brand: "#ef4444", width: 1100 },
     sections: [
-      { id: uid(), title: "Hero", type: "hero", html: "<h1>Selamat datang ke MOVA!</h1><p>Tingkatkan bisnes anda.</p>" },
-      { id: uid(), title: "Pengenalan", type: "text", html: "<p>Ini contoh perenggan gaya Canva — bold, tajuk, senarai, dan lain-lain.</p>" }
+      { id: uid(), title: "Hero — MOVA", type: "hero", html: "<h1>Belanja, Kumpul Cashback, Naik Taraf Masa Depan — dengan <span style='color:#ef4444'>MOVA</span>.</h1><p>Mula sebagai Free User, kemudian naik taraf bila bersedia.</p>" }
     ]
   };
   let state = loadLS() || structuredClone(defaults);
   EXEC_URL = state.exec_url || "";
+  LEADER_ID = state.leader_id || "LEAD-0001";
 
   let selectedId = state.sections[0]?.id || null;
   let locked = false;
@@ -299,6 +303,7 @@
 
   // ---------- SETTINGS PANEL ----------
   const inpExec = qs("#inpExec");
+  const inpLeader = qs("#inpLeader");
   const inpBrand = qs("#inpBrand");
   const inpWidth = qs("#inpWidth");
   const btnApplySettings = qs("#btnApplySettings");
@@ -306,46 +311,55 @@
   const swatchBrand = qs("#swatchBrand");
 
   function applySettings(){
-    document.documentElement.style.setProperty("--brand", state.settings.brand);
+    document.documentElement.style.setProperty("--brand", state.settings.brand || "#ef4444");
     const ct = qs(".container"); if(ct) ct.style.maxWidth = (state.settings.width||1100) + "px";
-    swatchBrand.style.background = state.settings.brand;
+    swatchBrand.style.background = state.settings.brand || "#ef4444";
   }
 
   inpBrand.addEventListener("input", () => { swatchBrand.style.background = inpBrand.value; });
 
   btnApplySettings.addEventListener("click", async () => {
     state.exec_url = inpExec.value.trim();
+    state.leader_id = (inpLeader.value||"").trim() || "LEAD-0001";
     EXEC_URL = state.exec_url;
+    LEADER_ID = state.leader_id;
     state.settings.brand = inpBrand.value || "#ef4444";
     state.settings.width = Math.max(640, Number(inpWidth.value)||1100);
     saveLS();
     applySettings();
-    // Hantar ke backend
+
+    // Hantar ke backend melalui settings_set (alias yang memetakan kunci)
     try{
-      await postForm("settings_update", { brand: state.settings.brand, content_width: state.settings.width });
-      alert("Settings disimpan ke backend.");
-    }catch(e){ console.warn(e); alert("Gagal simpan settings ke backend. Disimpan pada LocalStorage."); }
+      await postForm("settings_set", {
+        leader_id: LEADER_ID,
+        theme_color: state.settings.brand,
+        content_width: String(state.settings.width),
+        sections: state.sections
+      });
+      alert("Settings & sections dihantar ke backend (settings_set).");
+    }catch(e){ console.warn(e); alert("Gagal simpan ke backend. Disimpan pada LocalStorage."); }
   });
 
   btnLoadSettings.addEventListener("click", async () => {
     state.exec_url = inpExec.value.trim() || state.exec_url;
+    state.leader_id = (inpLeader.value||"").trim() || state.leader_id || "LEAD-0001";
     EXEC_URL = state.exec_url;
+    LEADER_ID = state.leader_id;
     try{
-      const res = await postForm("settings_get", {});
-      if(res && res.data){
-        // cuba baca fields lazim
-        const s = res.data;
-        if(s.brand) state.settings.brand = s.brand;
-        if(s.content_width) state.settings.width = Number(s.content_width)||state.settings.width;
-        saveLS();
-        loadSettingsInputs();
-        applySettings();
-      }
+      const res = await postForm("settings_get", { leader_id: LEADER_ID });
+      const s = res?.settings || {};
+      if(s.theme_color) state.settings.brand = s.theme_color;
+      if(s.content_width) state.settings.width = Number(s.content_width)||state.settings.width;
+      if(Array.isArray(s.sections)) state.sections = s.sections;
+      // Persist & apply
+      saveLS(); loadSettingsInputs(); applySettings(); renderList(); fillForm(); renderPreview();
+      alert("Settings & sections dimuat dari backend.");
     }catch(e){ console.warn(e); alert("Gagal ambil settings dari backend."); }
   });
 
   function loadSettingsInputs(){
     inpExec.value = state.exec_url || "";
+    inpLeader.value = state.leader_id || "LEAD-0001";
     inpBrand.value = state.settings.brand || "#ef4444";
     inpWidth.value = state.settings.width || 1100;
     swatchBrand.style.background = inpBrand.value;
@@ -383,16 +397,13 @@
         </div>
       `;
       row.addEventListener("click", (e) => {
-        if(e.target.closest("[data-act='focus']")){
-          focusPreview(sec.id); return;
-        }
+        if(e.target.closest("[data-act='focus']")){ focusPreview(sec.id); return; }
         if(e.target.closest("[data-act='dup']")){
           const clone = JSON.parse(JSON.stringify(sec)); clone.id = uid(); state.sections.splice(idx+1,0,clone);
           selectedId = clone.id; saveLS(); renderList(); fillForm(); renderPreview(); return;
         }
         selectedId = sec.id; renderList(); fillForm();
       });
-      // drag sort
       row.addEventListener("dragstart", ev => ev.dataTransfer.setData("text/plain", sec.id));
       row.addEventListener("dragover", ev => ev.preventDefault());
       row.addEventListener("drop", ev => { ev.preventDefault(); const id = ev.dataTransfer.getData("text/plain"); reorder(id, sec.id); });
@@ -476,7 +487,6 @@
     sel.removeAllRanges();
   }
 
-  // Drag/scroll focus
   function focusPreview(id){
     const el = qs(`[data-sec="${CSS.escape(id)}"]`, qs("#preview"));
     if(el){ el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.add("selected"); setTimeout(()=>el.classList.remove("selected"), 900); }
@@ -525,7 +535,7 @@
     });
   }
 
-  // ---------- ASSET PICKER & UPLOAD ----------
+  // ---------- ASSET PICKER & UPLOAD (Selari API) ----------
   const modalAssets = qs("#modalAssets");
   const assetGrid = qs("#assetGrid");
   const btnAssetPicker = qs("#btnAssetPicker");
@@ -540,20 +550,21 @@
   async function refreshAssets(){
     assetGrid.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
     try{
-      const res = await postForm("media_list", {});
-      const items = res?.data || [];
+      const res = await postForm("media_list", { leader_id: LEADER_ID });
+      const items = res?.items || [];
       if(!items.length){ assetGrid.innerHTML = "<div class='text-sm text-slate-600'>Tiada aset.</div>"; return; }
       assetGrid.innerHTML = "";
       items.forEach(it => {
         const card = document.createElement("div");
         card.className = "asset-tile";
+        const url = it.public_url || "";
         card.innerHTML = `
-          <img src="${escapeAttr(it.url||"")}" class="w-full h-28 object-cover rounded-md border">
-          <div class="text-xs text-slate-600 truncate">${escapeHtml(it.name||"aset")}</div>
+          ${url?`<img src="${escapeAttr(url)}" class="w-full h-28 object-cover rounded-md border">`:"<div class='h-28 rounded-md border grid place-items-center text-xs text-slate-500'>Tiada preview</div>"}
+          <div class="text-xs text-slate-600 truncate">${escapeHtml(it.file_name||"aset")}</div>
           <button class="btn btn-ghost text-xs">Gunakan</button>
         `;
         card.querySelector("button").addEventListener("click", () => {
-          inpMediaURL.value = it.url||"";
+          inpMediaURL.value = url;
           modalAssets.classList.remove("show");
           applyForm();
         });
@@ -570,8 +581,13 @@
     const f = e.target.files?.[0]; if(!f) return;
     try{
       const base64 = await fileToBase64(f);
-      const res = await postForm("upload_media", { name: f.name, mime: f.type, data: base64 });
-      const url = res?.data?.url || "";
+      const res = await postForm("upload_media", {
+        leader_id: LEADER_ID,
+        file_name: f.name,
+        file_type: f.type || "application/octet-stream",
+        file_base64: String(base64).split(',').pop() // hantar data b64 sahaja
+      });
+      const url = res?.public_url || "";
       if(url){ inpMediaURL.value = url; applyForm(); alert("Muat naik berjaya."); }
       else alert("Muat naik selesai tetapi URL tiada dalam respons.");
     }catch(err){
@@ -590,12 +606,17 @@
     });
   }
 
-  // ---------- PUBLISH (SAVE TO BACKEND) ----------
+  // ---------- TERBIT (SIMPAN KE BACKEND) ----------
   qs("#btnPublish").addEventListener("click", async () => {
     try{
-      const payload = { sections: state.sections, settings: state.settings };
-      const res = await postForm("content_save", payload);
-      alert("Berjaya terbitkan (disimpan) ke backend.");
+      const payload = {
+        leader_id: LEADER_ID,
+        theme_color: state.settings.brand,
+        content_width: String(state.settings.width),
+        sections: state.sections
+      };
+      await postForm("settings_set", payload);
+      alert("Berjaya terbitkan (settings_set).");
     }catch(e){
       console.warn(e); alert("Gagal terbitkan ke backend. Data kekal pada LocalStorage.");
     }
@@ -609,8 +630,10 @@
     body.set("payload", JSON.stringify(payload||{}));
     const res = await fetch(EXEC_URL, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body });
     if(!res.ok) throw new Error("HTTP "+res.status);
+    // API anda pulangkan JSON terus (respond)
     const json = await res.json().catch(()=>null);
-    if(json && (json.error||json.status==="error")) throw new Error(json.error||"Ralat backend");
+    if(!json) throw new Error("Respons bukan JSON");
+    if(json.error || json.success===false) throw new Error(json.error||"Ralat backend");
     return json;
   }
 
@@ -628,9 +651,6 @@
     fillForm();
     renderPreview();
     setActiveTab("user");
-
-    // Toggle mediaURL field based on current type
-    mediaURLWrap.classList.toggle("hidden", !(selType.value==="image"||selType.value==="video"||selType.value==="cta"));
   })();
   </script>
 </body>
