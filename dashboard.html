@@ -5613,5 +5613,71 @@ window.movaIsLocked = movaIsLocked;
 })();
 </script>
 <!-- ==== /LIVE SYNC AUTOREFRESH ==== -->
+
+<!-- ==== LIVE SYNC HANDSHAKE (7 Nov 2025) ==== -->
+<script>
+(function(){
+  if (window.__movaHandshakePatched) return;
+  window.__movaHandshakePatched = true;
+
+  const iframe = document.getElementById('userPreview');
+  let targetOrigin = '*';
+  let bridgeReady = false;
+  let pingTimer = null;
+
+  function computeOrigin(){
+    try {
+      if (!iframe) return '*';
+      const a = document.createElement('a');
+      a.href = iframe.src;
+      if (a.origin && a.origin !== 'null') return a.origin;
+      // Fallback for old browsers
+      return a.protocol + '//' + a.host;
+    } catch(e){ return '*'; }
+  }
+
+  function postToPreview(msg){
+    try {
+      iframe && iframe.contentWindow && iframe.contentWindow.postMessage(msg, targetOrigin);
+    } catch(e){ /* no-op */ }
+  }
+
+  window.addEventListener('message', function(e){
+    if (!iframe) return;
+    // Filter messages from the preview iframe only
+    if (e.source !== iframe.contentWindow) return;
+    if (e.data && e.data.type === 'mova-bridge-ready'){
+      bridgeReady = true;
+      // Ask preview to render current state immediately
+      try { window.__movaSyncPreviewNow && window.__movaSyncPreviewNow('bridge-ready'); } catch(e){}
+    }
+  });
+
+  function beginHandshake(){
+    targetOrigin = computeOrigin();
+    // Ping preview until it replies with 'mova-bridge-ready'
+    let tries = 0;
+    clearInterval(pingTimer);
+    pingTimer = setInterval(function(){
+      tries++;
+      if (bridgeReady || tries > 20) { clearInterval(pingTimer); return; }
+      postToPreview({type:'mova-bridge-ping'});
+    }, 300);
+  }
+
+  if (iframe){
+    iframe.addEventListener('load', function(){
+      bridgeReady = false;
+      beginHandshake();
+      // also push initial render shortly after load
+      setTimeout(function(){
+        try { window.__movaSyncPreviewNow && window.__movaSyncPreviewNow('iframe-load'); } catch(e){}
+      }, 250);
+    });
+  }
+  console.log('[MOVA LiveSync] Handshake patch active.');
+})();
+</script>
+<!-- ==== /LIVE SYNC HANDSHAKE ==== -->
 </body>
 </html>                                 
