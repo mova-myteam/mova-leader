@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>MOVA Leader — Dashboard (Baharu)</title>
+  <title>MOVA Leader — Dashboard (Integrasi & Editor Gaya Canva)</title>
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -30,6 +30,16 @@
     .kunci-on .lock-hint{display:inline-flex}
     .lock-hint{display:none}
     .rtbox{min-height:110px}
+    .pill{border:1px solid #e5e7eb;border-radius:9999px;padding:.25rem .6rem;font-size:.75rem}
+    .handle{cursor:grab}
+    .modal{position:fixed;inset:0;background:rgba(15,23,42,.6);display:none;align-items:center;justify-content:center;padding:1rem;z-index:50}
+    .modal.show{display:flex}
+    .grid-asset{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.75rem}
+    .asset-tile{border:1px solid #e5e7eb;border-radius:.75rem;padding:.5rem;background:#fff;display:flex;flex-direction:column;gap:.5rem}
+    .brand-swatch{width:24px;height:24px;border-radius:6px;border:1px solid #e5e7eb}
+    .ce{min-height:120px;border:1px dashed #e5e7eb;border-radius:.75rem;padding:.75rem}
+    .ce:focus{outline:none;border-color:var(--brand)}
+    .toolbar-inline button[aria-pressed="true"]{background:#fee2e2;border-color:#fecaca}
   </style>
 </head>
 <body class="min-h-screen">
@@ -39,7 +49,7 @@
         <div class="w-9 h-9 rounded-xl bg-[var(--brand)]"></div>
         <div>
           <h1 class="text-xl font-extrabold tracking-tight">MOVA Leader</h1>
-          <p class="text-xs text-slate-500 -mt-1">Dashboard (Versi Baharu)</p>
+          <p class="text-xs text-slate-500 -mt-1">Dashboard Integrasi + Editor (Gaya Canva)</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
@@ -47,9 +57,9 @@
           <i data-lucide="lock" class="w-4 h-4"></i>
           <span>Kunci</span>
         </button>
-        <button id="btnSaveAll" class="btn btn-primary">
-          <i data-lucide="save" class="w-4 h-4"></i>
-          <span>Simpan</span>
+        <button id="btnPublish" class="btn btn-primary">
+          <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+          <span>Terbitkan (Simpan ke Backend)</span>
         </button>
       </div>
     </div>
@@ -84,38 +94,71 @@
     <!-- Panels -->
     <section id="panel-user" class="tab-panel active">
       <div class="grid grid-cols-12 gap-4">
-        <!-- Editor -->
+        <!-- Left: Editor -->
         <div class="col-span-12 lg:col-span-5">
           <div class="card p-4">
             <div class="toolbar flex items-center justify-between mb-3">
-              <h2 class="font-bold">Editor Bahagian</h2>
-              <div class="text-xs text-slate-500">Auto-simpan ke LocalStorage</div>
+              <div class="flex items-center gap-2">
+                <h2 class="font-bold">Editor Bahagian</h2>
+                <span class="pill">Drag & Susun</span>
+                <span class="pill">Inline Toolbar</span>
+              </div>
+              <div class="text-xs text-slate-500">Auto-simpan (LocalStorage)</div>
             </div>
 
-            <!-- Section list -->
-            <div class="space-y-2" id="sectionList"></div>
+            <div id="sectionList" class="space-y-2"></div>
+
+            <div class="mt-3">
+              <button id="btnAddSection" class="btn btn-ghost w-full">
+                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Bahagian
+              </button>
+            </div>
 
             <hr class="my-4"/>
 
-            <!-- Form for selected section -->
+            <!-- Form -->
             <div id="sectionForm" class="space-y-3 hidden">
-              <div>
-                <label class="text-sm font-semibold">Tajuk</label>
-                <input id="inpTitle" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="Contoh: Bahagian Hero"/>
+              <div class="grid md:grid-cols-2 gap-3">
+                <div>
+                  <label class="text-sm font-semibold">Tajuk</label>
+                  <input id="inpTitle" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="Contoh: Hero"/>
+                </div>
+                <div>
+                  <label class="text-sm font-semibold">Jenis</label>
+                  <select id="selType" class="w-full mt-1 rounded-lg border px-3 py-2">
+                    <option value="hero">Hero</option>
+                    <option value="text">Teks Kaya</option>
+                    <option value="image">Imej</option>
+                    <option value="cta">Butang (CTA)</option>
+                    <option value="video">Video (URL)</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <label class="text-sm font-semibold">Jenis</label>
-                <select id="selType" class="w-full mt-1 rounded-lg border px-3 py-2">
-                  <option value="hero">Hero</option>
-                  <option value="text">Teks</option>
-                  <option value="image">Imej</option>
-                  <option value="cta">Butang (CTA)</option>
-                </select>
-              </div>
-              <div>
+
+              <!-- Inline rich text like Canva -->
+              <div class="space-y-2">
                 <label class="text-sm font-semibold">Kandungan</label>
-                <textarea id="inpContent" class="rtbox w-full mt-1 rounded-lg border px-3 py-2" placeholder="Teks/URL imej/label butang..."></textarea>
+                <div class="toolbar-inline flex flex-wrap gap-2">
+                  <button data-cmd="bold" class="btn btn-ghost text-xs"><i data-lucide="bold" class="w-4 h-4"></i> Bold</button>
+                  <button data-cmd="italic" class="btn btn-ghost text-xs"><i data-lucide="italic" class="w-4 h-4"></i> Italic</button>
+                  <button data-cmd="h1" class="btn btn-ghost text-xs"><i data-lucide="heading-1" class="w-4 h-4"></i> H1</button>
+                  <button data-cmd="h2" class="btn btn-ghost text-xs"><i data-lucide="heading-2" class="w-4 h-4"></i> H2</button>
+                  <button data-cmd="ul" class="btn btn-ghost text-xs"><i data-lucide="list" class="w-4 h-4"></i> Senarai</button>
+                  <button id="btnAssetPicker" class="btn btn-ghost text-xs"><i data-lucide="image-plus" class="w-4 h-4"></i> Masukkan Imej</button>
+                  <label class="btn btn-ghost text-xs cursor-pointer">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Muat naik...
+                    <input id="fileUpload" type="file" accept="image/*,video/*" class="hidden">
+                  </label>
+                </div>
+                <div id="ce" class="ce" contenteditable="true" spellcheck="false" data-placeholder="Tulis teks, tampal gambar, atau gunakan alat di atas..."></div>
               </div>
+
+              <!-- Media & URL -->
+              <div id="mediaURLWrap" class="hidden">
+                <label class="text-sm font-semibold">URL media (Imej/Video)</label>
+                <input id="inpMediaURL" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://..."/>
+              </div>
+
               <div class="flex gap-2">
                 <button id="btnApply" class="btn btn-primary">
                   <i data-lucide="sparkles" class="w-4 h-4"></i> Terap
@@ -125,21 +168,15 @@
                 </button>
               </div>
             </div>
-
-            <div class="mt-3">
-              <button id="btnAddSection" class="btn btn-ghost w-full">
-                <i data-lucide="plus" class="w-4 h-4"></i> Tambah Bahagian
-              </button>
-            </div>
           </div>
         </div>
 
-        <!-- Preview -->
+        <!-- Right: Preview -->
         <div class="col-span-12 lg:col-span-7">
           <div class="card p-4">
             <div class="flex items-center justify-between mb-3">
               <h2 class="font-bold">Pratonton Langsung</h2>
-              <div class="text-xs text-slate-500">Mengikut pilihan bahagian</div>
+              <div class="text-xs text-slate-500">Klik "Fokus" untuk tatal</div>
             </div>
             <div id="preview" class="space-y-6"></div>
           </div>
@@ -150,173 +187,229 @@
     <section id="panel-partner" class="tab-panel">
       <div class="card p-6">
         <h2 class="font-bold mb-2">Partner</h2>
-        <p class="text-slate-600 text-sm">Tempat untuk maklumat partner asas (placeholder). Boleh sambung dengan EXEC_URL bila diperlukan.</p>
+        <div class="text-sm text-slate-600">Placeholder integrasi <code>partner_list</code>, <code>org_tree</code>, dll.</div>
       </div>
     </section>
 
     <section id="panel-approvals" class="tab-panel">
       <div class="card p-6">
         <h2 class="font-bold mb-2">Approvals</h2>
-        <p class="text-slate-600 text-sm">Senarai kelulusan (placeholder).</p>
+        <div class="text-sm text-slate-600">Placeholder integrasi <code>registration_list</code>, <code>registration_approve</code>.</div>
       </div>
     </section>
 
     <section id="panel-broadcast" class="tab-panel">
       <div class="card p-6">
         <h2 class="font-bold mb-2">Broadcast</h2>
-        <p class="text-slate-600 text-sm">Eksport WhatsApp / log sahaja (placeholder).</p>
+        <div class="text-sm text-slate-600">Eksport WhatsApp / log (placeholder; panggil endpoint <code>broadcast</code> bila perlu).</div>
       </div>
     </section>
 
     <section id="panel-settings" class="tab-panel">
-      <div class="card p-6">
-        <h2 class="font-bold mb-2">Settings</h2>
-        <div class="grid md:grid-cols-2 gap-3">
+      <div class="card p-6 space-y-4">
+        <h2 class="font-bold">Settings</h2>
+        <div class="grid md:grid-cols-3 gap-3">
+          <div>
+            <label class="text-sm font-semibold">EXEC_URL</label>
+            <input id="inpExec" class="w-full mt-1 rounded-lg border px-3 py-2" placeholder="https://script.google.com/macros/s/.../exec">
+          </div>
           <div>
             <label class="text-sm font-semibold">Warna Brand</label>
-            <input id="inpBrand" class="w-full mt-1 rounded-lg border px-3 py-2" value="#ef4444"/>
+            <div class="flex items-center gap-2">
+              <input id="inpBrand" class="w-full mt-1 rounded-lg border px-3 py-2" value="#ef4444"/>
+              <span id="swatchBrand" class="brand-swatch"></span>
+            </div>
           </div>
           <div>
             <label class="text-sm font-semibold">Lebar Kandungan (px)</label>
-            <input id="inpWidth" type="number" class="w-full mt-1 rounded-lg border px-3 py-2" value="960"/>
+            <input id="inpWidth" type="number" class="w-full mt-1 rounded-lg border px-3 py-2" value="1100"/>
           </div>
         </div>
-        <div class="mt-3">
-          <button id="btnApplySettings" class="btn btn-primary">
-            <i data-lucide="save" class="w-4 h-4"></i> Simpan Settings
-          </button>
+        <div class="flex gap-2">
+          <button id="btnLoadSettings" class="btn btn-ghost"><i data-lucide="download" class="w-4 h-4"></i> Ambil dari Backend</button>
+          <button id="btnApplySettings" class="btn btn-primary"><i data-lucide="save" class="w-4 h-4"></i> Simpan ke Backend</button>
         </div>
       </div>
     </section>
   </main>
 
+  <!-- Modal: Asset Picker -->
+  <div id="modalAssets" class="modal">
+    <div class="card p-4 w-full max-w-3xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold">Pilih Aset</h3>
+        <button id="btnCloseAssets" class="btn btn-ghost"><i data-lucide="x" class="w-4 h-4"></i>Tutup</button>
+      </div>
+      <div id="assetGrid" class="grid-asset"></div>
+      <div class="mt-3 flex items-center justify-between">
+        <div class="text-xs text-slate-500">Aset dimuat daripada <code>media_list</code>.</div>
+        <button id="btnRefreshAssets" class="btn btn-ghost"><i data-lucide="rotate-cw" class="w-4 h-4"></i>Muat semula</button>
+      </div>
+    </div>
+  </div>
+
   <script>
-  // ---------- Ikon ----------
+  // ---------- KONFIG ----------
+  const LSKEY = "mova_canva_integrated_v1";
+  let EXEC_URL = ""; // akan diisi dari Settings atau LocalStorage
+
+  // ---------- UI INIT ----------
   window.addEventListener("DOMContentLoaded", () => {
     lucide.createIcons();
   });
 
-  // ---------- Store ----------
-  const store = {
-    key: "mova_dashboard_new_v1",
-    data: {
-      settings: { brand: "#ef4444", width: 960 },
-      sections: [
-        { id: cryptoId(), title: "Bahagian Hero", type: "hero", content: "Selamat datang ke MOVA!" },
-        { id: cryptoId(), title: "Bahagian Teks", type: "text", content: "Ini contoh perenggan yang boleh diedit." }
-      ]
-    }
+  // ---------- STATE ----------
+  const defaults = {
+    exec_url: "",
+    settings: { brand: "#ef4444", width: 1100 },
+    sections: [
+      { id: uid(), title: "Hero", type: "hero", html: "<h1>Selamat datang ke MOVA!</h1><p>Tingkatkan bisnes anda.</p>" },
+      { id: uid(), title: "Pengenalan", type: "text", html: "<p>Ini contoh perenggan gaya Canva — bold, tajuk, senarai, dan lain-lain.</p>" }
+    ]
   };
+  let state = loadLS() || structuredClone(defaults);
+  EXEC_URL = state.exec_url || "";
 
-  function load() {
-    try {
-      const raw = localStorage.getItem(store.key);
-      if (!raw) return structuredClone(store.data);
-      return JSON.parse(raw);
-    } catch (e) {
-      console.warn("Gagal parse store, reset default.", e);
-      return structuredClone(store.data);
-    }
-  }
-
-  function save() {
-    localStorage.setItem(store.key, JSON.stringify(state));
-  }
-
-  // ---------- State ----------
-  let state = load();
   let selectedId = state.sections[0]?.id || null;
   let locked = false;
 
-  // ---------- Helpers ----------
-  function cryptoId() {
-    return (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)) + Date.now().toString(36);
-  }
-
-  function qs(sel, el=document){ return el.querySelector(sel); }
-  function qsa(sel, el=document){ return Array.from(el.querySelectorAll(sel)); }
+  // ---------- HELPERS ----------
+  function uid(){ return (crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).slice(2))+Date.now().toString(36); }
+  function qs(s, el=document){ return el.querySelector(s); }
+  function qsa(s, el=document){ return Array.from(el.querySelectorAll(s)); }
+  function saveLS(){ localStorage.setItem(LSKEY, JSON.stringify(state)); }
+  function loadLS(){ try{ return JSON.parse(localStorage.getItem(LSKEY)||""); }catch{return null;} }
 
   function setActiveTab(name){
-    if(locked && name !== "user") return; // kunci aktif, hanya benarkan "user"
-    qsa(".tab-btn").forEach(btn => {
-      const ok = btn.dataset.tab === name;
-      btn.setAttribute("aria-selected", ok ? "true" : "false");
-    });
-    qsa(".tab-panel").forEach(p => p.classList.toggle("active", p.id === "panel-"+name));
+    if(locked && name !== "user") return;
+    qsa(".tab-btn").forEach(b => b.setAttribute("aria-selected", b.dataset.tab===name?"true":"false"));
+    qsa(".tab-panel").forEach(p => p.classList.toggle("active", p.id==="panel-"+name));
   }
+  qsa(".tab-btn").forEach(btn => btn.addEventListener("click", () => setActiveTab(btn.dataset.tab)));
 
-  // ---------- Tabs ----------
-  qsa(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => setActiveTab(btn.dataset.tab));
-  });
-
-  // ---------- Lock Mode ----------
-  const btnLock = qs("#btnLock");
-  btnLock.addEventListener("click", () => {
+  // Lock
+  qs("#btnLock").addEventListener("click", () => {
     locked = !locked;
     document.body.classList.toggle("kunci-on", locked);
-    btnLock.setAttribute("aria-pressed", String(locked));
-    btnLock.querySelector("span").textContent = locked ? "Terkunci" : "Kunci";
-    const icon = btnLock.querySelector("i");
-    icon.setAttribute("data-lucide", locked ? "lock" : "unlock");
-    lucide.createIcons();
+    const b = qs("#btnLock");
+    b.setAttribute("aria-pressed", String(locked));
+    b.querySelector("span").textContent = locked ? "Terkunci" : "Kunci";
+    const icon = b.querySelector("i"); icon.setAttribute("data-lucide", locked ? "lock" : "unlock"); lucide.createIcons();
   });
 
-  // ---------- Settings ----------
+  // ---------- SETTINGS PANEL ----------
+  const inpExec = qs("#inpExec");
   const inpBrand = qs("#inpBrand");
   const inpWidth = qs("#inpWidth");
   const btnApplySettings = qs("#btnApplySettings");
-
-  btnApplySettings.addEventListener("click", () => {
-    state.settings.brand = inpBrand.value || "#ef4444";
-    state.settings.width = Math.max(640, Number(inpWidth.value)||960);
-    applySettings();
-    save();
-  });
+  const btnLoadSettings = qs("#btnLoadSettings");
+  const swatchBrand = qs("#swatchBrand");
 
   function applySettings(){
     document.documentElement.style.setProperty("--brand", state.settings.brand);
-    qs(".container").style.maxWidth = state.settings.width + "px";
+    const ct = qs(".container"); if(ct) ct.style.maxWidth = (state.settings.width||1100) + "px";
+    swatchBrand.style.background = state.settings.brand;
   }
 
-  // ---------- User Sections UI ----------
+  inpBrand.addEventListener("input", () => { swatchBrand.style.background = inpBrand.value; });
+
+  btnApplySettings.addEventListener("click", async () => {
+    state.exec_url = inpExec.value.trim();
+    EXEC_URL = state.exec_url;
+    state.settings.brand = inpBrand.value || "#ef4444";
+    state.settings.width = Math.max(640, Number(inpWidth.value)||1100);
+    saveLS();
+    applySettings();
+    // Hantar ke backend
+    try{
+      await postForm("settings_update", { brand: state.settings.brand, content_width: state.settings.width });
+      alert("Settings disimpan ke backend.");
+    }catch(e){ console.warn(e); alert("Gagal simpan settings ke backend. Disimpan pada LocalStorage."); }
+  });
+
+  btnLoadSettings.addEventListener("click", async () => {
+    state.exec_url = inpExec.value.trim() || state.exec_url;
+    EXEC_URL = state.exec_url;
+    try{
+      const res = await postForm("settings_get", {});
+      if(res && res.data){
+        // cuba baca fields lazim
+        const s = res.data;
+        if(s.brand) state.settings.brand = s.brand;
+        if(s.content_width) state.settings.width = Number(s.content_width)||state.settings.width;
+        saveLS();
+        loadSettingsInputs();
+        applySettings();
+      }
+    }catch(e){ console.warn(e); alert("Gagal ambil settings dari backend."); }
+  });
+
+  function loadSettingsInputs(){
+    inpExec.value = state.exec_url || "";
+    inpBrand.value = state.settings.brand || "#ef4444";
+    inpWidth.value = state.settings.width || 1100;
+    swatchBrand.style.background = inpBrand.value;
+  }
+
+  // ---------- USER SECTIONS (LIST) ----------
   const sectionList = qs("#sectionList");
   const sectionForm = qs("#sectionForm");
   const inpTitle = qs("#inpTitle");
   const selType = qs("#selType");
-  const inpContent = qs("#inpContent");
+  const ce = qs("#ce");
+  const inpMediaURL = qs("#inpMediaURL");
+  const mediaURLWrap = qs("#mediaURLWrap");
   const btnApply = qs("#btnApply");
   const btnDelete = qs("#btnDelete");
   const btnAdd = qs("#btnAddSection");
 
   function renderList(){
     sectionList.innerHTML = "";
-    state.sections.forEach(sec => {
+    state.sections.forEach((sec, idx) => {
       const row = document.createElement("div");
-      row.className = "flex items-center justify-between gap-2 p-2 rounded-lg border hover:bg-slate-50 " + (sec.id===selectedId?"selected":"");
+      row.className = "flex items-center justify-between gap-2 p-2 rounded-lg border bg-white hover:bg-slate-50 " + (sec.id===selectedId?"selected":"");
+      row.draggable = true;
       row.innerHTML = `
-        <div class="min-w-0">
-          <div class="text-sm font-semibold truncate">${sec.title||"(tanpa tajuk)"}</div>
-          <div class="text-xs text-slate-500">${sec.type}</div>
+        <div class="min-w-0 flex items-center gap-2">
+          <i class="handle" data-lucide="grip" class="w-4 h-4"></i>
+          <div class="min-w-0">
+            <div class="text-sm font-semibold truncate">${escapeHtml(sec.title||"(tanpa tajuk)")}</div>
+            <div class="text-xs text-slate-500">${sec.type}</div>
+          </div>
         </div>
-        <button class="btn btn-ghost text-xs" data-act="scroll">
-          <i data-lucide="mouse-pointer-square" class="w-4 h-4"></i> Fokus
-        </button>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-ghost text-xs" data-act="focus"><i data-lucide="mouse-pointer-square" class="w-4 h-4"></i> Fokus</button>
+          <button class="btn btn-ghost text-xs" data-act="dup"><i data-lucide="copy" class="w-4 h-4"></i> Ganda</button>
+        </div>
       `;
       row.addEventListener("click", (e) => {
-        if(e.target.closest("[data-act='scroll']")){
-          // tatal ke bahagian dalam preview
-          const el = qs(`[data-sec="${sec.id}"]`, qs("#preview"));
-          if(el){ el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.add("selected"); setTimeout(()=>el.classList.remove("selected"), 900); }
-          return;
+        if(e.target.closest("[data-act='focus']")){
+          focusPreview(sec.id); return;
         }
-        selectedId = sec.id;
-        renderList();
-        fillForm();
+        if(e.target.closest("[data-act='dup']")){
+          const clone = JSON.parse(JSON.stringify(sec)); clone.id = uid(); state.sections.splice(idx+1,0,clone);
+          selectedId = clone.id; saveLS(); renderList(); fillForm(); renderPreview(); return;
+        }
+        selectedId = sec.id; renderList(); fillForm();
       });
+      // drag sort
+      row.addEventListener("dragstart", ev => ev.dataTransfer.setData("text/plain", sec.id));
+      row.addEventListener("dragover", ev => ev.preventDefault());
+      row.addEventListener("drop", ev => { ev.preventDefault(); const id = ev.dataTransfer.getData("text/plain"); reorder(id, sec.id); });
       sectionList.appendChild(row);
     });
     lucide.createIcons();
+  }
+
+  function reorder(sourceId, targetId){
+    if(sourceId===targetId) return;
+    const arr = state.sections;
+    const sIdx = arr.findIndex(x=>x.id===sourceId);
+    const tIdx = arr.findIndex(x=>x.id===targetId);
+    if(sIdx<0 || tIdx<0) return;
+    const [it] = arr.splice(sIdx,1);
+    arr.splice(tIdx,0,it);
+    saveLS(); renderList(); renderPreview();
   }
 
   function fillForm(){
@@ -325,51 +418,71 @@
     sectionForm.classList.remove("hidden");
     inpTitle.value = sec.title || "";
     selType.value = sec.type || "text";
-    inpContent.value = sec.content || "";
+    ce.innerHTML = sec.html || "";
+    inpMediaURL.value = sec.media || "";
+    mediaURLWrap.classList.toggle("hidden", !(sec.type==="image"||sec.type==="video"||sec.type==="cta"));
   }
 
   function applyForm(){
     const sec = state.sections.find(s => s.id===selectedId);
     if(!sec) return;
-    sec.title = inpTitle.value.trim() || "(tanpa tajuk)";
+    sec.title = (inpTitle.value||"").trim() || "(tanpa tajuk)";
     sec.type = selType.value;
-    sec.content = inpContent.value.trim();
-    renderList();
-    renderPreview();
-    save();
-  }
-
-  function deleteSection(){
-    const idx = state.sections.findIndex(s => s.id===selectedId);
-    if(idx>=0){ state.sections.splice(idx,1); selectedId = state.sections[0]?.id || null; }
-    renderList();
-    fillForm();
-    renderPreview();
-    save();
-  }
-
-  function addSection(){
-    const n = { id: cryptoId(), title: "Bahagian Baharu", type: "text", content: "Teks..." };
-    state.sections.push(n);
-    selectedId = n.id;
-    renderList();
-    fillForm();
-    renderPreview();
-    save();
+    sec.html = ce.innerHTML.trim();
+    if(sec.type==="image" || sec.type==="video" || sec.type==="cta"){
+      sec.media = inpMediaURL.value.trim();
+    } else {
+      delete sec.media;
+    }
+    saveLS(); renderList(); renderPreview();
   }
 
   btnApply.addEventListener("click", applyForm);
-  btnDelete.addEventListener("click", deleteSection);
-  btnAdd.addEventListener("click", addSection);
-
-  // Auto-apply while typing (debounced)
-  ;[inpTitle, selType, inpContent].forEach(el => {
-    const debounced = debounce(applyForm, 200);
-    el.addEventListener("input", debounced);
-    el.addEventListener("change", debounced);
+  btnDelete.addEventListener("click", () => {
+    const idx = state.sections.findIndex(s => s.id===selectedId);
+    if(idx>=0){ state.sections.splice(idx,1); selectedId = state.sections[0]?.id||null; }
+    saveLS(); renderList(); fillForm(); renderPreview();
+  });
+  btnAdd.addEventListener("click", () => {
+    const n = { id: uid(), title: "Bahagian Baharu", type: "text", html: "<p>Teks...</p>" };
+    state.sections.push(n); selectedId = n.id; saveLS(); renderList(); fillForm(); renderPreview();
   });
 
-  // ---------- Preview Render ----------
+  selType.addEventListener("change", () => {
+    mediaURLWrap.classList.toggle("hidden", !(selType.value==="image"||selType.value==="video"||selType.value==="cta"));
+  });
+
+  // Inline toolbar (Canva-like)
+  qsa(".toolbar-inline button[data-cmd]").forEach(btn=>{
+    btn.addEventListener("click", () => {
+      const cmd = btn.dataset.cmd;
+      if(cmd==="bold"){ document.execCommand("bold"); }
+      else if(cmd==="italic"){ document.execCommand("italic"); }
+      else if(cmd==="h1"){ applyHeading(1); }
+      else if(cmd==="h2"){ applyHeading(2); }
+      else if(cmd==="ul"){ document.execCommand("insertUnorderedList"); }
+      btn.setAttribute("aria-pressed", btn.getAttribute("aria-pressed")==="true"?"false":"true");
+      applyForm();
+    });
+  });
+
+  function applyHeading(level){
+    const sel = window.getSelection();
+    if(!sel || sel.rangeCount===0) return;
+    const range = sel.getRangeAt(0);
+    const wrapper = document.createElement("h"+level);
+    wrapper.appendChild(range.extractContents());
+    range.insertNode(wrapper);
+    sel.removeAllRanges();
+  }
+
+  // Drag/scroll focus
+  function focusPreview(id){
+    const el = qs(`[data-sec="${CSS.escape(id)}"]`, qs("#preview"));
+    if(el){ el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.add("selected"); setTimeout(()=>el.classList.remove("selected"), 900); }
+  }
+
+  // ---------- PREVIEW ----------
   const preview = qs("#preview");
   function renderPreview(){
     preview.innerHTML = "";
@@ -377,67 +490,147 @@
       const wrap = document.createElement("section");
       wrap.dataset.sec = sec.id;
       if(sec.type==="hero"){
-        wrap.innerHTML = `
-          <div class="p-6 rounded-2xl border bg-white">
-            <h3 class="text-2xl font-extrabold mb-2" style="color:var(--brand)">${escapeHtml(sec.title||"")}</h3>
-            <p class="text-slate-700">${escapeHtml(sec.content||"")}</p>
-          </div>
-        `;
+        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white">
+          <div class="text-3xl font-extrabold mb-2" style="color:var(--brand)">${escapeHtml(sec.title||"")}</div>
+          <div class="prose prose-slate max-w-none">${sec.html||""}</div>
+        </div>`;
       } else if(sec.type==="image"){
-        wrap.innerHTML = `
-          <div class="p-6 rounded-2xl border bg-white text-center">
-            <h3 class="text-xl font-bold mb-2">${escapeHtml(sec.title||"")}</h3>
-            <img class="mx-auto rounded-xl max-h-72" src="${escapeAttr(sec.content||"")}" alt="Imej"/>
-          </div>
-        `;
+        const url = sec.media || "";
+        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white text-center">
+          <div class="text-xl font-bold mb-2">${escapeHtml(sec.title||"")}</div>
+          ${url?`<img class="mx-auto rounded-xl max-h-72" src="${escapeAttr(url)}" alt="Imej">`:"<div class='text-xs text-slate-500'>Tiada imej</div>"}
+          <div class="mt-2 prose prose-slate max-w-none">${sec.html||""}</div>
+        </div>`;
+      } else if(sec.type==="video"){
+        const url = sec.media || "";
+        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white">
+          <div class="text-xl font-bold mb-2">${escapeHtml(sec.title||"")}</div>
+          ${url?`<div class="aspect-video rounded-xl overflow-hidden border"><iframe src="${escapeAttr(url)}" frameborder="0" allowfullscreen class="w-full h-full"></iframe></div>`:"<div class='text-xs text-slate-500'>Tiada video</div>"}
+          <div class="mt-2 prose prose-slate max-w-none">${sec.html||""}</div>
+        </div>`;
       } else if(sec.type==="cta"){
-        wrap.innerHTML = `
-          <div class="p-6 rounded-2xl border bg-white text-center">
-            <h3 class="text-xl font-bold mb-4">${escapeHtml(sec.title||"")}</h3>
-            <a class="btn btn-primary" href="${escapeAttr(sec.content||"#")}" target="_blank" rel="noopener">Pergi</a>
-          </div>
-        `;
+        const url = sec.media || "#";
+        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white text-center">
+          <div class="text-xl font-bold mb-4">${escapeHtml(sec.title||"")}</div>
+          <a class="btn btn-primary" href="${escapeAttr(url)}" target="_blank" rel="noopener">Pergi</a>
+          <div class="mt-2 prose prose-slate max-w-none">${sec.html||""}</div>
+        </div>`;
       } else {
-        wrap.innerHTML = `
-          <div class="p-6 rounded-2xl border bg-white">
-            <h3 class="text-xl font-bold mb-2">${escapeHtml(sec.title||"")}</h3>
-            <p class="text-slate-700 whitespace-pre-wrap">${escapeHtml(sec.content||"")}</p>
-          </div>
-        `;
+        wrap.innerHTML = `<div class="p-6 rounded-2xl border bg-white">
+          <div class="text-xl font-bold mb-2">${escapeHtml(sec.title||"")}</div>
+          <div class="prose prose-slate max-w-none">${sec.html||""}</div>
+        </div>`;
       }
       preview.appendChild(wrap);
     });
   }
 
-  // ---------- Save All ----------
-  qs("#btnSaveAll").addEventListener("click", () => {
-    save();
-    alert("Disimpan ke LocalStorage pelayar.");
-  });
+  // ---------- ASSET PICKER & UPLOAD ----------
+  const modalAssets = qs("#modalAssets");
+  const assetGrid = qs("#assetGrid");
+  const btnAssetPicker = qs("#btnAssetPicker");
+  const btnCloseAssets = qs("#btnCloseAssets");
+  const btnRefreshAssets = qs("#btnRefreshAssets");
+  const fileUpload = qs("#fileUpload");
 
-  // ---------- Utils ----------
-  function debounce(fn, ms){
-    let t; return (...args) => { clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+  btnAssetPicker.addEventListener("click", async () => { await refreshAssets(); modalAssets.classList.add("show"); });
+  btnCloseAssets.addEventListener("click", () => modalAssets.classList.remove("show"));
+  btnRefreshAssets.addEventListener("click", refreshAssets);
+
+  async function refreshAssets(){
+    assetGrid.innerHTML = "<div class='text-sm text-slate-600'>Memuatkan...</div>";
+    try{
+      const res = await postForm("media_list", {});
+      const items = res?.data || [];
+      if(!items.length){ assetGrid.innerHTML = "<div class='text-sm text-slate-600'>Tiada aset.</div>"; return; }
+      assetGrid.innerHTML = "";
+      items.forEach(it => {
+        const card = document.createElement("div");
+        card.className = "asset-tile";
+        card.innerHTML = `
+          <img src="${escapeAttr(it.url||"")}" class="w-full h-28 object-cover rounded-md border">
+          <div class="text-xs text-slate-600 truncate">${escapeHtml(it.name||"aset")}</div>
+          <button class="btn btn-ghost text-xs">Gunakan</button>
+        `;
+        card.querySelector("button").addEventListener("click", () => {
+          inpMediaURL.value = it.url||"";
+          modalAssets.classList.remove("show");
+          applyForm();
+        });
+        assetGrid.appendChild(card);
+      });
+    }catch(e){
+      console.warn(e);
+      assetGrid.innerHTML = "<div class='text-sm text-red-600'>Gagal memuatkan aset.</div>";
+    }
+    lucide.createIcons();
   }
 
+  fileUpload.addEventListener("change", async (e) => {
+    const f = e.target.files?.[0]; if(!f) return;
+    try{
+      const base64 = await fileToBase64(f);
+      const res = await postForm("upload_media", { name: f.name, mime: f.type, data: base64 });
+      const url = res?.data?.url || "";
+      if(url){ inpMediaURL.value = url; applyForm(); alert("Muat naik berjaya."); }
+      else alert("Muat naik selesai tetapi URL tiada dalam respons.");
+    }catch(err){
+      console.warn(err); alert("Gagal muat naik.");
+    }finally{
+      e.target.value = "";
+    }
+  });
+
+  function fileToBase64(file){
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ---------- PUBLISH (SAVE TO BACKEND) ----------
+  qs("#btnPublish").addEventListener("click", async () => {
+    try{
+      const payload = { sections: state.sections, settings: state.settings };
+      const res = await postForm("content_save", payload);
+      alert("Berjaya terbitkan (disimpan) ke backend.");
+    }catch(e){
+      console.warn(e); alert("Gagal terbitkan ke backend. Data kekal pada LocalStorage.");
+    }
+  });
+
+  // ---------- BACKEND HELPER (Apps Script form-encoded) ----------
+  async function postForm(path, payload){
+    if(!EXEC_URL) throw new Error("EXEC_URL belum ditetapkan dalam Settings.");
+    const body = new URLSearchParams();
+    body.set("path", path);
+    body.set("payload", JSON.stringify(payload||{}));
+    const res = await fetch(EXEC_URL, { method:"POST", headers:{ "Content-Type":"application/x-www-form-urlencoded" }, body });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const json = await res.json().catch(()=>null);
+    if(json && (json.error||json.status==="error")) throw new Error(json.error||"Ralat backend");
+    return json;
+  }
+
+  // ---------- UTIL ----------
   function escapeHtml(str){
     return (str||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   }
-  function escapeAttr(str){
-    return (str||"").replace(/"/g, '&quot;');
-  }
+  function escapeAttr(str){ return (str||"").replace(/"/g,"&quot;"); }
 
-  // ---------- Init ----------
+  // ---------- INIT ----------
   (function init(){
+    loadSettingsInputs();
     applySettings();
     renderList();
     fillForm();
     renderPreview();
     setActiveTab("user");
 
-    // restore settings inputs
-    inpBrand.value = state.settings.brand || "#ef4444";
-    inpWidth.value = state.settings.width || 960;
+    // Toggle mediaURL field based on current type
+    mediaURLWrap.classList.toggle("hidden", !(selType.value==="image"||selType.value==="video"||selType.value==="cta"));
   })();
   </script>
 </body>
