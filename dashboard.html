@@ -5578,5 +5578,40 @@ window.movaIsLocked = movaIsLocked;
 })();
 </script>
 <!-- ==== /LIVE SYNC PATCH ==== -->
+
+<!-- ==== LIVE SYNC AUTOREFRESH 500ms (7 Nov 2025) ==== -->
+<script>
+(function(){
+  if (window.__movaLiveInterval500) return;
+  window.__movaLiveInterval500 = true;
+
+  function snapshot(){
+    try {
+      const st = window.store || {};
+      return JSON.stringify({
+        sections: st.sections || [],
+        settings: st.settings || {},
+        selectedId: st.selectedSectionId || null
+      });
+    } catch(e){ return ""; }
+  }
+
+  let last = snapshot();
+
+  setInterval(function(){
+    const s = snapshot();
+    if (!s) return;
+    if (s !== last) {
+      last = s;
+      try {
+        // Trigger the existing public hook from the previous patch
+        window.__movaSyncPreviewNow && window.__movaSyncPreviewNow('interval-500ms');
+      } catch(e){ /* no-op */ }
+    }
+  }, 500);
+  console.log('[MOVA LiveSync] Auto-refresh every 500ms active.');
+})();
+</script>
+<!-- ==== /LIVE SYNC AUTOREFRESH ==== -->
 </body>
 </html>                                 
