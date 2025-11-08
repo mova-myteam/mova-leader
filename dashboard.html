@@ -4771,28 +4771,36 @@
     }
     
     // Juga setup listeners untuk section list changes
-       // Juga setup listeners untuk section list changes
     const sectionList = document.getElementById('sectionList');
-    if (sectionList) {
-      sectionList.addEventListener('DOMSubtreeModified', debouncedSendChanges);
+    if (sectionList) {      sectionList.addEventListener('DOMSubtreeModified', debouncedSendChanges);
     }
     
-    // Listen untuk perubahan pada store.sections
-    const originalSections = [...store.sections];
-    Object.defineProperty(store, 'sections', {
-      get: function() { return originalSections; },
-      set: function(value) {
-        originalSections.length = 0;
-        originalSections.push(...value);
-        debouncedSendChanges();
-      }
-    });
+    // Setup listeners untuk element list changes
+    const elementListInSection = document.getElementById('elementListInSection');
+    if (elementListInSection) {
+      elementListInSection.addEventListener('DOMSubtreeModified', debouncedSendChanges);
+    }
     
-    // Initial sync
+    // Juga hantar perubahan apabila sections berubah
+    const originalPush = Array.prototype.push;
+    Array.prototype.push = function() {
+      const result = originalPush.apply(this, arguments);
+      debouncedSendChanges();
+      return result;
+    };
+    
+    const originalSplice = Array.prototype.splice;
+    Array.prototype.splice = function() {
+      const result = originalSplice.apply(this, arguments);
+      debouncedSendChanges();
+      return result;
+    };
+    
+    // Hantar perubahan awal
     setTimeout(sendChangesToPreview, 1000);
   }
-  
-  // Debounce helper function
+
+  // Debounce function untuk prestasi
   function debounce(func, wait) {
     let timeout;
     return function executedFunction(...args) {
@@ -4806,189 +4814,175 @@
   }
 
   // ===================================================================
-  // ====== INITIALIZATION COMPLETION ======
+  // ====== INITIALIZATION & CLEANUP ======
   // ===================================================================
 
-  // Pastikan semua fungsi dijalankan selepas DOM dimuatkan
+  // Panggil initLivePreview selepas semua komponen siap
+  setTimeout(initLivePreview, 2000);
+
+  // Pastikan semua event listeners berfungsi dengan baik
   document.addEventListener('DOMContentLoaded', function() {
-    // Initialize semua komponen
-    init();
+    console.log('MOVA Leader Dashboard initialized');
     
-    // Setup event listeners untuk tab broadcast
-    if (document.getElementById('tab-broadcast')) {
-      buildRecipientTree();
-    }
+    // Pastikan tab aktif dipulihkan
+    const savedTab = localStorage.getItem('mova_active_tab') || 'user';
+    setActiveTab(savedTab);
     
-    // Setup real-time preview updates
-    initLivePreview();
-    
-    // Lock user tab untuk editing
-    lockUserEditing(15);
-    
-    console.log('MOVA Leader Dashboard initialized successfully');
-  });
-
-  // Handle visibility changes untuk refresh data
-  document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-      // Refresh data apabila tab menjadi aktif semula
-      reloadStats();
-      if (activeTabName === 'org') {
-        renderOrg();
-      }
-      if (activeTabName === 'approve') {
-        reloadRegs();
-      }
-    }
-  });
-
-  // Auto-save backup setiap 2 minit
-  setInterval(() => {
-    if (store.sections && store.sections.length > 0) {
-      localStorage.setItem('mova_design_backup', JSON.stringify(store.sections));
-    }
-  }, 120000);
-
-  // Load backup jika ada
-  try {
-    const backup = localStorage.getItem('mova_design_backup');
-    if (backup && (!store.sections || store.sections.length === 0)) {
-      store.sections = JSON.parse(backup);
-      renderSectionList();
-      console.log('Design backup loaded from localStorage');
-    }
-  } catch (e) {
-    console.warn('Failed to load design backup:', e);
-  }
-
-  // Error boundary global
-  window.addEventListener('error', function(e) {
-    console.error('Global error:', e.error);
-    toast('Ralat sistem: ' + (e.error?.message || 'Unknown error'));
-  });
-
-  // Promise rejection handler
-  window.addEventListener('unhandledrejection', function(e) {
-    console.error('Unhandled promise rejection:', e.reason);
-    toast('Ralat sistem: ' + (e.reason?.message || 'Unknown promise rejection'));
-  });
-
-  // Export functions untuk template event handlers
-  window.MOVALeader = {
-    moveSectionUp,
-    moveSectionDown,
-    deleteSection,
-    moveElementUp,
-    moveElementDown,
-    deleteElementFromSection,
-    toast,
-    reloadStats,
-    renderOrg
-  };
-
-})(); // Penutup untuk IIFE (Immediately Invoked Function Expression)
-
-// Final initialization check
-console.log('MOVA Leader Dashboard script loaded completely');
-</script>
-
-<script>
-/*
-  MOVA — NON-DESTRUCTIVE INJECTION PATCH (SAFE)
-  - Kunci kekal tab User (persist localStorage, cegah tukar tab semasa kunci hidup)
-  - Auto-scroll ke seksyen dipilih di preview
-  - Live preview sync (debounce 150ms) → postMessage ke iframe
-  - Guard fokus editor (elak preview jadi putih)
-  Nota: Versi ini TIDAK mengubah skrip inline lain (tiada penggantian 'or' automatik).
-*/
-(function () {
-  if (window.__MOVA_PATCH_APPLIED__) return;
-  window.__MOVA_PATCH_APPLIED__ = true;
-  const log = (...a) => (console.debug('[MOVA patch]', ...a), a[a.length - 1]);
-
-  const debounce = (fn, ms = 150) => { let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); }; };
-
-  const store = window.store || {};
-  const iframe = document.querySelector('iframe#userPreview, iframe[data-role="user-preview"], #userPreview iframe');
-
-  // 1) Lock kekal + persist
-  try {
-    const origSetActiveTab = window.setActiveTab;
-    if (typeof origSetActiveTab === 'function') {
-      window.setActiveTab = function (name) {
-        try {
-          const locked = !!(window.store && window.store.uiLock && window.store.uiLock.userTabLocked);
-          if (locked && name !== 'User') {
-            if (typeof window.toast === 'function') window.toast('Mod kunci sedang aktif. Buka kunci untuk tukar tab.');
-            return;
+    // Setup real-time updates untuk preview
+    setInterval(() => {
+      if (store.sections && store.sections.length > 0 && store.iframeReady) {
+        const userPreview = document.getElementById('userPreview');
+        if (userPreview && userPreview.contentWindow) {
+          try {
+            userPreview.contentWindow.postMessage({
+              type: 'ping',
+              timestamp: Date.now()
+            }, '*');
+          } catch (error) {
+            console.log('Preview ping failed, iframe might be reloading');
           }
-        } catch (_){}
-        return origSetActiveTab.apply(this, arguments);
-      };
+        }
+      }
+    }, 30000); // Ping setiap 30 saat
+  });
+
+  // Handle visibility changes - refresh preview apabila tab menjadi aktif
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && store.iframeReady) {
+      // Tab menjadi aktif, refresh preview jika perlu
+      const userPreview = document.getElementById('userPreview');
+      if (userPreview) {
+        userPreview.contentWindow.postMessage({
+          type: 'refresh-request'
+        }, '*');
+      }
     }
-    const LS_KEY = 'mova_userTabLocked';
-    const readLock = () => localStorage.getItem(LS_KEY) === '1';
-    const writeLock = (v) => localStorage.setItem(LS_KEY, v ? '1' : '0');
-    const ensureUiLock = () => { if (!store.uiLock) store.uiLock = {}; if (typeof store.uiLock.userTabLocked !== 'boolean') store.uiLock.userTabLocked = readLock(); };
-    ensureUiLock();
-    const setLock = (v) => { ensureUiLock(); store.uiLock.userTabLocked = !!v; writeLock(!!v); if (typeof window.renderLockIndicator === 'function') window.renderLockIndicator(!!v); if (typeof window.toast === 'function') window.toast(!!v ? 'Dikunci. Tab lain dikekang.' : 'Kunci dibuka. Anda boleh tukar tab.'); };
-    document.addEventListener('click', (e) => { const el = e.target.closest('[data-action="toggle-lock"], #btn-lock-user, [data-lock-toggle]'); if (!el) return; e.preventDefault(); setLock(!(store.uiLock && store.uiLock.userTabLocked)); }, true);
-    document.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') { e.preventDefault(); setLock(!(store.uiLock && store.uiLock.userTabLocked)); } });
-    setTimeout(() => setLock(readLock()), 0);
-  } catch (err) { console.warn('Patch lock gagal', err); }
+  });
 
-  // 2) Auto-scroll ke seksyen
-  try {
-    const scrollToSectionInPreview = (sectionId) => {
-      if (!iframe) return;
-      try {
-        const doc = iframe.contentDocument;
-        const el = doc && doc.querySelector(`[data-section-id="${sectionId}"]`);
-        if (el && el.scrollIntoView) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-      } catch (_){}
-      try { iframe.contentWindow && iframe.contentWindow.postMessage({ type: 'scroll-to-section', id: sectionId }, '*'); } catch (_){}
-    };
-    document.addEventListener('click', (e) => {
-      const item = e.target.closest('[data-section-id][data-role="section-item"], .section-list [data-section-id]');
-      if (!item) return;
-      const id = item.getAttribute('data-section-id'); if (!id) return;
-      scrollToSectionInPreview(id);
-    });
-  } catch (err) { console.warn('Patch auto-scroll gagal', err); }
+  // Error boundary untuk menangani ralat dengan lebih baik
+  window.addEventListener('error', function(e) {
+    console.error('Global error caught:', e.error);
+    toast('Ralat sistem: ' + (e.error?.message || 'Ralat tidak diketahui'));
+  });
 
-  // 3) Live preview sync
-  try {
-    const sendToPreview = () => {
-      if (!iframe || !iframe.contentWindow) return;
-      iframe.contentWindow.postMessage({ type: 'sections-updated', sections: (store && store.sections) || [], settings: (store && store.settings) || {} }, '*');
-    };
-    const debouncedSend = debounce(sendToPreview, 150);
-    const editorPane = document.querySelector('#userEditor, [data-role="user-editor"], .user-editor');
-    if (editorPane) {
-      editorPane.addEventListener('input', (e) => {
-        const t = e.target; if (!t) return;
-        const isField = t.matches('input, textarea, select, [contenteditable="true"]'); if (!isField) return;
-        try { const path = t.getAttribute('data-bind'); if (path && window.setByPath) window.setByPath(store, path, (t.value ?? t.textContent ?? '')); } catch (_){}
-        debouncedSend();
-      });
+  // Handle unload - simpan keadaan terakhir
+  window.addEventListener('beforeunload', function() {
+    // Simpan keadaan semasa
+    if (store.sections && store.sections.length > 0) {
+      localStorage.setItem('mova_last_design', JSON.stringify(store.sections));
     }
-    ['section-added','section-removed','section-reordered','section-style-changed'].forEach(evt => document.addEventListener(evt, debouncedSend));
-    setTimeout(sendToPreview, 300);
-  } catch (err) { console.warn('Patch live preview gagal', err); }
+  });
 
-  // 4) Guard fokus editor
-  try {
-    const editorPane = document.querySelector('#userEditor, [data-role="user-editor"], .user-editor');
-    if (editorPane) {
-      editorPane.addEventListener('mousedown', (e) => {
-        if (e.target && (e.target.matches('input, textarea, select, [contenteditable="true"]') || e.target.closest('.rtbox, .toolbar'))) e.stopPropagation();
-      }, true);
-    }
-  } catch (err) { console.warn('Guard fokus editor gagal', err); }
+  // Final initialization
+  console.log('MOVA Leader Dashboard loaded successfully');
 
-  log('MOVA inline patch (SAFE) — Applied.');
-})();
+})(); // Tutup IIFE utama
+
+// Pastikan fungsi global tersedia
+window.refreshPreview = function() {
+  const userPreview = document.getElementById('userPreview');
+  if (userPreview) {
+    userPreview.src = userPreview.src; // Reload iframe
+  }
+};
+
+window.getCurrentDesign = function() {
+  return store.sections;
+};
+
+window.exportDesign = function() {
+  const design = {
+    sections: store.sections,
+    exportedAt: new Date().toISOString(),
+    version: '1.0'
+  };
+  
+  const dataStr = JSON.stringify(design, null, 2);
+  const dataBlob = new Blob([dataStr], {type: 'application/json'});
+  
+  const url = URL.createObjectURL(dataBlob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `mova-design-${Date.now()}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  
+  toast('Reka bentuk dieksport');
+};
+
+// Helper functions untuk debugging
+window.debugSections = function() {
+  console.log('Current sections:', store.sections);
+  console.log('Selected section:', store.selectedSectionId);
+  console.log('Selected element:', store.selectedElementId);
+};
+
+// Style untuk debug panel (optional)
+const debugStyle = document.createElement('style');
+debugStyle.textContent = `
+  .debug-panel {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    z-index: 10000;
+    display: none;
+  }
+  .debug-toggle {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    z-index: 10000;
+  }
+`;
+document.head.appendChild(debugStyle);
+
+// Debug toggle button (optional)
+const debugToggle = document.createElement('button');
+debugToggle.className = 'debug-toggle';
+debugToggle.innerHTML = 'D';
+debugToggle.title = 'Toggle Debug Panel';
+debugToggle.onclick = function() {
+  const panel = document.getElementById('debugPanel');
+  if (panel) {
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+  }
+};
+document.body.appendChild(debugToggle);
+
+const debugPanel = document.createElement('div');
+debugPanel.id = 'debugPanel';
+debugPanel.className = 'debug-panel';
+debugPanel.innerHTML = `
+  <div><strong>Debug Info</strong></div>
+  <div>Sections: <span id="debugSectionCount">0</span></div>
+  <div>Selected: <span id="debugSelected">none</span></div>
+  <button onclick="debugSections()">Log Sections</button>
+  <button onclick="exportDesign()">Export Design</button>
+  <button onclick="refreshPreview()">Refresh Preview</button>
+`;
+document.body.appendChild(debugPanel);
+
+// Update debug info
+setInterval(() => {
+  document.getElementById('debugSectionCount').textContent = store.sections?.length || 0;
+  const selected = store.selectedSectionId || store.selectedElementId || 'none';
+  document.getElementById('debugSelected').textContent = selected;
+}, 1000);
+
 </script>
-
 </body>
 </html>
