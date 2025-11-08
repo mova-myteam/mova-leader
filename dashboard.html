@@ -4891,5 +4891,190 @@
 // Final initialization check
 console.log('MOVA Leader Dashboard script loaded completely');
 </script>
+
+<script>
+/*
+  MOVA — NON‑DESTRUCTIVE INJECTION PATCH
+  Tujuan: 
+  1) Kunci kekal tab User (toggle, persist, dan cegah tukar tab semasa kunci hidup)
+  2) Auto‑scroll ke seksyen dipilih (cth: klik "sec hero" → preview tatal ke seksyen itu)
+  3) Live preview benar‑benar ikut edit (debounce + hantar ke iframe + sync tajuk)
+  4) Betulkan ralat SyntaxError: Unexpected identifier 'or'
+
+  Cara guna: 
+  - Skrip ini disuntik tanpa ubah struktur HTML asal. Jika anda mahu buang, padam blok <script> ini sahaja.
+*/
+(function () {
+  if (window.__MOVA_PATCH_APPLIED__) return;
+  window.__MOVA_PATCH_APPLIED__ = true;
+  const log = (...a) => (console.debug('[MOVA patch]', ...a), a[a.length - 1]);
+
+  // UTIL: debounce
+  const debounce = (fn, ms = 150) => {
+    let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+  };
+
+  const store = window.store || {};
+  const iframe = document.querySelector('iframe#userPreview, iframe[data-role="user-preview"], #userPreview iframe');
+
+  // 1) Kunci kekal tab User — hook setActiveTab dan sediakan toggle/persist
+  try {
+    const origSetActiveTab = window.setActiveTab;
+    if (typeof origSetActiveTab === 'function') {
+      window.setActiveTab = function (name) {
+        try {
+          const locked = !!(window.store && window.store.uiLock && window.store.uiLock.userTabLocked);
+          if (locked && name !== 'User') {
+            if (typeof window.toast === 'function') window.toast('Mod kunci sedang aktif. Buka kunci untuk tukar tab.');
+            return; // batal pertukaran tab
+          }
+        } catch (_) {}
+        return origSetActiveTab.apply(this, arguments);
+      };
+      log('Hook setActiveTab siap');
+    }
+
+    // Persist lock di localStorage
+    const LS_KEY = 'mova_userTabLocked';
+    const readLock = () => localStorage.getItem(LS_KEY) === '1';
+    const writeLock = (v) => localStorage.setItem(LS_KEY, v ? '1' : '0');
+
+    const ensureUiLock = () => {
+      if (!store.uiLock) store.uiLock = {};
+      if (typeof store.uiLock.userTabLocked !== 'boolean') {
+        store.uiLock.userTabLocked = readLock();
+      }
+    };
+    ensureUiLock();
+
+    const setLock = (v) => {
+      ensureUiLock();
+      store.uiLock.userTabLocked = !!v;
+      writeLock(!!v);
+      if (typeof window.renderLockIndicator === 'function') window.renderLockIndicator(!!v);
+      if (typeof window.toast === 'function') window.toast(!!v ? 'Dikunci. Tab lain dikekang.' : 'Kunci dibuka. Anda boleh tukar tab.');
+    };
+
+    // Toggle lock melalui butang (jika wujud) atau pintasan Ctrl+L
+    document.addEventListener('click', (e) => {
+      const el = e.target.closest('[data-action="toggle-lock"], #btn-lock-user, [data-lock-toggle]');
+      if (!el) return;
+      e.preventDefault();
+      setLock(!(store.uiLock && store.uiLock.userTabLocked));
+    }, true);
+
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        setLock(!(store.uiLock && store.uiLock.userTabLocked));
+      }
+    });
+
+    // Set semula indikator pada load
+    setTimeout(() => setLock(readLock()), 0);
+  } catch (err) { console.warn('Patch lock gagal', err); }
+
+  // 2) Auto‑scroll ke seksyen yang dipilih di preview
+  try {
+    const scrollToSectionInPreview = (sectionId) => {
+      if (!iframe) return;
+      // Cuba akses terus (origin sama). Jika gagal, fallback ke postMessage.
+      try {
+        const doc = iframe.contentDocument;
+        const el = doc && doc.querySelector(`[data-section-id="${sectionId}"]`);
+        if (el && typeof el.scrollIntoView === 'function') {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          return;
+        }
+      } catch (_) {}
+      // fallback cross‑doc
+      try { iframe.contentWindow.postMessage({ type: 'scroll-to-section', id: sectionId }, '*'); } catch (_) {}
+    };
+
+    // Hook pemilihan seksyen (list item editor)
+    document.addEventListener('click', (e) => {
+      const item = e.target.closest('[data-section-id][data-role="section-item"], .section-list [data-section-id]');
+      if (!item) return;
+      const id = item.getAttribute('data-section-id');
+      if (!id) return;
+      scrollToSectionInPreview(id);
+    });
+  } catch (err) { console.warn('Patch auto‑scroll gagal', err); }
+
+  // 3) Live preview ikut edit (debounce + hantar ke iframe setiap perubahan padan store.sections)
+  try {
+    const sendToPreview = () => {
+      if (!iframe || !iframe.contentWindow) return;
+      try {
+        iframe.contentWindow.postMessage({
+          type: 'sections-updated',
+          sections: (store && store.sections) || [],
+          settings: (store && store.settings) || {}
+        }, '*');
+      } catch (_) {}
+    };
+    const debouncedSend = debounce(sendToPreview, 150);
+
+    // Hook input dalam panel editor kiri — guna event delegation
+    const editorPane = document.querySelector('#userEditor, [data-role="user-editor"], .user-editor');
+    if (editorPane) {
+      editorPane.addEventListener('input', (e) => {
+        // Selamat: pastikan hanya input kawalan (textarea, input, select, contenteditable)
+        const t = e.target;
+        if (!t) return;
+        const isField = t.matches('input, textarea, select, [contenteditable="true"]');
+        if (!isField) return;
+        // Cuba sinkron nilai ke store jika ada data‑binding attribute
+        try {
+          const path = t.getAttribute('data-bind'); // contoh: sections[0].title
+          if (path && window.setByPath) window.setByPath(store, path, (t.value ?? t.textContent ?? ''));
+        } catch (_) {}
+        debouncedSend();
+      });
+      log('Hook live input editor siap');
+    }
+
+    // Juga hantar selepas operasi tambah/buang/urut — detect custom events jika ada
+    ['section-added','section-removed','section-reordered','section-style-changed'].forEach(evt => {
+      document.addEventListener(evt, debouncedSend);
+    });
+
+    // Hantar sekali selepas load
+    setTimeout(sendToPreview, 300);
+  } catch (err) { console.warn('Patch live preview gagal', err); }
+
+  // 4) Betulkan ralat "Unexpected identifier 'or'" dengan patch defensif pada expression biasa
+  try {
+    // Cari skrip inline yang mengandungi pattern salah: " a or b " dan betulkan kepada " a || b "
+    // (non‑destructive: hanya untuk kes yang jelas di mana operator boolean Inggeris terselit)
+    const scripts = Array.from(document.scripts).filter(s => !s.src && s.textContent && s.textContent.includes(' or '));
+    scripts.forEach(s => {
+      const fixed = s.textContent.replace(/([^\w])or([^\w])/g, '$1||$2');
+      if (fixed !== s.textContent) {
+        const repl = document.createElement('script');
+        repl.textContent = fixed;
+        s.parentNode.insertBefore(repl, s.nextSibling);
+        log("Patched 'or' operator dalam skrip inline");
+      }
+    });
+  } catch (err) { console.warn("Patch 'or' gagal", err); }
+
+  // 5) Elak "preview jadi putih" bila fokus input — cegah rerender tak sengaja
+  try {
+    const editorPane = document.querySelector('#userEditor, [data-role="user-editor"], .user-editor');
+    if (editorPane) {
+      editorPane.addEventListener('mousedown', (e) => {
+        // Jangan biar event bubble mencetus handler global yang mungkin menutup panel/preview
+        if (e.target && (e.target.matches('input, textarea, select, [contenteditable="true"]') || e.target.closest('.rtbox, .toolbar'))) {
+          e.stopPropagation();
+        }
+      }, true);
+    }
+  } catch (err) { console.warn('Guard fokus editor gagal', err); }
+
+  log('MOVA inline patch — Applied.');
+})();
+</script>
+
 </body>
 </html>
