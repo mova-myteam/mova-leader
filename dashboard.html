@@ -682,7 +682,7 @@
   if (!store.leader || !store.leader.leader_id) {
     location.href = "./index.html";
   }
-  document.getElementById('leaderName').textContent = store.leader.profile.name || 'leader';
+  document.getElementById('leaderName').textContent = store.leader?.profile?.name || 'leader';
 
   document.getElementById('btnLogout').addEventListener('click', () => {
     localStorage.removeItem('mova_leader');
@@ -878,7 +878,7 @@
   document.getElementById('btnClearAttach').addEventListener('click', ()=>{ store.attachments = []; renderAttachChips(); });
 
   async function uploadAttachment(){
-    const f = attachInput.files.[0];
+    const f = attachInput.files?.[0];
     if (!f) return toast('Pilih satu fail');
     try{
       const b64 = await toBase64NoPrefix(f);
@@ -901,8 +901,8 @@
     lucide.createIcons();
   }
 
-  document.getElementById('btnSelectAll').addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true); });
-  document.getElementById('btnClearAll').addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false); });
+  document.getElementById('btnSelectAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = true); });
+  document.getElementById('btnClearAll')?.addEventListener('click', ()=>{ document.querySelectorAll('.recip-row input[type="checkbox"]').forEach(cb=> cb.checked = false); });
 
   async function buildRecipientTree(){
     const wrap = document.getElementById('recipientsWrap');
@@ -910,7 +910,7 @@
     wrap.innerHTML = '<div class="text-sm text-gray-500">Memuat senarai penerima…</div>';
     try{
       let partners = []; try{ const outP = await callApi('partner_list', { leader_id: store.leader.leader_id }); partners = outP.items || []; }catch(e){}
-      let tree = { children:[] }; try{ const outT = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader.profile.name || 'Leader') }); if (outT.success) tree = outT.tree || tree; }catch(e){}
+      let tree = { children:[] }; try{ const outT = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') }); if (outT.success) tree = outT.tree || tree; }catch(e){}
 
       const byPartner = new Map(); partners.forEach(p=> byPartner.set(p.name||'', p));
       const frag = document.createDocumentFragment();
@@ -937,7 +937,7 @@
     return row;
   }
 
-  document.getElementById('btnBroadcast').addEventListener('click', async ()=>{
+  document.getElementById('btnBroadcast')?.addEventListener('click', async ()=>{
     const message = buildMessageWithAttachments();
     const selected = getSelectedRecipients();
     if (!selected.length) return toast('Pilih sekurang-kurangnya seorang penerima');
@@ -946,7 +946,7 @@
       if (out.success){ toast('Broadcast direkod ✔️'); } else toast(out.error||'Gagal log broadcast');
     }catch(e){ toast('Ralat log broadcast'); }
   });
-  document.getElementById('btnOpenWA').addEventListener('click', ()=>{
+  document.getElementById('btnOpenWA')?.addEventListener('click', ()=>{
     const msg = buildMessageWithAttachments();
     const selected = getSelectedRecipients(); if (!selected.length) return toast('Pilih penerima dahulu');
     let opened = 0;
@@ -957,7 +957,7 @@
     });
     toast(`Membuka ${opened} tab WhatsApp`);
   });
-  document.getElementById('btnExportCSV').addEventListener('click', ()=>{
+  document.getElementById('btnExportCSV')?.addEventListener('click', ()=>{
     const rows = getSelectedRecipients().map(r=>({ phone: (r.phone||'').replace(/\D/g,''), message: buildMessageWithAttachments(), media_urls: (store.attachments||[]).join(' '), fonnte_api: document.getElementById('setFonnteApi').value || '' })).filter(x=> x.phone);
     if (!rows.length) return toast('Tiada penerima sah untuk dieksport');
     const csv = makeCSV(['phone','message','media_urls','fonnte_api'], rows);
@@ -980,7 +980,7 @@
   const chosenMediaHint = document.getElementById('chosenMedia');
 
   document.getElementById('btnUpload').addEventListener('click', async ()=>{
-    const f = fileInput.files.[0]; if (!f) return toast('Pilih satu fail');
+    const f = fileInput.files?.[0]; if (!f) return toast('Pilih satu fail');
     try{
       const b64 = await toBase64NoPrefix(f);
       const json = await callApi('upload_media', { leader_id: store.leader.leader_id, file_name: f.name, file_type: f.type || 'application/octet-stream', file_base64: b64 });
@@ -1099,7 +1099,7 @@
     grid.innerHTML = ''; svg.innerHTML = '';
     let tree;
     try{ 
-      const out = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader.profile.name || 'Leader') });
+      const out = await callApi('org_tree', { leader_id: store.leader.leader_id, leader_name: (store.leader?.profile?.name || 'Leader') });
       if (!out.success) throw new Error('Fail org_tree'); 
       tree = out.tree;
     }catch(e){ 
@@ -1354,7 +1354,7 @@
     
     // Highlight selected section in list
     document.querySelectorAll('.section-item').forEach(item => item.classList.remove('selected'));
-    document.querySelector(`[data-section-id="${sectionId}"]`).classList.add('selected');
+    document.querySelector(`[data-section-id="${sectionId}"]`)?.classList.add('selected');
 
     // Show properties panel for the section
     showSectionProperties(sectionId);
@@ -4888,7 +4888,7 @@
 
   // Build split layout only inside the User Sections tab if present
   function buildUserSplit(){
-    var tabUser = document.getElementById('tab-user') || document.querySelector('[data-tab="user"],[data-tab="sections"]').id;
+    var tabUser = document.getElementById('tab-user') || document.querySelector('[data-tab="user"],[data-tab="sections"]')?.id;
     var editor = document.getElementById('propertiesPanel');
     var iframe = document.getElementById('userPreview');
     if (!editor || !iframe) return;
@@ -5350,135 +5350,6 @@ async function callApi(path, payload) {
   }
 }
 </script>
-
-
-<script>
-// === MOVA strict lock guard ===
-// Persisted lock flag helper
-function movaIsLocked() {
-  try { return localStorage.getItem('mova_edit_locked') === '1' || localStorage.getItem('mova_edit_lock') === '1'; }
-  catch(e){ return false; }
-}
-
-// Optional: expose helpers to existing UI
-window.movaIsLocked = movaIsLocked;
-
-// Try to wrap setActiveTab if it exists so that we never leave User tab while locked.
-(function(){
-  const guardTabs = ['user','users','user-sections','user sections','user section','sections','usersections'];
-  function isUserTabName(name){
-    if (!name) return false;
-    const n = (''+name).toLowerCase().trim();
-    return guardTabs.some(g => n === g || n.includes(g));
-  }
-  const tryWrap = () => {
-    if (typeof window.setActiveTab === 'function' && !window._setActiveTabOrig) {
-      window._setActiveTabOrig = window.setActiveTab;
-      window.setActiveTab = function(next){
-        if (movaIsLocked()) {
-          // Read current tab text/id if available to detect staying-on-user behavior
-          try {
-            const activeEl = document.querySelector('[data-tab].active, .tab-active, [aria-selected="true"]');
-            const activeName = activeEl.dataset.tab || activeEl.textContent || '';
-            if (!isUserTabName(next) && !isUserTabName(activeName)) {
-              // Not on user tab yet; allow only if moving INTO user tab
-              if (!isUserTabName(next)) return; // block
-            } else {
-              // Already on user tab -> block moving away
-              if (!isUserTabName(next)) return;
-            }
-          } catch(e){ /* no-op */ }
-        }
-        return window._setActiveTabOrig.apply(this, arguments);
-      };
-      console.log('[MOVA strict lock] setActiveTab wrapped.');
-    }
-  };
-  // Attempt now & after page settles
-  tryWrap();
-  window.addEventListener('load', tryWrap);
-  setTimeout(tryWrap, 1000);
-})();
-
-// Capture clicks globally: when locked, allow interactions only inside the User Sections/editor areas.
-(function(){
-  const userSelectors = [
-    '#user-sections',
-    '.user-sections',
-    '[data-user-sections]',
-    '#editor',
-    '.editor-panel',
-    '[data-panel="user"]'
-  ];
-  function withinUserArea(el){
-    return !!(el && el.closest && userSelectors.some(sel => el.closest(sel)));
-  }
-  function shouldAllow(el){
-    if (!movaIsLocked()) return true;
-    // Allow clicks within the user/editor area
-    if (withinUserArea(el)) return true;
-    // Allow benign controls like formatting popovers inside editor if they happen to be detached
-    const id = (el.id||'').toLowerCase(), cls = (el.className||'').toString().toLowerCase();
-    if (id.includes('popover') || id.includes('tooltip') || cls.includes('popover') || cls.includes('tooltip')) return true;
-    return false;
-  }
-
-  // Block pointer-based navigation while locked
-  window.addEventListener('pointerdown', function(ev){
-    if (!movaIsLocked()) return;
-    const t = ev.target;
-    // If target is a tab/button/link to change section, block
-    const isTabIntent =
-      t.closest('[data-tab]') ||
-      t.closest('a[href^="#tab-"], a[href^="#"], button[data-tab], .tab, .tab-btn, [role="tab"]');
-    if (isTabIntent && !withinUserArea(t)) {
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      console.warn('[MOVA strict lock] Tab change blocked while locked.');
-    }
-  }, true);
-
-  // Block generic clicks that would change main panels
-  window.addEventListener('click', function(ev){
-    if (!shouldAllow(ev.target)) {
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      console.warn('[MOVA strict lock] Click blocked outside User Section while locked.');
-    }
-  }, true);
-
-  // Block keyboard shortcuts that might switch tabs (e.g., Ctrl+1/2...), only allow inside editor
-  window.addEventListener('keydown', function(ev){
-    if (!movaIsLocked()) return;
-    const k = ev.key;
-    const isNavHotkey = (ev.ctrlKey || ev.metaKey) && ['1','2','3','4','5','6','7','8','9','0'].includes(k);
-    if (isNavHotkey && !withinUserArea(ev.target)) {
-      ev.preventDefault();
-      ev.stopImmediatePropagation();
-      console.warn('[MOVA strict lock] Hotkey blocked while locked.');
-    }
-  }, true);
-
-  // Safety net: if some script still flips the tab class, revert back immediately
-  const tabRoot = document.body;
-  const mo = new MutationObserver(() => {
-    if (!movaIsLocked()) return;
-    // If we can detect any active tab marker not pointing to user, try to force back by clicking user tab if available
-    const active = document.querySelector('[data-tab].active, .tab-active, [role="tab"][aria-selected="true"]');
-    const name = active.dataset.tab || active.textContent || '';
-    const onUser = (''+name).toLowerCase().includes('user');
-    if (!onUser) {
-      const candidate = document.querySelector('[data-tab="user"], [data-tab="User"], [href="#tab-user"], [href="#user"]');
-      if (candidate && typeof candidate.click === 'function') {
-        candidate.click();
-        console.log('[MOVA strict lock] Forced back to User tab.');
-      }
-    }
-  });
-  try { mo.observe(tabRoot, { subtree: true, attributes: true, attributeFilter: ['class','aria-selected'] }); } catch(e){}
-})();
-</script>
-
 <script>
 /* =========================
    MOVA — Live Preview Hardening Patch
@@ -5660,114 +5531,207 @@ const PreviewSync = (function(){
 })();
 </script>
 
-<!-- ==== MOVA Live Preview (inline, no-save) ==== -->
-
-<!-- ==== /MOVA Live Preview ==== -->
-
-
-<!-- PREVIEW: user.html (live, tidak simpan) -->
-<iframe id="userPreview" src="user.html?edit=1" style="width:100%;height:70vh;border:0;border-radius:12px;background:#fff;overflow:auto"></iframe>
-
 
 <script>
-(function () {
-  var iframe = document.getElementById('userPreview');
-  if (!iframe) return;
+// === MOVA strict lock guard ===
+// Persisted lock flag helper
+function movaIsLocked() {
+  try { return localStorage.getItem('mova_edit_locked') === '1' || localStorage.getItem('mova_edit_lock') === '1'; }
+  catch(e){ return false; }
+}
 
-  // Fallback store object (we don't modify editor's architecture)
-  var Store = (window.store || {});
-  if (!Array.isArray(Store.sections)) Store.sections = [];
-  if (typeof Store.settings !== 'object' || !Store.settings) Store.settings = {};
+// Optional: expose helpers to existing UI
+window.movaIsLocked = movaIsLocked;
 
-  var bridgeReady = false;
-  var pending = false;
-  var lastPayloadHash = '';
-  var suspendFocusUntil = 0;
-
-  if (iframe.addEventListener) {
-    iframe.addEventListener('load', function() {
-      safePost({ type: 'mova-bridge-ping' });
-    });
+// Try to wrap setActiveTab if it exists so that we never leave User tab while locked.
+(function(){
+  const guardTabs = ['user','users','user-sections','user sections','user section','sections','usersections'];
+  function isUserTabName(name){
+    if (!name) return false;
+    const n = (''+name).toLowerCase().trim();
+    return guardTabs.some(g => n === g || n.includes(g));
   }
-
-  function onPreviewScroll() {
-    suspendFocusUntil = Date.now() + 800;
-  }
-  try {
-    if (iframe.contentWindow && iframe.contentWindow.addEventListener) {
-      iframe.contentWindow.addEventListener('scroll', onPreviewScroll);
+  const tryWrap = () => {
+    if (typeof window.setActiveTab === 'function' && !window._setActiveTabOrig) {
+      window._setActiveTabOrig = window.setActiveTab;
+      window.setActiveTab = function(next){
+        if (movaIsLocked()) {
+          // Read current tab text/id if available to detect staying-on-user behavior
+          try {
+            const activeEl = document.querySelector('[data-tab].active, .tab-active, [aria-selected="true"]');
+            const activeName = activeEl?.dataset?.tab || activeEl?.textContent || '';
+            if (!isUserTabName(next) && !isUserTabName(activeName)) {
+              // Not on user tab yet; allow only if moving INTO user tab
+              if (!isUserTabName(next)) return; // block
+            } else {
+              // Already on user tab -> block moving away
+              if (!isUserTabName(next)) return;
+            }
+          } catch(e){ /* no-op */ }
+        }
+        return window._setActiveTabOrig.apply(this, arguments);
+      };
+      console.log('[MOVA strict lock] setActiveTab wrapped.');
     }
-  } catch(e) {}
-
-  window.addEventListener('message', function(e){
-    var msg = e && e.data ? e.data : {};
-    if (msg.type === 'mova-bridge-ready') {
-      bridgeReady = true;
-      scheduleSend();
-    }
-  }, false);
-
-  // Public API that editor code can call
-  window.movaPreviewPush = function (sections, settings, selectedId) {
-    Store.sections = Array.isArray(sections) ? sections : (sections && sections.sections ? sections.sections : []);
-    Store.settings = settings || {};
-    Store.selectedId = selectedId || null;
-    scheduleSend();
   };
+  // Attempt now & after page settles
+  tryWrap();
+  window.addEventListener('load', tryWrap);
+  setTimeout(tryWrap, 1000);
+})();
 
-  function hashPayload(obj) {
-    try {
-      var s = JSON.stringify(obj);
-      return (s ? s.length : 0) + ':' + ((obj && obj.sections && obj.sections.length) || 0);
-    } catch(e) {
-      return String(Math.random());
+// Capture clicks globally: when locked, allow interactions only inside the User Sections/editor areas.
+(function(){
+  const userSelectors = [
+    '#user-sections',
+    '.user-sections',
+    '[data-user-sections]',
+    '#editor',
+    '.editor-panel',
+    '[data-panel="user"]'
+  ];
+  function withinUserArea(el){
+    return !!(el && el.closest && userSelectors.some(sel => el.closest(sel)));
+  }
+  function shouldAllow(el){
+    if (!movaIsLocked()) return true;
+    // Allow clicks within the user/editor area
+    if (withinUserArea(el)) return true;
+    // Allow benign controls like formatting popovers inside editor if they happen to be detached
+    const id = (el.id||'').toLowerCase(), cls = (el.className||'').toString().toLowerCase();
+    if (id.includes('popover') || id.includes('tooltip') || cls.includes('popover') || cls.includes('tooltip')) return true;
+    return false;
+  }
+
+  // Block pointer-based navigation while locked
+  window.addEventListener('pointerdown', function(ev){
+    if (!movaIsLocked()) return;
+    const t = ev.target;
+    // If target is a tab/button/link to change section, block
+    const isTabIntent =
+      t.closest('[data-tab]') ||
+      t.closest('a[href^="#tab-"], a[href^="#"], button[data-tab], .tab, .tab-btn, [role="tab"]');
+    if (isTabIntent && !withinUserArea(t)) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      console.warn('[MOVA strict lock] Tab change blocked while locked.');
     }
-  }
+  }, true);
 
-  function scheduleSend() {
-    if (!bridgeReady) return;
-    if (pending) return;
-    pending = true;
-    setTimeout(function(){
-      pending = false;
-      reallySend();
-    }, 120);
-  }
-
-  function reallySend() {
-    if (!bridgeReady) return;
-    var payload = {
-      sections: Store.sections || [],
-      settings: Store.settings || {},
-      selectedId: Store.selectedId || null
-    };
-    var h = hashPayload(payload);
-    if (h === lastPayloadHash) return;
-    lastPayloadHash = h;
-
-    safePost(Object.assign({ type: 'sections-live-update' }, payload));
-
-    if (payload.selectedId && Date.now() > suspendFocusUntil) {
-      safePost({ type: 'scroll-to-section', id: payload.selectedId });
+  // Block generic clicks that would change main panels
+  window.addEventListener('click', function(ev){
+    if (!shouldAllow(ev.target)) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      console.warn('[MOVA strict lock] Click blocked outside User Section while locked.');
     }
-  }
+  }, true);
 
-  function safePost(message) {
-    try {
-      var win = (iframe && iframe.contentWindow) ? iframe.contentWindow : null;
-      if (win && typeof win.postMessage === 'function') {
-        win.postMessage(message, '*');
+  // Block keyboard shortcuts that might switch tabs (e.g., Ctrl+1/2...), only allow inside editor
+  window.addEventListener('keydown', function(ev){
+    if (!movaIsLocked()) return;
+    const k = ev.key;
+    const isNavHotkey = (ev.ctrlKey || ev.metaKey) && ['1','2','3','4','5','6','7','8','9','0'].includes(k);
+    if (isNavHotkey && !withinUserArea(ev.target)) {
+      ev.preventDefault();
+      ev.stopImmediatePropagation();
+      console.warn('[MOVA strict lock] Hotkey blocked while locked.');
+    }
+  }, true);
+
+  // Safety net: if some script still flips the tab class, revert back immediately
+  const tabRoot = document.body;
+  const mo = new MutationObserver(() => {
+    if (!movaIsLocked()) return;
+    // If we can detect any active tab marker not pointing to user, try to force back by clicking user tab if available
+    const active = document.querySelector('[data-tab].active, .tab-active, [role="tab"][aria-selected="true"]');
+    const name = active?.dataset?.tab || active?.textContent || '';
+    const onUser = (''+name).toLowerCase().includes('user');
+    if (!onUser) {
+      const candidate = document.querySelector('[data-tab="user"], [data-tab="User"], [href="#tab-user"], [href="#user"]');
+      if (candidate && typeof candidate.click === 'function') {
+        candidate.click();
+        console.log('[MOVA strict lock] Forced back to User tab.');
       }
-    } catch(e) {}
-  }
-
-  // Optional: auto bootstrap once if editor already has sections loaded
-  if ((Store.sections && Store.sections.length) || (Store.settings && Object.keys(Store.settings).length)) {
-    // give the iframe a moment to load
-    setTimeout(scheduleSend, 400);
-  }
+    }
+  });
+  try { mo.observe(tabRoot, { subtree: true, attributes: true, attributeFilter: ['class','aria-selected'] }); } catch(e){}
 })();
 </script>
+
+
+<!-- ==== MOVA Live Preview (inline, no-save) ==== -->
+<script>
+(function(){
+  const FIND_IFRAME = () =>
+    document.querySelector('iframe[src*="user.html"]') ||
+    document.querySelector('#userPreview') ||
+    document.querySelector('iframe');
+
+  let iframe, bridgeReady = false;
+  function post(msg){ try{ iframe?.contentWindow?.postMessage(msg,'*'); }catch(e){} }
+  function ping(){ post({ type:'mova-bridge-ping' }); }
+
+  window.addEventListener('message', (e)=>{
+    if (e?.data?.type === 'mova-bridge-ready'){
+      bridgeReady = true;
+      push();
+    }
+  });
+
+  function readJSONFromTag(){
+    const el = document.querySelector('script[type="application/json"][data-role="sections"]');
+    if (!el) return null;
+    try { return JSON.parse(el.textContent.trim()); } catch { return null; }
+  }
+  function readFromTextarea(){
+    const ta = document.querySelector('textarea[name="sections_json"], textarea#sections_json');
+    if (!ta) return null;
+    try { const v = ta.value.trim(); return v ? JSON.parse(v) : []; } catch { return []; }
+  }
+  function currentSections(){
+    return (Array.isArray(window.store?.sections) ? window.store.sections :
+            Array.isArray(window.__sections)      ? window.__sections :
+            readFromTextarea() ?? readJSONFromTag() ?? []);
+  }
+
+  function persistBootstrap(sections){
+    try { localStorage.setItem('mova_preview_bootstrap', JSON.stringify({ sections })); } catch {}
+  }
+
+  function debounce(fn, ms){ let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), ms); }; }
+
+  const push = debounce(function(){
+    const sections = currentSections();
+    persistBootstrap(sections);
+    if (!bridgeReady) return;
+    post({ type:'sections-live-update', sections });
+  }, 120);
+
+  function pushWithFocus(id){
+    const sections = currentSections();
+    persistBootstrap(sections);
+    if (!bridgeReady) return;
+    post({ type:'sections-live-update', sections, selectedId:id });
+  }
+
+  function start(){
+    iframe = FIND_IFRAME();
+    if (!iframe) return setTimeout(start, 200);
+    ping();
+    push();
+    document.addEventListener('input',  push,  true);
+    document.addEventListener('change', push,  true);
+    document.addEventListener('click', function(ev){
+      const id = ev.target?.closest?.('[data-section-id]')?.getAttribute('data-section-id') ||
+                 ev.target?.closest?.('[data-id^="sec-"]')?.getAttribute('data-id');
+      if (id && bridgeReady) pushWithFocus(id);
+    }, true);
+  }
+  start();
+})();
+</script>
+<!-- ==== /MOVA Live Preview ==== -->
 
 </body>
 </html>                                 
