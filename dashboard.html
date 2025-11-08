@@ -5479,6 +5479,186 @@ window.movaIsLocked = movaIsLocked;
 })();
 </script>
 
+<script>
+/* =========================
+   MOVA — Live Preview Hardening Patch
+   (drop-in, tidak ubah struktur asal)
+   ========================= */
+
+/* 1) Jadikan kunci edit global & stabil */
+(function(){
+  const g = (typeof window !== 'undefined' ? window : self);
+  g.__movaUILock = g.__movaUILock || { userTabLocked:false, _timer:null };
+  g.lockUserEditing = function(seconds){
+    const s = Number(seconds||12);
+    g.__movaUILock.userTabLocked = true;
+    clearTimeout(g.__movaUILock._timer);
+    g.__movaUILock._timer = setTimeout(()=>{ g.__movaUILock.userTabLocked = false; }, s*1000);
+  };
+})();
+
+/* 2) Util kecil */
+const MOVA_PREVIEW_KEY = 'mova_preview_bootstrap';
+const raf = (fn)=> (window.requestAnimationFrame ? requestAnimationFrame(fn) : setTimeout(fn,16));
+const now = ()=> Date.now();
+
+function safeToast(msg){ try { typeof toast==='function' && toast(msg); } catch(_){} }
+
+/* 3) Dapatkan rujukan iframe user.html */
+function getUserIframe(){
+  return document.getElementById('userPreview') || document.querySelector('iframe#userPreview');
+}
+
+/* 4) Normalizer minimum — biarkan user.html yang “render” */
+function normalizeSections(input){
+  try{
+    if (!input) return [];
+    if (Array.isArray(input)) return input;
+    if (typeof input==='string'){
+      const parsed = JSON.parse(input);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && Array.isArray(parsed.sections)) return parsed.sections;
+      return [];
+    }
+    if (typeof input==='object'){
+      if (Array.isArray(input.sections)) return input.sections;
+      return Object.values(input);
+    }
+  }catch(_){}
+  return [];
+}
+
+/* 5) Channel sync → user.html
+   - postMessage (mova-bridge), dan
+   - fallback localStorage utk first paint user.html */
+const PreviewSync = (function(){
+  let lastSend = 0, queued = false, lastPayload = null, iframeReady = false;
+
+  function send(msg){
+    const ifr = getUserIframe();
+    if (!ifr || !ifr.contentWindow) return;
+    try { ifr.contentWindow.postMessage(msg, '*'); } catch(_){}
+  }
+
+  function writeBootstrap(payload){
+    try {
+      localStorage.setItem(MOVA_PREVIEW_KEY, JSON.stringify({ sections: payload.sections||[] }));
+    } catch(_){}
+  }
+
+  function flush(){
+    queued = false;
+    if (!lastPayload) return;
+    writeBootstrap(lastPayload);                 // fallback utk first load
+    send(Object.assign({ type: 'sections-live-update' }, lastPayload)); // laluan baharu (bridge)
+    // Hantar juga “legacy” untuk keserasian kebelakang jika ada listener lama
+    send({ type:'sections-updated', payload: { sections: lastPayload.sections||[] } });
+  }
+
+  function schedule(payload){
+    lastPayload = payload;
+    const t = now();
+    if (t - lastSend < 50){ // throttle 20fps
+      if (!queued){ queued = true; setTimeout(flush, 60); }
+      return;
+    }
+    lastSend = t;
+    raf(flush);
+  }
+
+  // dengar “ready ping” dari user.html
+  window.addEventListener('message', (e)=>{
+    const msg = e.data || {};
+    if (msg.type === 'mova-bridge-ready'){
+      iframeReady = true;
+      if (lastPayload) schedule(lastPayload);
+    }
+  });
+
+  // PING apabila iframe telah load
+  window.addEventListener('load', ()=>{
+    const ifr = getUserIframe();
+    if (ifr) {
+      ifr.addEventListener('load', ()=>{
+        setTimeout(()=> send({ type:'mova-bridge-ping' }), 120);
+      });
+      // jika iframe sudah siap lebih awal
+      setTimeout(()=> send({ type:'mova-bridge-ping' }), 300);
+    }
+  });
+
+  return { schedule };
+})();
+
+/* 6) Hook semua mutasi pada store.sections tanpa ubah kod lain
+      — pantau push/splice/sort/assign dll dan auto-sync */
+(function attachSectionsTracker(){
+  if (!window.store) return; // akan dipanggil sekali lagi selepas init() jika perlu
+  const S = window.store;
+  const orig = Array.isArray(S.sections) ? S.sections.slice() : [];
+
+  // jadikan “array reaktif”
+  const reactive = [];
+  reactive.push.apply(reactive, orig);
+  function bump(){ PreviewSync.schedule({ sections: reactive, settings: (S.settings||{}) }); }
+
+  // balut mutator
+  ['push','pop','shift','unshift','splice','sort','reverse'].forEach(fn=>{
+    const o = reactive[fn];
+    Object.defineProperty(reactive, fn, { value: function(){
+      const out = o.apply(this, arguments);
+      bump();
+      return out;
+    }});
+  });
+
+  // gantikan accessor pada store
+  Object.defineProperty(S, 'sections', {
+    get(){ return reactive; },
+    set(v){
+      const next = normalizeSections(v);
+      reactive.length = 0;
+      reactive.push.apply(reactive, next);
+      bump();
+    }
+  });
+
+  // sekali “boot” — sync keadaan semasa supaya preview hidup terus
+  bump();
+
+  // jadikan global kecil untuk debug/manual sync jika perlu
+  window.__movaForcePreviewSync = ()=> bump();
+})();
+
+/* 7) Matikan auto-scroll mengganggu semasa input (hanya scroll bila pilih seksyen) */
+(function dampenAutoScroll(){
+  const stopIfTyping = (e)=>{
+    const t = e.target;
+    if (!t) return;
+    const tag = (t.tagName||'').toLowerCase();
+    if (tag==='input' || tag==='textarea' || t.isContentEditable) {
+      e.stopImmediatePropagation?.();
+    }
+  };
+  // hentikan listener umum yang mungkin memaksa scroll
+  window.addEventListener('wheel', stopIfTyping, { capture:true });
+  window.addEventListener('keydown', stopIfTyping, { capture:true });
+})();
+
+/* 8) Pastikan penukaran tab mematuhi kunci edit (fallback kalau kod lama wujud) */
+(function guardTabs(){
+  const orig = window.setActiveTab;
+  window.setActiveTab = function(name){
+    try{
+      if (window.__movaUILock && window.__movaUILock.userTabLocked && name!=='user'){
+        safeToast('Sedang mengedit — tab User dikunci sementara.');
+        return;
+      }
+    }catch(_){}
+    return typeof orig==='function' ? orig.apply(this, arguments) : undefined;
+  }
+})();
+</script>
 
 <!-- ==== MOVA Live Preview (inline, no-save) ==== -->
 
