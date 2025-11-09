@@ -4742,22 +4742,152 @@
       const propertiesPanel = document.getElementById('propertiesPanel');
       if (!propertiesPanel) return;
       
-      // Listeners untuk perubahan pada senarai bahagian (klik, input, ubah)
-      const trigger = () => {
-        try { debouncedSendChanges(); } catch(e){ try{ sendLiveUpdate(); }catch(_e){} }
-      };
-      sectionList.addEventListener('click', trigger, true);
-      sectionList.addEventListener('input', trigger, true);
-      sectionList.addEventListener('change', trigger, true);
+      // Listen untuk semua input, textarea, select dalam properties panel
+      propertiesPanel.addEventListener('input', debouncedSendChanges);
+      propertiesPanel.addEventListener('change', debouncedSendChanges);
+      
+      // Juga listen untuk contenteditable elements
+      propertiesPanel.addEventListener('keyup', debouncedSendChanges);
+      propertiesPanel.addEventListener('paste', debouncedSendChanges);
+      propertiesPanel.addEventListener('cut', debouncedSendChanges);
     }
-  } // tamat fungsi initLivePreview
+    
+    // Setup listeners apabila properties panel dibuka
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          const panel = document.getElementById('propertiesPanel');
+          if (panel && !panel.classList.contains('hidden')) {
+            // Panel dibuka - setup listeners
+            setTimeout(setupPropertyChangeListeners, 100);
+          }
+        }
+      });
+    });
+    
+    const propertiesPanel = document.getElementById('propertiesPanel');
+    if (propertiesPanel) {
+      observer.observe(propertiesPanel, { attributes: true });
+    }
+    
+    // Juga setup listeners untuk section list changes
+    const sectionList = document.getElementById('sectionList');
+    if (sectionList) {
+     saya mahu awak sambung rumus ini bermula selepas daripada bahagian yang terputus sahaja sehingga selesai kepada penutup rumus sistem saya ini
 
-  // Daftarkan selepas DOM siap
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initLivePreview);
-  } else {
-    initLivePreview();
+<!-- ===== MOVA: Lock Edit Injection (non-destructive) ===== -->
+<style>
+  .mova-lock-btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;border:1px solid #e5e7eb;padding:.55rem .9rem;font-weight:700;background:#fff}
+  .mova-lock-btn[data-locked="true"]{background:var(--brand,#ef4444);color:#fff;border-color:var(--brand,#ef4444)}
+  .mova-lock-banner{position:fixed;z-index:50;left:50%;transform:translateX(-50%);bottom:16px;background:#111827;color:#fff;padding:.6rem 1rem;border-radius:.75rem;box-shadow:0 10px 20px rgba(0,0,0,.18);font-weight:600;transition:opacity .25s ease}
+  body.locked-edit .mova-tabs-disabled{pointer-events:none;opacity:.5}
+</style>
+<script>
+(function(){
+  function el(q,root){return (root||document).querySelector(q)}
+  function els(q,root){return Array.from((root||document).querySelectorAll(q))}
+  function create(tag, attrs={}, html=""){const n=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v)); if(html) n.innerHTML=html; return n;}
+  function saveLock(on){ try{ localStorage.setItem('mova_lock_edit', on?'1':'0'); }catch(e){} }
+  function loadLock(){ try{ return localStorage.getItem('mova_lock_edit') === '1'; }catch(e){ return false; } }
+
+  // Place the button near "Simpan Reka Bentuk" if possible
+  function placeLockButton(btn){
+    const saveBtn = Array.from(document.querySelectorAll('button, a')).find(b => /Simpan Reka Bentuk/i.test(b.textContent||""));
+    if(saveBtn && saveBtn.parentElement){
+      saveBtn.parentElement.insertBefore(btn, saveBtn.nextSibling);
+      btn.style.marginLeft = '0.5rem';
+      return;
+    }
+    const tabStrip = Array.from(document.querySelectorAll('*')).find(n => /User Sections/i.test(n.textContent||"") && n.querySelector('button, a'));
+    if(tabStrip){
+      tabStrip.appendChild(btn);
+      btn.style.marginLeft = '0.5rem';
+      return;
+    }
+    btn.style.position='fixed'; btn.style.right='16px'; btn.style.bottom='16px'; btn.style.zIndex='60';
+    document.body.appendChild(btn);
   }
+
+  function markTabsDisabled(on){
+    const labelRe = /(User Sections|Kandungan|Media|Partner|Customer|Approvals|Broadcast|Carta)/i;
+    els('a, button, [role="tab"]').forEach(t => {
+      const label = (t.textContent||'').trim();
+      const isUserTab = /^User Sections$/i.test(label);
+      if(labelRe.test(label) && !isUserTab){
+        if(on){ t.classList.add('mova-tabs-disabled'); t.setAttribute('aria-disabled','true'); }
+        else { t.classList.remove('mova-tabs-disabled'); t.removeAttribute('aria-disabled'); }
+      }
+    });
+  }
+
+  function interceptNavigation(e){
+    if(!document.body.classList.contains('locked-edit')) return;
+    const t = e.target.closest('a, button, [role="tab"]');
+    if(!t) return;
+    const label = (t.textContent||'').trim();
+    const isLock = t.id === 'mova-lock-btn';
+    const isUserTab = /User Sections/i.test(label);
+    if(!isLock && !isUserTab && /(Kandungan|Media|Partner|Customer|Approvals|Broadcast|Carta)/i.test(label)){
+      e.preventDefault(); e.stopPropagation();
+      toast('Mod Kunci aktif — buka kunci untuk ke tab lain.');
+    }
+  }
+
+  function toast(msg){
+    let b = el('#mova-lock-toast');
+    if(!b){ b = create('div',{id:'mova-lock-toast', class:'mova-lock-banner'}); document.body.appendChild(b); }
+    b.textContent = msg; b.style.opacity='1'; clearTimeout(b._t);
+    b._t = setTimeout(()=>{ b.style.opacity='0'; }, 1600);
+  }
+
+  function setLocked(on){
+    document.body.classList.toggle('locked-edit', !!on);
+    markTabsDisabled(!!on);
+    const btn = el('#mova-lock-btn');
+    if(btn){
+      btn.dataset.locked = on ? 'true':'false';
+      btn.innerHTML = on ? '🔒 Terkunci' : '🔓 Kunci Edit';
+      btn.setAttribute('aria-pressed', on?'true':'false');
+    }
+    saveLock(!!on);
+  }
+
+  function ensureButton(){
+    let btn = el('#mova-lock-btn');
+    if(btn) return btn;
+    btn = create('button', {id:'mova-lock-btn', class:'mova-lock-btn', 'data-locked':'false', title:'Kunci mod edit supaya kekal di tab User Sections'}, '🔓 Kunci Edit');
+    btn.addEventListener('click', function(e){
+      e.preventDefault();
+      const next = !(document.body.classList.contains('locked-edit'));
+      setLocked(next);
+      toast(next ? 'Mod kunci diaktifkan' : 'Mod kunci dimatikan');
+    }, true);
+    placeLockButton(btn);
+    return btn;
+  }
+
+  function initLock(){
+    ensureButton();
+    if(loadLock()){ setLocked(true); }
+    document.addEventListener('click', interceptNavigation, true);
+    window.addEventListener('hashchange', function(){
+      if(document.body.classList.contains('locked-edit')){
+        const hash = (location.hash||'').toLowerCase();
+        if(!/user/.test(hash)){
+          history.replaceState(null,'', '#user');
+          toast('Mod Kunci aktif — kekal di User Sections');
+        }
+      }
+    });
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', initLock);
+  } else {
+    initLock();
+  }
+})();
 </script>
-</body>
-</html>
+<!-- ===== /MOVA: Lock Edit Injection ===== -->
+
+</body></html>
