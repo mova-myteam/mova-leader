@@ -4773,7 +4773,24 @@
     // Juga setup listeners untuk section list changes
     const sectionList = document.getElementById('sectionList');
     if (sectionList) {
-     saya mahu awak sambung rumus ini bermula selepas daripada bahagian yang terputus sahaja sehingga selesai kepada penutup rumus sistem saya ini
+           // (continued) Wire up click handlers for newly added section list items
+           const refreshSectionItemHandlers = () => {
+             sectionList.querySelectorAll('[data-sec-id]').forEach(el => {
+               if (el.__movaBound) return;
+               el.__movaBound = true;
+               el.addEventListener('click', () => {
+                 const id = el.getAttribute('data-sec-id');
+                 const idx = (window.store?.sections || []).findIndex(s => String(s.id) === String(id));
+                 if (idx >= 0 && typeof window.selectSection === 'function') {
+                   window.selectSection(idx, { fromList: true });
+                 }
+               });
+             });
+           };
+           const moList = new MutationObserver(refreshSectionItemHandlers);
+           moList.observe(sectionList, { childList: true, subtree: true });
+           refreshSectionItemHandlers();
+         }
 
 <script>
 /* === MOVA Tail Patch (finalize bottom & closures) === */
