@@ -278,6 +278,8 @@
         <button id="btnZoomIn" title="Zoom In"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
         <button id="btnZoomOut" title="Zoom Out"><i data-lucide="zoom-out" class="w-4 h-4"></i></button>
         <button id="btnZoomReset" title="Reset Zoom"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+        <div class="separator"></div>
+        <button id="btnLockUser" title="Kunci mod edit User"><i data-lucide="unlock" class="w-4 h-4"></i></button>
       </div>
 
       <div class="grid gap-3 md:grid-cols-[1fr_auto]">
@@ -670,14 +672,31 @@
     iframeReady: false          // Track iframe readiness
   }
   // ====== UI LOCK to keep User tab open while editing ======
-  const uiLock = { userTabLocked: false, _timer: null };
+  const uiLock = {
+    // true  = tab lain dikunci, hanya tab User aktif
+    // false = tab lain bebas digunakan
+    userTabLocked: localStorage.getItem('mova_user_lock') === '1'
+  };
   let activeTabName = localStorage.getItem('mova_active_tab') || 'user';
-  function lockUserEditing(seconds = 12){
-    uiLock.userTabLocked = true;
-    clearTimeout(uiLock._timer);
-    uiLock._timer = setTimeout(()=>{ uiLock.userTabLocked = false; }, seconds*1000);
+
+  function updateLockButtonUI() {
+    const btn = document.getElementById('btnLockUser');
+    if (!btn) return;
+    if (uiLock.userTabLocked) {
+      btn.classList.add('active');
+      btn.dataset.state = 'locked';
+      btn.setAttribute('title','Buka kunci mod edit User');
+      btn.innerHTML = '<i data-lucide="lock" class="w-4 h-4"></i>';
+    } else {
+      btn.classList.remove('active');
+      btn.dataset.state = 'unlocked';
+      btn.setAttribute('title','Kunci mod edit User');
+      btn.innerHTML = '<i data-lucide="unlock" class="w-4 h-4"></i>';
+    }
+    if (typeof lucide !== 'undefined' && lucide?.createIcons) {
+      lucide.createIcons();
+    }
   }
-;
 
   if (!store.leader || !store.leader.leader_id) {
     location.href = "./index.html";
@@ -691,7 +710,25 @@
   document.getElementById('btnOpenUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
 
   // Initialize Lucide icons
-  lucide.createIcons();
+  if (typeof lucide !== 'undefined' && lucide?.createIcons) {
+    lucide.createIcons();
+  }
+
+  // Init lock button (mod edit User)
+  updateLockButtonUI();
+  const lockBtn = document.getElementById('btnLockUser');
+  if (lockBtn) {
+    lockBtn.addEventListener('click', () => {
+      uiLock.userTabLocked = !uiLock.userTabLocked;
+      localStorage.setItem('mova_user_lock', uiLock.userTabLocked ? '1' : '0');
+      updateLockButtonUI();
+      toast(
+        uiLock.userTabLocked
+          ? 'Mod edit User dikunci. Tab lain dikunci sehingga anda buka semula.'
+          : 'Kunci mod edit dibuka. Anda boleh tukar tab semula.'
+      );
+    });
+  }
 
   // ====== UTIL ======
   const toastEl = document.getElementById('toast');
@@ -720,7 +757,7 @@
   // Tab management with guard & remember
   function setActiveTab(name){
     if (uiLock.userTabLocked && name !== 'user') {
-      if (typeof toast === 'function') toast('Sedang mengedit — tab User dikunci sementara.');
+      if (typeof toast === 'function') toast('Sedang mengedit — tab User dikunci sehingga kunci dibuka.');
       return;
     }
     if (name === activeTabName) return;
@@ -4773,8 +4810,31 @@
     // Juga setup listeners untuk section list changes
     const sectionList = document.getElementById('sectionList');
     if (sectionList) {
-     saya mahu awak sambung rumus ini bermula selepas daripada bahagian yang terputus sahaja sehingga selesai kepada penutup rumus sistem saya ini
+     
+    // Setup listeners for changes in the section list (drag/drop/delete/etc)
+    sectionList.addEventListener('change', debouncedSendChanges);
+    sectionList.addEventListener('input', debouncedSendChanges);
+    sectionList.addEventListener('click', debouncedSendChanges);
+  }
 
+  // Send initial payload once the iframe is ready
+  window.addEventListener('message', (e) => {
+    try {
+      if (!e || !e.data || !e.data.type) return;
+      if (e.data.type === 'user-iframe-ready') {
+        sendChangesToPreview();
+      }
+    } catch(err) {
+      console.warn('preview message error:', err);
+    }
+  });
+
+  // Call once on init
+  sendChangesToPreview();
+}
+
+
+</script>
 <!-- MOVA inline patch: User Sections Edit Lock + safe closures -->
 <style>
   #userLockBtn{font-family:Inter,system-ui,ui-sans-serif}
@@ -4847,101 +4907,5 @@
 })();
 </script>
 <!-- /MOVA inline patch -->
-
-<script>
-/* ========== MOVA hotfix v2: editor tidak kosong + preview ikut struktur ==========
-   Letak patch ini selepas semua skrip asal dan sebelum </body>.
-   Ia:
-   1) Menghalang setSections([]) yang tak sengaja (elak “User Sections” jadi kosong)
-   2) Sync preview bila teks/struktur berubah (termasuk tambah blok/elemen)
-=============================================================================== */
-(function () {
-  const TAG = '[MOVA hotfix v2]';
-
-  // Cari iframe preview (tukar selector jika anda guna id khusus untuk preview)
-  const iframe =
-    document.querySelector('#userPreview') ||
-    document.querySelector('iframe[src*="user"]') ||
-    document.querySelector('iframe');
-
-  function debounce(fn, ms) {
-    let t;
-    return function () {
-      clearTimeout(t);
-      t = setTimeout(fn, ms);
-    };
-  }
-
-  function getSections() {
-    try {
-      if (window.store && Array.isArray(window.store.sections)) {
-        return window.store.sections;
-      }
-      if (Array.isArray(window.sections)) return window.sections;
-    } catch (e) {}
-    return [];
-  }
-
-  function pushToPreview(sections) {
-    if (!iframe) return;
-    try {
-      if (iframe.contentWindow) {
-        iframe.contentWindow.postMessage(
-          { type: 'sections-updated', sections },
-          '*'
-        );
-      }
-    } catch (e) {
-      console.warn(TAG, 'postMessage gagal:', e);
-    }
-    try {
-      const w = iframe.contentWindow;
-      if (w && typeof w.applySections === 'function') {
-        w.applySections(sections);
-      }
-    } catch (e) {}
-  }
-
-  let lastJSON = '';
-  const syncPreview = debounce(function () {
-    const cur = getSections();
-    const json = JSON.stringify(cur);
-    if (json === lastJSON) return;
-    lastJSON = json;
-    pushToPreview(cur);
-  }, 120);
-
-  if (window.store && typeof window.store.setSections === 'function') {
-    const origSet = window.store.setSections;
-    window.store.setSections = function (next) {
-      if (Array.isArray(next) && next.length === 0) {
-        console.warn(TAG, 'Tolak setSections([]) — cegah kosong semasa edit.');
-        return;
-      }
-      const ret = origSet.apply(this, arguments);
-      syncPreview();
-      return ret;
-    };
-  }
-
-  document.addEventListener('input', function () { syncPreview(); }, true);
-
-  document.addEventListener('click', function (e) {
-    const el = e.target.closest(
-      '[data-action="add-block"],[data-action="add-section"],' +
-      '[data-action="duplicate-block"],[data-action="duplicate-section"],' +
-      '[data-action="remove-block"],[data-action="remove-section"],' +
-      '[data-role="add-block"],[data-role="add-section"]'
-    );
-    if (el) setTimeout(syncPreview, 60);
-  }, true);
-
-  const safetyTimer = setInterval(syncPreview, 900);
-  window.addEventListener('beforeunload', function () { clearInterval(safetyTimer); });
-
-  console.log(TAG, 'Dipasan. Live text + struktur disegerakkan.');
-})();
-</script>
-
 </body>
 </html>
