@@ -12,17 +12,6 @@
   <!-- Tailwind (CDN for simplicity; use CLI for production) -->
   <!-- TODO: Untuk produksi, compile Tailwind dan gantikan CDN ini dengan fail CSS build. -->
 <script src="https://cdn.tailwindcss.com"></script>
-<script>
-/* Silence Tailwind CDN production warning only */
-(function () {
-  var warn = console.warn;
-  console.warn = function () {
-    var msg = arguments[0] ? String(arguments[0]) : "";
-    if (msg.indexOf("cdn.tailwindcss.com should not be used in production") !== -1) return;
-    return warn.apply(console, arguments);
-  };
-})();
-</script>
   <!-- Lucide icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -4784,12 +4773,10 @@
     // Juga setup listeners untuk section list changes
     const sectionList = document.getElementById('sectionList');
     if (sectionList) {
+     saya mahu awak sambung rumus ini bermula selepas daripada bahagian yang terputus sahaja sehingga selesai kepada penutup rumus sistem saya ini
 
-      // Safe stub listeners to complete the truncated file
-      sectionList.addEventListener('click', function(e) {
-        // no-op; real logic is defined above
-      });
-    } // end if (sectionList)
-  </script>
+/* Auto-appended closers to fix truncation: */
+}}
 </body>
+
 </html>
