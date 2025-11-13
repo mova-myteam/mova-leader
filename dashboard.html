@@ -4773,20 +4773,102 @@
     // Juga setup listeners untuk section list changes
     const sectionList = document.getElementById('sectionList');
     if (sectionList) {
-// Keep properties listeners alive when user interacts with the section list
-      sectionList.addEventListener('click', (e) => {
-        // re-init listeners after any click (select, reorder, etc.)
-        setTimeout(setupPropertyChangeListeners, 50);
-      });
-      sectionList.addEventListener('keyup', (e) => {
-        // also handle keyboard navigation
-        if (e.key === 'Enter' || e.key === ' ') {
-          setTimeout(setupPropertyChangeListeners, 50);
+     
+    // Setup listeners for changes in the section list (drag/drop/delete/etc)
+    sectionList.addEventListener('change', debouncedSendChanges);
+    sectionList.addEventListener('input', debouncedSendChanges);
+    sectionList.addEventListener('click', debouncedSendChanges);
+  }
+
+  // Send initial payload once the iframe is ready
+  window.addEventListener('message', (e) => {
+    try {
+      if (!e || !e.data || !e.data.type) return;
+      if (e.data.type === 'user-iframe-ready') {
+        sendChangesToPreview();
+      }
+    } catch(err) {
+      console.warn('preview message error:', err);
+    }
+  });
+
+  // Call once on init
+  sendChangesToPreview();
+}
+
+
+</script>
+<!-- MOVA inline patch: User Sections Edit Lock + safe closures -->
+<style>
+  #userLockBtn{font-family:Inter,system-ui,ui-sans-serif}
+  [data-locked="true"] .pointer-disabled{pointer-events:none;opacity:.5}
+  [data-locked="true"] .tab,[data-locked="true"] [data-tab]{cursor:not-allowed!important}
+</style>
+<script>
+(function(){
+  "use strict";
+  var LOCK_KEY="mova_user_edit_lock";
+  var state={locked:false};
+  try{ state.locked=JSON.parse(localStorage.getItem(LOCK_KEY)||"false"); }catch(_){ state.locked=false; }
+  var btn=document.createElement("button");
+  btn.id="userLockBtn";
+  btn.type="button";
+  btn.textContent= state.locked ? "🔒 Terkunci" : "🔓 Kunci Edit";
+  Object.assign(btn.style,{
+    position:"fixed",right:"16px",top:"96px",zIndex:"9999",
+    padding:"10px 14px",borderRadius:"12px",border:"1px solid #e5e7eb",
+    background:"#fff",fontWeight:"700",boxShadow:"0 4px 16px rgba(0,0,0,.07)"
+  });
+  function applyLockUI(){
+    try{
+      document.body && document.body.setAttribute("data-locked", String(state.locked));
+      btn.textContent = state.locked ? "🔒 Terkunci" : "🔓 Kunci Edit";
+      var tabs = Array.prototype.slice.call(document.querySelectorAll("[data-tab], .tabs [role=tab], .tab"));
+      tabs.forEach(function(el){
+        var label=(el.textContent||"").toLowerCase();
+        var isUserTab=label.indexOf("user")>=0; // keep User Sections usable
+        if(!isUserTab){
+          if(state.locked){
+            el.setAttribute("aria-disabled","true");
+            el.style.pointerEvents="none"; el.style.opacity="0.5";
+            el.classList.add("pointer-disabled");
+          }else{
+            el.removeAttribute("aria-disabled");
+            el.style.pointerEvents=""; el.style.opacity="";
+            el.classList.remove("pointer-disabled");
+          }
         }
       });
-    } // end if(sectionList)
-
-    // --- End of inline PATCH (console 'mahu' error fix + live listeners) ---
-  </script>
+    }catch(e){ console.warn("[MOVA lock] applyLockUI warn:", e); }
+  }
+  btn.addEventListener("click",function(){
+    state.locked=!state.locked;
+    try{ localStorage.setItem(LOCK_KEY, JSON.stringify(state.locked)); }catch(_){}
+    applyLockUI();
+  });
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded", function(){
+      document.body && document.body.appendChild(btn);
+      applyLockUI();
+    });
+  }else{
+    document.body && document.body.appendChild(btn);
+    applyLockUI();
+  }
+  // Auto-lock when editing any field
+  document.addEventListener("focusin", function(ev){
+    var t=ev.target;
+    if(!t) return;
+    if(t.matches && t.matches("input, textarea, select, [contenteditable='true']")){
+      if(!state.locked){
+        state.locked=true;
+        try{ localStorage.setItem(LOCK_KEY, "true"); }catch(_){}
+        applyLockUI();
+      }
+    }
+  });
+})();
+</script>
+<!-- /MOVA inline patch -->
 </body>
 </html>
