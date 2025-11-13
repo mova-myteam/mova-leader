@@ -4773,31 +4773,8 @@
     // Juga setup listeners untuk section list changes
     const sectionList = document.getElementById('sectionList');
     if (sectionList) {
-     
-    // Setup listeners for changes in the section list (drag/drop/delete/etc)
-    sectionList.addEventListener('change', debouncedSendChanges);
-    sectionList.addEventListener('input', debouncedSendChanges);
-    sectionList.addEventListener('click', debouncedSendChanges);
-  }
+     saya mahu awak sambung rumus ini bermula selepas daripada bahagian yang terputus sahaja sehingga selesai kepada penutup rumus sistem saya ini
 
-  // Send initial payload once the iframe is ready
-  window.addEventListener('message', (e) => {
-    try {
-      if (!e || !e.data || !e.data.type) return;
-      if (e.data.type === 'user-iframe-ready') {
-        sendChangesToPreview();
-      }
-    } catch(err) {
-      console.warn('preview message error:', err);
-    }
-  });
-
-  // Call once on init
-  sendChangesToPreview();
-}
-
-
-</script>
 <!-- MOVA inline patch: User Sections Edit Lock + safe closures -->
 <style>
   #userLockBtn{font-family:Inter,system-ui,ui-sans-serif}
@@ -4870,5 +4847,101 @@
 })();
 </script>
 <!-- /MOVA inline patch -->
+
+<script>
+/* ========== MOVA hotfix v2: editor tidak kosong + preview ikut struktur ==========
+   Letak patch ini selepas semua skrip asal dan sebelum </body>.
+   Ia:
+   1) Menghalang setSections([]) yang tak sengaja (elak “User Sections” jadi kosong)
+   2) Sync preview bila teks/struktur berubah (termasuk tambah blok/elemen)
+=============================================================================== */
+(function () {
+  const TAG = '[MOVA hotfix v2]';
+
+  // Cari iframe preview (tukar selector jika anda guna id khusus untuk preview)
+  const iframe =
+    document.querySelector('#userPreview') ||
+    document.querySelector('iframe[src*="user"]') ||
+    document.querySelector('iframe');
+
+  function debounce(fn, ms) {
+    let t;
+    return function () {
+      clearTimeout(t);
+      t = setTimeout(fn, ms);
+    };
+  }
+
+  function getSections() {
+    try {
+      if (window.store && Array.isArray(window.store.sections)) {
+        return window.store.sections;
+      }
+      if (Array.isArray(window.sections)) return window.sections;
+    } catch (e) {}
+    return [];
+  }
+
+  function pushToPreview(sections) {
+    if (!iframe) return;
+    try {
+      if (iframe.contentWindow) {
+        iframe.contentWindow.postMessage(
+          { type: 'sections-updated', sections },
+          '*'
+        );
+      }
+    } catch (e) {
+      console.warn(TAG, 'postMessage gagal:', e);
+    }
+    try {
+      const w = iframe.contentWindow;
+      if (w && typeof w.applySections === 'function') {
+        w.applySections(sections);
+      }
+    } catch (e) {}
+  }
+
+  let lastJSON = '';
+  const syncPreview = debounce(function () {
+    const cur = getSections();
+    const json = JSON.stringify(cur);
+    if (json === lastJSON) return;
+    lastJSON = json;
+    pushToPreview(cur);
+  }, 120);
+
+  if (window.store && typeof window.store.setSections === 'function') {
+    const origSet = window.store.setSections;
+    window.store.setSections = function (next) {
+      if (Array.isArray(next) && next.length === 0) {
+        console.warn(TAG, 'Tolak setSections([]) — cegah kosong semasa edit.');
+        return;
+      }
+      const ret = origSet.apply(this, arguments);
+      syncPreview();
+      return ret;
+    };
+  }
+
+  document.addEventListener('input', function () { syncPreview(); }, true);
+
+  document.addEventListener('click', function (e) {
+    const el = e.target.closest(
+      '[data-action="add-block"],[data-action="add-section"],' +
+      '[data-action="duplicate-block"],[data-action="duplicate-section"],' +
+      '[data-action="remove-block"],[data-action="remove-section"],' +
+      '[data-role="add-block"],[data-role="add-section"]'
+    );
+    if (el) setTimeout(syncPreview, 60);
+  }, true);
+
+  const safetyTimer = setInterval(syncPreview, 900);
+  window.addEventListener('beforeunload', function () { clearInterval(safetyTimer); });
+
+  console.log(TAG, 'Dipasan. Live text + struktur disegerakkan.');
+})();
+</script>
+
 </body>
 </html>
