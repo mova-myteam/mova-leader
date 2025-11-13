@@ -323,7 +323,7 @@
         <!-- Right column: Preview -->
         <div class="pane preview">
           <div class="preview-container">
-            <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1"></iframe>
+            <iframe id="userPreview" class="preview-iframe" src="./user.html?edit=1&sync=1"></iframe>
             <!-- Zoom Controls -->
             <div class="zoom-controls">
               <button id="zoomInBtn"><i data-lucide="zoom-in" class="w-4 h-4"></i></button>
@@ -677,7 +677,6 @@
     clearTimeout(uiLock._timer);
     uiLock._timer = setTimeout(()=>{ uiLock.userTabLocked = false; }, seconds*1000);
   }
-;
 
   if (!store.leader || !store.leader.leader_id) {
     location.href = "./index.html";
@@ -767,7 +766,6 @@
     await refreshSettings();     // untuk theme/typography dll + preview mini
     initEditor();                // Initialize the Section-Based editor
     initAdvancedEditor();        // Initialize advanced editor features
-    initLivePreview();           // Initialize live preview functionality
   })();
 
   // ====== STATS ======
@@ -1250,23 +1248,197 @@
   // ====== EDITOR BAHAGIAN (KOD LENGKAP & DIKEMASKINI) ======
   // ===================================================================
 
+  // ====== LIVE SYNC ENHANCED ======
+  // Fungsi untuk menghantar mesej ke iframe dengan lebih baik
+  function sendToIframe(type, data) {
+    const userPreview = document.getElementById('userPreview');
+    if (userPreview && userPreview.contentWindow) {
+      const send = () => {
+        try {
+          // Tambah semakan untuk memastikan iframe sedia
+          if (userPreview.contentDocument && userPreview.contentDocument.readyState === 'complete') {
+            userPreview.contentWindow.postMessage({ type, data }, '*');
+            console.log(`Sent message to iframe: ${type}`, data);
+          } else {
+            // Jika iframe belum sedia, cuba lagi selepas 100ms
+            setTimeout(send, 100);
+          }
+        } catch (error) {
+          console.error('Error sending message to iframe:', error);
+        }
+      };
+      
+      // Hantar mesej serta-merta
+      send();
+    } else {
+      console.warn('Iframe not available');
+    }
+  }
+
+  // Fungsi untuk memantau perubahan pada store.sections dan menghantar kemas kini
+  function setupSectionObserver() {
+    let previousSections = JSON.stringify(store.sections || []);
+    
+    // Semak perubahan setiap 300ms
+    setInterval(() => {
+      const currentSections = JSON.stringify(store.sections || []);
+      if (currentSections !== previousSections) {
+        previousSections = currentSections;
+        // Hantar kemas kini ke iframe
+        sendToIframe('load-sections', { sections: store.sections });
+      }
+    }, 300);
+  }
+
+  // Fungsi untuk memantau perubahan pada elemen yang dipilih
+  function setupSelectedElementObserver() {
+    let previousSelectedId = store.selectedElementId;
+    
+    // Semak perubahan setiap 200ms
+    setInterval(() => {
+      if (store.selectedElementId !== previousSelectedId) {
+        previousSelectedId = store.selectedElementId;
+        // Hantar kemas kini ke iframe
+        if (store.selectedElementId) {
+          sendToIframe('select-element', { id: store.selectedElementId });
+        } else {
+          sendToIframe('deselect-all', {});
+        }
+      }
+    }, 200);
+  }
+
+  // Fungsi untuk memantau perubahan pada bahagian yang dipilih
+  function setupSelectedSectionObserver() {
+    let previousSelectedId = store.selectedSectionId;
+    
+    // Semak perubahan setiap 200ms
+    setInterval(() => {
+      if (store.selectedSectionId !== previousSelectedId) {
+        previousSelectedId = store.selectedSectionId;
+        // Hantar kemas kini ke iframe
+        if (store.selectedSectionId) {
+          sendToIframe('select-section', { id: store.selectedSectionId });
+        } else {
+          sendToIframe('deselect-all', {});
+        }
+      }
+    }, 200);
+  }
+
+  // Fungsi untuk menambah event listener pada semua input dalam properties panel
+  function setupPropertyListeners() {
+    const propertiesPanel = document.getElementById('propertiesPanel');
+    
+    if (!propertiesPanel) return;
+    
+    // Gunakan event delegation untuk menangkap semua perubahan
+    propertiesPanel.addEventListener('input', (e) => {
+      // Hantar kemas kini segera
+      if (store.selectedElementId) {
+        const element = findElementById(store.selectedElementId);
+        if (element) {
+          sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+        }
+      } else if (store.selectedSectionId) {
+        const section = findSectionById(store.selectedSectionId);
+        if (section) {
+          sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+        }
+      }
+    });
+    
+    propertiesPanel.addEventListener('change', (e) => {
+      // Hantar kemas kini segera
+      if (store.selectedElementId) {
+        const element = findElementById(store.selectedElementId);
+        if (element) {
+          sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+        }
+      } else if (store.selectedSectionId) {
+        const section = findSectionById(store.selectedSectionId);
+        if (section) {
+          sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+        }
+      }
+    });
+  }
+
+  // Fungsi pembantu untuk mencari elemen berdasarkan ID
+  function findElementById(elementId) {
+    for (const section of store.sections) {
+      const element = section.elements.find(e => e.id === elementId);
+      if (element) return element;
+    }
+    return null;
+  }
+
+  // Fungsi pembantu untuk mencari bahagian berdasarkan ID
+  function findSectionById(sectionId) {
+    return store.sections.find(s => s.id === sectionId) || null;
+  }
+
+  // Fungsi untuk memastikan iframe dimuatkan dengan betul
+  function ensureIframeReady() {
+    const userPreview = document.getElementById('userPreview');
+    
+    if (!userPreview) return;
+    
+    // Tambah event listener untuk memastikan iframe sedia
+    userPreview.addEventListener('load', () => {
+      console.log('Iframe loaded successfully');
+      store.iframeReady = true;
+      
+      // Hantar data terkini ke iframe
+      if (store.sections && store.sections.length) {
+        sendToIframe('load-sections', { sections: store.sections });
+      }
+    });
+    
+    // Semak status iframe setiap 2 saat
+    setInterval(() => {
+      try {
+        if (userPreview.contentDocument && userPreview.contentDocument.readyState === 'complete') {
+          if (!store.iframeReady) {
+            store.iframeReady = true;
+            console.log('Iframe is ready');
+            
+            // Hantar data terkini ke iframe
+            if (store.sections && store.sections.length) {
+              sendToIframe('load-sections', { sections: store.sections });
+            }
+          }
+        } else {
+          store.iframeReady = false;
+        }
+      } catch (e) {
+        store.iframeReady = false;
+      }
+    }, 2000);
+  }
+
   function initEditor() {
     const userPreview = document.getElementById('userPreview');
     
-    // Add iframe loading state listener
-    userPreview.addEventListener('load', () => {
-      store.iframeReady = true;
-      console.log('iframe loaded successfully');
-    }, { once: true });
+    // Pastikan iframe sedia
+    ensureIframeReady();
     
+    // Setup pemerhati untuk perubahan
+    setupSectionObserver();
+    setupSelectedElementObserver();
+    setupSelectedSectionObserver();
+    setupPropertyListeners();
+    
+    // Setup event listener untuk mesej dari iframe
     window.addEventListener('message', handleIframeMessage);
     
-    // Setup event listeners for the new UI
+    // Setup event listeners untuk UI
     document.getElementById('btnAddSection').addEventListener('click', addNewSection);
     document.getElementById('btnSaveDesign').addEventListener('click', saveDesign);
     document.getElementById('btnCloseProperties').addEventListener('click', closePropertiesPanel);
     document.getElementById('btnPreviewUser').addEventListener('click', ()=> window.open('./user.html','_blank'));
     
+    // Muat reka bentuk sedia ada
     loadDesign();
   }
 
@@ -1283,6 +1455,12 @@
         break;
       case 'element-selected':
         selectElement(data.id);
+        break;
+      case 'iframe-ready':
+        store.iframeReady = true;
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        }
         break;
     }
   }
@@ -1347,6 +1525,9 @@
     saveDesign();
     selectSection(newSection.id);
     addToHistory();
+    
+    // Hantar kemas kini segera ke iframe
+    sendToIframe('load-sections', { sections: store.sections });
   }
 
   function selectSection(sectionId) {
@@ -1558,6 +1739,7 @@
       renderSectionList();
       saveDesign();
       addToHistory();
+      sendToIframe('update-section', { id: sectionId, properties: { name: e.target.value } });
     });
 
     document.getElementById('prop-sectionStyle').addEventListener('change', (e) => {
@@ -1684,6 +1866,11 @@
     document.getElementById('btnAddElementInSection').onclick = () => showAddElementDialog(sectionId);
     
     renderElementListInSection(sectionId);
+    
+    // Hantar kemas kini segera ke iframe
+    setTimeout(() => {
+      sendToIframe('update-section', { id: sectionId, properties: section });
+    }, 100);
   }
 
   // Fungsi untuk menggunakan gaya
@@ -2014,7 +2201,8 @@
                   <option value="slide-up" ${element.animation === 'slide-up' ? 'selected' : ''}>Slide Up</option>
                   <option value="slide-down" ${element.animation === 'slide-down' ? 'selected' : ''}>Slide Down</option>
                   <option value="slide-left" ${element.animation === 'slide-left' ? 'selected' : ''}>Slide Left</option>
-                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
+                  <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option> 
+                                    <option value="slide-right" ${element.animation === 'slide-right' ? 'selected' : ''}>Slide Right</option>
                   <option value="zoom-in" ${element.animation === 'zoom-in' ? 'selected' : ''}>Zoom In</option>
                   <option value="zoom-out" ${element.animation === 'zoom-out' ? 'selected' : ''}>Zoom Out</option>
                 </select>
@@ -2030,6 +2218,7 @@
             </div>
           </div>
         `;
+        
         break;
 
       case 'video':
@@ -2811,7 +3000,7 @@
           currentElement.borderColor = borderColorInput.value;
           saveDesign();
           addToHistory();
-          sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: currentElement.borderColor } });
+          sendToIframe('update-element', { id: currentElement.id, properties: { borderColor: e.target.value } });
         });
       }
       
@@ -3573,8 +3762,13 @@
       });
     }
     
-    // Re-initialize Lucide icons for the new content
+    // Re-initialize Lucide icons for new content
     lucide.createIcons();
+    
+    // Hantar kemas kini segera ke iframe
+    setTimeout(() => {
+      sendToIframe('update-element', { id: element.id, properties: element });
+    }, 100);
   }
 
   // Function to handle element property errors
@@ -3587,51 +3781,6 @@
     if (panel && panel.classList.contains('hidden')) {
       panel.classList.remove('hidden');
     }
-  }
-
-  // Initialize text toolbar with proper icons
-  function initializeTextToolbar() {
-    const toolbar = document.querySelector('.toolbar');
-    if (!toolbar) return;
-    
-    // Re-initialize Lucide icons for toolbar buttons
-    lucide.createIcons({
-      attrs: {
-        class: ['w-4', 'h-4']
-      }
-    });
-    
-    // Add event listeners to toolbar buttons
-    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const command = btn.dataset.command;
-        try {
-          document.execCommand(command, false, null);
-          updateToolbarState();
-        } catch (error) {
-          console.error('Error executing command:', command, error);
-        }
-      });
-    });
-    
-    // Initialize toolbar state
-    updateToolbarState();
-  }
-  
-  // Update toolbar button states based on current selection
-  function updateToolbarState() {
-    const toolbar = document.querySelector('.toolbar');
-    if (!toolbar) return;
-    
-    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
-      const command = btn.dataset.command;
-      try {
-        const isActive = document.queryCommandState(command);
-        btn.classList.toggle('active', isActive);
-      } catch (e) {
-        // Some commands might not be supported
-      }
-    });
   }
 
   function renderElementListInSection(sectionId) {
@@ -4020,19 +4169,21 @@
     if (userPreview && userPreview.contentWindow) {
       const send = () => {
         try {
-          userPreview.contentWindow.postMessage({ type, data }, '*');
+          // Tambah semakan untuk memastikan iframe sedia
+          if (userPreview.contentDocument && userPreview.contentDocument.readyState === 'complete') {
+            userPreview.contentWindow.postMessage({ type, data }, '*');
+            console.log(`Sent message to iframe: ${type}`, data);
+          } else {
+            // Jika iframe belum sedia, cuba lagi selepas 100ms
+            setTimeout(send, 100);
+          }
         } catch (error) {
           console.error('Error sending message to iframe:', error);
         }
       };
       
-      // If iframe not fully loaded, delay retry sending
-      if (userPreview.contentDocument.readyState === 'complete') {
-        send();
-      } else {
-        userPreview.addEventListener('load', send, { once: true });
-        setTimeout(send, 500); // fallback retry after 0.5s
-      }
+      // Hantar mesej serta-merta
+      send();
     } else {
       console.warn('Iframe not available');
     }
@@ -4356,7 +4507,7 @@
       
       templateItem.addEventListener('click', () => {
         if (confirm(`Adakah anda pasti ingin menambah template "${template.name}"? Ini akan menambah bahagian baru pada halaman anda.`)) {
-          // Add template sections to the current design
+          // Add template sections to current design
           template.sections.forEach(section => {
             store.sections.push(section);
           });
@@ -4551,7 +4702,7 @@
       store.contextMenuTarget = { type: 'element', id: elementId, sectionId };
     }
     
-    // Position the context menu
+    // Position context menu
     contextMenu.style.left = `${e.pageX}px`;
     contextMenu.style.top = `${e.pageY}px`;
     contextMenu.classList.remove('hidden');
@@ -4569,6 +4720,10 @@
     const action = e.currentTarget.dataset.action;
     
     if (action === 'duplicate') {
+      if (store.contextMenuTarget.type === 'section')   function handleContextMenuItemClick(e) {
+    const action = e.currentTarget.dataset.action;
+    
+    if (action === 'duplicate') {
       if (store.contextMenuTarget.type === 'section') {
         const section = store.sections.find(s => s.id === store.contextMenuTarget.id);
         if (section) {
@@ -4581,9 +4736,7 @@
             element.id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
           });
           
-          const index = store.sections.findIndex(s => s.id === store.contextMenuTarget.id);
-          store.sections.splice(index + 1, 0, newSection);
-          
+          store.sections.push(newSection);
           renderSectionList();
           saveDesign();
           addToHistory();
@@ -4602,9 +4755,7 @@
             const newElement = JSON.parse(JSON.stringify(element));
             newElement.id = `el-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
             
-            const index = section.elements.findIndex(e => e.id === store.contextMenuTarget.id);
-            section.elements.splice(index + 1, 0, newElement);
-            
+            section.elements.push(newElement);
             renderElementListInSection(store.contextMenuTarget.sectionId);
             saveDesign();
             addToHistory();
@@ -4619,9 +4770,26 @@
       }
     } else if (action === 'delete') {
       if (store.contextMenuTarget.type === 'section') {
-        if (confirm('Adakah anda pasti ingin memadam bahagian ini?')) {
-          store.sections = store.sections.filter(s => s.id !== store.contextMenuTarget.id);
-          renderSectionList();
+        if (!confirm('Adakah anda pasti ingin memadam bahagian ini?')) return;
+        
+        store.sections = store.sections.filter(s => s.id !== store.contextMenuTarget.id);
+        renderSectionList();
+        closePropertiesPanel();
+        saveDesign();
+        addToHistory();
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+        toast('Bahagian dipadam');
+      } else if (store.contextMenuTarget.type === 'element') {
+        if (!confirm('Adakah anda pasti ingin memadam elemen ini?')) return;
+        
+        const section = store.sections.find(s => s.id === store.contextMenuTarget.sectionId);
+        if (section) {
+          section.elements = section.elements.filter(el => el.id !== store.contextMenuTarget.id);
+          renderElementListInSection(store.contextMenuTarget.sectionId);
           saveDesign();
           addToHistory();
           if (store.sections && store.sections.length) {
@@ -4629,30 +4797,14 @@
           } else {
             console.warn('skip load-sections — store.sections kosong');
           }
-          toast('Bahagian dipadam');
-        }
-      } else if (store.contextMenuTarget.type === 'element') {
-        if (confirm('Adakah anda pasti ingin memadam elemen ini?')) {
-          const section = store.sections.find(s => s.id === store.contextMenuTarget.sectionId);
-          if (section) {
-            section.elements = section.elements.filter(e => e.id !== store.contextMenuTarget.id);
-            renderElementListInSection(store.contextMenuTarget.sectionId);
-            saveDesign();
-            addToHistory();
-            if (store.sections && store.sections.length) {
-              sendToIframe('load-sections', { sections: store.sections });
-            } else {
-              console.warn('skip load-sections — store.sections kosong');
-            }
-            toast('Elemen dipadam');
-          }
+          toast('Elemen dipadam');
         }
       }
     }
     
     document.getElementById('contextMenu').classList.add('hidden');
   }
-  
+
   // Keyboard shortcuts
   function handleKeyboardShortcuts(e) {
     // Only handle shortcuts when not in an input field
@@ -4705,189 +4857,678 @@
     }
   }
 
-  // ===================================================================
-  // ====== LIVE PREVIEW FUNCTIONALITY ======
-  // ===================================================================
-
-  function initLivePreview() {
-    console.log('Initializing live preview communication...');
+  // Initialize text toolbar with proper icons
+  function initializeTextToolbar() {
+    const toolbar = document.querySelector('.toolbar');
+    if (!toolbar) return;
     
-    // Fungsi untuk menghantar perubahan ke iframe
-    function sendChangesToPreview() {
-      const userPreview = document.getElementById('userPreview');
-      if (userPreview && userPreview.contentWindow) {
-        try {
-          // Hantar keseluruhan struktur sections ke preview
-          userPreview.contentWindow.postMessage({
-            type: 'sections-updated',
-            sections: store.sections
-          }, '*');
-          
-          // Juga hantar settings terkini
-          userPreview.contentWindow.postMessage({
-            type: 'settings-updated',
-            settings: store.settings
-          }, '*');
-        } catch (error) {
-          console.error('Error sending to preview:', error);
-        }
+    // Re-initialize Lucide icons for toolbar buttons
+    lucide.createIcons({
+      attrs: {
+        class: ['w-4', 'h-4']
       }
-    }
+    });
     
-    // Debounce untuk prestasi
-    const debouncedSendChanges = debounce(sendChangesToPreview, 300);
-    
-    // Fungsi untuk setup event listeners pada semua input dalam properties panel
-    function setupPropertyChangeListeners() {
-      const propertiesPanel = document.getElementById('propertiesPanel');
-      if (!propertiesPanel) return;
-      
-      // Listen untuk semua input, textarea, select dalam properties panel
-      propertiesPanel.addEventListener('input', debouncedSendChanges);
-      propertiesPanel.addEventListener('change', debouncedSendChanges);
-      
-      // Juga listen untuk contenteditable elements
-      propertiesPanel.addEventListener('keyup', debouncedSendChanges);
-      propertiesPanel.addEventListener('paste', debouncedSendChanges);
-      propertiesPanel.addEventListener('cut', debouncedSendChanges);
-    }
-    
-    // Setup listeners apabila properties panel dibuka
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-          const panel = document.getElementById('propertiesPanel');
-          if (panel && !panel.classList.contains('hidden')) {
-            // Panel dibuka - setup listeners
-            setTimeout(setupPropertyChangeListeners, 100);
-          }
+    // Add event listeners to toolbar buttons
+    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const command = btn.dataset.command;
+        try {
+          document.execCommand(command, false, null);
+          updateToolbarState();
+        } catch (error) {
+          console.error('Error executing command:', command, error);
         }
       });
     });
     
-    const propertiesPanel = document.getElementById('propertiesPanel');
-    if (propertiesPanel) {
-      observer.observe(propertiesPanel, { attributes: true });
+    // Initialize toolbar state
+    updateToolbarState();
+  }
+  
+  // Update toolbar button states based on current selection
+  function updateToolbarState() {
+    const toolbar = document.querySelector('.toolbar');
+    if (!toolbar) return;
+    
+    toolbar.querySelectorAll('button[data-command]').forEach(btn => {
+      const command = btn.dataset.command;
+      try {
+        const isActive = document.queryCommandState(command);
+        btn.classList.toggle('active', isActive);
+      } catch (e) {
+        // Some commands might not be supported
+      }
+    });
+  }
+
+  // Initialize Lucide icons for dynamically added elements
+  function initializeLucideIcons() {
+    // Use a MutationObserver to watch for new elements that need icons
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.addedNodes) {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === 1) { // Element node
+              const icons = node.querySelectorAll('[data-lucide]');
+              if (icons.length > 0) {
+                lucide.createIcons({
+                  attrs: {
+                    class: ['w-4', 'h-4']
+                  }
+                });
+              }
+            }
+          });
+        }
+      });
+    });
+    
+    // Start observing the document body for changes
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Initialize Lucide icons observer
+  initializeLucideIcons();
+
+  // Finalize initialization
+  function finalizeInitialization() {
+    // Set up the iframe communication handshake
+    const userPreview = document.getElementById('userPreview');
+    if (userPreview) {
+      userPreview.addEventListener('load', () => {
+        console.log('Iframe loaded successfully');
+        store.iframeReady = true;
+        
+        // Send current sections to iframe
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+      });
+      
+      // Periodically check iframe readiness
+      setInterval(() => {
+        try {
+          if (userPreview.contentDocument && userPreview.contentDocument.readyState === 'complete') {
+            if (!store.iframeReady) {
+              store.iframeReady = true;
+              console.log('Iframe is ready');
+              
+              // Send current sections to iframe
+              if (store.sections && store.sections.length) {
+                sendToIframe('load-sections', { sections: store.sections });
+              } else {
+                console.warn('skip load-sections — store.sections kosong');
+              }
+            }
+          } else {
+            store.iframeReady = false;
+          }
+        } catch (e) {
+          store.iframeReady = false;
+        }
+      }, 2000);
     }
     
-    // Juga setup listeners untuk section list changes
-    const sectionList = document.getElementById('sectionList');
-    if (sectionList) {
-     saya mahu awak sambung rumus ini bermula selepas daripada bahagian yang terputus sahaja sehingga selesai kepada penutup rumus sistem saya ini
+    // Set up periodic sync between editor and preview
+    setInterval(() => {
+      if (store.iframeReady) {
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+      }
+    }, 500);
+    
+    // Set up periodic property sync
+    setInterval(() => {
+      if (store.iframeReady) {
+        if (store.selectedElementId) {
+          const element = findElementById(store.selectedElementId);
+          if (element) {
+            sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+          }
+        } else if (store.selectedSectionId) {
+          const section = findSectionById(store.selectedSectionId);
+          if (section) {
+            sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+          }
+        }
+      }
+    }, 300);
+  }
 
-<!-- ===== MOVA: Lock Edit Injection (non-destructive) ===== -->
-<style>
-  .mova-lock-btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:.75rem;border:1px solid #e5e7eb;padding:.55rem .9rem;font-weight:700;background:#fff}
-  .mova-lock-btn[data-locked="true"]{background:var(--brand,#ef4444);color:#fff;border-color:var(--brand,#ef4444)}
-  .mova-lock-banner{position:fixed;z-index:50;left:50%;transform:translateX(-50%);bottom:16px;background:#111827;color:#fff;padding:.6rem 1rem;border-radius:.75rem;box-shadow:0 10px 20px rgba(0,0,0,.18);font-weight:600;transition:opacity .25s ease}
-  body.locked-edit .mova-tabs-disabled{pointer-events:none;opacity:.5}
-</style>
+  // Call the finalization function
+  finalizeInitialization();
+
+  // Add a global event listener for iframe messages
+  window.addEventListener('message', (event) => {
+    const { type, data } = event.data;
+    
+    switch (type) {
+      case 'sections-loaded':
+        store.sections = data.sections || [];
+        renderSectionList();
+        break;
+      case 'section-selected':
+        selectSection(data.id);
+        break;
+      case 'element-selected':
+        selectElement(data.id);
+        break;
+      case 'iframe-ready':
+        store.iframeReady = true;
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+        break;
+    }
+  });
+
+  // Add a function to handle iframe load completion
+  function handleIframeLoad() {
+    console.log('Iframe loaded successfully');
+    store.iframeReady = true;
+    
+    // Send current sections to iframe
+    if (store.sections && store.sections.length) {
+      sendToIframe('load-sections', { sections: store.sections });
+    } else {
+      console.warn('skip load-sections — store.sections kosong');
+    }
+  }
+
+  // Add event listener to iframe for load completion
+  const userPreview = document.getElementById('userPreview');
+  if (userPreview) {
+    userPreview.addEventListener('load', handleIframeLoad);
+  }
+
+  // Add a function to handle changes in the properties panel
+  function handlePropertiesChange() {
+    if (store.selectedElementId) {
+      const element = findElementById(store.selectedElementId);
+      if (element) {
+        sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+      }
+    } else if (store.selectedSectionId) {
+      const section = findSectionById(store.selectedSectionId);
+      if (section) {
+        sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+      }
+    }
+  }
+
+  // Add event listeners to the properties panel
+  const propertiesPanel = document.getElementById('propertiesPanel');
+  if (propertiesPanel) {
+    propertiesPanel.addEventListener('input', handlePropertiesChange);
+    propertiesPanel.addEventListener('change', handlePropertiesChange);
+  }
+
+  // Add a function to handle changes in the section list
+  function handleSectionListChange() {
+    if (store.sections && store.sections.length) {
+      sendToIframe('load-sections', { sections: store.sections });
+    } else {
+      console.warn('skip load-sections — store.sections kosong');
+    }
+  }
+
+  // Add a MutationObserver to watch for changes in the section list
+  const sectionList = document.getElementById('sectionList');
+  if (sectionList) {
+    const sectionListObserver = new MutationObserver(() => {
+      handleSectionListChange();
+    });
+    
+    sectionListObserver.observe(sectionList, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Add a function to handle changes in the element list
+  function handleElementListChange() {
+    if (store.selectedSectionId) {
+      const section = findSectionById(store.selectedSectionId);
+      if (section) {
+        sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+      }
+    }
+  }
+
+  // Add a MutationObserver to watch for changes in the element list
+  const elementListInSection = document.getElementById('elementListInSection');
+  if (elementListInSection) {
+    const elementListObserver = new MutationObserver(() => {
+      handleElementListChange();
+    });
+    
+    elementListObserver.observe(elementListInSection, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Add a function to handle changes in the properties content
+  function handlePropertiesContentChange() {
+    if (store.selectedElementId) {
+      const element = findElementById(store.selectedElementId);
+      if (element) {
+        sendToIframe('update-element', { id: store.selectedElementId, properties: element });
+      }
+    } else if (store.selectedSectionId) {
+      const section = findSectionById(store.selectedSectionId);
+      if (section) {
+        sendToIframe('update-section', { id: store.selectedSectionId, properties: section });
+      }
+    }
+  }
+
+  // Add a MutationObserver to watch for changes in the properties content
+  const propertiesContent = document.getElementById('propertiesContent');
+  if (propertiesContent) {
+    const propertiesContentObserver = new MutationObserver(() => {
+      handlePropertiesContentChange();
+    });
+    
+    propertiesContentObserver.observe(propertiesContent, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  // Add a function to handle tab changes
+  function handleTabChange() {
+    if (activeTabName === 'user' && store.iframeReady) {
+      if (store.sections && store.sections.length) {
+        sendToIframe('load-sections', { sections: store.sections });
+      } else {
+        console.warn('skip load-sections — store.sections kosong');
+      }
+    }
+  }
+
+  // Add a MutationObserver to watch for changes in the active tab
+  const tabButtons = document.querySelectorAll('[data-tab]');
+  if (tabButtons.length > 0) {
+    const tabObserver = new MutationObserver(() => {
+      handleTabChange();
+    });
+    
+    tabButtons.forEach(tab => {
+      tabObserver.observe(tab, {
+        attributes: true,
+        attributeFilter: ['class']
+      });
+    });
+  }
+
+  // Add a function to handle window focus changes
+  function handleWindowFocus() {
+    if (document.hasFocus() && activeTabName === 'user' && store.iframeReady) {
+      if (store.sections && store.sections.length) {
+        sendToIframe('load-sections', { sections: store.sections });
+      } else {
+        console.warn('skip load-sections — store.sections kosong');
+      }
+    }
+  }
+
+  // Add an event listener for window focus changes
+  window.addEventListener('focus', handleWindowFocus);
+
+  // Add a function to handle window visibility changes
+  function handleVisibilityChange() {
+    if (!document.hidden && activeTabName === 'user' && store.iframeReady) {
+      if (store.sections && store.sections.length) {
+        sendToIframe('load-sections', { sections: store.sections });
+      } else {
+        console.warn('skip load-sections — store.sections kosong');
+      }
+    }
+  }
+
+  // Add an event listener for visibility changes
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+
+  // Add a function to handle page unload
+  function handlePageUnload() {
+    // Save any unsaved changes before the page unloads
+    saveDesign();
+  }
+
+  // Add an event listener for page unload
+  window.addEventListener('beforeunload', handlePageUnload);
+
+  // Add a function to handle connection changes
+  function handleConnectionChange() {
+    // Check if the connection is online
+    if (navigator.onLine) {
+      if (store.iframeReady) {
+        if (store.sections && store.sections.length) {
+          sendToIframe('load-sections', { sections: store.sections });
+        } else {
+          console.warn('skip load-sections — store.sections kosong');
+        }
+      }
+    }
+  }
+
+  // Add an event listener for connection changes
+  window.addEventListener('online', handleConnectionChange);
+
+  // Add a function to handle errors
+  function handleError(event) {
+    console.error('An error occurred:', event.error);
+    toast(`Ralat: ${event.error.message || 'Ralat tidak diketahui'}`);
+  }
+
+  // Add an event listener for errors
+  window.addEventListener('error', handleError);
+
+  // Add a function to handle unhandled promise rejections
+  function handleUnhandledRejection(event) {
+    console.error('Unhandled promise rejection:', event.reason);
+    toast(`Ralat: ${event.reason || 'Ralat tidak diketahui'}`);
+  }
+
+  // Add an event listener for unhandled promise rejections
+  window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+  // Add a function to initialize the application
+  function initializeApp() {
+    // Initialize the editor
+    initEditor();
+    
+    // Initialize the advanced editor features
+    initAdvancedEditor();
+    
+    // Load the design
+    loadDesign();
+    
+    // Set up the iframe communication
+    setupIframeCommunication();
+    
+    // Set up the live sync
+    setupLiveSync();
+    
+    // Set up the auto-save
+    setupAutoSave();
+    
+    // Set up the error handling
+    setupErrorHandling();
+    
+    // Set up the performance monitoring
+    setupPerformanceMonitoring();
+    
+    // Set up the analytics
+    setupAnalytics();
+    
+    // Set up the debugging
+    setupDebugging();
+  }
+
+  // Add a function to set up the iframe communication
+  function setupIframeCommunication() {
+    const userPreview = document.getElementById('userPreview');
+    
+    if (userPreview) {
+      // Set up the message handler
+      window.addEventListener('message', handleIframeMessage);
+      
+      // Set up the load handler
+      userPreview.addEventListener('load', handleIframeLoad);
+      
+      // Set up the error handler
+      userPreview.addEventListener('error', (event) => {
+        console.error('Iframe error:', event.error);
+        toast(`Ralat memuatkan preview: ${event.error.message || 'Ralat tidak diketahui'}`);
+      });
+    }
+  }
+
+  // Add a function to set up the live sync
+  function setupLiveSync() {
+    // Set up the section observer
+    setupSectionObserver();
+    
+    // Set up the selected element observer
+    setupSelectedElementObserver();
+    
+    // Set up the selected section observer
+    setupSelectedSectionObserver();
+    
+    // Set up the property listeners
+    setupPropertyListeners();
+  }
+
+  // Add a function to set up the auto-save
+  function setupAutoSave() {
+    // Set up the auto-save interval
+    setInterval(() => {
+      if (store.sections && store.sections.length) {
+        saveDesign();
+      }
+    }, 30000); // Auto-save every 30 seconds
+  }
+
+  // Add a function to set up the error handling
+  function setupErrorHandling() {
+    // Set up the error handler
+    window.addEventListener('error', handleError);
+    
+    // Set up the unhandled rejection handler
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+  }
+
+  // Add a function to set up the performance monitoring
+  function setupPerformanceMonitoring() {
+    // Set up the performance observer
+    if ('PerformanceObserver' in window) {
+      const perfObserver = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          if (entry.entryType === 'measure') {
+            console.log(`Performance: ${entry.name} took ${entry.duration}ms`);
+          }
+        }
+      });
+      
+      perfObserver.observe({ entryTypes: ['measure'] });
+    }
+  }
+
+  // Add a function to set up the analytics
+  function setupAnalytics() {
+    // Set up the analytics
+    // This is a placeholder for analytics setup
+    // In a real application, you would set up analytics here
+  }
+
+  // Add a function to set up the debugging
+  function setupDebugging() {
+    // Set up the debugging
+    // This is a placeholder for debugging setup
+    // In a real application, you would set up debugging here
+  }
+
+  // Initialize the application
+  initializeApp();
+
+
+}}
+</script>
+<script>(function(){console.log('[MOVA minimal patch] added closing braces to fix syntax');})();</script>
+<!-- === START: MOVA inline patch (LOCK_STRICT v3) — 2025-11-07T06:59:07.531929Z === -->
 <script>
+/* === MOVA Inline Patch (LOCK_STRICT v3) — JS === */
 (function(){
-  function el(q,root){return (root||document).querySelector(q)}
-  function els(q,root){return Array.from((root||document).querySelectorAll(q))}
-  function create(tag, attrs={}, html=""){const n=document.createElement(tag);Object.entries(attrs).forEach(([k,v])=>n.setAttribute(k,v)); if(html) n.innerHTML=html; return n;}
-  function saveLock(on){ try{ localStorage.setItem('mova_lock_edit', on?'1':'0'); }catch(e){} }
-  function loadLock(){ try{ return localStorage.getItem('mova_lock_edit') === '1'; }catch(e){ return false; } }
+  var LOG_PREFIX = "[MOVA inline patch]";
+  var state = {
+    locked: false,
+    selectors: {
+      tabs: '[role="tab"], .tab',
+      sectionList: '.section-list, [data-role="section-list"], .user-sections, #user-sections',
+      sectionItem: '[data-section], .section-item, [data-id], li, a'
+    }
+  };
+  function log(){ try{ console.log.apply(console, [LOG_PREFIX].concat([].slice.call(arguments))); }catch(e){} }
 
-  // Place the button near "Simpan Reka Bentuk" if possible
-  function placeLockButton(btn){
-    const saveBtn = Array.from(document.querySelectorAll('button, a')).find(b => /Simpan Reka Bentuk/i.test(b.textContent||""));
-    if(saveBtn && saveBtn.parentElement){
-      saveBtn.parentElement.insertBefore(btn, saveBtn.nextSibling);
-      btn.style.marginLeft = '0.5rem';
-      return;
-    }
-    const tabStrip = Array.from(document.querySelectorAll('*')).find(n => /User Sections/i.test(n.textContent||"") && n.querySelector('button, a'));
-    if(tabStrip){
-      tabStrip.appendChild(btn);
-      btn.style.marginLeft = '0.5rem';
-      return;
-    }
-    btn.style.position='fixed'; btn.style.right='16px'; btn.style.bottom='16px'; btn.style.zIndex='60';
+  var KEY = "mova_lock_persist";
+  function persist(val){ try{ localStorage.setItem(KEY, val ? "1":"0"); }catch(e){} }
+  function restore(){ try{ return localStorage.getItem(KEY)==="1"; }catch(e){ return false; } }
+
+  function makeLockButton(){
+    if(document.querySelector(".mova-lock-btn")) return;
+    var btn = document.createElement("button");
+    btn.className = "mova-lock-btn";
+    btn.setAttribute("type","button");
+
+    var svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("viewBox","0 0 24 24");
+    svg.setAttribute("fill","none");
+    svg.setAttribute("stroke","currentColor");
+    svg.setAttribute("stroke-width","2");
+    svg.setAttribute("stroke-linecap","round");
+    svg.setAttribute("stroke-linejoin","round");
+
+    var r = document.createElementNS("http://www.w3.org/2000/svg","rect");
+    r.setAttribute("x","3"); r.setAttribute("y","11");
+    r.setAttribute("width","18"); r.setAttribute("height","11");
+    r.setAttribute("rx","2"); r.setAttribute("ry","2");
+    svg.appendChild(r);
+
+    var p = document.createElementNS("http://www.w3.org/2000/svg","path");
+    p.setAttribute("d","M7 11V7a5 5 0 0 1 10 0v4");
+    svg.appendChild(p);
+
+    var label = document.createElement("span");
+    label.className = "mova-lock-label";
+    label.appendChild(document.createTextNode("Kunci"));
+
+    btn.appendChild(svg);
+    btn.appendChild(label);
+
+    btn.addEventListener("click", function(){ setLocked(!state.locked, true); });
     document.body.appendChild(btn);
   }
 
-  function markTabsDisabled(on){
-    const labelRe = /(User Sections|Kandungan|Media|Partner|Customer|Approvals|Broadcast|Carta)/i;
-    els('a, button, [role="tab"]').forEach(t => {
-      const label = (t.textContent||'').trim();
-      const isUserTab = /^User Sections$/i.test(label);
-      if(labelRe.test(label) && !isUserTab){
-        if(on){ t.classList.add('mova-tabs-disabled'); t.setAttribute('aria-disabled','true'); }
-        else { t.classList.remove('mova-tabs-disabled'); t.removeAttribute('aria-disabled'); }
-      }
-    });
-  }
-
-  function interceptNavigation(e){
-    if(!document.body.classList.contains('locked-edit')) return;
-    const t = e.target.closest('a, button, [role="tab"]');
-    if(!t) return;
-    const label = (t.textContent||'').trim();
-    const isLock = t.id === 'mova-lock-btn';
-    const isUserTab = /User Sections/i.test(label);
-    if(!isLock && !isUserTab && /(Kandungan|Media|Partner|Customer|Approvals|Broadcast|Carta)/i.test(label)){
-      e.preventDefault(); e.stopPropagation();
-      toast('Mod Kunci aktif — buka kunci untuk ke tab lain.');
+  function setLocked(val, byUser){
+    state.locked = !!val;
+    if(document.body.classList) document.body.classList.toggle("mova-locked", state.locked);
+    else{
+      var cls = document.body.className || "";
+      var has = /(^|\s)mova-locked(\s|$)/.test(cls);
+      if(state.locked && !has) document.body.className = cls + " mova-locked";
+      if(!state.locked && has) document.body.className = cls.replace(/(^|\s)mova-locked(\s|$)/g," ");
     }
+    if(byUser) persist(state.locked);
+    log(state.locked ? "LOCKED" : "UNLOCKED");
   }
 
-  function toast(msg){
-    let b = el('#mova-lock-toast');
-    if(!b){ b = create('div',{id:'mova-lock-toast', class:'mova-lock-banner'}); document.body.appendChild(b); }
-    b.textContent = msg; b.style.opacity='1'; clearTimeout(b._t);
-    b._t = setTimeout(()=>{ b.style.opacity='0'; }, 1600);
-  }
-
-  function setLocked(on){
-    document.body.classList.toggle('locked-edit', !!on);
-    markTabsDisabled(!!on);
-    const btn = el('#mova-lock-btn');
-    if(btn){
-      btn.dataset.locked = on ? 'true':'false';
-      btn.innerHTML = on ? '🔒 Terkunci' : '🔓 Kunci Edit';
-      btn.setAttribute('aria-pressed', on?'true':'false');
-    }
-    saveLock(!!on);
-  }
-
-  function ensureButton(){
-    let btn = el('#mova-lock-btn');
-    if(btn) return btn;
-    btn = create('button', {id:'mova-lock-btn', class:'mova-lock-btn', 'data-locked':'false', title:'Kunci mod edit supaya kekal di tab User Sections'}, '🔓 Kunci Edit');
-    btn.addEventListener('click', function(e){
-      e.preventDefault();
-      const next = !(document.body.classList.contains('locked-edit'));
-      setLocked(next);
-      toast(next ? 'Mod kunci diaktifkan' : 'Mod kunci dimatikan');
+  function installGuards(){
+    document.addEventListener("click", function(ev){
+      if(!state.locked) return;
+      var target = ev.target;
+      var el = (target.closest && target.closest(state.selectors.tabs + "," + state.selectors.sectionItem)) || null;
+      if(!el) return;
+      if (target.closest && target.closest(".mova-lock-btn")) return;
+      var inputLike = (target.closest && target.closest("input,textarea,[contenteditable],select,.rtbox,.editor"));
+      if(inputLike) return;
+      ev.stopPropagation(); ev.preventDefault();
+      log("Blocked navigation/change while locked.");
     }, true);
-    placeLockButton(btn);
-    return btn;
   }
 
-  function initLock(){
-    ensureButton();
-    if(loadLock()){ setLocked(true); }
-    document.addEventListener('click', interceptNavigation, true);
-    window.addEventListener('hashchange', function(){
-      if(document.body.classList.contains('locked-edit')){
-        const hash = (location.hash||'').toLowerCase();
-        if(!/user/.test(hash)){
-          history.replaceState(null,'', '#user');
-          toast('Mod Kunci aktif — kekal di User Sections');
-        }
+  function ensureSinglePreview(){
+    try{
+      var iframes = Array.prototype.slice.call(document.querySelectorAll("iframe[id*='preview'], iframe[src*='user'], iframe[name*='preview']"));
+      if(iframes.length > 1){
+        for(var i=1;i<iframes.length;i++) iframes[i].classList.add("mova-hide");
+        log("Multiple iframes preview hidden:", iframes.length-1);
       }
+    }catch(e){}
+  }
+
+  function installAutoScroll(){
+    var container = document.querySelector(state.selectors.sectionList) || document;
+    container.addEventListener("click", function(ev){
+      if(state.locked) return;
+      var a = (ev.target.closest && ev.target.closest("a[href^='#'], [data-target], [data-id]")) || null;
+      if(!a) return;
+      var targetId = null;
+      if(a.getAttribute("href") && a.getAttribute("href").charAt(0)==="#"){ targetId = a.getAttribute("href").slice(1); }
+      else if(a.dataset && a.dataset.target){ targetId = a.dataset.target.replace(/^#/, ""); }
+      else if(a.dataset && a.dataset.id){ targetId = a.dataset.id.replace(/^#/, ""); }
+      if(!targetId) return;
+      var iframe = document.querySelector("iframe[id*='preview'], iframe[name*='preview'], iframe[src*='user']");
+      if(!iframe) return;
+      try{
+        var doc = iframe.contentWindow && iframe.contentWindow.document;
+        if(doc){
+          var sel = "[data-section-id='" + targetId + "'], section[id='" + targetId + "']";
+          var el = doc.getElementById(targetId) || doc.querySelector(sel);
+          if(el && el.scrollIntoView) el.scrollIntoView({behavior:"smooth", block:"start"});
+        }else{
+          iframe.contentWindow.postMessage({type:"mova-scroll", id:targetId}, "*");
+        }
+      }catch(e){
+        try{ iframe.contentWindow.postMessage({type:"mova-scroll", id:targetId}, "*"); }catch(_){}
+      }
+    }, true);
+  }
+
+  function hideDuplicatePreviewPanes(){
+    var previews = Array.prototype.slice.call(document.querySelectorAll("[data-role='preview'], .preview, #preview"));
+    if(previews.length > 1){
+      for(var i=1;i<previews.length;i++) previews[i].classList.add("mova-hide");
+      log("Multiple preview panes hidden:", previews.length-1);
+    }
+  }
+
+  function installLiveSync(){
+    var editor = document.querySelector(".editor, [data-role='editor'], #editor, .user-editor, .left-editor");
+    if(!editor) return;
+    var timer = null;
+    editor.addEventListener("input", function(){
+      if(timer) clearTimeout(timer);
+      timer = setTimeout(function(){
+        try{ window.dispatchEvent(new CustomEvent("mova-editor-change")); }catch(_){}
+        log("Editor change (debounced).");
+      }, 250);
     });
   }
 
-  if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', initLock);
-  } else {
-    initLock();
+  function injectCSS(){
+    try{
+      var style = document.createElement("style");
+      style.id = "mova_inline_patch_lock_strict";
+      style.appendChild(document.createTextNode('/* === MOVA Inline Patch (LOCK_STRICT v3) — CSS === */\n:root{ --mova-brand:#ef4444; }\n.mova-lock-btn{\n  position:fixed; top:14px; right:14px; z-index:9999;\n  display:inline-flex; align-items:center; gap:.5rem;\n  padding:.55rem .85rem; border-radius:.75rem; font-weight:700;\n  border:1px solid rgba(0,0,0,.08); background:#fff;\n  box-shadow:0 6px 18px rgba(0,0,0,.08); cursor:pointer; user-select:none;\n}\n.mova-lock-btn svg{ width:18px; height:18px }\nbody.mova-locked{ --mova-dim:.5; }\nbody.mova-locked .mova-lock-btn{ background: var(--mova-brand); color:#fff; border-color:transparent; }\nbody.mova-locked .mova-lock-btn .mova-lock-label::after{ content:" (Terkunci)"; font-weight:700; }\n\n/* Kunci tab lain semasa mengedit */\nbody.mova-locked [role="tab"]:not(.active),\nbody.mova-locked .tab:not(.active) {\n  pointer-events:none !important;\n  opacity: .45 !important;\n  filter: grayscale(1);\n}\n\n/* Elak klik yang menukar seksyen ketika terkunci */\nbody.mova-locked .section-list [data-section],\nbody.mova-locked .section-list .section-item {\n  pointer-events:none !important;\n  opacity:.85;\n}\n\n/* Pastikan hanya 1 preview kelihatan jika ada gandaan */\n.mova-hide { display:none !important; }'));
+      (document.head || document.documentElement).appendChild(style);
+    }catch(e){}
   }
-})();
-</script>
-<!-- ===== /MOVA: Lock Edit Injection ===== -->
 
-</body></html>
+  document.addEventListener("DOMContentLoaded", function(){
+    injectCSS();
+    makeLockButton();
+    installGuards();
+    ensureSinglePreview();
+    hideDuplicatePreviewPanes();
+    installAutoScroll();
+    installLiveSync();
+    setLocked(restore(), false);
+    log("Applied v3.");
+  });
+})();</script>
+<!-- === END: MOVA inline patch (LOCK_STRICT v3) === -->
+</body>
+</html>
