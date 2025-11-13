@@ -740,6 +740,16 @@
   }
   function uid(){ return 'el_' + Math.random().toString(36).slice(2,9); }
 
+  // Debounce helper utk elak hantar terlalu kerap ke preview
+  function debounce(fn, delay) {
+    let timer;
+    return function(...args) {
+      const context = this;
+      clearTimeout(timer);
+      timer = setTimeout(() => fn.apply(context, args), delay);
+    };
+  }
+
   async function callApi(path, payload) {
     const res = await fetch(EXEC_URL, {
       method:'POST',
